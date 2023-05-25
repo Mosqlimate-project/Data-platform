@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mosqclimate-data"
+version = "0.1.0"
+description = "TODO"
+authors = ["Flávio Codeço Coelho <you@example.com>"]
+license = "GNU"
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8.1,<4.0.0"
+django-ninja = "^0.21.0"
+django-extensions = "^3.2.1"
+djangorestframework = "^3.14.0"
+dr-scaffold = "^2.1.2"
+jinja2 = "<3.0.3"
+makim = "^1.8.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
