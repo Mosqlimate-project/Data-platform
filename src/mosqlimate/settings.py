@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'mosqclimate.urls'
+ROOT_URLCONF = 'mosqlimate.urls'
 
 TEMPLATES = [
     {
@@ -61,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mosqclimate.wsgi.application'
+WSGI_APPLICATION = 'mosqlimate.wsgi.application'
 
 
 # [Databases]

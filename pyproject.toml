@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "mosqclimate-data"
+name = "mosqlimate-data"
 version = "0.1.0"
 description = "TODO"
 authors = ["Flávio Codeço Coelho <you@example.com>"]
