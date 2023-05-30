@@ -7,10 +7,12 @@ from .schema import Schema, AuthorSchema, NotFoundSchema
 
 router = Router()
 
-# -- Author Model --
-class AuthorSchemaIn(Schema):
+# [Model] Author
+class AuthorIn(Schema):
     """ Input for the request's body """
     name: str
+    email: str
+    institution: str
 
 
 @router.get('/authors/', response=List[AuthorSchema])
@@ -32,14 +34,14 @@ def get_author(request, author_id: int):
 
 
 @router.post('/authors/', response={201: AuthorSchema})
-def create_author(request, payload: AuthorSchemaIn):
+def create_author(request, payload: AuthorIn):
     """ Posts author to database """
     author = Author.objects.create(**payload.dict())
     return (201, author)
 
 
 @router.put('/authors/{author_id}', response={200: AuthorSchema, 404: NotFoundSchema})
-def update_author(request, author_id: int, payload: AuthorSchemaIn):
+def update_author(request, author_id: int, payload: AuthorIn):
     """ Updates author """
     try:
         author = Author.objects.get(pk=author_id)
@@ -62,3 +64,8 @@ def delete_author(request, author_id: int):
         return 200
     except Author.DoesNotExist as e:
         return (404, {"message": "Author not found"})
+
+
+# [Model] Model
+class ModelSchemaIn(Schema):
+    name: str
