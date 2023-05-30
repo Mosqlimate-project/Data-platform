@@ -1,6 +1,5 @@
 from typing import List, Optional
 from ninja import Router
-from django.shortcuts import get_object_or_404
 
 from .models import Author
 from .schema import Schema, AuthorSchema, NotFoundSchema
@@ -21,6 +20,7 @@ def list_authors(request, name: Optional[str] = None):
         return Author.objects.filter(name__icontains=name)
     return Author.objects.all()
 
+
 @router.get('/authors/{author_id}', response={200: AuthorSchema, 404: NotFoundSchema})
 def get_author(request, author_id: int):
     """ Gets author by id """
@@ -30,26 +30,35 @@ def get_author(request, author_id: int):
     except Author.DoesNotExist as e:
         return (404, {"message": "Author not found"})
 
+
 @router.post('/authors/', response={201: AuthorSchema})
 def create_author(request, payload: AuthorSchemaIn):
     """ Posts author to database """
     author = Author.objects.create(**payload.dict())
     return (201, author)
 
-@router.put('/authors/{id}', response=AuthorSchema)
-def update_author(request, id: int, payload: AuthorSchemaIn):
+
+@router.put('/authors/{author_id}', response={200: AuthorSchema, 404: NotFoundSchema})
+def update_author(request, author_id: int, payload: AuthorSchemaIn):
     """ Updates author """
-    author = get_object_or_404(Author, id=id)
-
-    for attr, value in payload.dict().items():
-        setattr(author, attr, value)
+    try:
+        author = Author.objects.get(pk=author_id)
     
-    author.save()
-    return author
+        for attr, value in payload.dict().items():
+            setattr(author, attr, value)
+    
+        author.save()
+        return (200, author)
+    except Author.DoesNotExist as e:
+        return (404, {"message": "Author not found"})
 
-@router.delete('/authors/{id}', response={204: None})
-def delete_author(request, id: int):
+
+@router.delete('/authors/{author_id}', response={204: None, 404: NotFoundSchema})
+def delete_author(request, author_id: int):
     """ Deletes author """
-    author = get_object_or_404(Author, id=id)
-    author.delete()
-    return (204, None)
+    try:
+        author = Author.objects.get(pk=author_id)
+        author.delete()
+        return 200
+    except Author.DoesNotExist as e:
+        return (404, {"message": "Author not found"})
