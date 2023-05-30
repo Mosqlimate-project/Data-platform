@@ -26,12 +26,13 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    'rest_framework',
     'django_extensions',
     'dr_scaffold'
 ]
     
 LOCAL_APPS = [
+    'datastore',
+    'registry'
 ]
     
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
