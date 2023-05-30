@@ -3,7 +3,6 @@ from django.db import models
 
 class Author(models.Model):    
     name = models.CharField(max_length=100, null=False, blank=False)
-    description = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(max_length=254, null=True, blank=True) #TODO: True?
     institution = models.CharField(max_length=255, null=True, blank=True) #TODO: True?
     created = models.DateTimeField(auto_now_add=True)
@@ -37,6 +36,7 @@ class Model(models.Model):
 
 class Prediction(models.Model):    
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
+    description = models.CharField(max_length=255, null=True, blank=True)
     commit = models.CharField(max_length=255, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
