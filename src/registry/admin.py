@@ -6,38 +6,54 @@ from registry.models import Author, Model, Prediction
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
-    search_fields = ('name', 'email', 'institution',)
-    date_hierarchy = ('updated')
+    search_fields = (
+        'name',
+        'email',
+        'institution',
+    )
+    date_hierarchy = 'updated'
 
 
 @admin.register(Model)
 class ModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'repository', '__str__',)
+    list_display = (
+        'name',
+        'author',
+        'repository',
+        '__str__',
+    )
     list_display_links = ('__str__',)
     search_fields = (
         'name',
         'description',
-        'author__name', 
-        'author__institution', 
+        'author__name',
+        'author__institution',
         'repository',
         'implementation_language',
         'type',
         'created',
     )
-    list_filter = ('type', 'implementation_language',)
-    date_hierarchy = ('updated')
+    list_filter = (
+        'type',
+        'implementation_language',
+    )
+    date_hierarchy = 'updated'
+
 
 @admin.register(Prediction)
 class PredictionAdmin(admin.ModelAdmin):
-    list_display = ('created', 'predict_date', '__str__',)
+    list_display = (
+        'created',
+        'predict_date',
+        '__str__',
+    )
     list_display_links = ('__str__',)
     search_fields = (
-        'model__name', 
-        'model__author', 
+        'model__name',
+        'model__author',
         'model__description',
         'commit',
         'created',
         'predict_date',
     )
-    date_hierarchy = ('updated')
-
+    date_hierarchy = 'updated'

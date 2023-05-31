@@ -18,6 +18,7 @@ class AuthorSchema(Schema):
 
 class ModelSchema(Schema):
     id: int
+    name: str
     description: str = None
     author: AuthorSchema
     repository: str
@@ -29,6 +30,7 @@ class ModelSchema(Schema):
 
 class PredictionSchema(Schema):
     id: int
+    model: ModelSchema
     description: str = None
     commit: str
     predict_date: date

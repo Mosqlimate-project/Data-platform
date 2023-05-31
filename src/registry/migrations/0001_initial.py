@@ -12,97 +12,104 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Author",
+            name='Author',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
-                ("name", models.CharField(max_length=100)),
-                ("email", models.EmailField(blank=True, max_length=254, null=True)),
+                ('name', models.CharField(max_length=100)),
                 (
-                    "institution",
+                    'email',
+                    models.EmailField(blank=True, max_length=254, null=True),
+                ),
+                (
+                    'institution',
                     models.CharField(blank=True, max_length=255, null=True),
                 ),
-                ("created", models.DateTimeField(auto_now_add=True)),
-                ("updated", models.DateTimeField(auto_now=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('updated', models.DateTimeField(auto_now=True)),
             ],
             options={
-                "verbose_name": "Author",
-                "verbose_name_plural": "Authors",
+                'verbose_name': 'Author',
+                'verbose_name_plural': 'Authors',
             },
         ),
         migrations.CreateModel(
-            name="Model",
+            name='Model',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
-                ("name", models.CharField(max_length=255)),
+                ('name', models.CharField(max_length=255)),
                 (
-                    "description",
+                    'description',
                     models.CharField(blank=True, max_length=255, null=True),
                 ),
-                ("repository", models.URLField()),
-                ("implementation_language", models.CharField(max_length=100)),
-                ("type", models.CharField(blank=True, max_length=255, null=True)),
-                ("created", models.DateTimeField(auto_now_add=True)),
-                ("updated", models.DateTimeField(auto_now=True)),
+                ('repository', models.URLField()),
+                ('implementation_language', models.CharField(max_length=100)),
                 (
-                    "author",
+                    'type',
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('updated', models.DateTimeField(auto_now=True)),
+                (
+                    'author',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="registry.author",
+                        to='registry.author',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Model",
-                "verbose_name_plural": "Models",
+                'verbose_name': 'Model',
+                'verbose_name_plural': 'Models',
             },
         ),
         migrations.CreateModel(
-            name="Prediction",
+            name='Prediction',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "description",
+                    'description',
                     models.CharField(blank=True, max_length=255, null=True),
                 ),
-                ("commit", models.CharField(max_length=255)),
-                ("predict_date", models.DateField()),
-                ("prediction", models.JSONField(blank=True)),
-                ("created", models.DateTimeField(auto_now_add=True)),
-                ("updated", models.DateTimeField(auto_now=True)),
+                ('commit', models.CharField(max_length=255)),
+                ('predict_date', models.DateField()),
+                ('prediction', models.JSONField(blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('updated', models.DateTimeField(auto_now=True)),
                 (
-                    "model",
+                    'model',
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="registry.model"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='registry.model',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Prediction",
-                "verbose_name_plural": "Predictions",
+                'verbose_name': 'Prediction',
+                'verbose_name_plural': 'Predictions',
             },
         ),
     ]

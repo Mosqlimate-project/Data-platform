@@ -11,7 +11,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = os.environ.get('ENV').lower() == 'dev'
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -25,16 +25,10 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
-THIRD_PARTY_APPS = [
-    'django_extensions',
-    'dr_scaffold'
-]
-    
-LOCAL_APPS = [
-    'datastore',
-    'registry'
-]
-    
+THIRD_PARTY_APPS = ['django_extensions', 'dr_scaffold']
+
+LOCAL_APPS = ['datastore', 'registry']
+
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
@@ -80,11 +74,11 @@ PSQL_PORT = os.environ.get('POSTGRES_PORT')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     PSQL_DB,
-        'USER':     PSQL_USER,
+        'NAME': PSQL_DB,
+        'USER': PSQL_USER,
         'PASSWORD': PSQL_PASS,
-        'HOST':     PSQL_HOST,
-        'PORT':     PSQL_PORT
+        'HOST': PSQL_HOST,
+        'PORT': PSQL_PORT,
     }
 }
 
