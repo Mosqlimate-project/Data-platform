@@ -12,8 +12,6 @@ class AuthorSchema(Schema):
     name: str
     email: str
     institution: str
-    created: datetime
-    updated: datetime
 
 
 class ModelSchema(Schema):
@@ -24,8 +22,6 @@ class ModelSchema(Schema):
     repository: str
     implementation_language: str
     type: str
-    created: datetime
-    updated: datetime
 
 
 class PredictionSchema(Schema):
@@ -35,5 +31,3 @@ class PredictionSchema(Schema):
     commit: str
     predict_date: date
     prediction: AnyObject
-    created: datetime
-    updated: datetime
