@@ -11,7 +11,6 @@ templates = Environment(
 )
 
 psql_template = templates.get_template("postgresql.conf")
-
 variables = {
     "PGDATA": "/var/lib/postgresql/data",
     "ALLOWED_HOSTS": os.environ.get("ALLOWED_HOSTS"),
@@ -30,11 +29,8 @@ if file.exists():
     )
     if answer.lower() == "y":
         file.unlink()
-        file.touch()
 
-        with open(file, "w") as f:
-            f.write(output)
-else:
+if not file.exists():
     file.touch()
     with open(file, "w") as f:
         f.write(output)
