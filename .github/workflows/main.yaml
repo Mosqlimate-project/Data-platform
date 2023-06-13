@@ -52,6 +52,17 @@ jobs:
         pre-commit install
         pre-commit run --all-files
 
+    - name: Build containers
+      run: |
+        kxgr --group dev build
+
+    - name: Start containers
+      run: |
+        kxgr --group dev start
+
+    # - name: Container wait
+    #   run: |
+    #      make container-wait-all
     
     # TODO remove it
     - name: Setup tmate session
