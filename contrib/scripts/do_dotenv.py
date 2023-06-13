@@ -1,7 +1,9 @@
 import os
-from contrib.scripts import templates
 from pathlib import Path
+
 from django.core.management.utils import get_random_secret_key
+
+from contrib.scripts import templates
 
 print("------ .env ------")
 

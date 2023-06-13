@@ -20,6 +20,3 @@ service-groups:
       list:
         - name: postgres
           health-check: true
-
-
-

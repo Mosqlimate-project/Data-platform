@@ -1,6 +1,7 @@
 import os
-from contrib.scripts import templates
 from pathlib import Path
+
+from contrib.scripts import templates
 
 print("------ postgres.conf ------")
 

@@ -26,26 +26,9 @@ repos:
         - file
         - python
       types_or: []
-    - entry: flake8
+    - entry: ruff
       exclude: ^$
-      files: ""
-      id: flake8
-      language: python
-      name: flake8
-      pass_filenames: true
-      stages:
-        - commit
-      types:
-        - python
-      types_or: []
-    - entry: isort
-      exclude: "^.*/js/.*$"
-      files: ""
-      id: isort
-      language: python
-      name: isort
-      pass_filenames: true
-      stages:
-        - commit
-      types:
-        - python
+      types_or: [python, pyi]
+      id: ruff
+      name: ruff
+      language: system

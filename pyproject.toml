@@ -5,7 +5,7 @@ description = "TODO"
 authors = ["Flávio Codeço Coelho <you@example.com>"]
 license = "GNU"
 readme = "README.md"
-packages = [{include = "src"}]
+# packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0.0"
@@ -23,8 +23,7 @@ docker-compose = "^1.29.2"
 [tool.poetry.group.pre-commit.dependencies]
 pre-commit = "^3.3.2"
 black = "^23.3.0"
-isort = "^5.12.0"
-flake8 = "^6.0.0"
+ruff = "^0.0.272"
 
 [build-system]
 requires = ["poetry-core"]

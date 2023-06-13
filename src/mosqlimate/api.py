@@ -4,4 +4,4 @@ from registry.api import router as registry_router
 
 api = NinjaAPI()
 
-api.add_router('/registry/', router=registry_router)
+api.add_router("/registry/", router=registry_router)

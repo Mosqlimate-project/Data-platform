@@ -1,5 +1,6 @@
+from datetime import date
+
 from ninja import Schema
-from datetime import datetime, date
 from ninja.orm.fields import AnyObject
 
 

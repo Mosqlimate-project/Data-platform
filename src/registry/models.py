@@ -3,21 +3,17 @@ from django.db import models
 
 class Author(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
-    email = models.EmailField(
-        max_length=254, null=True, blank=True
-    )   # TODO: True?
-    institution = models.CharField(
-        max_length=255, null=True, blank=True
-    )   # TODO: True?
+    email = models.EmailField(max_length=254, null=True, blank=True)  # TODO: True?
+    institution = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.name}'
+        return f"{self.name}"
 
     class Meta:
-        verbose_name = 'Author'
-        verbose_name_plural = 'Authors'
+        verbose_name = "Author"
+        verbose_name_plural = "Authors"
 
 
 class Model(models.Model):
@@ -25,23 +21,19 @@ class Model(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
     author = models.ForeignKey(
         Author, on_delete=models.CASCADE, null=False
-    )   # TODO: CASCADE?
+    )  # TODO: CASCADE?
     repository = models.URLField(max_length=200, null=False, blank=False)
-    implementation_language = models.CharField(
-        max_length=100, null=False, blank=False
-    )
-    type = models.CharField(
-        max_length=255, null=True, blank=True
-    )   # TODO: True?
+    implementation_language = models.CharField(max_length=100, null=False, blank=False)
+    type = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.name}'
+        return f"{self.name}"
 
     class Meta:
-        verbose_name = 'Model'
-        verbose_name_plural = 'Models'
+        verbose_name = "Model"
+        verbose_name_plural = "Models"
 
 
 class Prediction(models.Model):
@@ -54,8 +46,8 @@ class Prediction(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.commit}'   # TODO: Change it
+        return f"{self.commit}"  # TODO: Change it
 
     class Meta:
-        verbose_name = 'Prediction'
-        verbose_name_plural = 'Predictions'
+        verbose_name = "Prediction"
+        verbose_name_plural = "Predictions"

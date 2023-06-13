@@ -1,17 +1,10 @@
 import datetime
 from typing import List, Optional
-from ninja import Router
-from ninja.orm.fields import AnyObject
 
 from models import Author, Model, Prediction
-from schema import (
-    Schema,
-    ModelSchema,
-    AuthorSchema,
-    PredictionSchema,
-    NotFoundSchema,
-)
-
+from ninja import Router
+from ninja.orm.fields import AnyObject
+from schema import AuthorSchema, ModelSchema, NotFoundSchema, PredictionSchema, Schema
 
 router = Router()
 
@@ -39,7 +32,7 @@ def get_author(request, author_id: int):
     try:
         author = Author.objects.get(pk=author_id)
         return (200, author)
-    except Author.DoesNotExist as e:
+    except Author.DoesNotExist:
         return (404, {"message": "Author not found"})
 
 
@@ -61,7 +54,7 @@ def update_author(request, author_id: int, payload: AuthorIn):
 
         author.save()
         return (201, author)
-    except Author.DoesNotExist as e:
+    except Author.DoesNotExist:
         return (404, {"message": "Author not found"})
 
 
@@ -72,7 +65,7 @@ def delete_author(request, author_id: int):
         author = Author.objects.get(pk=author_id)
         author.delete()
         return 204
-    except Author.DoesNotExist as e:
+    except Author.DoesNotExist:
         return (404, {"message": "Author not found"})
 
 
@@ -101,7 +94,7 @@ def get_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)
         return (200, model)
-    except Model.DoesNotExist as e:
+    except Model.DoesNotExist:
         return (404, {"message": "Model not found"})
 
 
@@ -121,7 +114,7 @@ def update_model(request, model_id: int, payload: ModelIn):
 
         model.save()
         return (201, model)
-    except Model.DoesNotExist as e:
+    except Model.DoesNotExist:
         return (404, {"message": "Model not found"})
 
 
@@ -131,7 +124,7 @@ def delete_model(request, model_id: int):
         model = Model.objects.get(pk=model_id)
         model.delete()
         return 204
-    except Author.DoesNotExist as e:
+    except Author.DoesNotExist:
         return (404, {"message": "Model not found"})
 
 
@@ -162,7 +155,7 @@ def get_prediction(request, predict_id: int):
     try:
         prediction = Prediction.objects.get(pk=predict_id)
         return (200, prediction)
-    except Prediction.DoesNotExist as e:
+    except Prediction.DoesNotExist:
         return (404, {"message": "Prediction not found"})
 
 
@@ -185,7 +178,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         prediction.save()
         return (201, prediction)
-    except Prediction.DoesNotExist as e:
+    except Prediction.DoesNotExist:
         return (404, {"message": "Prediction not found"})
 
 
@@ -195,5 +188,5 @@ def delete_prediction(request, predict_id: int):
         prediction = Prediction.objects.get(pk=predict_id)
         prediction.delete()
         return 204
-    except Prediction.DoesNotExist as e:
+    except Prediction.DoesNotExist:
         return (404, {"message": "Prediction not found"})
