@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
 
-from contrib.scripts import templates
+from jinja2 import Environment, FileSystemLoader
 
 print("------ postgres.conf ------")
+
+project_dir = Path(__file__).parent.parent.parent
+templates = Environment(loader=FileSystemLoader(project_dir / "templates"))
 
 # Environment variables:
 pgdata = "/var/lib/postgresql/data"  # INSIDE CONTAINER

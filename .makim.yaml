@@ -1,0 +1,9 @@
+version: 1.8.1
+
+groups:
+  dev:
+    targets:
+      dotenv:
+        help: Configure .env file
+        run: |
+          python contrib/scripts/do_dotenv.py
