@@ -25,6 +25,11 @@ jobs:
         shell: bash -l {0}
 
     steps:
+    - name: Semantic Release PR Title Check
+      uses: osl-incubator/semantic-release-pr-title-check@v1.4.2
+      with:                                   
+        convention-name: conventionalcommits 
+
     - uses: actions/checkout@v2
 
     - uses: conda-incubator/setup-miniconda@v2
