@@ -14,7 +14,10 @@ django-extensions = "^3.2.1"
 dr-scaffold = "^2.1.2"
 jinja2 = "<3.0.3"
 makim = "^1.8.1"
-psycopg2 = "^2.9.6"
+psycopg2-binary = "^2.9.6"
+django = "^4.2.2"
+containers-sugar = "^1.7.0"
+docker-compose = "^1.29.2"
 
 
 [build-system]
