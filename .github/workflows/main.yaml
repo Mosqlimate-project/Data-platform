@@ -71,6 +71,7 @@ jobs:
 
     - name: Build containers
       run: |
+        makim dev.dotenv
         kxgr --group dev build
 
     - name: Start containers
