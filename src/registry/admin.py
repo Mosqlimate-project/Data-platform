@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Author, Model, Prediction
+from .models import Author, Model, Prediction
 
 
 @admin.register(Author)

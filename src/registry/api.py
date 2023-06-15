@@ -1,10 +1,10 @@
 import datetime
 from typing import List, Optional
 
-from models import Author, Model, Prediction
+from .models import Author, Model, Prediction
 from ninja import Router
 from ninja.orm.fields import AnyObject
-from schema import AuthorSchema, ModelSchema, NotFoundSchema, PredictionSchema, Schema
+from .schema import AuthorSchema, ModelSchema, NotFoundSchema, PredictionSchema, Schema
 
 router = Router()
 
