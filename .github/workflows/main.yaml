@@ -9,7 +9,6 @@ on:
 env:
   ENV: dev
   # [Django PostgreSQL]
-  POSTGRES_HOST: postgres
   POSTGRES_PORT: 5432
   POSTGRES_USER: mosqlimate-ci
   POSTGRES_PASSWORD: mosqlimate-ci
@@ -72,11 +71,12 @@ jobs:
     - name: Build containers
       run: |
         makim dev.dotenv
-        kxgr --group dev build
+        makim dev.psql-conf
+        makim containers-build
 
     - name: Start containers
       run: |
-        kxgr --group dev start
+        makim containers-start
 
     # - name: Container wait
     #   run: |

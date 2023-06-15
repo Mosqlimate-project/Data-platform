@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 from django.core.management.utils import get_random_secret_key
 from jinja2 import Environment, FileSystemLoader
@@ -12,7 +13,6 @@ templates = Environment(loader=FileSystemLoader(project_dir / "contrib" / "templ
 
 def get_env_var_or_input(var_key: str, input_text=None, default_val=None):
     var_value = os.environ.get(var_key) or default_val
-    print(var_value)
     return input(input_text) if not var_value else var_value
 
 
@@ -36,12 +36,8 @@ psql_user = get_env_var_or_input("POSTGRES_USER", input_text="Postgresql user: "
 psql_pass = get_env_var_or_input("POSTGRES_PASSWORD", input_text="Postgresql password ")
 psql_db = get_env_var_or_input("POSTGRES_DB", input_text="Postgresql database: ")
 psql_uri = f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
-psql_conf = get_env_var_or_input(
-    "POSTGRES_CONFIG_DIR_HOST", input_text="postgresql.conf file directory on host: "
-)
-Path(psql_conf).mkdir(parents=True, exist_ok=True)
 psql_data = get_env_var_or_input(
-    "POSTGRES_DATA_DIR_HOST", input_text="PGDATA directory on host: "
+    "POSTGRES_DATA_DIR_HOST", input_text="Postgresql directory on host: "
 )
 Path(psql_data).mkdir(exist_ok=True, parents=True)
 
@@ -69,7 +65,7 @@ variables = {
     "ALLOWED_HOSTS": allowed_hosts,
     "HOST_UID": uid,
     "HOST_GID": gid,
-    "DATABASE_URL": psql_uid,
+    "DATABASE_URL": psql_uri,
     "POSTGRES_HOST": psql_host,
     "POSTGRES_PORT": psql_port,
     "POSTGRES_USER": psql_user,
@@ -77,7 +73,6 @@ variables = {
     "POSTGRES_PASSWORD": psql_pass,
     "POSTGRES_HOST_UID": psql_uid,
     "POSTGRES_HOST_GID": psql_gid,
-    "POSTGRES_CONFIG_DIR_HOST": psql_conf,
     "POSTGRES_DATA_DIR_HOST": psql_data,
     # "DEFAULT_FROM_EMAIL": dj_default_from_email,
     # "EMAIL_BACKEND": dj_email_backend,
@@ -98,3 +93,5 @@ if not dotenv_file.exists():
     dotenv_file.touch()
     with open(dotenv_file, "w") as f:
         f.write(output)
+
+load_dotenv()

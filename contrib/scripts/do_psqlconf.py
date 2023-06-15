@@ -1,18 +1,21 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 from jinja2 import Environment, FileSystemLoader
+
+load_dotenv()
 
 print("------ postgres.conf ------")
 
 project_dir = Path(__file__).parent.parent.parent
-templates = Environment(loader=FileSystemLoader(project_dir / "templates"))
+templates = Environment(loader=FileSystemLoader(project_dir / "contrib" / "templates"))
 
 # Environment variables:
 pgdata = "/var/lib/postgresql/data"  # INSIDE CONTAINER
 allowed_hosts = os.environ.get("ALLOWED_HOSTS")
 psql_port = os.environ.get("POSTGRES_PORT")
-psql_data = os.environ.get("POSTGRES_CONFIG_DIR_HOST")
+psql_data = os.environ.get("POSTGRES_DATA_DIR_HOST")
 
 psql_template = templates.get_template("postgresql.conf")
 variables = {
@@ -23,9 +26,12 @@ variables = {
 
 output = psql_template.render(variables)
 
-data_dir = Path(str(psql_data))
+psql_dir = Path(str(psql_data))
+data_dir = psql_dir / "pgdata"
 
-file = data_dir / "postgresql.conf"
+data_dir.mkdir(exist_ok=True, parents=True)
+
+file = psql_dir / "postgresql.conf"
 
 if file.exists():
     answer = input(f"postgresql.conf found at {data_dir}, replace it? [y/n] ")

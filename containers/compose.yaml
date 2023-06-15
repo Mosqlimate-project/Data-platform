@@ -13,6 +13,7 @@ services:
         #       the .env file
         - UID=${POSTGRES_HOST_UID}
         - GID=${POSTGRES_HOST_GID}
+        - DATA_DIR=${POSTGRES_DATA_DIR_HOST}
         - environment=${ENV}
     env_file:
       - ../.env
@@ -21,11 +22,11 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: ${POSTGRES_USER}
-      PGDATA: /var/lib/postgresql/data
-    user: "postgres:postgres"
+      POSTGRES_DB: ${POSTGRES_DB}
+    user: postgres
     volumes:
-      - ${POSTGRES_CONFIG_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ${POSTGRES_DATA_DIR_HOST}:/var/lib/postgresql/data:z
+      - ${POSTGRES_DATA_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ${POSTGRES_DATA_DIR_HOST}/pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U postgres"]
       interval: 60s
