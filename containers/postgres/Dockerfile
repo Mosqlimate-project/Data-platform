@@ -20,7 +20,6 @@ RUN apt-get update \
 USER postgres
 
 VOLUME /var/lib/postgresql/data
-COPY ${DATA_DIR}/postgresql.conf /etc/postgresql/postgresql.conf
 
 # Overrides default image config
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
