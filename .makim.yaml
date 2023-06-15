@@ -18,6 +18,7 @@ groups:
         help: Build containers
         run: |
           kxgr build --group $ENV
+          kxgr up --group $ENV --options "--no-start"
 
       containers-start:
         help: Start all containers
