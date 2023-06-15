@@ -60,7 +60,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        poetry lock
         poetry install
 
     - name: Linting

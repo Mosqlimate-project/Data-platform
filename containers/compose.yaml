@@ -28,7 +28,7 @@ services:
       - ${POSTGRES_DATA_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ${POSTGRES_DATA_DIR_HOST}/pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER}"]
       interval: 60s
       timeout: 5s
       retries: 10
