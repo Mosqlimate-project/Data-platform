@@ -1,0 +1,34 @@
+default_language_version:
+  python: python3.10
+
+default_stages: [commit, push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.5.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: LICENSE
+
+  - repo: local
+    hooks:
+    - entry: black
+      exclude: ^$
+      files: ""
+      id: black
+      language: system
+      name: black
+      pass_filenames: true
+      stages:
+        - commit
+      types:
+        - python
+        - file
+        - python
+      types_or: []
+    - entry: ruff
+      exclude: ^$
+      types_or: [python, pyi]
+      id: ruff
+      name: ruff
+      language: system
