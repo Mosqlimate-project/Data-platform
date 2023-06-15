@@ -27,6 +27,7 @@ ruff = "^0.0.272"
 
 [tool.poetry.group.dev.dependencies]
 makim = "^1.8.1"
+pygments = "^2.15.1"
 
 [build-system]
 requires = ["poetry-core"]
