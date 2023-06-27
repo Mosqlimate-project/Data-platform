@@ -1,21 +1,21 @@
 import os
+import environ
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+env = environ.Env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = os.environ.get("ENV").lower() == "dev"
+DEBUG = env("ENV").lower() == "dev"
 
-ALLOWED_HOSTS = ["*"]
-
-
-# Application definition
+ALLOWED_HOSTS = ["localhost"]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -24,9 +24,17 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
 ]
 
-THIRD_PARTY_APPS = ["django_extensions", "dr_scaffold"]
+THIRD_PARTY_APPS = [
+    "django_extensions",
+    "dr_scaffold",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
+]
 
 LOCAL_APPS = ["datastore", "registry"]
 
@@ -66,11 +74,16 @@ WSGI_APPLICATION = "mosqlimate.wsgi.application"
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-PSQL_DB = os.environ.get("POSTGRES_DB")
-PSQL_USER = os.environ.get("POSTGRES_USER")
-PSQL_PASS = os.environ.get("POSTGRES_PASSWORD")
-PSQL_HOST = os.environ.get("POSTGRES_HOST")
-PSQL_PORT = os.environ.get("POSTGRES_PORT")
+PSQL_DB, PSQL_USER, PSQL_PASS, PSQL_HOST, PSQL_PORT = map(
+    env,
+    [
+        "POSTGRES_DB",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+    ],
+)
 
 DATABASES = {
     "default": {
@@ -83,6 +96,15 @@ DATABASES = {
     }
 }
 
+# 2 Factor Authentication (allauth)
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -123,6 +145,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+
+STATICFILES_DIRS = [
+    ("css", os.path.join(BASE_DIR, "static/css")),
+    ("scripts", os.path.join(BASE_DIR, "static/scripts")),
+    ("images", os.path.join(BASE_DIR, "static/images")),
+    ("webfonts", os.path.join(BASE_DIR, "static/webfonts")),
+]
+
+STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

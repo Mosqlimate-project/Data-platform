@@ -12,7 +12,7 @@ groups:
       runserver:
         help: Run Django server on localhost
         run: |
-          python scr/manage.py runserver
+          python src/manage.py runserver
 
       containers-build:
         help: Build containers
@@ -34,12 +34,44 @@ groups:
         help: Start all containers
         run: |
           kxgr stop --group $ENV
+
+  django:
+    targets:
+      create-superuser:
+        args:
+          email:
+            help: Specify the username
+            type: string
+            required: True
+          username:
+            help: Specify the username
+            type: string
+            required: True
+          password:
+            help: Specify the password
+            type: string
+            required: True
+        env:
+          POSTGRES_HOST: localhost
+        help: create an admin user
+        run: |
+          export DJANGO_SUPERUSER_PASSWORD={{ args.password }}
+          export DJANGO_SUPERUSER_USERNAME={{ args.username }}
+          python ./src/manage.py createsuperuser --noinput --email {{ args.email }}
+
+      migrate:
+        help: Migrate regarding to the current migration files
+        env-file: .env
+        run: |
+          python src/manage.py migrate
+
   dev:
     targets:
       dotenv:
         help: Configure .env file
         run: |
           python contrib/scripts/do_dotenv.py
+
       psql-conf:
         help: Configure postgresq.conf file
         run: |
