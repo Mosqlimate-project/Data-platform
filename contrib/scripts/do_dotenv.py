@@ -37,9 +37,14 @@ psql_pass = get_env_var_or_input("POSTGRES_PASSWORD", input_text="Postgresql pas
 psql_db = get_env_var_or_input("POSTGRES_DB", input_text="Postgresql database: ")
 psql_uri = f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
 psql_data = get_env_var_or_input(
-    "POSTGRES_DATA_DIR_HOST", input_text="Postgresql directory on host: "
+    "POSTGRES_DATA_DIR_HOST", input_text="Postgresql data directory on host: "
 )
+psql_conf = get_env_var_or_input(
+    "POSTGRES_CONF_DIR_HOST", input_text="postgresql.conf directory on host: "
+)
+
 Path(psql_data).mkdir(exist_ok=True, parents=True)
+Path(psql_conf).mkdir(exist_ok=True, parents=True)
 
 # print("[Django Email config]")
 # dj_default_from_email = get_env_var_or_input(
@@ -74,6 +79,7 @@ variables = {
     "POSTGRES_HOST_UID": psql_uid,
     "POSTGRES_HOST_GID": psql_gid,
     "POSTGRES_DATA_DIR_HOST": psql_data,
+    "POSTGRES_CONF_DIR_HOST": psql_conf,
     # "DEFAULT_FROM_EMAIL": dj_default_from_email,
     # "EMAIL_BACKEND": dj_email_backend,
     # "EMAIL_HOST": dj_email_host,

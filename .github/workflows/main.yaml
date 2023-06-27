@@ -14,8 +14,8 @@ env:
   POSTGRES_PASSWORD: mosqlimate-ci
   POSTGRES_DB: mosqlimate-ci
   # [Postgres Image]
-  POSTGRES_CONFIG_DIR_HOST: ~/psql
   POSTGRES_DATA_DIR_HOST: ~/psql/data
+  POSTGRES_CONF_DIR_HOST: ~/psql
   # [Django Email]
   # DEFAULT_FROM_EMAIL:
   # EMAIL_BACKEND:

@@ -1,6 +1,5 @@
 FROM postgres:15-bullseye
 
-ARG DATA_DIR
 ARG environment
 ARG UID
 ARG GID
