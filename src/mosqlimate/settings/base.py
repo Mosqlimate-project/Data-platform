@@ -34,6 +34,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "django_bootstrap5",
 ]
 
 LOCAL_APPS = ["datastore", "registry"]
@@ -55,7 +56,9 @@ ROOT_URLCONF = "mosqlimate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -106,6 +109,10 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+# LOGIN_REDIRECT_URL = "/"
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -145,7 +152,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
+STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
 STATICFILES_DIRS = [
     ("css", os.path.join(BASE_DIR, "static/css")),
     ("scripts", os.path.join(BASE_DIR, "static/scripts")),
@@ -153,7 +160,8 @@ STATICFILES_DIRS = [
     ("webfonts", os.path.join(BASE_DIR, "static/webfonts")),
 ]
 
-STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
+MEDIA_URL = "/media/"
+MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

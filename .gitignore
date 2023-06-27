@@ -175,3 +175,5 @@ tests/.coverage*
 build/
 tests/report/
 data/
+*/staticfiles/
+*/media/

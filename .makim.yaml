@@ -55,9 +55,8 @@ groups:
           POSTGRES_HOST: localhost
         help: create an admin user
         run: |
-          export DJANGO_SUPERUSER_PASSWORD={{ args.password }}
-          export DJANGO_SUPERUSER_USERNAME={{ args.username }}
-          python ./src/manage.py createsuperuser --noinput --email {{ args.email }}
+          bash -c "export DJANGO_SUPERUSER_PASSWORD={{ args.password }}"
+          python ./src/manage.py createsuperuser --noinput --username {{ args.username }} --email {{ args.email }}
 
       migrate:
         help: Migrate regarding to the current migration files
