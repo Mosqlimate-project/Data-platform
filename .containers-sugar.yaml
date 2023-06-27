@@ -2,7 +2,7 @@ version: 1.7.0
 compose-app: docker-compose
 service-groups:
   - name: dev
-    project-name: mosqlimate-dev
+    project-name: mosqlimate_dev
     compose-path: containers/compose.yaml
     env-file: .env
     services:
@@ -12,7 +12,7 @@ service-groups:
           health-check: true
 
   - name: prod
-    project-name: mosqlimate-prod
+    project-name: mosqlimate_prod
     compose-path: containers/compose.yaml
     env-file: .env
     services:

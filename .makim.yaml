@@ -1,0 +1,46 @@
+version: 1.8.1
+
+groups:
+  default:
+    env-file: .env
+    vars:
+      sugar_run: kxgr run --group $ENV --services web
+      sugar_run_rm: kxgr run --group $ENV --services web --extras=--rm
+
+    targets:
+      # DEVELOPMENT
+      runserver:
+        help: Run Django server on localhost
+        run: |
+          python scr/manage.py runserver
+
+      containers-build:
+        help: Build containers
+        run: |
+          kxgr build --group $ENV
+          kxgr up --group $ENV --options "--no-start"
+
+      containers-start:
+        help: Start all containers
+        run: |
+          kxgr start --group $ENV
+
+      containers-exec:
+        help:
+        run: |
+          kxgr exec --group $ENV --services {{ args.service }}
+
+      containers-stop:
+        help: Start all containers
+        run: |
+          kxgr stop --group $ENV
+  dev:
+    targets:
+      dotenv:
+        help: Configure .env file
+        run: |
+          python contrib/scripts/do_dotenv.py
+      psql-conf:
+        help: Configure postgresq.conf file
+        run: |
+          python contrib/scripts/do_psqlconf.py

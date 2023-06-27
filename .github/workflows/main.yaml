@@ -7,7 +7,23 @@ on:
     branches: [ main ]
   
 env:
-  ENV: "dev" 
+  ENV: dev
+  # [Django PostgreSQL]
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: mosqlimate-ci
+  POSTGRES_PASSWORD: mosqlimate-ci
+  POSTGRES_DB: mosqlimate-ci
+  # [Postgres Image]
+  POSTGRES_DATA_DIR_HOST: ~/psql/data
+  POSTGRES_CONF_DIR_HOST: ~/psql
+  # [Django Email]
+  # DEFAULT_FROM_EMAIL:
+  # EMAIL_BACKEND:
+  # EMAIL_HOST:
+  # EMAIL_PORT:
+  # EMAIL_HOST_USER:
+  # EMAIL_HOST_PASSWORD:
+  # EMAIL_USE_TLS:
 
 jobs:
   build:
@@ -44,7 +60,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        poetry lock
         poetry install
 
     - name: Linting
@@ -52,6 +67,19 @@ jobs:
         pre-commit install
         pre-commit run --all-files
 
+    - name: Build containers
+      run: |
+        makim dev.dotenv
+        makim dev.psql-conf
+        makim containers-build
+
+    - name: Start containers
+      run: |
+        makim containers-start
+
+    # - name: Container wait
+    #   run: |
+    #      make container-wait-all
     
     # TODO remove it
     - name: Setup tmate session
