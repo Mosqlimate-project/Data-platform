@@ -37,7 +37,7 @@ THIRD_PARTY_APPS = [
     "django_bootstrap5",
 ]
 
-LOCAL_APPS = ["datastore", "registry"]
+LOCAL_APPS = ["main", "datastore", "registry"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -155,9 +155,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
 STATICFILES_DIRS = [
     ("css", os.path.join(BASE_DIR, "static/css")),
-    ("scripts", os.path.join(BASE_DIR, "static/scripts")),
-    ("images", os.path.join(BASE_DIR, "static/images")),
-    ("webfonts", os.path.join(BASE_DIR, "static/webfonts")),
+    ("js", os.path.join(BASE_DIR, "static/js")),
+    ("img", os.path.join(BASE_DIR, "static/img")),
+    ("fonts", os.path.join(BASE_DIR, "static/fonts")),
 ]
 
 MEDIA_URL = "/media/"
