@@ -102,6 +102,16 @@ DATABASES = {
 # 2 Factor Authentication (allauth)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "VERIFIED_EMAIL": True,
+        "SCOPE": [
+            "read:user",
+            "user:email",
+        ],
+    }
+}
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -111,6 +121,7 @@ SITE_ID = 1
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
 # LOGIN_REDIRECT_URL = "/"
 
 # Password validation

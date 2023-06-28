@@ -26,6 +26,10 @@ secret_key = var_in("SECRET_KEY", default_val=get_random_secret_key())
 allowed_hosts = var_in("ALLOWED_HOSTS", default_val="*")
 static_root = var_in("ENV", input_text="Static files directory on host: ")
 
+print("[Django OAuth]")
+github_id = var_in("GITHUB_CLIENT_ID", input_text="GitHub Client ID")
+github_secret = var_in("GITHUB_SECRET", input_text="Github API Secret")
+
 print("[PostgreSQL config]")
 psql_uid = var_in(
     "POSTGRES_HOST_UID", input_text="Postgresql UID [$(id -u)]: ", default_val=uid
