@@ -4,6 +4,10 @@ from ninja import Schema
 from ninja.orm.fields import AnyObject
 
 
+class ForbiddenSchema(Schema):
+    message: str
+
+
 class NotFoundSchema(Schema):
     message: str
 
@@ -12,7 +16,6 @@ class UserSchema(Schema):
     id: int
     username: str
     name: str
-    email: str
 
 
 class AuthorSchema(Schema):
