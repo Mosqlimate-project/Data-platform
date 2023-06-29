@@ -26,9 +26,9 @@ secret_key = var_in("SECRET_KEY", default_val=get_random_secret_key())
 allowed_hosts = var_in("ALLOWED_HOSTS", default_val="*")
 static_root = var_in("ENV", input_text="Static files directory on host: ")
 
-print("[Django OAuth]")
-github_id = var_in("GITHUB_CLIENT_ID", input_text="GitHub Client ID")
-github_secret = var_in("GITHUB_SECRET", input_text="Github API Secret")
+# print("[Django OAuth]") # TODO: Add credentials to repo settings
+# github_id = var_in("GITHUB_CLIENT_ID", input_text="GitHub Client ID")
+# github_secret = var_in("GITHUB_SECRET", input_text="Github API Secret")
 
 print("[PostgreSQL config]")
 psql_uid = var_in(
@@ -79,6 +79,8 @@ variables = {
     "DJANGO_SETTINGS_MODULE": [
         "mosqlimate.prod" if env.lower() == "prod" else "mosqlimate.dev"
     ],
+    # "OAUTH_GITHUB_ID": github_id,
+    # "OAUTH_GITHUB_SECRET": github_secret,
     "HOST_UID": uid,
     "HOST_GID": gid,
     "DATABASE_URL": psql_uri,
