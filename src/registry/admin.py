@@ -6,8 +6,7 @@ from .models import Author, Model, Prediction
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ("__str__",)
     search_fields = (
-        "name",
-        "email",
+        "user",
         "institution",
     )
     date_hierarchy = "updated"

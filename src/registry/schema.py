@@ -8,11 +8,17 @@ class NotFoundSchema(Schema):
     message: str
 
 
-class AuthorSchema(Schema):
+class UserSchema(Schema):
     id: int
+    username: str
     name: str
     email: str
-    institution: str
+
+
+class AuthorSchema(Schema):
+    id: int
+    user: UserSchema
+    institution: str = None
 
 
 class ModelSchema(Schema):

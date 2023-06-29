@@ -15,7 +15,11 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("ENV").lower() == "dev"
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -117,7 +121,9 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SITE_ID = 1
+SITE_ID = 2  # select * from django_site;
+
+AUTH_USER_MODEL = "main.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"

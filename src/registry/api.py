@@ -1,5 +1,6 @@
 import datetime
 from typing import List, Optional
+from django.db.models import Q
 
 from .models import Author, Model, Prediction
 from ninja import Router
@@ -13,17 +14,21 @@ router = Router()
 class AuthorIn(Schema):
     """Input for the request's body"""
 
-    name: str
-    email: str
+    user: str
     institution: str
 
 
 @router.get("/authors/", response=List[AuthorSchema])
 def list_authors(request, name: Optional[str] = None):
     """Lists all authors, can be filtered by name"""
+    authors = Author.objects.all()
     if name:
-        return Author.objects.filter(name__icontains=name)
-    return Author.objects.all()
+        for wrd in name.split():
+            res = authors.filter(
+                Q(user__first_name__icontains=wrd) | Q(user__last_name__icontains=wrd)
+            )
+        return res
+    return authors
 
 
 @router.get("/authors/{author_id}", response={200: AuthorSchema, 404: NotFoundSchema})
