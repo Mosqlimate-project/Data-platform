@@ -1,15 +1,17 @@
 from django.db import models
+from django.conf import settings
 
 
 class Author(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False)
-    email = models.EmailField(max_length=254, null=True, blank=True)  # TODO: True?
-    institution = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
+    institution = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.user.first_name} {self.user.last_name}"
 
     class Meta:
         verbose_name = "Author"
