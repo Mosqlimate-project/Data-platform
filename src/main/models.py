@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
@@ -25,8 +26,14 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    @property
-    def name(self):
-        return f"{super().first_name} {super().last_name}"
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # To change User name, change first_name and last_name
+        self.name = self.get_full_name()
+        super().save(*args, **kwargs)
+
+    def get_fullname(self):
+        return f"{self.first_name} {self.last_name}"
 
     objects = CustomUserManager()
