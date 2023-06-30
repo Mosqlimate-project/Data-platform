@@ -4,6 +4,10 @@ from ninja import Schema
 from ninja.orm.fields import AnyObject
 
 
+class SuccessSchema(Schema):
+    message: str
+
+
 class ForbiddenSchema(Schema):
     message: str
 

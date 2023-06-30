@@ -6,12 +6,14 @@ from .models import Author, Model, Prediction
 from main.models import CustomUser
 from ninja import Router
 from ninja.orm.fields import AnyObject
+from ninja.security import django_auth
 from .schema import (
     AuthorSchema,
     ModelSchema,
     NotFoundSchema,
     PredictionSchema,
     ForbiddenSchema,
+    SuccessSchema,
     Schema,
 )
 
@@ -56,7 +58,9 @@ def get_author(request, username: str):
 
 
 @router.post(
-    "/authors/", response={201: AuthorSchema, 404: NotFoundSchema, 403: ForbiddenSchema}
+    "/authors/",
+    response={201: AuthorSchema, 404: NotFoundSchema, 403: ForbiddenSchema},
+    auth=django_auth,
 )
 def create_author(request, payload: AuthorIn):
     """Posts author to database, requires a CustomUser to be created"""
@@ -76,6 +80,7 @@ def create_author(request, payload: AuthorIn):
 @router.put(
     "/authors/{username}",
     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
 )
 def update_author(request, username: str, payload: AuthorInPost):
     """
@@ -97,16 +102,19 @@ def update_author(request, username: str, payload: AuthorInPost):
 
 @router.delete(
     "/authors/{username}",
-    response={204: None, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
 )
 def delete_author(request, username: str):
     """Deletes author"""
     try:
         author = Author.objects.get(user__username=username)
+
         if request.user != author.user:  # TODO: Enable admins here
             return 403, {"message": "You are not authorized to delete this author."}
+
         author.delete()
-        return 204
+        return 200, {"message": f"Author {author.user.name} deleted successfully"}
     except Author.DoesNotExist:
         return (404, {"message": "Author not found"})
 
