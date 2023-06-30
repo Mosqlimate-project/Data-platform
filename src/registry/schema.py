@@ -1,5 +1,9 @@
 from datetime import date
+from typing import Optional
 
+from django.db.models import Q
+
+from ninja import FilterSchema, Field
 from ninja import Schema
 from ninja.orm.fields import AnyObject
 
@@ -26,6 +30,19 @@ class AuthorSchema(Schema):
     id: int
     user: UserSchema
     institution: str = None
+
+
+class AuthorFilterSchema(FilterSchema):
+    name: Optional[str]
+    username: Optional[str] = Field(q="user__username__icontains")
+    institution: Optional[str] = Field(q="institution__icontains")
+
+    def filter_name(self, name: str) -> Q:
+        if self.name:
+            for wrd in name.split():
+                return Q(user__first_name__icontains=wrd) | Q(
+                    user__last_name__icontains=wrd
+                )
 
 
 class ModelSchema(Schema):
