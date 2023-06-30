@@ -9,7 +9,13 @@ from main.models import CustomUser
 from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 
 from .models import Author, Model, Prediction
-from .schema import AuthorFilterSchema, AuthorSchema, ModelSchema, PredictionSchema
+from .schema import (
+    AuthorFilterSchema,
+    AuthorSchema,
+    ModelFilterSchema,
+    ModelSchema,
+    PredictionSchema,
+)
 
 router = Router()
 
@@ -51,7 +57,7 @@ def get_author(request, username: str):
 
 @router.post(
     "/authors/",
-    response={201: AuthorSchema, 404: NotFoundSchema, 403: ForbiddenSchema},
+    response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
 )
 def create_author(request, payload: AuthorIn):
@@ -66,7 +72,7 @@ def create_author(request, payload: AuthorIn):
             author = Author.objects.create(user=user, institution=payload.institution)
             return 201, author
     except CustomUser.DoesNotExist:
-        return 404, {"message": f"User '{payload.user}' does not exist."}
+        return 404, {"message": f"User '{payload.user}' does not exist"}
 
 
 @router.put(
@@ -83,7 +89,7 @@ def update_author(request, username: str, payload: AuthorInPost):
         author = Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to update this author."}
+            return 403, {"message": "You are not authorized to update this author"}
 
         author.institution = payload.institution
         author.save()
@@ -103,7 +109,7 @@ def delete_author(request, username: str):
         author = Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to delete this author."}
+            return 403, {"message": "You are not authorized to delete this author"}
 
         author.delete()
         return 200, {"message": f"Author {author.user.name} deleted successfully"}
@@ -115,57 +121,92 @@ def delete_author(request, username: str):
 class ModelIn(Schema):
     name: str
     description: str = None
-    author: str
-    repository: str
+    author: str  # Author username
+    repository: str  # TODO: Validate repository?
     implementation_language: str
     type: str
 
 
 @router.get("/models/", response=List[ModelSchema])
-def list_models(request, name: Optional[str] = None):
-    if name:
-        name_filter = Model.objects.filter(name__icontains=name)
-        return list(name_filter.select_related("author"))
-
+def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
-    return models.select_related("author")
+    models = filters.filter(models)
+    return models
 
 
 @router.get("/models/{model_id}", response={200: ModelSchema, 404: NotFoundSchema})
 def get_model(request, model_id: int):
     try:
-        model = Model.objects.get(pk=model_id)
+        model = Model.objects.get(pk=model_id)  # TODO: get model by id?
         return (200, model)
     except Model.DoesNotExist:
         return (404, {"message": "Model not found"})
 
 
-@router.post("/models/", response={201: ModelSchema})
+@router.post(
+    "/models/",
+    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+)
 def create_model(request, payload: ModelIn):
+    try:
+        author = Author.objects.get(user__username=payload.author)
+        if request.user != author.user:
+            return 403, {
+                "message": "You are not authorized to add a Model to this author"
+            }
+        payload.author = author
+    except Author.DoesNotExist:
+        return 404, {"message": "Invalid Author"}
     model = Model.objects.create(**payload.dict())
-    return (201, model)
+    return 201, model
 
 
-@router.put("/models/{model_id}", response={201: ModelSchema, 404: NotFoundSchema})
+@router.put(
+    "/models/{model_id}",
+    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+)
 def update_model(request, model_id: int, payload: ModelIn):
     try:
-        model = Model.objects.get(pk=model_id)
+        model = Model.objects.get(pk=model_id)  # TODO: Update by id?
 
-        for attr, value in payload.dict().items():
-            setattr(model, attr, value)
+        if request.user != model.author.user:  # TODO: allow admins here
+            return 403, {"message": "You are not authorized to update this Model"}
 
-        model.save()
-        return (201, model)
+        try:
+            author = Author.objects.get(user__username=payload.author)
+            payload.author = author
+
+            for attr, value in payload.dict().items():
+                setattr(model, attr, value)
+
+            model.save()
+            return 201, model
+        except Author.DoesNotExist:
+            return 404, {
+                "message": (
+                    f"Author '{payload.author}' not found, use username instead"
+                )
+            }
     except Model.DoesNotExist:
-        return (404, {"message": "Model not found"})
+        return 404, {"message": "Model not found"}
 
 
-@router.delete("/models/{model_id}", response={204: None, 404: NotFoundSchema})
+@router.delete(
+    "/models/{model_id}",
+    response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+)
 def delete_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)
+
+        if request.user != model.author.user:
+            return 403, {"message": "You are not authorized to delete this Model"}
+
         model.delete()
-        return 204
+        return 204, {"message": f"Model {model.name} deleted successfully"}
     except Author.DoesNotExist:
         return (404, {"message": "Model not found"})
 

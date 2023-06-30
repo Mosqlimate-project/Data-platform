@@ -27,6 +27,15 @@ class ModelSchema(Schema):
     type: str
 
 
+class ModelFilterSchema(FilterSchema):
+    name: Optional[str] = Field(q="name__icontains")
+    author: Optional[str] = Field(q="author__user__name__icontains")
+    implementation_language: Optional[str] = Field(
+        q="implementation_language__icontains"
+    )
+    type: Optional[str] = Field(q="type__icontains")
+
+
 class PredictionSchema(Schema):
     model: ModelSchema
     description: str = None
