@@ -139,9 +139,9 @@ def list_models(request, filters: ModelFilterSchema = Query(...)):
 def get_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)  # TODO: get model by id?
-        return (200, model)
+        return 200, model
     except Model.DoesNotExist:
-        return (404, {"message": "Model not found"})
+        return 404, {"message": "Model not found"}
 
 
 @router.post(
@@ -214,7 +214,7 @@ def delete_model(request, model_id: int):
 
 # [Model] Prediction
 class PredictionIn(Schema):
-    model: ModelSchema  # TODO: use model by name or id?
+    model: ModelSchema  # TODO: change it. Issue #20
     description: str = None
     commit: str
     predict_date: datetime.date
@@ -301,4 +301,4 @@ def delete_prediction(request, predict_id: int):
         prediction.delete()
         return 204, {"message": f"Prediction {prediction.id} deleted successfully"}
     except Prediction.DoesNotExist:
-        return (404, {"message": "Prediction not found"})
+        return 404, {"message": "Prediction not found"}
