@@ -17,9 +17,9 @@ users_router = Router()
 )
 def update_user(request, username: str, payload: UserInPost):
     """
-    Updates User. It is not possible to change User's
-    username nor email. To change User name, updates first_name
-    and last_name inherit from 3rd party OAuth User:
+    Updates User. It is not possible to change User's username nor email.
+    To change a User's name, updates its first_name and last_name, which
+    were inherit from a 3rd party OAuth User
     """
     try:
         user = CustomUser.objects.get(username=username)

@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import List
 
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
@@ -15,6 +15,7 @@ from .schema import (
     ModelFilterSchema,
     ModelSchema,
     PredictionSchema,
+    PredictionFilterSchema,
 )
 
 router = Router()
@@ -112,7 +113,7 @@ def delete_author(request, username: str):
             return 403, {"message": "You are not authorized to delete this author"}
 
         author.delete()
-        return 200, {"message": f"Author {author.user.name} deleted successfully"}
+        return 200, {"message": f"Author '{author.user.name}' deleted successfully"}
     except Author.DoesNotExist:
         return 404, {"message": "Author not found"}
 
@@ -208,12 +209,12 @@ def delete_model(request, model_id: int):
         model.delete()
         return 204, {"message": f"Model {model.name} deleted successfully"}
     except Author.DoesNotExist:
-        return (404, {"message": "Model not found"})
+        return 404, {"message": "Model not found"}
 
 
 # [Model] Prediction
 class PredictionIn(Schema):
-    model: ModelSchema
+    model: ModelSchema  # TODO: use model by name or id?
     description: str = None
     commit: str
     predict_date: datetime.date
@@ -221,13 +222,13 @@ class PredictionIn(Schema):
 
 
 @router.get("/predictions/", response=List[PredictionSchema])
-def list_predictions(request, model_name: Optional[str] = None):
-    if model_name:
-        name_filter = Prediction.objects.filter(model__name__icontains=model_name)
-        return list(name_filter.select_related("model"))
-
-    prediction = Prediction.objects.all()
-    return prediction.select_related("model")
+def list_predictions(
+    request,
+    filters: PredictionFilterSchema = Query(...),
+):
+    predictions = Prediction.objects.all()
+    predictions = filters.filter(predictions)
+    return predictions
 
 
 @router.get(
@@ -236,40 +237,68 @@ def list_predictions(request, model_name: Optional[str] = None):
 )
 def get_prediction(request, predict_id: int):
     try:
-        prediction = Prediction.objects.get(pk=predict_id)
-        return (200, prediction)
+        prediction = Prediction.objects.get(pk=predict_id)  # TODO: get by id?
+        return 200, prediction
     except Prediction.DoesNotExist:
-        return (404, {"message": "Prediction not found"})
+        return 404, {"message": "Prediction not found"}
 
 
-@router.post("/predictions/", response={201: PredictionSchema})
+@router.post(
+    "/predictions/",
+    response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+)
 def create_prediction(request, payload: PredictionIn):
-    prediction = Prediction.objects.create(**payload.dict())
-    return (201, prediction)
+    try:
+        model = Model.objects.get(name=payload.model)  # TODO: get by name?
+
+        if request.user != model.author.user:
+            return 403, {
+                "message": "You are not authorized to add a prediction to this model"
+            }
+
+        payload.model = model
+        # TODO: Add commit verification here #19
+        prediction = Prediction.objects.create(**payload.dict())
+        return 201, prediction
+    except Model.DoesNotExist:
+        return 404, {"message": f"Model '{payload.model}' not found"}
 
 
 @router.put(
     "/predictions/{predict_id}",
-    response={201: PredictionSchema, 404: NotFoundSchema},
+    response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
 )
 def update_prediction(request, predict_id: int, payload: PredictionIn):
     try:
         prediction = Prediction.objects.get(pk=predict_id)
 
+        if request.user != prediction.model.author.user:
+            return 403, {"message": "You are not authorized to update this prediction"}
+
         for attr, value in payload.dict().items():
             setattr(prediction, attr, value)
-
+        # TODO: Add commit verification if commit has changed
         prediction.save()
-        return (201, prediction)
+        return 201, prediction
     except Prediction.DoesNotExist:
-        return (404, {"message": "Prediction not found"})
+        return 404, {"message": "Prediction not found"}
 
 
-@router.delete("/predictions/{predict_id}", response={204: None, 404: NotFoundSchema})
+@router.delete(
+    "/predictions/{predict_id}",
+    response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+)
 def delete_prediction(request, predict_id: int):
     try:
         prediction = Prediction.objects.get(pk=predict_id)
+
+        if request.user != prediction.model.author.user:
+            return 403, {"message": "You are not authorized to delete this prediction"}
+
         prediction.delete()
-        return 204
+        return 204, {"message": f"Prediction {prediction.id} deleted successfully"}
     except Prediction.DoesNotExist:
         return (404, {"message": "Prediction not found"})
