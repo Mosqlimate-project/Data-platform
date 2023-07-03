@@ -1,22 +1,24 @@
 from datetime import date
+from typing import Optional, Tuple
 
-from ninja import Schema
+from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
 
-
-class NotFoundSchema(Schema):
-    message: str
+from main.schema import Schema, UserSchema
 
 
 class AuthorSchema(Schema):
-    id: int
-    name: str
-    email: str
-    institution: str
+    user: UserSchema
+    institution: str = None
+
+
+class AuthorFilterSchema(FilterSchema):
+    name: Optional[str] = Field(q="user__name__icontains")
+    username: Optional[str] = Field(q="user__username__icontains")
+    institution: Optional[str] = Field(q="institution__icontains")
 
 
 class ModelSchema(Schema):
-    id: int
     name: str
     description: str = None
     author: AuthorSchema
@@ -25,10 +27,31 @@ class ModelSchema(Schema):
     type: str
 
 
+class ModelFilterSchema(FilterSchema):
+    name: Optional[str] = Field(q="name__icontains")
+    author_name: Optional[str] = Field(q="author__user__name__icontains")
+    author_username: Optional[str] = Field(q="author__user__username__icontains")
+    author_institution: Optional[str] = Field(q="author__institution__icontains")
+    # repository?
+    implementation_language: Optional[str] = Field(
+        q="implementation_language__icontains"
+    )
+    type: Optional[str] = Field(q="type__icontains")
+
+
 class PredictionSchema(Schema):
-    id: int
     model: ModelSchema
     description: str = None
     commit: str
     predict_date: date
     prediction: AnyObject
+
+
+class PredictionFilterSchema(FilterSchema):
+    model: Optional[str]
+    repository: Optional[str]
+    commit: Optional[str]
+    predict_date: Optional[date]
+    predict_after_than: Optional[date]
+    predict_before_than: Optional[date]
+    predict_between: Optional[Tuple[date, date]]

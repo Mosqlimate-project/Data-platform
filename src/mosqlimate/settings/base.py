@@ -1,21 +1,25 @@
 import os
+import environ
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+env = environ.Env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = os.environ.get("ENV").lower() == "dev"
+DEBUG = env("ENV").lower() == "dev"
 
-ALLOWED_HOSTS = ["*"]
-
-
-# Application definition
+ALLOWED_HOSTS = [
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -24,11 +28,20 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
 ]
 
-THIRD_PARTY_APPS = ["django_extensions", "dr_scaffold"]
+THIRD_PARTY_APPS = [
+    "django_extensions",
+    "dr_scaffold",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
+    "django_bootstrap5",
+]
 
-LOCAL_APPS = ["datastore", "registry"]
+LOCAL_APPS = ["main", "datastore", "registry"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -47,7 +60,9 @@ ROOT_URLCONF = "mosqlimate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -66,11 +81,16 @@ WSGI_APPLICATION = "mosqlimate.wsgi.application"
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-PSQL_DB = os.environ.get("POSTGRES_DB")
-PSQL_USER = os.environ.get("POSTGRES_USER")
-PSQL_PASS = os.environ.get("POSTGRES_PASSWORD")
-PSQL_HOST = os.environ.get("POSTGRES_HOST")
-PSQL_PORT = os.environ.get("POSTGRES_PORT")
+PSQL_DB, PSQL_USER, PSQL_PASS, PSQL_HOST, PSQL_PORT = map(
+    env,
+    [
+        "POSTGRES_DB",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+    ],
+)
 
 DATABASES = {
     "default": {
@@ -83,6 +103,32 @@ DATABASES = {
     }
 }
 
+# 2 Factor Authentication (allauth)
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "VERIFIED_EMAIL": True,
+        "SCOPE": [
+            "read:user",
+            "user:email",
+        ],
+    }
+}
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 2  # select * from django_site;
+
+AUTH_USER_MODEL = "main.CustomUser"
+
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
+LOGIN_REDIRECT_URL = "/"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -123,6 +169,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
+STATICFILES_DIRS = [
+    ("css", os.path.join(BASE_DIR, "static/css")),
+    ("js", os.path.join(BASE_DIR, "static/js")),
+    ("img", os.path.join(BASE_DIR, "static/img")),
+    ("fonts", os.path.join(BASE_DIR, "static/fonts")),
+]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
