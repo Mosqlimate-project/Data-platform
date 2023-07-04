@@ -4,7 +4,8 @@ from typing import Optional, Tuple
 from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
 
-from main.schema import Schema, UserSchema
+from main.schema import Schema
+from users.schema import UserSchema
 
 
 class AuthorSchema(Schema):

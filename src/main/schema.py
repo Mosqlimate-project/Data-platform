@@ -11,8 +11,3 @@ class ForbiddenSchema(Schema):
 
 class NotFoundSchema(Schema):
     message: str
-
-
-class UserSchema(Schema):
-    name: str
-    username: str

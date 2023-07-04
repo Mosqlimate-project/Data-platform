@@ -1,26 +1,9 @@
-from django.urls import include, path, re_path
-from django.views.generic.base import RedirectView
+from django.urls import path
+from allauth.account.views import logout
+from allauth.socialaccount.providers.github.views import oauth2_login, oauth2_callback
 
 urlpatterns = [
-    re_path(
-        r"accounts/signup/.*",
-        RedirectView.as_view(url="/", permanent=False),
-        name="index",
-    ),
-    re_path(
-        r"accounts/email/.*",
-        RedirectView.as_view(url="/", permanent=False),
-        name="index",
-    ),
-    re_path(
-        r"accounts/password/.*",
-        RedirectView.as_view(url="/", permanent=False),
-        name="index",
-    ),
-    re_path(
-        r"accounts/login/.*",
-        RedirectView.as_view(url="/accounts/github/login/", permanent=False),
-        name="index",
-    ),
-    path("accounts/", include("allauth.urls")),
+    path("accounts/logout/", logout, name="account_logout"),
+    path("accounts/github/login/", oauth2_login, name="github_login"),
+    path("accounts/github/login/callback/", oauth2_callback, name="github_callback"),
 ]
