@@ -5,7 +5,7 @@ from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
 
-from main.models import CustomUser
+from django.contrib.auth import get_user_model
 from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 
 from .models import Author, Model, Prediction
@@ -19,6 +19,7 @@ from .schema import (
 )
 
 router = Router()
+User = get_user_model()
 
 
 # [Model] Author
@@ -62,9 +63,9 @@ def get_author(request, username: str):
     auth=django_auth,
 )
 def create_author(request, payload: AuthorIn):
-    """Posts author to database, requires a CustomUser to be created"""
+    """Posts author to database, requires a User to be created"""
     try:
-        user = CustomUser.objects.get(username=payload.user)
+        user = User.objects.get(username=payload.user)
         try:
             author = Author.objects.get(user__username=payload.user)
             if author:
@@ -72,7 +73,7 @@ def create_author(request, payload: AuthorIn):
         except Author.DoesNotExist:
             author = Author.objects.create(user=user, institution=payload.institution)
             return 201, author
-    except CustomUser.DoesNotExist:
+    except User.DoesNotExist:
         return 404, {"message": f"User '{payload.user}' does not exist"}
 
 

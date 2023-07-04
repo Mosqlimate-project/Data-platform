@@ -41,7 +41,7 @@ THIRD_PARTY_APPS = [
     "django_bootstrap5",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry"]
+LOCAL_APPS = ["main", "datastore", "registry", "users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -123,11 +123,12 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 2  # select * from django_site;
 
-AUTH_USER_MODEL = "main.CustomUser"
+AUTH_USER_MODEL = "users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
+SOCIALACCOUNT_STORE_TOKENS = True
 LOGIN_REDIRECT_URL = "/"
 
 # Password validation

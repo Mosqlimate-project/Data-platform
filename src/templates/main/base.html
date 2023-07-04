@@ -41,9 +41,25 @@
             <li class="nav-item">
               {% if user.is_authenticated %}
               <a href="#accounts/username" class="btn btn-primary me-auto" role="button">{{user.username}}</i></a>
-              <a href="/accounts/logout" class="btn btn-primary me-auto" role="button">Logout</i></a>
+            </li>
+            <li class="nav-item">
+              <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                {% endif %}
+                <button class="btn btn-primary me-auto" role="button">Logout</i></button>
+              </form>
+            </li>
+            <li class="nav-item">
+              <form method="post" action="{% url 'account_logout' %}">
               {% else %}
-              <a href="{% provider_login_url "github" %}" class="btn btn-primary me-auto" role="button">Login with Github</i></a>
+            </li>
+            <li class="nav-item">
+              <form method="post" action="{% provider_login_url "github" %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary me-auto" role="button">Login with Github</i></button>
+              </form>
               {% endif %}
             </li>
           </ul>
