@@ -1,12 +1,18 @@
 import datetime
 from typing import List
 
+from django.contrib.auth import get_user_model
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
 
-from django.contrib.auth import get_user_model
-from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
+from main.schema import (
+    ForbiddenSchema,
+    NotFoundSchema,
+    Schema,
+    SuccessSchema,
+)
+from users.auth import UidKeyAuth
 
 from .models import Author, Model, Prediction
 from .schema import (
@@ -14,11 +20,12 @@ from .schema import (
     AuthorSchema,
     ModelFilterSchema,
     ModelSchema,
-    PredictionSchema,
     PredictionFilterSchema,
+    PredictionSchema,
 )
 
 router = Router()
+uidkey = UidKeyAuth()
 User = get_user_model()
 
 
@@ -36,7 +43,7 @@ class AuthorInPost(Schema):
     institution: str
 
 
-@router.get("/authors/", response=List[AuthorSchema])
+@router.get("/authors/", response=List[AuthorSchema], tags=["authors"])
 def list_authors(
     request,
     filters: AuthorFilterSchema = Query(...),
@@ -47,7 +54,11 @@ def list_authors(
     return authors
 
 
-@router.get("/authors/{username}", response={200: AuthorSchema, 404: NotFoundSchema})
+@router.get(
+    "/authors/{username}",
+    response={200: AuthorSchema, 404: NotFoundSchema},
+    tags=["authors"],
+)
 def get_author(request, username: str):
     """Gets author by Github username"""
     try:
@@ -61,6 +72,7 @@ def get_author(request, username: str):
     "/authors/",
     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["authors"],
 )
 def create_author(request, payload: AuthorIn):
     """Posts author to database, requires a User to be created"""
@@ -81,6 +93,7 @@ def create_author(request, payload: AuthorIn):
     "/authors/{username}",
     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["authors"],
 )
 def update_author(request, username: str, payload: AuthorInPost):
     """
@@ -104,6 +117,7 @@ def update_author(request, username: str, payload: AuthorInPost):
     "/authors/{username}",
     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["authors"],
 )
 def delete_author(request, username: str):
     """Deletes author"""
@@ -129,14 +143,18 @@ class ModelIn(Schema):
     type: str
 
 
-@router.get("/models/", response=List[ModelSchema])
+@router.get("/models/", response=List[ModelSchema], tags=["models"])
 def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
     models = filters.filter(models)
     return models
 
 
-@router.get("/models/{model_id}", response={200: ModelSchema, 404: NotFoundSchema})
+@router.get(
+    "/models/{model_id}",
+    response={200: ModelSchema, 404: NotFoundSchema},
+    tags=["models"],
+)
 def get_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)  # TODO: get model by id?
@@ -147,19 +165,14 @@ def get_model(request, model_id: int):
 
 @router.post(
     "/models/",
-    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+    response={201: ModelSchema},
+    auth=uidkey,
+    tags=["models"],
 )
 def create_model(request, payload: ModelIn):
-    try:
-        author = Author.objects.get(user__username=payload.author)
-        if request.user != author.user:
-            return 403, {
-                "message": "You are not authorized to add a Model to this author"
-            }
-        payload.author = author
-    except Author.DoesNotExist:
-        return 404, {"message": "Invalid Author"}
+    uid, _ = request.headers.get("X-UID-Key").split(":")
+    author = Author.objects.get(user__username=uid)
+    payload.author = author
     model = Model.objects.create(**payload.dict())
     return 201, model
 
@@ -168,6 +181,7 @@ def create_model(request, payload: ModelIn):
     "/models/{model_id}",
     response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["models"],
 )
 def update_model(request, model_id: int, payload: ModelIn):
     try:
@@ -199,6 +213,7 @@ def update_model(request, model_id: int, payload: ModelIn):
     "/models/{model_id}",
     response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["models"],
 )
 def delete_model(request, model_id: int):
     try:
@@ -222,7 +237,7 @@ class PredictionIn(Schema):
     prediction: AnyObject
 
 
-@router.get("/predictions/", response=List[PredictionSchema])
+@router.get("/predictions/", response=List[PredictionSchema], tags=["predictions"])
 def list_predictions(
     request,
     filters: PredictionFilterSchema = Query(...),
@@ -235,6 +250,7 @@ def list_predictions(
 @router.get(
     "/predictions/{predict_id}",
     response={200: PredictionSchema, 404: NotFoundSchema},
+    tags=["predictions"],
 )
 def get_prediction(request, predict_id: int):
     try:
@@ -247,7 +263,8 @@ def get_prediction(request, predict_id: int):
 @router.post(
     "/predictions/",
     response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+    auth=uidkey,
+    tags=["predictions"],
 )
 def create_prediction(request, payload: PredictionIn):
     try:
@@ -270,6 +287,7 @@ def create_prediction(request, payload: PredictionIn):
     "/predictions/{predict_id}",
     response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["predictions"],
 )
 def update_prediction(request, predict_id: int, payload: PredictionIn):
     try:
@@ -291,6 +309,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
     "/predictions/{predict_id}",
     response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    tags=["predictions"],
 )
 def delete_prediction(request, predict_id: int):
     try:
