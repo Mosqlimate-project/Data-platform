@@ -20,6 +20,7 @@ class AuthorFilterSchema(FilterSchema):
 
 
 class ModelSchema(Schema):
+    id: int
     name: str
     description: str = None
     author: AuthorSchema
@@ -29,11 +30,12 @@ class ModelSchema(Schema):
 
 
 class ModelFilterSchema(FilterSchema):
+    id: Optional[int] = Field(q="id")
     name: Optional[str] = Field(q="name__icontains")
     author_name: Optional[str] = Field(q="author__user__name__icontains")
     author_username: Optional[str] = Field(q="author__user__username__icontains")
     author_institution: Optional[str] = Field(q="author__institution__icontains")
-    # repository?
+    repository: Optional[str] = Field(q="repository__icontains")
     implementation_language: Optional[str] = Field(
         q="implementation_language__icontains"
     )
@@ -41,6 +43,7 @@ class ModelFilterSchema(FilterSchema):
 
 
 class PredictionSchema(Schema):
+    id: int
     model: ModelSchema
     description: str = None
     commit: str
@@ -49,6 +52,7 @@ class PredictionSchema(Schema):
 
 
 class PredictionFilterSchema(FilterSchema):
+    id: Optional[int]
     model: Optional[str]
     repository: Optional[str]
     commit: Optional[str]

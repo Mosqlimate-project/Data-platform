@@ -2,16 +2,12 @@ import datetime
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
 
-from main.schema import (
-    ForbiddenSchema,
-    NotFoundSchema,
-    Schema,
-    SuccessSchema,
-)
+from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 from users.auth import UidKeyAuth
 
 from .models import Author, Model, Prediction
@@ -44,6 +40,7 @@ class AuthorInPost(Schema):
 
 
 @router.get("/authors/", response=List[AuthorSchema], tags=["authors"])
+@csrf_exempt
 def list_authors(
     request,
     filters: AuthorFilterSchema = Query(...),
@@ -59,6 +56,7 @@ def list_authors(
     response={200: AuthorSchema, 404: NotFoundSchema},
     tags=["authors"],
 )
+@csrf_exempt
 def get_author(request, username: str):
     """Gets author by Github username"""
     try:
@@ -137,13 +135,22 @@ def delete_author(request, username: str):
 class ModelIn(Schema):
     name: str
     description: str = None
-    author: str  # Author username
     repository: str  # TODO: Validate repository?
     implementation_language: str
     type: str
 
 
+class ModelInUpdate(ModelIn):
+    """
+    Enable User to update Model's author.
+    With this operation, the user will lose model's permissions
+    """
+
+    author: str
+
+
 @router.get("/models/", response=List[ModelSchema], tags=["models"])
+@csrf_exempt
 def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
     models = filters.filter(models)
@@ -155,6 +162,7 @@ def list_models(request, filters: ModelFilterSchema = Query(...)):
     response={200: ModelSchema, 404: NotFoundSchema},
     tags=["models"],
 )
+@csrf_exempt
 def get_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)  # TODO: get model by id?
@@ -169,11 +177,11 @@ def get_model(request, model_id: int):
     auth=uidkey,
     tags=["models"],
 )
+@csrf_exempt
 def create_model(request, payload: ModelIn):
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
-    payload.author = author
-    model = Model.objects.create(**payload.dict())
+    model = Model.objects.create(author=author, **payload.dict())
     return 201, model
 
 
@@ -183,7 +191,7 @@ def create_model(request, payload: ModelIn):
     auth=django_auth,
     tags=["models"],
 )
-def update_model(request, model_id: int, payload: ModelIn):
+def update_model(request, model_id: int, payload: ModelInUpdate):
     try:
         model = Model.objects.get(pk=model_id)  # TODO: Update by id?
 
@@ -191,7 +199,7 @@ def update_model(request, model_id: int, payload: ModelIn):
             return 403, {"message": "You are not authorized to update this Model"}
 
         try:
-            author = Author.objects.get(user__username=payload.author)
+            author = Author.objects.get(user__username=request.user)
             payload.author = author
 
             for attr, value in payload.dict().items():
@@ -230,14 +238,15 @@ def delete_model(request, model_id: int):
 
 # [Model] Prediction
 class PredictionIn(Schema):
-    model: ModelSchema  # TODO: change it. Issue #20
+    model: int  # TODO: change it. Issue #20
     description: str = None
     commit: str
-    predict_date: datetime.date
+    predict_date: datetime.date  # YYYY-mm-dd
     prediction: AnyObject
 
 
 @router.get("/predictions/", response=List[PredictionSchema], tags=["predictions"])
+@csrf_exempt
 def list_predictions(
     request,
     filters: PredictionFilterSchema = Query(...),
@@ -252,6 +261,7 @@ def list_predictions(
     response={200: PredictionSchema, 404: NotFoundSchema},
     tags=["predictions"],
 )
+@csrf_exempt
 def get_prediction(request, predict_id: int):
     try:
         prediction = Prediction.objects.get(pk=predict_id)  # TODO: get by id?
@@ -266,21 +276,17 @@ def get_prediction(request, predict_id: int):
     auth=uidkey,
     tags=["predictions"],
 )
+@csrf_exempt
 def create_prediction(request, payload: PredictionIn):
     try:
-        model = Model.objects.get(name=payload.model)  # TODO: get by name?
-
-        if request.user != model.author.user:
-            return 403, {
-                "message": "You are not authorized to add a prediction to this model"
-            }
-
-        payload.model = model
-        # TODO: Add commit verification here #19
-        prediction = Prediction.objects.create(**payload.dict())
-        return 201, prediction
+        model = Model.objects.get(pk=payload.model)  # TODO: get by id?
     except Model.DoesNotExist:
         return 404, {"message": f"Model '{payload.model}' not found"}
+
+    payload.model = model
+    # TODO: Add commit verification here #19
+    prediction = Prediction.objects.create(**payload.dict())
+    return 201, prediction
 
 
 @router.put(

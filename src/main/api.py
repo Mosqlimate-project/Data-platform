@@ -1,4 +1,5 @@
 from ninja import NinjaAPI
+
 from registry.api import router as registry_router
 from users.api import router as users_router
 from users.auth import InvalidUIDKey
