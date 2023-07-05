@@ -11,7 +11,7 @@ def profile(request, username: str):
         pass
     user = User.objects.filter(username=username).first()
     if user:
-        return render(request, "users/profile.html", {})
+        return render(request, "users/profile.html", {"page_username": user.username})
     else:
         raise Http404
 
