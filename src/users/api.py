@@ -12,6 +12,7 @@ router = Router()
     "/{username}",
     response={201: UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
+    include_in_schema=False,
 )
 def update_user(request, username: str, payload: UserInPost):
     """

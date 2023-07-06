@@ -19,6 +19,7 @@ from .schema import (
     PredictionFilterSchema,
     PredictionSchema,
 )
+from .utils import calling_via_swagger
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -39,7 +40,7 @@ class AuthorInPost(Schema):
     institution: str
 
 
-@router.get("/authors/", response=List[AuthorSchema], tags=["authors"])
+@router.get("/authors/", response=List[AuthorSchema], tags=["registry", "authors"])
 @csrf_exempt
 def list_authors(
     request,
@@ -54,7 +55,7 @@ def list_authors(
 @router.get(
     "/authors/{username}",
     response={200: AuthorSchema, 404: NotFoundSchema},
-    tags=["authors"],
+    tags=["registry", "authors"],
 )
 @csrf_exempt
 def get_author(request, username: str):
@@ -70,10 +71,14 @@ def get_author(request, username: str):
     "/authors/",
     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["authors"],
+    tags=["registry", "authors"],
+    include_in_schema=False,
 )
 def create_author(request, payload: AuthorIn):
-    """Posts author to database, requires a User to be created"""
+    """
+    Posts author to database, requires a User to be created
+    @note: This call is related to User and shouldn't be done only via API Call
+    """
     try:
         user = User.objects.get(username=payload.user)
         try:
@@ -91,7 +96,8 @@ def create_author(request, payload: AuthorIn):
     "/authors/{username}",
     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["authors"],
+    tags=["registry", "authors"],
+    include_in_schema=False,
 )
 def update_author(request, username: str, payload: AuthorInPost):
     """
@@ -105,7 +111,11 @@ def update_author(request, username: str, payload: AuthorInPost):
             return 403, {"message": "You are not authorized to update this author"}
 
         author.institution = payload.institution
-        author.save()
+
+        if not calling_via_swagger(request):
+            # Not realy required, since include_in_schema=False
+            author.save()
+
         return 201, author
     except Author.DoesNotExist:
         return 404, {"message": "Author not found"}
@@ -115,17 +125,24 @@ def update_author(request, username: str, payload: AuthorInPost):
     "/authors/{username}",
     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["authors"],
+    tags=["registry", "authors"],
+    include_in_schema=False,
 )
 def delete_author(request, username: str):
-    """Deletes author"""
+    """
+    Deletes author
+    @note: This call is related to User and shouldn't be done only via API Call
+    """
     try:
         author = Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
             return 403, {"message": "You are not authorized to delete this author"}
 
-        author.delete()
+        if not calling_via_swagger(request):
+            # Not realy required, since include_in_schema=False
+            author.delete()
+
         return 200, {"message": f"Author '{author.user.name}' deleted successfully"}
     except Author.DoesNotExist:
         return 404, {"message": "Author not found"}
@@ -149,7 +166,7 @@ class ModelInUpdate(ModelIn):
     author: str
 
 
-@router.get("/models/", response=List[ModelSchema], tags=["models"])
+@router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
 @csrf_exempt
 def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
@@ -160,7 +177,7 @@ def list_models(request, filters: ModelFilterSchema = Query(...)):
 @router.get(
     "/models/{model_id}",
     response={200: ModelSchema, 404: NotFoundSchema},
-    tags=["models"],
+    tags=["registry", "models"],
 )
 @csrf_exempt
 def get_model(request, model_id: int):
@@ -175,13 +192,15 @@ def get_model(request, model_id: int):
     "/models/",
     response={201: ModelSchema},
     auth=uidkey,
-    tags=["models"],
+    tags=["registry", "models"],
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
-    model = Model.objects.create(author=author, **payload.dict())
+    model = Model(author=author, **payload.dict())
+    if not calling_via_swagger(request):
+        model.save()
     return 201, model
 
 
@@ -189,7 +208,8 @@ def create_model(request, payload: ModelIn):
     "/models/{model_id}",
     response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["models"],
+    tags=["registry", "models"],
+    include_in_schema=False,
 )
 def update_model(request, model_id: int, payload: ModelInUpdate):
     try:
@@ -205,7 +225,10 @@ def update_model(request, model_id: int, payload: ModelInUpdate):
             for attr, value in payload.dict().items():
                 setattr(model, attr, value)
 
-            model.save()
+            if not calling_via_swagger(request):
+                # Not realy required, since include_in_schema=False
+                model.save()
+
             return 201, model
         except Author.DoesNotExist:
             return 404, {
@@ -221,7 +244,8 @@ def update_model(request, model_id: int, payload: ModelInUpdate):
     "/models/{model_id}",
     response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["models"],
+    tags=["registry", "models"],
+    include_in_schema=False,
 )
 def delete_model(request, model_id: int):
     try:
@@ -230,7 +254,10 @@ def delete_model(request, model_id: int):
         if request.user != model.author.user:
             return 403, {"message": "You are not authorized to delete this Model"}
 
-        model.delete()
+        if not calling_via_swagger(request):
+            # Not realy required, since include_in_schema=False
+            model.delete()
+
         return 204, {"message": f"Model {model.name} deleted successfully"}
     except Author.DoesNotExist:
         return 404, {"message": "Model not found"}
@@ -245,7 +272,9 @@ class PredictionIn(Schema):
     prediction: AnyObject
 
 
-@router.get("/predictions/", response=List[PredictionSchema], tags=["predictions"])
+@router.get(
+    "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
+)
 @csrf_exempt
 def list_predictions(
     request,
@@ -259,7 +288,7 @@ def list_predictions(
 @router.get(
     "/predictions/{predict_id}",
     response={200: PredictionSchema, 404: NotFoundSchema},
-    tags=["predictions"],
+    tags=["registry", "predictions"],
 )
 @csrf_exempt
 def get_prediction(request, predict_id: int):
@@ -274,7 +303,7 @@ def get_prediction(request, predict_id: int):
     "/predictions/",
     response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=uidkey,
-    tags=["predictions"],
+    tags=["registry", "predictions"],
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
@@ -285,7 +314,11 @@ def create_prediction(request, payload: PredictionIn):
 
     payload.model = model
     # TODO: Add commit verification here #19
-    prediction = Prediction.objects.create(**payload.dict())
+    prediction = Prediction(**payload.dict())
+
+    if not calling_via_swagger(request):
+        prediction.save()
+
     return 201, prediction
 
 
@@ -293,7 +326,8 @@ def create_prediction(request, payload: PredictionIn):
     "/predictions/{predict_id}",
     response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["predictions"],
+    tags=["registry", "predictions"],
+    include_in_schema=False,
 )
 def update_prediction(request, predict_id: int, payload: PredictionIn):
     try:
@@ -305,7 +339,11 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
         for attr, value in payload.dict().items():
             setattr(prediction, attr, value)
         # TODO: Add commit verification if commit has changed
-        prediction.save()
+
+        if not calling_via_swagger(request):
+            # Not realy required, since include_in_schema=False
+            prediction.save()
+
         return 201, prediction
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}
@@ -315,7 +353,8 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
     "/predictions/{predict_id}",
     response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
-    tags=["predictions"],
+    tags=["registry", "predictions"],
+    include_in_schema=False,
 )
 def delete_prediction(request, predict_id: int):
     try:
@@ -324,7 +363,10 @@ def delete_prediction(request, predict_id: int):
         if request.user != prediction.model.author.user:
             return 403, {"message": "You are not authorized to delete this prediction"}
 
-        prediction.delete()
+        if not calling_via_swagger(request):
+            # Not realy required, since include_in_schema=False
+            prediction.delete()
+
         return 204, {"message": f"Prediction {prediction.id} deleted successfully"}
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}

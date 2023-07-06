@@ -19,7 +19,9 @@ class Author(models.Model):
 
 
 class Model(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False)
+    name = models.CharField(
+        max_length=255, null=False, blank=False, unique=True
+    )  # TODO: Unique true?
     description = models.CharField(max_length=255, null=True, blank=True)
     author = models.ForeignKey(
         Author, on_delete=models.CASCADE, null=False
