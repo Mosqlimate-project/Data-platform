@@ -129,7 +129,6 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
-LOGIN_REDIRECT_URL = "profile"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

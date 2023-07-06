@@ -5,7 +5,16 @@ from users.api import router as users_router
 from users.auth import InvalidUIDKey
 
 
-api = NinjaAPI(csrf=True)
+api = NinjaAPI(
+    csrf=True,
+    title="Mosqlimate API Demo",
+    description=(
+        "<h3>This is a demonstration of Mosqlimate API.</h3>"
+        "POST calls won't generate any result on database."
+        "<br>"
+        "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
+    ),
+)
 
 api.add_router("/registry/", router=registry_router)
 api.add_router("/accounts/", router=users_router)
