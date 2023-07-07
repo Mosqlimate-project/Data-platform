@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("ENV").lower() == "dev"
+DEBUG = str(env("ENV")).lower() == "dev"
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -80,25 +80,14 @@ WSGI_APPLICATION = "mosqlimate.wsgi.application"
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-PSQL_DB, PSQL_USER, PSQL_PASS, PSQL_HOST, PSQL_PORT = map(
-    env,
-    [
-        "POSTGRES_DB",
-        "POSTGRES_USER",
-        "POSTGRES_PASSWORD",
-        "POSTGRES_HOST",
-        "POSTGRES_PORT",
-    ],
-)
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": PSQL_DB,
-        "USER": PSQL_USER,
-        "PASSWORD": PSQL_PASS,
-        "HOST": PSQL_HOST,
-        "PORT": PSQL_PORT,
+        "NAME": env("POSTGRES_DB"),
+        "USER": env("POSTGRES_USER"),
+        "PASSWORD": env("POSTGRES_PASSWORD"),
+        "HOST": env("POSTGRES_HOST"),
+        "PORT": env("POSTGRES_PORT"),
     }
 }
 

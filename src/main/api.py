@@ -7,7 +7,7 @@ from users.auth import InvalidUIDKey
 
 api = NinjaAPI(
     csrf=True,
-    title="Mosqlimate API Demo",
+    title="API Demo",
     description=(
         "<h3>This is a demonstration of Mosqlimate API.</h3>"
         "POST calls won't generate any result on database."
