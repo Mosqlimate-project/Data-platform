@@ -1,0 +1,19 @@
+{% extends 'main/base.html' %}
+{% block title %}API Demo{% endblock %}
+{% block content %}
+{% load static %}
+<head>
+    <link type="text/css" rel="stylesheet" href="{% static 'ninja/swagger-ui.css' %}">
+</head>
+<body
+    data-openapi-url="{{ openapi_json_url }}"
+    data-csrf-token="{% if api.csrf %}{{ csrf_token }}{% endif %}"
+    data-api-csrf="{{ api.csrf|default:"" }}">
+    
+    <div id="swagger-ui"></div>
+
+    <script src="{% static 'ninja/swagger-ui-bundle.js' %}"></script>
+    <script src="{% static 'ninja/swagger-ui-init.js' %}"></script>
+
+</body>
+{% endblock %}

@@ -32,6 +32,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "ninja",
     "django_extensions",
     "dr_scaffold",
     "allauth",
@@ -60,9 +61,7 @@ ROOT_URLCONF = "mosqlimate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates",
-        ],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -113,6 +112,11 @@ SOCIALACCOUNT_PROVIDERS = {
             "read:user",
             "user:email",
         ],
+        "APP": {
+            "client_id": env("GITHUB_CLIENT_ID"),
+            "secret": env("GITHUB_SECRET"),
+            "key": "",
+        },
     }
 }
 
