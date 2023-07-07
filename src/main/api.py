@@ -3,6 +3,7 @@ from ninja import NinjaAPI
 from registry.api import router as registry_router
 from users.api import router as users_router
 from users.auth import InvalidUIDKey
+from django.urls import reverse
 
 
 api = NinjaAPI(
@@ -22,8 +23,9 @@ api.add_router("/accounts/", router=users_router)
 
 @api.exception_handler(InvalidUIDKey)
 def on_invalid_token(request, exc):
+    docs_url = request.build_absolute_uri(reverse("docs"))
     return api.create_response(
         request,
-        {"detail": "Unauthorized. See [](API Docs)"},  # TODO: Add real url here
+        {"detail": f"Unauthorized. See {docs_url}"},
         status=401,
     )
