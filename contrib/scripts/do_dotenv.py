@@ -22,6 +22,7 @@ print("------ .env ------")
 
 project_dir = Path(__file__).parent.parent.parent
 templates = Environment(loader=FileSystemLoader(project_dir / "contrib" / "templates"))
+def_data_dir = project_dir / "data"
 
 
 def get_env_var_or_input(var_key: str, input_text, default_val=None):
@@ -36,12 +37,15 @@ def get_env_var_or_input(var_key: str, input_text, default_val=None):
         # Asks for input if it is a terminal
         if os.isatty(sys.stdin.fileno()):
             var_in = input(input_text)
+            if not var_in:
+                return default_val
+            return var_in
+        # If not terminal
         else:
+            if default_val:
+                return default_val
             raise EnvironmentError(f"{var_key} not found in environment")
         # If not input, returns default
-        if not var_in:
-            return default_val
-        return var_in
     return var_value
 
 
@@ -60,7 +64,17 @@ secret_key = var_in(
 allowed_hosts = var_in(
     "ALLOWED_HOSTS", input_text="  Allowed hosts ['*']: ", default_val="*"
 )
-static_root = var_in("STATIC_ROOT", input_text="  Static files directory on host: ")
+def_dj_data_dir = def_data_dir / "django"
+def_dj_static_dir = def_dj_data_dir / "static"
+static_root = var_in(
+    "STATIC_ROOT",
+    input_text=(
+        "  Static files directory on host "
+        f"[{def_dj_data_dir.relative_to(project_dir)}/static]: "
+    ),
+    default_val=(def_dj_static_dir).absolute(),
+)
+
 
 print("\nDjango OAuth:")
 site_domain = var_in(
@@ -106,7 +120,6 @@ psql_db = var_in(
 )
 psql_uri = f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
 
-def_data_dir = project_dir / "data"
 def_psql_dir = def_data_dir / "psql"
 psql_conf = var_in(
     "POSTGRES_CONF_DIR_HOST",
@@ -188,7 +201,7 @@ variables = {
 
 if dotenv_file.exists():
     answer = ""
-    print(f".env found at {project_dir}, replace it? [y/N] ")
+    print(f"\nNote: .env file found at {project_dir}, replace it? [y/N] ")
     while True:
         answer = input()
         if answer.lower() in ["y", "yes"]:
