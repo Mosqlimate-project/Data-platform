@@ -125,8 +125,11 @@ python src/manage.py migrate
 ## Post-build
 ### Check Site ID
 At this point, the server is ready to run in a development environment. But there are some topics to be ensured first. Firstly, it will be required to check in which Site Django will be running on, this is important to properly configure Github OAuth:
-```py
+```sh
 python src/manage.py dbshell
+```
+
+```
 psql (15.3)
 Type "help" for help.
 
@@ -134,7 +137,7 @@ mosqlimate-dev=# select * from django_site;
  id |   domain    |    name     
 ----+-------------+-------------
   2 | example.com | example.com
-  ```
+```
 
 This domain ID (2) will have to match the `SITE_ID` on `settings.base` configuration. E.g: `SITE_ID = 2`
 

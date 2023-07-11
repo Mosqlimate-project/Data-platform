@@ -1,8 +1,55 @@
 {% extends 'main/base.html' %}
-{% block title %}{{ page_username }}{% endblock %}
+{% block title %}{{ user_profile.username }}{% endblock %}
 {% block content %}
-  {% if user.is_authenticated and user.username == page_username %}
-    <div>
+
+<!-- profile -->
+<div class="container">
+  <div class="profile shadow p-3 mb-5 bg-body rounded">
+    <div class="profile avatar">
+      <img class="border border-5 shadow p-1" src="{{ user_avatar }}"/>
+    </div>
+    <div class="profile info">
+      <div class="profile info name">
+        <h2>{{ user_profile.name }}</h2>
+      </div>
+      <div class="profile info-details">
+        {% if user_author.institution %}
+        <div class="profile info institution">
+          <i class="fas fa-building" style="color: #77767b;"></i>
+          {{ user_author.institution }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Models -->
+<div class="container">
+  <div class="models shadow p-3 mb-5 bg-body rounded">
+    <h2>Models</h2>
+    <ul>
+      {% for model in user_models %}
+      <li>{{ model }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+<!-- Predictions -->
+<div class="container">
+  <div class="predictions shadow p-3 mb-5 bg-body rounded">
+    <h2>Predictions</h2>
+    <ul>
+      {% for prediction in user_predictions %}
+      <li>{{ prediction }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+<!-- X-UID-Key -->
+{% if user.is_authenticated and user.username == user_profile.username %}
+<div class="container">
+  <div class="x-uid-key shadow p-3 mb-5 bg-body rounded">
+    <div> 
       <h4>X-UID-Key:</h4>
     </div>
     <div class="toggle-container">
@@ -11,19 +58,89 @@
         {{ user.username }}:{{ user.uuid }}
       </div>
     </div>
-    {% endif %}
+  </div>
+</div>
+{% endif %}
 
-    <style>
-    .toggle-container {
-      display: flex;
-      align-items: center;
-    }
+<style>
+.container {
+  width: 100%;
+}
 
-    .toggle-container button {
-      margin-right: 10px;
-    }
-    </style>
+.container .profile {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
 
+.container .profile.avatar {
+  flex: 0 0 25%;
+  display: flex;
+  align-items: center;
+}
+
+.container .profile.avatar img {
+  border-radius: 50%;
+  width: 100%;
+  height: auto;
+}
+
+.container .profile.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.container .profile.info.name h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.container .profile.info-details {
+  display: flex;
+  align-items: center;
+}
+
+.container .profile.info.institution {
+  display: column;
+  margin-right: 0.5rem;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-container button {
+  margin-right: 10px;
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+</style>
     <script>
     function toggleSecret(elementId) {
       var element = document.getElementById(elementId);

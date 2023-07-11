@@ -46,8 +46,11 @@ def list_authors(
     request,
     filters: AuthorFilterSchema = Query(...),
 ):
-    """Lists all authors, can be filtered by name"""
-    authors = Author.objects.all()
+    """
+    Lists all authors, can be filtered by name
+    Authors that don't have any Prediction won't be listed
+    """
+    authors = Author.objects.filter(model__isnull=False)
     authors = filters.filter(authors)
     return authors
 
@@ -67,29 +70,30 @@ def get_author(request, username: str):
         return 404, {"message": "Author not found"}
 
 
-@router.post(
-    "/authors/",
-    response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
-    tags=["registry", "authors"],
-    include_in_schema=False,
-)
-def create_author(request, payload: AuthorIn):
-    """
-    Posts author to database, requires a User to be created
-    @note: This call is related to User and shouldn't be done only via API Call
-    """
-    try:
-        user = User.objects.get(username=payload.user)
-        try:
-            author = Author.objects.get(user__username=payload.user)
-            if author:
-                return 403, {"message": f"Author '{author}' already registered"}
-        except Author.DoesNotExist:
-            author = Author.objects.create(user=user, institution=payload.institution)
-            return 201, author
-    except User.DoesNotExist:
-        return 404, {"message": f"User '{payload.user}' does not exist"}
+# Authors are automatically created at User creation
+# @router.post(
+#     "/authors/",
+#     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+#     auth=django_auth,
+#     tags=["registry", "authors"],
+#     include_in_schema=False,
+# )
+# def create_author(request, payload: AuthorIn):
+#     """
+#     Posts author to database, requires a User to be created
+#     @note: This call is related to User and shouldn't be done only via API Call
+#     """
+#     try:
+#         user = User.objects.get(username=payload.user)
+#         try:
+#             author = Author.objects.get(user__username=payload.user)
+#             if author:
+#                 return 403, {"message": f"Author '{author}' already registered"}
+#         except Author.DoesNotExist:
+#             author = Author.objects.create(user=user, institution=payload.institution)
+#             return 201, author
+#     except User.DoesNotExist:
+#         return 404, {"message": f"User '{payload.user}' does not exist"}
 
 
 @router.put(
