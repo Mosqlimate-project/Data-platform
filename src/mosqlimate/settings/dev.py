@@ -1,4 +1,4 @@
-from base import *  # noqa: F403
+from .base import *  # noqa: F403
 
 CORS_REPLACE_HTTPS_REFERER = False
 HOST_SCHEME = "http://"

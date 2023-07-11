@@ -167,11 +167,11 @@ variables = {
     "HOST_UID": uid,
     "HOST_GID": gid,
     "STATIC_ROOT": static_root,
-    "DJANGO_SETTINGS_MODULE": [
+    "DJANGO_SETTINGS_MODULE": (
         "mosqlimate.settings.prod"
         if str(env).lower() == "prod"
         else "mosqlimate.settings.dev"
-    ],
+    ),
     # [Django Oauth]
     "SITE_DOMAIN": site_domain,
     "SITE_NAME": site_name,
