@@ -2,24 +2,18 @@ from ninja import Schema
 
 
 class SuccessSchema(Schema):
+    """200"""
+
     message: str
 
 
 class ForbiddenSchema(Schema):
+    """403"""
+
     message: str
 
 
 class NotFoundSchema(Schema):
+    """404"""
+
     message: str
-
-
-class UserSchema(Schema):
-    name: str
-    username: str
-
-
-class UserInPost(Schema):
-    """Input for POST update request's body"""
-
-    first_name: str
-    last_name: str

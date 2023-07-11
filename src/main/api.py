@@ -1,41 +1,31 @@
 from ninja import NinjaAPI
-from ninja import Router
-from ninja.security import django_auth
 
 from registry.api import router as registry_router
-
-from .models import CustomUser
-from .schema import ForbiddenSchema, NotFoundSchema, UserInPost, UserSchema
-
-users_router = Router()
+from users.api import router as users_router
+from users.auth import InvalidUIDKey
+from django.urls import reverse
 
 
-@users_router.put(
-    "/{username}",
-    response={201: UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+api = NinjaAPI(
+    csrf=True,
+    title="API Demo",
+    description=(
+        "<h3>This is a demonstration of Mosqlimate API.</h3>"
+        "POST calls won't generate any result on database."
+        "<br>"
+        "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
+    ),
 )
-def update_user(request, username: str, payload: UserInPost):
-    """
-    Updates User. It is not possible to change User's username nor email.
-    To change a User's name, updates its first_name and last_name, which
-    were inherit from a 3rd party OAuth User
-    """
-    try:
-        user = CustomUser.objects.get(username=username)
-
-        if request.user != user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to update this user."}
-
-        user.first_name = payload.first_name
-        user.last_name = payload.last_name
-        user.save()
-        return 201, user
-    except CustomUser.DoesNotExist:
-        return 404, {"message": "Author not found"}
-
-
-api = NinjaAPI(csrf=True)
 
 api.add_router("/registry/", router=registry_router)
 api.add_router("/accounts/", router=users_router)
+
+
+@api.exception_handler(InvalidUIDKey)
+def on_invalid_token(request, exc):
+    docs_url = request.build_absolute_uri(reverse("docs"))
+    return api.create_response(
+        request,
+        {"detail": f"Unauthorized. See {docs_url}"},
+        status=401,
+    )

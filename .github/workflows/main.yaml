@@ -7,23 +7,8 @@ on:
     branches: [ main ]
   
 env:
-  ENV: dev
-  # [Django PostgreSQL]
-  POSTGRES_PORT: 5432
-  POSTGRES_USER: mosqlimate-ci
-  POSTGRES_PASSWORD: mosqlimate-ci
-  POSTGRES_DB: mosqlimate-ci
-  # [Postgres Image]
-  POSTGRES_DATA_DIR_HOST: ~/psql/data
-  POSTGRES_CONF_DIR_HOST: ~/psql
-  # [Django Email]
-  # DEFAULT_FROM_EMAIL:
-  # EMAIL_BACKEND:
-  # EMAIL_HOST:
-  # EMAIL_PORT:
-  # EMAIL_HOST_USER:
-  # EMAIL_HOST_PASSWORD:
-  # EMAIL_USE_TLS:
+  GITHUB_CLIENT_ID: ${{secrets.PROVISORY_GITHUB_CLIENT_ID}}
+  GITHUB_SECRET: ${{secrets.PROVISORY_GITHUB_SECRET}}
 
 jobs:
   build:
@@ -35,6 +20,7 @@ jobs:
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
+    secrets: inherit
 
     defaults:
       run:

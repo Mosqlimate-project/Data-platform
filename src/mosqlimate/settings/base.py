@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("ENV").lower() == "dev"
+DEBUG = str(env("ENV")).lower() == "dev"
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -32,6 +32,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "ninja",
     "django_extensions",
     "dr_scaffold",
     "allauth",
@@ -41,7 +42,7 @@ THIRD_PARTY_APPS = [
     "django_bootstrap5",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry"]
+LOCAL_APPS = ["main", "datastore", "registry", "users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -60,9 +61,7 @@ ROOT_URLCONF = "mosqlimate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates",
-        ],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -81,25 +80,14 @@ WSGI_APPLICATION = "mosqlimate.wsgi.application"
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-PSQL_DB, PSQL_USER, PSQL_PASS, PSQL_HOST, PSQL_PORT = map(
-    env,
-    [
-        "POSTGRES_DB",
-        "POSTGRES_USER",
-        "POSTGRES_PASSWORD",
-        "POSTGRES_HOST",
-        "POSTGRES_PORT",
-    ],
-)
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": PSQL_DB,
-        "USER": PSQL_USER,
-        "PASSWORD": PSQL_PASS,
-        "HOST": PSQL_HOST,
-        "PORT": PSQL_PORT,
+        "NAME": env("POSTGRES_DB"),
+        "USER": env("POSTGRES_USER"),
+        "PASSWORD": env("POSTGRES_PASSWORD"),
+        "HOST": env("POSTGRES_HOST"),
+        "PORT": env("POSTGRES_PORT"),
     }
 }
 
@@ -113,6 +101,11 @@ SOCIALACCOUNT_PROVIDERS = {
             "read:user",
             "user:email",
         ],
+        "APP": {
+            "client_id": env("GITHUB_CLIENT_ID"),
+            "secret": env("GITHUB_SECRET"),
+            "key": "",
+        },
     }
 }
 
@@ -123,12 +116,12 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 2  # select * from django_site;
 
-AUTH_USER_MODEL = "main.CustomUser"
+AUTH_USER_MODEL = "users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
-LOGIN_REDIRECT_URL = "/"
+SOCIALACCOUNT_STORE_TOKENS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

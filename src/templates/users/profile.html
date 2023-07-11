@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ page_username }}{% endblock %}
+{% block content %}
+  {% if user.is_authenticated and user.username == page_username %}
+    <div>
+      <h4>X-UID-Key:</h4>
+    </div>
+    <div class="toggle-container">
+      <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
+      <div id="uid-key-secret" style="display: none;">
+        {{ user.username }}:{{ user.uuid }}
+      </div>
+    </div>
+    {% endif %}
+
+    <style>
+    .toggle-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-container button {
+      margin-right: 10px;
+    }
+    </style>
+
+    <script>
+    function toggleSecret(elementId) {
+      var element = document.getElementById(elementId);
+      if (element.style.display === "none") {
+        element.style.display = "block";
+      } else {
+        element.style.display = "none";
+      }
+    }
+
+    function toggleButtonText(buttonId) {
+      var button = document.getElementById(buttonId);
+      if (button.innerHTML === "Show") {
+        button.innerHTML = "Hide";
+      } else {
+        button.innerHTML = "Show";
+      }
+    }
+    </script>
+    {% endblock %}
