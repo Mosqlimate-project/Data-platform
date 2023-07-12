@@ -2,162 +2,150 @@
 {% block title %}{{ user_profile.username }}{% endblock %}
 {% block content %}
 
-<!-- profile -->
-<div class="container">
-  <div class="profile shadow p-3 mb-5 bg-body rounded">
-    <div class="profile avatar">
-      <img class="border border-5 shadow p-1" src="{{ user_avatar }}"/>
+
+<div class="container-xxl">
+
+  <div class="profile">
+
+    <div class="avatar">
+      <img class="border border-5 shadow p-1" src="{{ user_avatar }}"></img>
     </div>
-    <div class="profile info">
-      <div class="profile info name">
-        <h2>{{ user_profile.name }}</h2>
+
+    <div class="name">
+      {{ user_profile.name }}
+      {% if user.username == user_profile.username %}
+        <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+      {% endif %}
+    </div>
+
+    {% if user_author.institution %}
+    <div class="institution">
+      <i class="fas fa-building" style="color: #5e5c64;"></i>
+      {{ user_author.institution }}
+      {% if user.username == user_profile.username %}
+      <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="update-institution">
+      {% if user.username == user_profile.username %}
+      <i class="fas fa-building" style="color: #5e5c64;"></i>
+      <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="models">
+      <i class="fa-solid fa-scroll" style="color: #5e5c64;"></i>
+      {{ user_models.count }}
+    </div>
+
+    <div class="predictions">
+      <i class="fa-solid fa-code" style="color: #5e5c64;"></i>
+      {{ user_predictions.count }}
+    </div>
+
+  </div>
+
+  <div class="content container models shadow p-4 mb-6 bg-body rounded"
+    <!-- Models -->
+    <div class="container models shadow p-3 mb-5 bg-body rounded">
+      <h2>Models</h2>
+      <ul>
+        {% for model in user_models %}
+        <li>{{ model }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Predictions -->
+    <div class="container predictions shadow p-3 mb-5 bg-body rounded">
+      <h2>Predictions</h2>
+      <ul>
+        {% for prediction in user_predictions %}
+        <li>{{ prediction }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- X-UID-Key -->
+    {% if user.username == user_profile.username %}
+    <div class="container x-uid-key shadow p-3 mb-5 bg-body rounded">
+      <div> 
+        <h4>X-UID-Key:</h4>
       </div>
-      <div class="profile info-details">
-        {% if user_author.institution %}
-        <div class="profile info institution">
-          <i class="fas fa-building" style="color: #77767b;"></i>
-          {{ user_author.institution }}
+      <div class="toggle-container">
+        <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
+        <div id="uid-key-secret" style="display: none;">
+          {{ user.username }}:{{ user.uuid }}
         </div>
-        {% endif %}
       </div>
     </div>
+    {% endif %}
   </div>
+
 </div>
-<!-- Models -->
-<div class="container">
-  <div class="models shadow p-3 mb-5 bg-body rounded">
-    <h2>Models</h2>
-    <ul>
-      {% for model in user_models %}
-      <li>{{ model }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-<!-- Predictions -->
-<div class="container">
-  <div class="predictions shadow p-3 mb-5 bg-body rounded">
-    <h2>Predictions</h2>
-    <ul>
-      {% for prediction in user_predictions %}
-      <li>{{ prediction }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-<!-- X-UID-Key -->
-{% if user.is_authenticated and user.username == user_profile.username %}
-<div class="container">
-  <div class="x-uid-key shadow p-3 mb-5 bg-body rounded">
-    <div> 
-      <h4>X-UID-Key:</h4>
-    </div>
-    <div class="toggle-container">
-      <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
-      <div id="uid-key-secret" style="display: none;">
-        {{ user.username }}:{{ user.uuid }}
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 <style>
-.container {
-  width: 100%;
+.container-xxl {
+  display: flex;
+  margin-top: 3rem;
 }
 
-.container .profile {
-  width: 100%;
-  padding: 1rem;
+.profile {
+  flex: 1;
+  margin-right: 2.5%;
+  position: relative;
+}
+
+.avatar {
+  align-items: center;
   display: flex;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  justify-content: center;
   align-items: center;
 }
 
-.container .profile.avatar {
-  flex: 0 0 25%;
-  display: flex;
-  align-items: center;
-}
-
-.container .profile.avatar img {
+.avatar img {
   border-radius: 50%;
-  width: 100%;
+  width: 70%;
   height: auto;
 }
 
-.container .profile.info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.name {
+  text-align: center;
 }
 
-.container .profile.info.name h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+.content {
+  flex: 4;
 }
 
-.container .profile.info-details {
-  display: flex;
-  align-items: center;
-}
-
-.container .profile.info.institution {
-  display: column;
-  margin-right: 0.5rem;
-}
-
-.toggle-container {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-container button {
-  margin-right: 10px;
-}
-
-@media (min-width: 576px) {
-  .container {
-    max-width: 540px;
+@media (max-width: 1200px) {
+  .profile {
+    display: none;
   }
 }
 
-@media (min-width: 768px) {
-  .container {
-    max-width: 720px;
-  }
-}
-
-@media (min-width: 992px) {
-  .container {
-    max-width: 960px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .container {
-    max-width: 1140px;
-  }
-}
 </style>
-    <script>
-    function toggleSecret(elementId) {
-      var element = document.getElementById(elementId);
-      if (element.style.display === "none") {
-        element.style.display = "block";
-      } else {
-        element.style.display = "none";
-      }
-    }
 
-    function toggleButtonText(buttonId) {
-      var button = document.getElementById(buttonId);
-      if (button.innerHTML === "Show") {
-        button.innerHTML = "Hide";
-      } else {
-        button.innerHTML = "Show";
-      }
-    }
-    </script>
-    {% endblock %}
+<script>
+function toggleSecret(elementId) {
+  var element = document.getElementById(elementId);
+  if (element.style.display === "none") {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
+function toggleButtonText(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button.innerHTML === "Show") {
+    button.innerHTML = "Hide";
+  } else {
+    button.innerHTML = "Show";
+  }
+}
+</script>
+  {% endblock %}

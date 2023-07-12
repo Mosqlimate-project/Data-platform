@@ -2,6 +2,7 @@ import datetime
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
@@ -50,8 +51,8 @@ def list_authors(
     Lists all authors, can be filtered by name
     Authors that don't have any Prediction won't be listed
     """
-    authors = Author.objects.filter(model__isnull=False)
-    authors = filters.filter(authors)
+    models_count = Author.objects.annotate(num_models=Count("model"))
+    authors = models_count.filter(num_models__gt=0)
     return authors
 
 
