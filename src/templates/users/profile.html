@@ -1,7 +1,10 @@
 {% extends 'main/base.html' %}
 {% block title %}{{ user_profile.username }}{% endblock %}
-{% block content %}
 
+{% load model_component %}
+{% load prediction_component %}
+
+{% block content %}
 
 <div class="container-xxl">
 
@@ -14,48 +17,49 @@
     <div class="name font-golos">
       {{ user_profile.name }}
       {% if user.username == user_profile.username %}
-        <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+      <a href="#"><i class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
     <center><hr style="width:30%;"></center>
-
-    {% if user_author.institution %}
-    <div class="institution font-golos">
-      <i class="fas fa-building" style="color: #5e5c64;"></i>
-      {{ user_author.institution }}
-      {% if user.username == user_profile.username %}
-      <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+    
+    <div class="profile-items font-golos">
+      {% if user_author.institution %}
+      <div class="institution">
+        <i class="profile-icon fas fa-building" style="color: #5e5c64;"></i>
+        {{ user_author.institution }}
+        {% if user.username == user_profile.username %}
+        <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="update-institution">
+        {% if user.username == user_profile.username %}
+        <i class="fas fa-building" style="color: #5e5c64;"></i>
+        <a href="#"><i class="fa-solid fa-plus" style="color: #9a9996;"></i></a>
+        {% endif %}
+      </div>
       {% endif %}
-    </div>
-    {% else %}
-    <div class="update-institution">
-      {% if user.username == user_profile.username %}
-      <i class="fas fa-building" style="color: #5e5c64;"></i>
-      <i class="fa-solid fa-plus" style="color: #9a9996;"></i>
-      {% endif %}
-    </div>
-    {% endif %}
 
-    <div class="models-count font-golos">
-      <i class="fa-solid fa-scroll" style="color: #5e5c64;"></i>
-      {{ user_models.count }} {% if user_models.count > 1 %}Models{% else %}Model{% endif %}
-    </div>
+      <div class="models-count">
+        <i class="profile-icon fa-solid fa-scroll" style="color: #5e5c64;"></i>
+        {{ user_models.count }} {% if user_models.count > 1 %}Models{% else %}Model{% endif %}
+      </div>
 
-    <div class="predictions-count font-golos">
-      <i class="fa-solid fa-code" style="color: #5e5c64;"></i>
-      {{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}
+      <div class="predictions-count">
+        <i class="profile-icon fa-solid fa-code" style="color: #5e5c64;"></i>
+        {{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}
+      </div>
     </div>
-
   </div>
 
-  <div class="content container models shadow p-4 mb-6 bg-body rounded"
+  <div class="content container font-golos models shadow p-4 mb-6 bg-body rounded"
     <!-- Models -->
-    <div class="container models font-golos shadow p-3 mb-5 bg-body rounded">
+    <div class="container models shadow p-3 mb-5 bg-body rounded">
       <h2>Models</h2>
       <ul>
         {% for model in user_models %}
-        <li>{{ model }}</li>
+        <li>{% model_component model=model %}</li>
         {% endfor %}
       </ul>
     </div>
@@ -65,7 +69,7 @@
       <h2>Predictions</h2>
       <ul>
         {% for prediction in user_predictions %}
-        <li>{{ prediction }}</li>
+        <li>{% prediction_component prediction=prediction %}</li>
         {% endfor %}
       </ul>
     </div>
@@ -118,10 +122,29 @@
 .name {
   text-align: center;
   font-size: 1.5em;
+  position: relative;
+}
+
+.name .fa-pencil {
+  font-size: 0.55em;
+  position: absolute;
+}
+
+.profile-items {
+  padding-left: 0.5em;
+  padding-top: 0.2em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 15%;
 }
 
 .content {
   flex: 4;
+}
+
+.content h2 {
+  text-align: center;
 }
 
 @media (max-width: 1200px) {
