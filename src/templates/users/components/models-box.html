@@ -1,0 +1,106 @@
+{% block models_box %}
+
+<table id="models-box" class="table table-hover nowrap">
+  <thead>
+    <tr>
+      <th scope="col">
+        id
+      </th>
+      <th scope="col">
+        name
+      </th>
+      <th scope="col">
+        type
+      </th>
+      <th scope="col">
+        repo
+      </th>
+      <th scope="col">
+        lang
+      </th>
+      <th scope="col">
+        created
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for model in models %}
+    <tr>
+      <td>{{model.id}}</td>
+      <td>{{model.name}}</td>
+      <td>{{model.type}}</td>
+      <td>{{model.repository}}</td>
+      <td>{{model.implementation_language}}</td>
+      <td>{{model.created}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<style>
+
+th {
+  /* text-align: center; */
+  font-size: 1.2em;
+  position: relative;
+}
+
+.search-box-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.search-box-container label {
+  display: flex;
+  flex-direction: row;
+  align-items:center;
+  gap: 0.4em;
+  margin: 1em;
+}
+
+.show-entries-container {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  margin: 1em;
+}
+
+.show-entries-container label {
+  margin-right: 5px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.4em;
+  font-size: 0.85em;
+  align-items: center;
+}
+
+.show-entries-container select {
+  width: auto;
+  font-size: 0.85em;
+  margin: 0;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85em;
+}
+
+.show-info {
+  font-size: 0.85em;
+}
+
+</style>
+<script>
+var table = new DataTable('#models-box', {
+    responsive: true
+});
+$('.dataTables_filter').addClass('search-box-container');
+$('.dataTables_length').addClass('show-entries-container');
+$('.dataTables_info').addClass('show-info');
+$('.dataTables_paginate').addClass('pagination-container');
+</script>
+
+{% endblock %}

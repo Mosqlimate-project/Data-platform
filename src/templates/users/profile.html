@@ -57,19 +57,15 @@
     <!-- Models -->
     <div class="container models shadow p-3 mb-5 bg-body rounded">
       <h2>Models</h2>
-      <ul>
-        {% for model in user_models %}
-        <li>{% model_component model=model %}</li>
-        {% endfor %}
-      </ul>
+        {% models_box %}
     </div>
 
     <!-- Predictions -->
     <div class="container predictions font-golos shadow p-3 mb-5 bg-body rounded">
       <h2>Predictions</h2>
-      <ul>
+      <ul class="predictions-list list-group list-group-flush">
         {% for prediction in user_predictions %}
-        <li>{% prediction_component prediction=prediction %}</li>
+          {% prediction_item prediction=prediction %}
         {% endfor %}
       </ul>
     </div>
@@ -145,6 +141,16 @@
 
 .content h2 {
   text-align: center;
+}
+
+.models-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.predictions-list {
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 1200px) {
