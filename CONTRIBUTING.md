@@ -17,8 +17,8 @@ After registering the app, you will see the brand-new app configuration. In this
 ### Prepare Mosqlimate repository
 If you haven't done yet, clone this repository in your project's directory:
 ```sh
-git clone git@github.com:Mosqlimate-project/Data-platform.git </some/path/>
-cd Data-platform
+git clone git@github.com:Mosqlimate-project/Data-platform.git </some/path>
+cd </some/path>/Data-platform
 ```
 ### Install dependencies
 Mosqlimate uses [conda-forge](https://conda-forge.org/) and [poetry](https://python-poetry.org/) to manage it's dependencies. To prepare the base environment run with your manager (in this example I'm using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)):
@@ -32,6 +32,10 @@ poetry install
 ```
 ### Environment configuration
 Mosqlimate uses [makim](https://github.com/osl-incubator/makim) as the CLI tool to run project commands, running the command `makim dev.dotenv` will run the scripts to generate the `.env` file behind the scenes. Mostly of the variables come with a default value that can later be changed as the contributor needs, some of the values, as [Github credentials](#generate-your-github-client-id-and-secret) for instance, will be left blank if not passed in during the configuration.
+
+```sh
+makim dev.dotenv
+```
 
 After the process, it will create a `.env` file at the root of the project with the similar config:
 ```sh

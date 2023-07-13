@@ -485,20 +485,6 @@ requests = "*"
 requests-oauthlib = ">=0.3.0"
 
 [[package]]
-name = "django-bootstrap5"
-version = "23.3"
-description = "Bootstrap 5 for Django"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "django_bootstrap5-23.3-py3-none-any.whl", hash = "sha256:ca1bb2f40175ed1c1725f52f249a574bf629b33b5a0af3bec0eab1de6d72836c"},
-    {file = "django_bootstrap5-23.3.tar.gz", hash = "sha256:21e1956a8a819370decc5d365ce4f4207761cb065afec5a7df8c4c8c49507f2e"},
-]
-
-[package.dependencies]
-django = ">=3.2"
-
-[[package]]
 name = "django-extensions"
 version = "3.2.3"
 description = "Extensions for Django"
@@ -635,6 +621,16 @@ files = [
 [package.extras]
 docs = ["furo (>=2023.5.20)", "sphinx (>=7.0.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
 testing = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "diff-cover (>=7.5)", "pytest (>=7.3.1)", "pytest-cov (>=4.1)", "pytest-mock (>=3.10)", "pytest-timeout (>=2.1)"]
+
+[[package]]
+name = "fontawesomefree"
+version = "6.4.0"
+description = "Font Awesome Free"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fontawesomefree-6.4.0-py3-none-any.whl", hash = "sha256:e12edad71b6cf6993fc7c6aea6367e131f2f247b6435faca99b12329bacd2b27"},
+]
 
 [[package]]
 name = "identify"
@@ -1506,4 +1502,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "5b16cf13f3f88b2058baec82face8b34cf397fcd426f71ca233db34e1c8ffafc"
+content-hash = "a7b8abc39ad529fee3d2c1e625b5fc38280ff0524ba60dd455082679e5269d67"

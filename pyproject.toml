@@ -18,8 +18,8 @@ django = "^4.2.2"
 containers-sugar = "^1.7.0"
 docker-compose = "^1.29.2"
 python-environ = "^0.4.54"
-django-bootstrap5 = "^23.3"
 django-allauth = "^0.54.0"
+fontawesomefree = "^6.4.0"
 
 
 [tool.poetry.group.pre-commit.dependencies]
