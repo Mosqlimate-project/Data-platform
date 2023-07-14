@@ -8,9 +8,16 @@ register = template.Library()
 
 @register.inclusion_tag("users/components/models-box.html", takes_context=True)
 def models_box(context):
+    profile = context.get("user_profile")
     models = context.get("user_models")
+    predictions = context.get("user_predictions")
     models = Model.objects.annotate(predictions_count=Count("prediction"))
-    context = {"models": models}
+    context = {
+        "user": context.request.user,
+        "user_profile": profile,
+        "models": models,
+        "predictions": predictions,
+    }
     return context
 
 
