@@ -1,9 +1,11 @@
 import datetime
 from typing import List
+from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
+from django.db import IntegrityError
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
@@ -195,17 +197,25 @@ def get_model(request, model_id: int):
 
 @router.post(
     "/models/",
-    response={201: ModelSchema},
+    response={201: ModelSchema, 403: ForbiddenSchema},
     auth=uidkey,
     tags=["registry", "models"],
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
+    repo_url = urlparse(payload.repository)
+    if repo_url.netloc != "github.com":  # TODO: add gitlab here?
+        return 403, {"message": "Model repository must be on Github"}
+    if not repo_url.path:
+        return 403, {"message": "Invalid repository"}
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
     model = Model(author=author, **payload.dict())
     if not calling_via_swagger(request):
-        model.save()
+        try:
+            model.save()
+        except IntegrityError:
+            return 403, {"message": f"Model {model.name} already exists"}
     return 201, model
 
 
