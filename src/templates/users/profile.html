@@ -55,10 +55,7 @@
 
   <div class="content container font-golos models shadow p-4 mb-6 bg-body rounded"
     <!-- Models -->
-    <div class="container models shadow p-3 mb-5 bg-body rounded">
-      <h2>Models</h2>
-        {% models_box %}
-    </div>
+    {% models_box %}
 
     <!-- Predictions -->
     <div class="container predictions font-golos shadow p-3 mb-5 bg-body rounded">
@@ -141,14 +138,6 @@
 
 .content h2 {
   text-align: center;
-}
-
-.models-list,
-.predictions-list {
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
 }
 
 @media (max-width: 1200px) {

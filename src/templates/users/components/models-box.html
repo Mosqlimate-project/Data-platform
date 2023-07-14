@@ -1,47 +1,49 @@
 {% block models_box %}
 {% load model_component %}
 
-<table id="models-box" class="table table-hover nowrap">
-  <thead>
-    <tr>
-      <th scope="col">
-        ID
-      </th>
-      <th scope="col">
-        Name
-      </th>
-      <th scope="col">
-        Type
-      </th>
-      <th scope="col">
-        Repository
-      </th>
-      <th scope="col">
-        Language
-      </th>
-      <th scope="col"><center>
-        Predictions
-      </center></th>
-      <th scope="col"><center>
-        Updated
-      </center></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for model in models %}
-    <tr>
-      <td>{{model.id}}</td>
-      <td>{{model.name}}</td>
-      <td>{{model.type}}</td>
-      <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
-      <td>{{model.implementation_language}}</td>
-      <td><center>{{model.predictions_count}}</center></td> 
-      <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
+<div class="container models shadow p-3 mb-5 bg-body rounded">
+  <h2>Models</h2>
+  <table id="models-box" class="table table-hover nowrap">
+    <thead>
+      <tr>
+        <th scope="col">
+          ID
+        </th>
+        <th scope="col">
+          Name
+        </th>
+        <th scope="col">
+          Type
+        </th>
+        <th scope="col">
+          Repository
+        </th>
+        <th scope="col"><center>
+          Language
+        </center></th>
+        <th scope="col"><center>
+          Predictions
+        </center></th>
+        <th scope="col" data-sort-default="desc"><center>
+          Updated
+        </center></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for model in models %}
+      <tr>
+        <td>{{model.id}}</td>
+        <td>{{model.name}}</td>
+        <td>{{model.type}}</td>
+        <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
+        <td><center>{{model.implementation_language}}</center></td>
+        <td><center>{{model.predictions_count}}</center></td> 
+        <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 <style>
 
 th {
@@ -59,6 +61,19 @@ td {
   white-space: nowrap;
   max-width: 200px;
 }
+
+tr:hover td {
+  /* background-color: #f5f5f5; */
+  overflow: visible;
+  text-overflow: "";
+  white-space: normal;
+  cursor: pointer;
+}
+
+/* tr:hover::after { */
+/*   overflow: auto; */
+/*   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); */
+/* } */
 
 .search-box-container {
   display: flex;
@@ -112,7 +127,8 @@ td {
 var table = new DataTable('#models-box', {
     responsive: true,
     pageLength: 3,
-    lengthMenu: [3, 6, 12]
+    lengthMenu: [3, 6, 12],
+    order: [[6, 'desc']]
 });
 $('.dataTables_filter').addClass('search-box-container');
 $('.dataTables_length').addClass('show-entries-container');
