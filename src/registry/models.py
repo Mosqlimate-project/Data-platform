@@ -19,13 +19,13 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    author = models.ForeignKey(
+        Author, on_delete=models.CASCADE, null=False
+    )  # TODO: CASCADE?
     name = models.CharField(
         max_length=255, null=False, blank=False, unique=True
     )  # TODO: Unique true?
     description = models.CharField(max_length=255, null=True, blank=True)
-    author = models.ForeignKey(
-        Author, on_delete=models.CASCADE, null=False
-    )  # TODO: CASCADE?
     repository = models.URLField(max_length=200, null=False, blank=False)
     implementation_language = models.CharField(max_length=100, null=False, blank=False)
     type = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?

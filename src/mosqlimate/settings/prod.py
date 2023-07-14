@@ -1,4 +1,4 @@
-from base import *  # noqa: F403
+from .base import *  # noqa: F403
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

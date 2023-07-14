@@ -1,0 +1,292 @@
+{% block models_box %}
+{% load model_component %}
+
+<head>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<div class="container models shadow p-3 mb-5 bg-body rounded">
+  <h2>Models</h2>
+  <table id="models-box" class="table table-hover nowrap">
+    <thead>
+      <tr>
+        <th scope="col">
+          ID
+        </th>
+        <th scope="col">
+          Name
+        </th>
+        <th scope="col">
+          Type
+        </th>
+        <th scope="col">
+          Repository
+        </th>
+        <th scope="col"><center>
+          Language
+        </center></th>
+        <th scope="col"><center>
+          Predictions
+        </center></th>
+        <th scope="col" data-sort-default="desc"><center>
+          Updated
+        </center></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for model in models %}
+      <tr onclick="handleModelClick('{{model.id}}')">
+        <td>{{model.id}}</td>
+        <td>{{model.name}}</td>
+        <td>{{model.type}}</td>
+        <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
+        <td><center>{{model.implementation_language}}</center></td>
+        <td><center>{{model.predictions_count}}</center></td> 
+        <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card model-card text-center shadow" style="display: none;">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="true" href="#" onclick="changeTab(event, 'info')">Info</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'json')">JSON</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'curl')">Curl</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'python')">Python</a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body">
+    <div id="info-tab" class="tab-content">
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Name: </div>
+        <div id="model-name"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Description: </div>
+        <div id="model-description"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Repository: </div>
+        <div id="model-repository"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Implementation Language: </div>
+        <div id="model-language"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Type: </div>
+        <div id="model-type"></div>
+      </div>
+      {% if user.username == user_profile.username %}
+      <div class="info-tab-item">
+        <a href="#">Edit Model</a>
+      </div>
+      {% endif %}
+    </div>
+    <div id="json-tab" class="tab-content" style="display: none;">
+      <pre><code id="model-json"></code></pre>
+    </div>
+    <div id="curl-tab" class="tab-content" style="display: none;">
+      <pre><code id="curl-model-command" class="curl-command"></code></pre>
+    </div>
+    <div id="python-tab" class="tab-content" style="display: none;">
+      <pre><code id="python-model-code" class="python"></code></pre>
+    </div>
+  </div>
+</div>
+
+<style>
+
+th {
+  /* text-align: center; */
+  font-size: 1.2em;
+  position: relative;
+}
+
+td {
+  /* text-align: center; */
+  font-size: 0.9em;
+  position: relative;
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+tr:hover td {
+  /* background-color: #f5f5f5; */
+  overflow: visible;
+  text-overflow: "";
+  white-space: normal;
+  cursor: pointer;
+}
+
+pre {
+  max-height: 500px;
+  overflow: auto;
+  margin-bottom: 0;
+}
+
+.search-box-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.search-box-container label {
+  display: flex;
+  flex-direction: row;
+  align-items:center;
+  gap: 0.4em;
+  margin: 1em;
+}
+
+.show-entries-container {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  margin: 1em;
+}
+
+.show-entries-container label {
+  margin-right: 5px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.4em;
+  font-size: 0.85em;
+  align-items: center;
+}
+
+.show-entries-container select {
+  width: auto;
+  font-size: 0.85em;
+  margin: 0;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85em;
+}
+
+.show-info {
+  font-size: 0.85em;
+}
+
+.info-tab-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 1em;
+}
+
+#python-model-code,
+#curl-model-command {
+  text-align: left;
+}
+
+</style>
+<script>
+var table = new DataTable('#models-box', {
+    responsive: true,
+    pageLength: 3,
+    lengthMenu: [3, 6, 12],
+    order: [[6, 'desc']]
+});
+$('.dataTables_filter').addClass('search-box-container');
+$('.dataTables_length').addClass('show-entries-container');
+$('.dataTables_info').addClass('show-info');
+$('.dataTables_paginate').addClass('pagination-container');
+
+
+function handleModelClick(modelId) {
+  const cardElement = document.querySelector('.model-card');
+  cardElement.style.display = 'block';
+
+  fetchModelJSON(modelId);
+  displayCurlCommand(modelId);
+  displayPythonCode(modelId);
+}
+
+function fetchModelJSON(modelId) {
+  const apiUrl = `/api/registry/models/${modelId}`;
+
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      const resultContainer = document.getElementById('model-json');
+      resultContainer.textContent = JSON.stringify(data, null, 4);
+      hljs.highlightBlock(resultContainer);
+
+      // TODO: isolate in its own function, using django query to get the model 
+      const modelNameElement = document.getElementById('model-name');
+      const modelDescriptionElement = document.getElementById('model-description');
+      const modelRepositoryElement = document.getElementById('model-repository');
+      const modelLanguageElement = document.getElementById('model-language');
+      const modelTypeElement = document.getElementById('model-type');
+      
+      modelNameElement.textContent = data.name;
+      modelDescriptionElement.textContent = data.description;
+      modelRepositoryElement.textContent = data.repository;
+      modelLanguageElement.textContent = data.implementation_language;
+      modelTypeElement.textContent = data.type;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+function displayCurlCommand(modelId) {
+  const apiUrl = `https://mosqlimate.com/api/registry/models/${modelId}`;
+  const curlCommand = `curl -X "GET" ${apiUrl}`;
+  const curlModelCommandElement = document.getElementById('curl-model-command');
+  curlModelCommandElement.textContent = curlCommand;
+  hljs.highlightBlock(curlModelCommandElement);
+}
+
+function displayPythonCode(modelId) {
+  const pythonCode = `import requests\nrequests.get("https://mosqlimate.com/api/registry/models/${modelId}").json()`;
+  const pythonTabContent = document.getElementById('python-model-code');
+  pythonTabContent.innerHTML = pythonCode;
+  hljs.highlightBlock(pythonTabContent);
+}
+
+
+function changeTab(event, tabName) {
+  event.preventDefault();
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+  });
+
+  event.target.classList.add('active');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabContents.forEach(content => {
+    if (content.id === `${tabName}-tab`) {
+      content.style.display = 'block';
+    } else {
+      content.style.display = 'none';
+    }
+  });
+}
+
+</script>
+
+{% endblock %}
