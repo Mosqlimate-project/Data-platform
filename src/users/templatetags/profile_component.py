@@ -21,6 +21,18 @@ def models_box(context):
     return context
 
 
+@register.inclusion_tag("users/components/predictions-box.html", takes_context=True)
+def predictions_box(context):
+    profile = context.get("user_profile")
+    predictions = context.get("user_predictions")
+    context = {
+        "user": context.request.user,
+        "user_profile": profile,
+        "predictions": predictions,
+    }
+    return context
+
+
 @register.filter(name="get_repo")
 def extract_repo_from_github_url(repo_url: str) -> str:
     # Assumes the repository url has been checked before

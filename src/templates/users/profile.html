@@ -2,8 +2,7 @@
 {% block title %}{{ user_profile.username }}{% endblock %}
 
 {% load static %}
-{% load model_component %}
-{% load prediction_component %}
+{% load profile_component %}
 
 {% block head %}
 {% endblock %}
@@ -61,14 +60,7 @@
     {% models_box %}
 
     <!-- Predictions -->
-    <div class="container predictions font-golos shadow p-3 mb-5 bg-body rounded">
-      <h2>Predictions</h2>
-      <ul class="predictions-list list-group list-group-flush">
-        {% for prediction in user_predictions %}
-          {% prediction_item prediction=prediction %}
-        {% endfor %}
-      </ul>
-    </div>
+    {% predictions_box %}
 
     <!-- X-UID-Key -->
     {% if user.username == user_profile.username %}
@@ -86,10 +78,10 @@
     {% endif %}
   </div>
 
-  <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
+  <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
   <script src="{% static 'js/external/datatables.js' %}"></script>
   <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
   <script src="{% static 'js/external/highlight.js' %}"></script>

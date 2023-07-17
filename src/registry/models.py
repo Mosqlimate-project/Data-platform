@@ -19,9 +19,7 @@ class Author(models.Model):
 
 
 class Model(models.Model):
-    author = models.ForeignKey(
-        Author, on_delete=models.CASCADE, null=False
-    )  # TODO: CASCADE?
+    author = models.ForeignKey(Author, on_delete=models.RESTRICT, null=False)
     name = models.CharField(
         max_length=255, null=False, blank=False, unique=True
     )  # TODO: Unique true?
@@ -42,7 +40,7 @@ class Model(models.Model):
 
 class Prediction(models.Model):
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
-    description = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     commit = models.CharField(max_length=255, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
