@@ -1,0 +1,106 @@
+{% block models_box %}
+{% load profile_component %}
+
+<div class="container models shadow p-3 mb-3 bg-body rounded">
+  <h2>Models</h2>
+  <table id="models-box" class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">
+          ID
+        </th>
+        <th scope="col">
+          Name
+        </th>
+        <th scope="col">
+          Type
+        </th>
+        <th scope="col">
+          Repository
+        </th>
+        <th scope="col"><center>
+          Language
+        </center></th>
+        <th scope="col"><center>
+          Predictions
+        </center></th>
+        <th scope="col" data-sort-default="desc"><center>
+          Updated
+        </center></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for model in models %}
+      <tr onclick="handleModelClick('{{model.id}}')">
+        <td>{{model.id}}</td>
+        <td>{{model.name}}</td>
+        <td>{{model.type}}</td>
+        <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
+        <td><center>{{model.implementation_language}}</center></td>
+        <td><center>{{model.predictions_count}}</center></td> 
+        <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card model-card text-center mb-3 shadow" style="display: none;">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="true" href="#" onclick="changeTab(event, 'info')">Info</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'json')">JSON</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'curl')">Curl</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" onclick="changeTab(event, 'python')">Python</a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body">
+    <div id="info-tab" class="tab-content">
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Name: </div>
+        <div id="model-name"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Description: </div>
+        <div id="model-description"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Repository: </div>
+        <div id="model-repository"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Implementation Language: </div>
+        <div id="model-language"></div>
+      </div>
+      <div class="info-tab-item">
+        <div class="info-tab-item-var">Type: </div>
+        <div id="model-type"></div>
+      </div>
+      {% if user.username == user_profile.username %}
+      <div class="info-tab-item">
+        <a href="#">Edit Model</a>
+      </div>
+      {% endif %}
+    </div>
+    <div id="json-tab" class="tab-content" style="display: none;">
+      <pre><code id="model-json"></code></pre>
+    </div>
+    <div id="curl-tab" class="tab-content" style="display: none;">
+      <pre><code id="curl-model-command" class="curl-command"></code></pre>
+    </div>
+    <div id="python-tab" class="tab-content" style="display: none;">
+      <pre><code id="python-model-code" class="python"></code></pre>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

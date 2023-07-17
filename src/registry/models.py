@@ -4,7 +4,7 @@ from django.db import models
 
 class Author(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=False
     )
     institution = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -19,13 +19,11 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.RESTRICT, null=False)
     name = models.CharField(
         max_length=255, null=False, blank=False, unique=True
     )  # TODO: Unique true?
     description = models.CharField(max_length=255, null=True, blank=True)
-    author = models.ForeignKey(
-        Author, on_delete=models.CASCADE, null=False
-    )  # TODO: CASCADE?
     repository = models.URLField(max_length=200, null=False, blank=False)
     implementation_language = models.CharField(max_length=100, null=False, blank=False)
     type = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?
@@ -42,7 +40,7 @@ class Model(models.Model):
 
 class Prediction(models.Model):
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
-    description = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     commit = models.CharField(max_length=255, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)

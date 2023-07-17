@@ -35,11 +35,11 @@ THIRD_PARTY_APPS = [
     "ninja",
     "django_extensions",
     "dr_scaffold",
+    "fontawesomefree",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
-    "django_bootstrap5",
 ]
 
 LOCAL_APPS = ["main", "datastore", "registry", "users"]

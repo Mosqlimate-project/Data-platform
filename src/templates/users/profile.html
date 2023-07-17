@@ -1,46 +1,171 @@
 {% extends 'main/base.html' %}
-{% block title %}{{ page_username }}{% endblock %}
+{% block title %}{{ user_profile.username }}{% endblock %}
+
+{% load static %}
+{% load profile_component %}
+
+{% block head %}
+{% endblock %}
+
 {% block content %}
-  {% if user.is_authenticated and user.username == page_username %}
-    <div>
-      <h4>X-UID-Key:</h4>
+<div class="container-xxl">
+
+  <div class="profile">
+
+    <div class="avatar">
+      <img class="border border-5 shadow p-1" src="{{ user_avatar }}"></img>
     </div>
-    <div class="toggle-container">
-      <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
-      <div id="uid-key-secret" style="display: none;">
-        {{ user.username }}:{{ user.uuid }}
+
+    <div class="name font-golos">
+      {{ user_profile.name }}
+      {% if user.username == user_profile.username %}
+      <a href="#"><i class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
+      {% endif %}
+    </div>
+
+    <center><hr style="width:30%;"></center>
+    
+    <div class="profile-items font-golos">
+      {% if user_author.institution %}
+      <div class="institution">
+        <i class="profile-icon fas fa-building" style="color: #5e5c64;"></i>
+        {{ user_author.institution }}
+        {% if user.username == user_profile.username %}
+        <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="update-institution">
+        {% if user.username == user_profile.username %}
+        <i class="fas fa-building" style="color: #5e5c64;"></i>
+        <a href="#"><i class="fa-solid fa-plus" style="color: #9a9996;"></i></a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="models-count">
+        <i class="profile-icon fa-solid fa-scroll" style="color: #5e5c64;"></i>
+        {{ user_models.count }} {% if user_models.count > 1 %}Models{% else %}Model{% endif %}
+      </div>
+
+      <div class="predictions-count">
+        <i class="profile-icon fa-solid fa-code" style="color: #5e5c64;"></i>
+        {{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="content container font-golos models shadow p-4 mb-6 bg-body rounded"
+    <!-- Models -->
+    {% models_box %}
+
+    <!-- X-UID-Key -->
+    {% if user.username == user_profile.username %}
+    <div class="container x-uid-key font-golos shadow p-3 mb-5 bg-body rounded">
+      <div> 
+        <h4>X-UID-Key:</h4>
+      </div>
+      <div class="toggle-container">
+        <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
+        <div id="uid-key-secret" style="display: none;">
+          {{ user.username }}:{{ user.uuid }}
+        </div>
       </div>
     </div>
     {% endif %}
+  </div>
 
-    <style>
-    .toggle-container {
-      display: flex;
-      align-items: center;
-    }
+  <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
+  <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
+  <script src="{% static 'js/external/datatables.js' %}"></script>
+  <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
+  <script src="{% static 'js/external/highlight.js' %}"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script src="{% static 'js/users/components/models-box.js' %}"></script>
+</div>
 
-    .toggle-container button {
-      margin-right: 10px;
-    }
-    </style>
+<style>
+.container-xxl {
+  display: flex;
+  margin-top: 3rem;
+}
 
-    <script>
-    function toggleSecret(elementId) {
-      var element = document.getElementById(elementId);
-      if (element.style.display === "none") {
-        element.style.display = "block";
-      } else {
-        element.style.display = "none";
-      }
-    }
+.profile {
+  flex: 1;
+  margin-right: 2.5%;
+  position: relative;
+}
 
-    function toggleButtonText(buttonId) {
-      var button = document.getElementById(buttonId);
-      if (button.innerHTML === "Show") {
-        button.innerHTML = "Hide";
-      } else {
-        button.innerHTML = "Show";
-      }
-    }
-    </script>
-    {% endblock %}
+.avatar {
+  align-items: center;
+  display: flex;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar img {
+  border-radius: 50%;
+  width: 70%;
+  height: auto;
+}
+
+.name {
+  text-align: center;
+  font-size: 1.5em;
+  position: relative;
+}
+
+.name .fa-pencil {
+  font-size: 0.55em;
+  position: absolute;
+}
+
+.profile-items {
+  padding-left: 0.5em;
+  padding-top: 0.2em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 3em;
+}
+
+.content {
+  flex: 4;
+}
+
+.content h2 {
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .profile {
+    display: none;
+  }
+}
+
+</style>
+
+<script>
+function toggleSecret(elementId) {
+  var element = document.getElementById(elementId);
+  if (element.style.display === "none") {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
+function toggleButtonText(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button.innerHTML === "Show") {
+    button.innerHTML = "Hide";
+  } else {
+    button.innerHTML = "Show";
+  }
+}
+</script>
+{% endblock %}

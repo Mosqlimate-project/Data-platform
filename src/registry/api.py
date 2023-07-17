@@ -1,11 +1,15 @@
 import datetime
 from typing import List
+from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
+from django.db import IntegrityError
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
+from ninja.pagination import paginate
 
 from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 from users.auth import UidKeyAuth
@@ -46,9 +50,12 @@ def list_authors(
     request,
     filters: AuthorFilterSchema = Query(...),
 ):
-    """Lists all authors, can be filtered by name"""
-    authors = Author.objects.all()
-    authors = filters.filter(authors)
+    """
+    Lists all authors, can be filtered by name
+    Authors that don't have any Prediction won't be listed
+    """
+    models_count = Author.objects.annotate(num_models=Count("model"))
+    authors = models_count.filter(num_models__gt=0)
     return authors
 
 
@@ -67,29 +74,30 @@ def get_author(request, username: str):
         return 404, {"message": "Author not found"}
 
 
-@router.post(
-    "/authors/",
-    response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
-    tags=["registry", "authors"],
-    include_in_schema=False,
-)
-def create_author(request, payload: AuthorIn):
-    """
-    Posts author to database, requires a User to be created
-    @note: This call is related to User and shouldn't be done only via API Call
-    """
-    try:
-        user = User.objects.get(username=payload.user)
-        try:
-            author = Author.objects.get(user__username=payload.user)
-            if author:
-                return 403, {"message": f"Author '{author}' already registered"}
-        except Author.DoesNotExist:
-            author = Author.objects.create(user=user, institution=payload.institution)
-            return 201, author
-    except User.DoesNotExist:
-        return 404, {"message": f"User '{payload.user}' does not exist"}
+# Authors are automatically created at User creation
+# @router.post(
+#     "/authors/",
+#     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+#     auth=django_auth,
+#     tags=["registry", "authors"],
+#     include_in_schema=False,
+# )
+# def create_author(request, payload: AuthorIn):
+#     """
+#     Posts author to database, requires a User to be created
+#     @note: This call is related to User and shouldn't be done only via API Call
+#     """
+#     try:
+#         user = User.objects.get(username=payload.user)
+#         try:
+#             author = Author.objects.get(user__username=payload.user)
+#             if author:
+#                 return 403, {"message": f"Author '{author}' already registered"}
+#         except Author.DoesNotExist:
+#             author = Author.objects.create(user=user, institution=payload.institution)
+#             return 201, author
+#     except User.DoesNotExist:
+#         return 404, {"message": f"User '{payload.user}' does not exist"}
 
 
 @router.put(
@@ -190,17 +198,25 @@ def get_model(request, model_id: int):
 
 @router.post(
     "/models/",
-    response={201: ModelSchema},
+    response={201: ModelSchema, 403: ForbiddenSchema},
     auth=uidkey,
     tags=["registry", "models"],
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
+    repo_url = urlparse(payload.repository)
+    if repo_url.netloc != "github.com":  # TODO: add gitlab here?
+        return 403, {"message": "Model repository must be on Github"}
+    if not repo_url.path:
+        return 403, {"message": "Invalid repository"}
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
     model = Model(author=author, **payload.dict())
     if not calling_via_swagger(request):
-        model.save()
+        try:
+            model.save()
+        except IntegrityError:
+            return 403, {"message": f"Model {model.name} already exists"}
     return 201, model
 
 
@@ -275,6 +291,7 @@ class PredictionIn(Schema):
 @router.get(
     "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
 )
+@paginate
 @csrf_exempt
 def list_predictions(
     request,
