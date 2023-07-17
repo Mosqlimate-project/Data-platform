@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from ninja import Query, Router
 from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
+from ninja.pagination import paginate
 
 from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 from users.auth import UidKeyAuth
@@ -290,6 +291,7 @@ class PredictionIn(Schema):
 @router.get(
     "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
 )
+@paginate
 @csrf_exempt
 def list_predictions(
     request,

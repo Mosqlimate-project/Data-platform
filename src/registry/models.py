@@ -4,7 +4,7 @@ from django.db import models
 
 class Author(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=False
     )
     institution = models.CharField(max_length=255, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
