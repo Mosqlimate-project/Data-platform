@@ -1,0 +1,85 @@
+th {
+  font-size: 1.2em;
+  position: relative;
+}
+
+td {
+  font-size: 0.9em;
+  position: relative;
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+tr:hover td {
+  overflow: visible;
+  text-overflow: "";
+  white-space: normal;
+  cursor: pointer;
+}
+
+pre {
+  max-height: 500px;
+  overflow: auto;
+  margin-bottom: 0;
+}
+
+.search-box-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.search-box-container label {
+  display: flex;
+  flex-direction: row;
+  align-items:center;
+  gap: 0.4em;
+  margin: 1em;
+}
+
+.show-entries-container {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  margin: 1em;
+}
+
+.show-entries-container label {
+  margin-right: 5px;
+  display: flex;
+  flex-direction: row;
+  gap: 0.4em;
+  font-size: 0.85em;
+  align-items: center;
+}
+
+.show-entries-container select {
+  width: auto;
+  font-size: 0.85em;
+  margin: 0;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85em;
+}
+
+.show-info {
+  font-size: 0.85em;
+}
+
+.info-tab-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: .5em;
+}
+
+#python-model-code,
+#curl-model-command {
+  text-align: left;
+}

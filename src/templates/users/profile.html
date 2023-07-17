@@ -1,11 +1,14 @@
 {% extends 'main/base.html' %}
 {% block title %}{{ user_profile.username }}{% endblock %}
 
+{% load static %}
 {% load model_component %}
 {% load prediction_component %}
 
-{% block content %}
+{% block head %}
+{% endblock %}
 
+{% block content %}
 <div class="container-xxl">
 
   <div class="profile">
@@ -83,6 +86,15 @@
     {% endif %}
   </div>
 
+  <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
+  <script src="{% static 'js/external/datatables.js' %}"></script>
+  <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
+  <script src="{% static 'js/external/highlight.js' %}"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script src="{% static 'js/users/components/models-box.js' %}"></script>
 </div>
 
 <style>
@@ -167,4 +179,4 @@ function toggleButtonText(buttonId) {
   }
 }
 </script>
-  {% endblock %}
+{% endblock %}
