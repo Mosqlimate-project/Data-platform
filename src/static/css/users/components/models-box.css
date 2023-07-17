@@ -14,9 +14,14 @@ td {
 
 tr:hover td {
   overflow: visible;
-  text-overflow: "";
+  text-overflow: unset;
   white-space: normal;
   cursor: pointer;
+  word-break: break-word;
+}
+
+tr:hover {
+  height: auto;
 }
 
 pre {
