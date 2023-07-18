@@ -2,36 +2,36 @@ version: '3.8'
 
 services:
   django:
-  hostname: django
-  restart: unless-stopped
-  build:
-    context: ..
-    dockerfile: containers/mosqlimate/Dockerfile
-    args:
-      # note: if you want to use a specific UID and GID, ensure to add it to
-      #       the .env file
-      - UID=${HOST_UID}
-      - GID=${HOST_GID}
-      - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
-      - STATIC_ROOT=${STATIC_ROOT:-/tmp/mosqlimate/static}
-  env_file:
-    - ../.env
-  user: "mosqlimate:mosqlimate"
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:8000/status"]
-    interval: 60s
-    timeout: 10s
-    retries: 5
-    start_period: 40s  # requires docker-compose 3.4
-  ports:
-    - ${DJANGO_PORT}:8000
-  depends_on:
-    - postgres:
-      condition: service_healthy
-  command: python manage.py runserver 0.0.0.0:8000
-  volumes:
-    - django_data:${DJANGO_CONTAINER_DATA_PATH}
-    - static_root:${STATIC_ROOT:-/tmp/mosqlimate/static}
+    hostname: django
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: containers/mosqlimate/Dockerfile
+      args:
+        # note: if you want to use a specific UID and GID, ensure to add it to
+        #       the .env file
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
+        - STATIC_ROOT=${STATIC_ROOT:-/tmp/mosqlimate/static}
+    env_file:
+      - ../.env
+    user: "mosqlimate:mosqlimate"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/status"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 40s  # requires docker-compose 3.4
+    ports:
+      - ${DJANGO_PORT}:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - django_data:${DJANGO_CONTAINER_DATA_PATH}
+      - static_root:${STATIC_ROOT:-/tmp/mosqlimate/static}
 
   postgres:
     hostname: postgres

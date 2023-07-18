@@ -1,4 +1,4 @@
-FROM micromambaorg/micromamba:latest
+FROM mambaorg/micromamba:latest
 
 USER root
 
