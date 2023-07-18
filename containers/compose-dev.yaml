@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  django:
+    volumes:
+      - ../src/:/opt/services/mosqlimate
+      - django_data:/opt/services/storage

@@ -69,8 +69,8 @@ def_dj_static_dir = def_dj_data_dir / "static"
 static_root = var_in(
     "STATIC_ROOT",
     input_text=(
-        "  Static files directory on host "
-        f"[{def_dj_data_dir.relative_to(project_dir)}/static]: "
+        "  Staticfiles directory on host "
+        f"[{def_dj_data_dir.relative_to(project_dir)}/staticfiles]: "
     ),
     default_val=(def_dj_static_dir).absolute(),
 )

@@ -1,22 +1,27 @@
 version: 1.7.0
 compose-app: docker-compose
+env-file: .env
+defaults:
+  group: {{ env.ENV }}
 service-groups:
-  - name: dev
-    project-name: mosqlimate_dev
-    compose-path: containers/compose.yaml
-    env-file: .env
-    services:
-      default: postgres
-      list:
-        - name: postgres
-          health-check: true
-
   - name: prod
-    project-name: mosqlimate_prod
+    project-name: mosqlimate
     compose-path: containers/compose.yaml
     env-file: .env
     services:
-      default: postgres
-      list:
+      default: django,postgres
+      available:
+        - name: django
         - name: postgres
-          health-check: true
+
+  - name: dev
+    project-name: mosqlimate
+    compose-path:
+      - containers/compose.yaml
+      - containers/compose-dev.yaml
+    env-file: .env
+    services:
+      default: django,postgres
+      available:
+        - name: django
+        - name: postgres

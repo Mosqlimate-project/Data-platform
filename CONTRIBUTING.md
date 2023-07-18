@@ -148,7 +148,7 @@ This domain ID (2) will have to match the `SITE_ID` on `settings.base` configura
 ### Create Super User
 To access `/admin/` page, it will be required a superuser. To do that, simply type the code below and follow the instructions:
 ```sh
-python src/manage.py creasuperuser
+python src/manage.py createsuperuser
 ```
 After successfully creating the superuser, you can run the Django web service and access the admin page:
 ```
