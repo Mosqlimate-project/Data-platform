@@ -1,6 +1,13 @@
 version: '3.8'
 
 services:
+  django:
+    expose:
+      - ${DJANGO_PORT}
+    volumes:
+      - django_data:${DJANGO_CONTAINER_DATA_PATH}
+      - static_root:${STATIC_ROOT:-/tmp/mosqlimate/static}
+
   nginx:
     hostname: nginx
     restart: unless-stopped

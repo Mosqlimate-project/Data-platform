@@ -23,15 +23,10 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
-    expose:
-      - ${DJANGO_PORT}
-    # depends_on:
-    #   postgres:
-    #     condition: service_healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
-    volumes:
-      - django_data:${DJANGO_CONTAINER_DATA_PATH}
-      - static_root:${STATIC_ROOT:-/tmp/mosqlimate/static}
 
   postgres:
     hostname: postgres
