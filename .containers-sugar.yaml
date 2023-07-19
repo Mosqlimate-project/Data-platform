@@ -6,13 +6,17 @@ defaults:
 service-groups:
   - name: prod
     project-name: mosqlimate
-    compose-path: containers/compose.yaml
+    compose-path: 
+      - containers/compose.yaml
+      - containers/compose-prod.yaml
     env-file: .env
     services:
-      default: django,postgres
+      default: django,postgres,nginx,certbot
       available:
         - name: django
         - name: postgres
+        - name: nginx
+        - name: certbot
 
   - name: dev
     project-name: mosqlimate

@@ -73,4 +73,4 @@ RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH} \
 ENV PYTHONPATH='/opt/services/mosqlimate'
 
 ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8042"]
