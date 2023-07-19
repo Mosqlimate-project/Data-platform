@@ -16,8 +16,8 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = str(env("ENV")).lower() == "dev"
 
 ALLOWED_HOSTS = [
-    "localhost",
     "0.0.0.0",
+    "localhost",
     "127.0.0.1",
 ]
 

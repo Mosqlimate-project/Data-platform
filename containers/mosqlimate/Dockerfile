@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:latest
+FROM condaforge/mambaforge:latest
 
 USER root
 
@@ -39,7 +39,7 @@ WORKDIR /opt/services/mosqlimate
 
 COPY --chown=mosqlimate:mosqlimate ./conda/ /tmp/conda
 
-RUN micromamba create -n $ENV_NAME -c conda-forge -f /tmp/conda/base.yaml \
+RUN mamba env create -n $ENV_NAME -f /tmp/conda/base.yaml \
   && conda clean --all \
   && find /opt/conda/ -type f,l -name '*.pyc' -delete \
   && find /opt/conda/ -type f,l -name '*.js.map' -delete \
@@ -51,8 +51,10 @@ ENV PATH ${CONDA_PREFIX}/bin:$PATH
 # install dependencies
 COPY --chown=mosqlimate:mosqlimate pyproject.toml /opt/services/mosqlimate
 
-RUN poetry config virtualenvs.create false \
-  && poetry config experimental.new-installer true \
+# https://github.com/yaml/pyyaml/issues/724
+RUN pip install "cython<3.0.0" \
+  && pip install --no-build-isolation "pyyaml<6.0" \ 
+  && poetry config virtualenvs.create false \
   && poetry install --no-root
 
 COPY --chown=mosqlimate:mosqlimate containers/entrypoint.sh /opt/entrypoint.sh
