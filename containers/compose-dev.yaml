@@ -7,3 +7,6 @@ services:
     volumes:
       - ../src/:/opt/services/mosqlimate
       - django_data:/opt/services/storage
+
+volumes:
+  django_data:

@@ -63,12 +63,10 @@ ADD --chown=mosqlimate:mosqlimate src/ /opt/services/mosqlimate/
 RUN chmod +x /opt/entrypoint.sh \
   && echo "source /opt/entrypoint.sh" > ~/.bashrc
 
-ARG STATIC_ROOT
 ARG DJANGO_CONTAINER_DATA_PATH
-ENV STATIC_ROOT ${STATIC_ROOT}
 ENV DJANGO_CONTAINER_DATA_PATH ${DJANGO_CONTAINER_DATA_PATH}
 RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH} \
-  && mkdir -p ${STATIC_ROOT}/.well-known/acme-challenge
+  && mkdir -p ${DJANGO_CONTAINER_DATA_PATH}/static/.well-known/acme-challenge
 
 ENV PYTHONPATH='/opt/services/mosqlimate'
 

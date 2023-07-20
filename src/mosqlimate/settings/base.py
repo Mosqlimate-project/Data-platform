@@ -15,6 +15,10 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = str(env("ENV")).lower() == "dev"
 
+DJANGO_CONTAINER_DATA_PATH = Path(
+    env("DJANGO_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
+)
+
 ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
@@ -163,7 +167,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
+STATIC_ROOT = DJANGO_CONTAINER_DATA_PATH / "static"
 STATICFILES_DIRS = [
     ("css", os.path.join(BASE_DIR, "static/css")),
     ("js", os.path.join(BASE_DIR, "static/js")),
@@ -172,7 +176,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
+MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

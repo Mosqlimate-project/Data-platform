@@ -13,7 +13,6 @@ services:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
         - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
-        - STATIC_ROOT=${STATIC_ROOT:-/tmp/mosqlimate/static}
     env_file:
       - ../.env
     user: "mosqlimate:mosqlimate"
@@ -58,7 +57,3 @@ services:
       timeout: 5s
       retries: 10
     command: -p ${POSTGRES_PORT}
-
-volumes:
-  django_data:
-  static_root:
