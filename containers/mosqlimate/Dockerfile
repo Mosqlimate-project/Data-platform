@@ -65,8 +65,7 @@ RUN chmod +x /opt/entrypoint.sh \
 
 ARG DJANGO_CONTAINER_DATA_PATH
 ENV DJANGO_CONTAINER_DATA_PATH ${DJANGO_CONTAINER_DATA_PATH}
-RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH} \
-  && mkdir -p ${DJANGO_CONTAINER_DATA_PATH}/static/.well-known/acme-challenge
+RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH}/static
 
 ENV PYTHONPATH='/opt/services/mosqlimate'
 

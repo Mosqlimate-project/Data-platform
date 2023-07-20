@@ -9,31 +9,21 @@ services:
 
   nginx:
     hostname: nginx
+    image: jonasal/nginx-certbot:latest
     restart: unless-stopped
-    build:
-      context: ..
-      dockerfile: containers/nginx/Dockerfile
-      args:
-        - CERTBOT_DOMAIN=${CERTBOT_DOMAIN}
+    environment:
+      - CERTBOT_PRODUCTION_URL=https://${CERTBOT_DOMAIN}
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+    env_file:
+      - ./nginx/nginx-certbot.env
     ports:
       - 18042:80
       - 28042:443
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/user_conf.d
       - letsencrypt:/etc/letsencrypt
-      - ${DJANGO_ROOT_DATA_PATH}/static:/var/www/certbot
     depends_on:
       - django
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - ${DJANGO_ROOT_DATA_PATH}/static:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email ${CERTBOT_EMAIL} -d ${CERTBOT_DOMAIN} --agree-tos
-    depends_on:
-      - nginx
 
 volumes:
   letsencrypt:
