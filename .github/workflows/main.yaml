@@ -45,6 +45,9 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # https://github.com/yaml/pyyaml/issues/724
+        pip install "cython<3.0.0" 
+        pip install --no-build-isolation "pyyaml<6.0"
         poetry install
 
     - name: Linting
@@ -67,6 +70,6 @@ jobs:
     #      make container-wait-all
     
     # TODO remove it
-    - name: Setup tmate session
-      if: "${{ failure() }}"
-      uses: mxschmitt/action-tmate@v3
+    # - name: Setup tmate session
+    #   if: "${{ failure() }}"
+    #   uses: mxschmitt/action-tmate@v3
