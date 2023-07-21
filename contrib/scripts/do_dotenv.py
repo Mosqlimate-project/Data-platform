@@ -37,8 +37,11 @@ def get_env_var_or_input(var_key: str, input_text, default_val=None, required=Fa
     is_ci = True if CI else False
     env_value = os.environ.get(var_key)
 
-    if not env_value and not default_val and is_ci:
+    if not env_value and default_val and is_ci:
+        return default_val
+    elif not env_value and not default_val and is_ci:
         raise EnvironmentError(f"{var_key} not found in environment")
+
     if not env_value and not is_ci:
         val_in = input(input_text)  # asks for input
         if not val_in and not default_val and required:
@@ -192,7 +195,8 @@ dj_email_host_user = var_in(
 dj_email_host_pass = var_in("EMAIL_HOST_PASSWORD", input_text="Email host password: ")
 dj_email_use_tls = True
 
-dotenv_template = templates.get_template(".env.tpl")
+
+dotenv_template = templates.get_template("env.tpl")
 dotenv_file = project_dir / ".env"
 
 variables = {
@@ -233,6 +237,19 @@ variables = {
     "EMAIL_HOST_PASSWORD": dj_email_host_pass,
     "EMAIL_USE_TLS": dj_email_use_tls,
 }
+
+if env == "prod":
+    print("Production variables:")
+    certbot_domain = var_in(
+        "CERTBOT_DOMAIN", input_text="  CERTBOT_DOMAIN: ", required=True
+    )
+    certbot_email = var_in(
+        "CERTBOT_EMAIL", input_text="  CERTBOT_EMAIL: ", required=True
+    )
+
+    variables["CERTBOT_DOMAIN"] = certbot_domain
+    variables["CERTBOT_EMAIL"] = certbot_email
+    print(variables)
 
 if dotenv_file.exists():
     answer = ""
