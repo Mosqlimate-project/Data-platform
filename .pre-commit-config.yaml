@@ -27,7 +27,7 @@ repos:
         - python
       types_or: []
     - entry: ruff
-      exclude: ^migrations\.py$
+      exclude: ^.*/migrations/.*
       types_or: [python, pyi]
       id: ruff
       name: ruff
