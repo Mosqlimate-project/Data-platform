@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  django:
+    ports:
+      - ${DJANGO_PORT}:${DJANGO_PORT}
+    volumes:
+      - ../src/:/opt/services/mosqlimate
+      - django_data:/opt/services/storage
+
+volumes:
+  django_data:

@@ -355,13 +355,13 @@ files = [
 
 [[package]]
 name = "containers-sugar"
-version = "1.7.1"
+version = "1.8.0"
 description = "Simplify the usage of containers"
 optional = false
 python-versions = ">=3.8.1,<4.0.0"
 files = [
-    {file = "containers_sugar-1.7.1-py3-none-any.whl", hash = "sha256:b452b31ad8ec00c35a807e3896bfd51eb4358926d1741edc386746ce066794ff"},
-    {file = "containers_sugar-1.7.1.tar.gz", hash = "sha256:06b3aa5a14bc43e2b57037f5742281482b369d716eb51f2fde6da31cbd2c0162"},
+    {file = "containers_sugar-1.8.0-py3-none-any.whl", hash = "sha256:b41ccf2dec306720f80831b125b577b52eb3baad4c055103e7c109002989cef2"},
+    {file = "containers_sugar-1.8.0.tar.gz", hash = "sha256:41587794a53852c83fae3859b6370d6faf50521187d0143bea0847630999a3ea"},
 ]
 
 [package.dependencies]
@@ -1502,4 +1502,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "a7b8abc39ad529fee3d2c1e625b5fc38280ff0524ba60dd455082679e5269d67"
+content-hash = "15a509c1b24d12b667e08550d46fbe693fe5c87ebc5364afd4920d5df62c47ad"
