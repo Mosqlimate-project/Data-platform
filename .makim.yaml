@@ -1,46 +1,32 @@
 version: 1.8.1
 
 groups:
-  default:
+
+  docker:
     env-file: .env
-    vars:
-      sugar_run: kxgr run --group $ENV --services web
-      sugar_run_rm: kxgr run --group $ENV --services web --extras=--rm
-
     targets:
-      # DEVELOPMENT
-      runserver:
-        help: Run Django server on localhost
-        run: |
-          python src/manage.py runserver
-
-      containers-build:
+      build:
         help: Build containers
         run: |
-          kxgr build --group $ENV
-          kxgr up --group $ENV --options "--no-start"
+          sugar build --group $ENV
 
-      containers-start:
+      start:
         help: Start all containers
         run: |
-          kxgr start --group $ENV
+          sugar up --group $ENV --options "--no-start"
+          sugar start --group $ENV
 
-      containers-exec:
-        help:
-        run: |
-          kxgr exec --group $ENV --services {{ args.service }}
-
-      containers-stop:
+      stop:
         help: Start all containers
         run: |
-          kxgr stop --group $ENV
+          sugar stop --group $ENV
 
   django:
     targets:
-      create-superuser:
+      createsuperuser:
         args:
           email:
-            help: Specify the username
+            help: Specify the email
             type: string
             required: True
           username:
@@ -51,18 +37,22 @@ groups:
             help: Specify the password
             type: string
             required: True
-        env:
-          POSTGRES_HOST: localhost
-        help: create an admin user
+        help: Run `createsuperuser` inside container
         run: |
           bash -c "export DJANGO_SUPERUSER_PASSWORD={{ args.password }}"
-          python ./src/manage.py createsuperuser --noinput --username {{ args.username }} --email {{ args.email }}
+          sugar run --service django --cmd "python manage.py createsuperuser \
+            --noinput --username {{ args.username }} --email {{ args.email }}"
 
       migrate:
-        help: Migrate regarding to the current migration files
+        help: Run `migrate` inside container
         env-file: .env
         run: |
-          python src/manage.py migrate
+          sugar run --service django --cmd "python manage.py migrate --no-input"
+
+      collectstatic:
+        help: Run `collectstatic` inside container
+        run: |
+          sugar run --service django --cmd "python manage.py collectstatic --no-input"
 
   dev:
     targets:

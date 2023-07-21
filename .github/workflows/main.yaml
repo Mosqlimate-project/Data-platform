@@ -61,11 +61,11 @@ jobs:
       run: |
         makim dev.dotenv
         makim dev.psql-conf
-        makim containers-build
+        makim docker.build
 
     - name: Start containers
       run: |
-        makim containers-start
+        makim docker.start
 
     # - name: Container wait
     #   run: |
