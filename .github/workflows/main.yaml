@@ -7,8 +7,9 @@ on:
     branches: [ main ]
   
 env:
-  GITHUB_CLIENT_ID: ${{secrets.PROVISORY_GITHUB_CLIENT_ID}}
-  GITHUB_SECRET: ${{secrets.PROVISORY_GITHUB_SECRET}}
+  CI: 1 # anything but falsy values
+  GITHUB_CLIENT_ID: ${secrets.PROVISORY_GITHUB_CLIENT_ID}
+  GITHUB_SECRET: ${secrets.PROVISORY_GITHUB_SECRET}
 
 jobs:
   build:

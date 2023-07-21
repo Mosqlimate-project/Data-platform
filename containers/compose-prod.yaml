@@ -5,7 +5,7 @@ services:
     expose:
       - ${DJANGO_PORT}
     volumes:
-      - ${DJANGO_ROOT_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
+      - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
 
   nginx:
     hostname: nginx
