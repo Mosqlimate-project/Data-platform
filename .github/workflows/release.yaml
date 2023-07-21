@@ -1,11 +1,10 @@
-
 name: Release
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   release:
@@ -42,6 +41,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        npm install marked-mangle marked-gfm-heading-id --save-dev
         npx --yes \
           -p semantic-release \
           -p conventional-changelog-conventionalcommits \
@@ -51,7 +51,7 @@ jobs:
           -p "@semantic-release/exec" \
           -p "@semantic-release/github" \
           -p "@semantic-release/git" \
-          -p "@google/semantic-release-replace-plugin" \
+          -p "semantic-release-replace-plugin" \
           semantic-release --dry-run
 
     - name: Release
@@ -59,6 +59,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        npm install marked-mangle marked-gfm-heading-id --save-dev
         npx --yes \
           -p semantic-release \
           -p conventional-changelog-conventionalcommits \
@@ -68,5 +69,5 @@ jobs:
           -p "@semantic-release/exec" \
           -p "@semantic-release/github" \
           -p "@semantic-release/git" \
-          -p "@google/semantic-release-replace-plugin" \
+          -p "semantic-release-replace-plugin" \
           semantic-release --ci
