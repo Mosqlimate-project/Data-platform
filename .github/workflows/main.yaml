@@ -10,6 +10,7 @@ env:
   CI: 1 # anything but falsy values
   GITHUB_CLIENT_ID: ${secrets.PROVISORY_GITHUB_CLIENT_ID}
   GITHUB_SECRET: ${secrets.PROVISORY_GITHUB_SECRET}
+  EMAIL_HOST_PASSWORD: TODO
 
 jobs:
   build:
