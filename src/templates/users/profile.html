@@ -9,12 +9,7 @@
 
 {% block content %}
 
-<div class="modal fade" tabindex="-1" role="dialog" id="modal">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content"></div>
-  </div>
-</div>
-
+<link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
 <div class="container-xxl font-golos">
   <div class="profile">
     <div class="avatar">
@@ -24,7 +19,7 @@
     <div class="name">
       <span>{{ user_profile.name }}</span>
       {% if user.username == user_profile.username %}
-      <a href="#"><i id="update-user" class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
+      <a href="#"><i class="fa-solid fa-pencil" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
@@ -72,6 +67,7 @@
           <span>{{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}</span>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -95,12 +91,10 @@
     {% endif %}
   </div>
 
-  <link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
   <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
-  <script src="{% static 'js/bootstrap5.modal.forms.js' %}"></script>
   <script src="{% static 'js/external/datatables.js' %}"></script>
   <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
   <script src="{% static 'js/external/highlight.js' %}"></script>
@@ -108,14 +102,25 @@
   <script src="{% static 'js/users/components/models-box.js' %}"></script>
 </div>
 
-<script type="text/javascript">
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Understood</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-document.addEventListener('DOMContentLoaded', (e) => {
-  modalForm(document.getElementById('update-user'), {
-    formURL: "{% url 'update_user' %}"
-  })
-});
-
+<script>
 function toggleSecret(elementId) {
   var element = document.getElementById(elementId);
   if (element.style.display === "none") {

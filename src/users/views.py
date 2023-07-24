@@ -1,22 +1,11 @@
 from allauth.account.decorators import verified_email_required
-from bootstrap_modal_forms.generic import BSModalCreateView
 from django.contrib.auth import get_user_model, logout
 from django.http import Http404
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
 
 from registry.models import Author, Model, Prediction
 
-from .forms import UserModelForm
-
 User = get_user_model()
-
-
-class UserUpdateView(BSModalCreateView):
-    template_name = "users/components/update-user.html"
-    form_class = UserModelForm
-    success_message = "Success: User updated."
-    success_url = reverse_lazy("profile")
 
 
 def profile(request, username: str):
