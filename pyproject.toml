@@ -20,6 +20,8 @@ docker-compose = "^1.29.2"
 python-environ = "^0.4.54"
 django-allauth = "^0.54.0"
 fontawesomefree = "^6.4.0"
+websocket-client = "0.49.0"
+django-bootstrap-modal-forms = "^3.0.4"
 
 
 [tool.poetry.group.pre-commit.dependencies]

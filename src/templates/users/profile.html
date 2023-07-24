@@ -19,7 +19,7 @@
     <div class="name">
       <span>{{ user_profile.name }}</span>
       {% if user.username == user_profile.username %}
-      <a href="#"><i class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
+      <a href="#"><i class="update-author fa-solid fa-pencil" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
@@ -102,6 +102,12 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', (e) => {
+  modalForm(document.getElementById('update-author'), {
+    formURL: "{% url 'update_author' %}"
+  })
+});
+
 function toggleSecret(elementId) {
   var element = document.getElementById(elementId);
   if (element.style.display === "none") {

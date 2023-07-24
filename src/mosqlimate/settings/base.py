@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "bootstrap_modal_forms",
 ]
 
 LOCAL_APPS = ["main", "datastore", "registry", "users"]

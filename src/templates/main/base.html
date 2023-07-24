@@ -4,6 +4,7 @@
 <html>
 
   <head>
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.css' %}">
     <script src="{% static 'js/external/jquery.js' %}"></script>
     <title>{% block title %}Mosqlimate{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/main/base.css' %}">
@@ -17,6 +18,8 @@
   </head>
 
   <body>
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap5.modal.forms.js' %}"></script>
     {% include 'main/components/navbar.html' %}
     {% block content %} {% endblock %}
   </body>
