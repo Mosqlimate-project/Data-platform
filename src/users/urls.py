@@ -15,5 +15,5 @@ urlpatterns = [
         login_required(views.redirect_to_user_profile),
         name="redirect_to_profile",
     ),
-    path("update_user/", views.UserUpdateView.as_view(), name="update_user"),
+    path("update_user_profile/", views.UserUpdateView.as_view(), name="update_user"),
 ]

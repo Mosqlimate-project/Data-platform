@@ -9,7 +9,12 @@
 
 {% block content %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
 <div class="container-xxl font-golos">
   <div class="profile">
     <div class="avatar">
@@ -19,7 +24,7 @@
     <div class="name">
       <span>{{ user_profile.name }}</span>
       {% if user.username == user_profile.username %}
-      <a href="#"><i class="update-author fa-solid fa-pencil" style="color: #9a9996;"></i></a>
+      <a href="#"><i id="update-user" class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
@@ -90,10 +95,12 @@
     {% endif %}
   </div>
 
+  <link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
   <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
+  <script src="{% static 'js/bootstrap5.modal.forms.js' %}"></script>
   <script src="{% static 'js/external/datatables.js' %}"></script>
   <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
   <script src="{% static 'js/external/highlight.js' %}"></script>
@@ -101,10 +108,11 @@
   <script src="{% static 'js/users/components/models-box.js' %}"></script>
 </div>
 
-<script>
+<script type="text/javascript">
+
 document.addEventListener('DOMContentLoaded', (e) => {
-  modalForm(document.getElementById('update-author'), {
-    formURL: "{% url 'update_author' %}"
+  modalForm(document.getElementById('update-user'), {
+    formURL: "{% url 'update_user' %}"
   })
 });
 
