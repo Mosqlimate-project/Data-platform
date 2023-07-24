@@ -15,4 +15,5 @@ urlpatterns = [
         login_required(views.redirect_to_user_profile),
         name="redirect_to_profile",
     ),
+    path("update_author_info/", views.update_author_info, name="update_author_info"),
 ]

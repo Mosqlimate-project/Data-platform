@@ -1,7 +1,9 @@
+from allauth.account.decorators import verified_email_required
+from django.contrib import messages
+from django.contrib.auth import get_user_model, logout
+from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
-from django.contrib.auth import logout, get_user_model
-from allauth.account.decorators import verified_email_required
 
 from registry.models import Author, Model, Prediction
 
@@ -32,6 +34,24 @@ def profile(request, username: str):
         )
     else:
         raise Http404
+
+
+@login_required
+def update_author_info(request):
+    if request.method == "POST":
+        first_name = request.POST.get("first_name", "")
+        last_name = request.POST.get("last_name", "")
+        institution = request.POST.get("institution", "")
+
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.save()
+
+        request.user.author.institution = institution
+        request.user.author.save()
+
+        messages.success(request, "Author information updated successfully.")
+        return redirect("profile")
 
 
 def redirect_to_user_profile(request):
