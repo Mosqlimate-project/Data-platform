@@ -74,7 +74,12 @@
   text-align: center;
 }
 
-#uid-key-secret pre {
+#uid-key {
+  flex: 3;
+  margin-left: 5px;
+}
+
+#uid-key-secret {
   margin: 0;
 }
 

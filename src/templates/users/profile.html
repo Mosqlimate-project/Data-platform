@@ -80,10 +80,10 @@
   <div class="container x-uid-key shadow p-3 mb-5 bg-body rounded">
     <div class="d-flex justify-content-start">
       <div class="toggle-container">
-        <button id="uid-key" class="btn btn-primary" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key'); this.blur();">Show UID:Key</button>
+        <button id="uid-key-btn" class="btn btn-primary" onclick="toggleSecret('uid-key'); toggleButtonText('uid-key-btn'); this.blur();">Show UID:Key</button>
       </div>
-      <div id="uid-key-secret" style="display: none;">
-        <pre><code>{"X-UID-Key": "{{ user.username }}:{{ user.uuid }}"}</code></pre>
+      <div id="uid-key" style="display: none;">
+        <pre class="uid-key-secret"><code>{"X-UID-Key": "{{ user.username }}:{{ user.uuid }}"}</code></pre>
       </div>
     </div>
   </div>
