@@ -485,20 +485,6 @@ requests = "*"
 requests-oauthlib = ">=0.3.0"
 
 [[package]]
-name = "django-bootstrap-modal-forms"
-version = "3.0.4"
-description = "A Django plugin for creating AJAX driven forms in Bootstrap modal."
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-bootstrap-modal-forms-3.0.4.tar.gz", hash = "sha256:ff33b9b89608c8bcb9eba811524e9fb7ec1c843a73bd78a7d38fbb94cc9bdd4a"},
-    {file = "django_bootstrap_modal_forms-3.0.4-py3-none-any.whl", hash = "sha256:47a4f303724182a5e4958da94772f5a6a7359fac6d6ae204442aadfd56c03133"},
-]
-
-[package.dependencies]
-Django = ">=3.2"
-
-[[package]]
 name = "django-extensions"
 version = "3.2.3"
 description = "Extensions for Django"
@@ -1516,4 +1502,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "3934db6c1fe08b467e740134736d02969d081d2a3eaeecd61e9599e5fa375c0a"
+content-hash = "d306c7e748c28d2d03d3702f3265362c89d473d22ea59ea1da1ffb703bf616d7"

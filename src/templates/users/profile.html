@@ -102,23 +102,35 @@
   <script src="{% static 'js/users/components/models-box.js' %}"></script>
 </div>
 
+{% if user.is_authenticated %}
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+        <h5 class="modal-title" id="staticBackdropLabel">Update Author</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Understood</button>
-      </div>
+      <form method="post" id="updateUserForm">
+        {% csrf_token %}
+        <div class="modal-body">
+          <label for="first_name">First Name:</label>
+          <input type="text" id="update-author-first-name" name="first_name" value="{{ user.first_name }}" class="form-control" required>
+          
+          <label for="last_name">Last Name:</label>
+          <input type="text" id="update-author-last-name" name="last_name" value="{{ user.last_name }}" class="form-control" required>
+
+          <label for="institution">Institution:</label>
+          <input type="text" id="update-author-institution" name="institution" value="{{ user_author.institution }}" class="form-control" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+{% endif %}
 
 <script>
 function toggleSecret(elementId) {

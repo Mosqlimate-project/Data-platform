@@ -4,6 +4,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 
 from registry.models import Author, Model, Prediction
+from .forms import UpdateUserForm
 
 User = get_user_model()
 
@@ -32,6 +33,32 @@ def profile(request, username: str):
         )
     else:
         raise Http404
+
+
+def update_author(request):
+    author = Author.objects.get(user=request.user)
+
+    if request.method == "POST":
+        form = UpdateUserForm(request.POST)
+        if form.is_valid():
+            request.user.first_name = form.cleaned_data["first_name"]
+            request.user.last_name = form.cleaned_data["last_name"]
+            author.institution = form.cleaned_data["institution"]
+            request.user.save()
+            author.save()
+            print(request.user.first_name, request.user.last_name, author.institution)
+            return redirect("profile")
+
+    else:
+        form = UpdateUserForm(
+            initial={
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name,
+                "institution": author.institution,
+            }
+        )
+
+    return render(request, "profile.html", {"form": form})
 
 
 def redirect_to_user_profile(request):
