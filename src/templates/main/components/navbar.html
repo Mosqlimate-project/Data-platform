@@ -26,9 +26,7 @@
           <a class="nav-link" aria-current="page" href="{% url 'api-1.0.0:openapi-view' %}">API Demo</a>
         </li>
       </ul>
-    </div>
-    <!-- Navbar User & Login/out -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <!-- Navbar User & Login/out -->
       <ul class="navbar-nav ms-auto mb-lg-0">
         <li class="nav-item">
           {% if user.is_authenticated %}
@@ -57,11 +55,25 @@
 </nav>
 
 <style>
-.navbar {
-  background-image: none;
-  transition: none 0s ease 0s;
-  opacity: 0.9;
-  height: 105.5px;
-  padding: 16px;
+  .navbar {
+    background-image: none;
+    transition: none 0s ease 0s;
+    opacity: 0.9;
+    height: 105.5px;
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+.navbar > .container, .navbar > .container-fluid, 
+.navbar > .container-lg, .navbar > .container-md, 
+.navbar > .container-sm, .navbar > .container-xl, 
+.navbar > .container-xxl {
+  display: flex;
+  flex-wrap: inherit;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
 }
 </style>

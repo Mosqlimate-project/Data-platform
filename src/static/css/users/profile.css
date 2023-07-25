@@ -1,6 +1,5 @@
 .container-xxl {
   display: flex;
-  margin-top: 3rem;
 }
 
 .profile {
@@ -75,6 +74,9 @@
   text-align: center;
 }
 
+#uid-key-secret pre {
+  margin: 0;
+}
 
 @media (max-width: 1200px) {
   .profile {
