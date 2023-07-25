@@ -67,13 +67,14 @@
   white-space: nowrap;
 }
 
-.content {
-  flex: 4;
+.profile-content {
+  flex: 3;
 }
 
-.content h2 {
+.profile-content h2 {
   text-align: center;
 }
+
 
 @media (max-width: 1200px) {
   .profile {
