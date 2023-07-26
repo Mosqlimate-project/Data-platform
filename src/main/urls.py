@@ -4,6 +4,7 @@ from . import views
 from .api import api
 
 urlpatterns = [
+    path("predictions/", views.predictions, name="predictions"),
     path("about/", views.about, name="about"),
     path("docs/", views.docs, name="docs"),
     path("api/", api.urls),

@@ -34,15 +34,13 @@ class ModelSchema(Schema):
 class ModelFilterSchema(FilterSchema):
     """url/?paremeters to search for Models"""
 
-    id: Optional[int] = Field(q="id")
+    id: Optional[int] = Field(q="id__exact")
     name: Optional[str] = Field(q="name__icontains")
     author_name: Optional[str] = Field(q="author__user__name__icontains")
     author_username: Optional[str] = Field(q="author__user__username__icontains")
     author_institution: Optional[str] = Field(q="author__institution__icontains")
     repository: Optional[str] = Field(q="repository__icontains")
-    implementation_language: Optional[str] = Field(
-        q="implementation_language__icontains"
-    )
+    implementation_language: Optional[str] = Field(q="implementation_language__iexact")
     type: Optional[str] = Field(q="type__icontains")
 
 
@@ -58,15 +56,15 @@ class PredictionSchema(Schema):
 class PredictionFilterSchema(FilterSchema):
     """url/?paremeters to search for Predictions"""
 
-    id: Optional[int] = Field(q="id")
-    model_id: Optional[int] = Field(q="model__id")
+    id: Optional[int] = Field(q="id__exact")
+    model_id: Optional[int] = Field(q="model__id__exact")
     model_name: Optional[str] = Field(q="model__name__icontains")
     author_name: Optional[str] = Field(q="model__author__user__name__icontains")
     author_username: Optional[str] = Field(q="model__author__user__username__icontains")
     author_institution: Optional[str] = Field(q="model__author__institution__icontains")
     repository: Optional[str] = Field(q="model__repository__icontains")
     implementation_language: Optional[str] = Field(
-        q="model__implementation_language__icontains"
+        q="model__implementation_language__iexact"
     )
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")

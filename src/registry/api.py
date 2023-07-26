@@ -23,6 +23,7 @@ from .schema import (
     PredictionFilterSchema,
     PredictionSchema,
 )
+from .pagination import PredictionsPagination
 from .utils import calling_via_swagger
 
 router = Router()
@@ -291,7 +292,7 @@ class PredictionIn(Schema):
 @router.get(
     "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
 )
-@paginate
+@paginate(PredictionsPagination)
 @csrf_exempt
 def list_predictions(
     request,
