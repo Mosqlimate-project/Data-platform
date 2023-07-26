@@ -15,46 +15,55 @@ def docs(response):
 
 
 def predictions(request):
-    limit = request.GET.get("limit") or 100
-    offset = request.GET.get("offset") or 0
+    page = request.GET.get("page") or 1
+    per_page = request.GET.get("per_page") or 50
 
     base_url = (
-        f"http://0.0.0.0:8042/api/registry/predictions/?limit={limit}&offset={offset}"
+        f"http://0.0.0.0:8042/api/registry/predictions/?page={page}&per_page={per_page}"
     )
 
-    params = {
-        "id": request.GET.get("id"),
-        "model_id": request.GET.get("model_id"),
-        "model_name": request.GET.get("model_name"),
-        "author_name": request.GET.get("author_name"),
-        "author_username": request.GET.get("author_username"),
-        "author_institution": request.GET.get("author_institution"),
-        "repository": request.GET.get("repository"),
-        "implementation_language": request.GET.get("implementation_language"),
-        "type": request.GET.get("type"),
-        "commit": request.GET.get("commit"),
-        "predict_date": request.GET.get("predict_date"),
-        "predict_after_than": request.GET.get("predict_after_than"),
-        "predict_before_than": request.GET.get("predict_before_than"),
-        "predict_between": request.GET.get("predict_between"),
-    }
+    params = {"page": page, "per_page": per_page}
 
-    params = {key: value for key, value in params.items() if value is not None}
-    print(params)
+    def include_params(parameters: list[str]) -> None:
+        for param in parameters:
+            value = request.GET.get(param)
+            if value:
+                params[param] = value
+
+    include_params(
+        [
+            "id",
+            "model_id",
+            "model_name",
+            "author_name",
+            "author_username",
+            "author_institution",
+            "repository",
+            "implementation_language",
+            "type",
+            "commit",
+            "predict_date",
+            "predict_after_than",
+            "predict_before_than",
+            "predict_between",
+        ]
+    )
 
     response = requests.get(base_url, params=params)
+    api_url = "&".join([f"{p}={v}" for p, v in params.items()])
 
+    context = {}
     if response.status_code == 200:
         data = response.json()
-        predictions = data["items"]
-        count = data["count"]
+        context["predictions"] = data["items"]
+        context["pagination"] = data["pagination"]
+        context["message"] = data["message"]
+        context["api_url"] = "https://api.mosqlimate.org/?" + api_url
     else:
-        predictions = []  # TODO: add "no predictions found" template here
-        count = None
+        # TODO: add "no predictions found" template here
+        pass
 
-    return render(
-        request, "main/predictions.html", {"predictions": predictions, "count": count}
-    )
+    return render(request, "main/predictions.html", context)
 
 
 def error_404(request, *args, **kwargs):

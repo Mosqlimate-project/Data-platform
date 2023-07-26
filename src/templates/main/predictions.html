@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}Predictions{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
+<div class="container models shadow p-3 mb-3 bg-body rounded">
+    <h1>Predictions</h1>
+    <form method="get">
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label">Page</label>
+                <input type="number" class="form-control" name="page" value="{{ request.GET.page }}">
+            </div>
+            <div class="col">
+                <label class="form-label">Per page</label>
+                <input type="number" class="form-control" name="per_page" value="{{ request.GET.per_page }}">
+            </div>
+            <div class="col">
+                <label class="form-label">ID</label>
+                <input type="number" class="form-control" name="id" value="{{ request.GET.id }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Display the search results here -->
+    <h2>Search Results:</h2>
+    <span>{{api_url}}</span>
+    <br></br>
+    <span>{{message}}</span>
+    <br></br>
+    <span>{{pagination}}</span>
+    <br></br>
+    <ul>
+        {% for prediction in predictions %}
+            <li>{{ prediction }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}
