@@ -12,147 +12,159 @@
     </button>
   </div>
 
-  <form method="get" action={% url 'predictions' %}>
-    <div class="row mb-3 pagination-row">
-      <div class="col">
-        <nav aria-label="Predictions pagination">
-          <ul class="pagination">
-            <li class="page-item">
-              {% if request.session.page > 1 %}
-              <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
-              {% else %}
-              <a class="page-link disabled">Previous</a>
-              {% endif %}
-            </li>
-            <input
-              type="number"
-              class="form-control"
-              name="page"
-              value="{{ request.session.page }}"
-              min="1"
-              max="{{ request.session.total_pages }}"
-            >
-            <li class="page-item">
-              {% if request.session.page < request.session.total_pages %}
-              <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
-              {% else %}
-              <a class="page-link disabled">Next</a>
-              {% endif %}
-            </li>
-          </ul>
-        </nav>
-        <label class="form-label">Page {{ request.session.page }} of {{ request.session.total_pages }}</label>
-      </div>
+  <div class="container">
+    <form method="get" action={% url 'predictions' %}>
+      <div class="row mb-3 pagination-row">
 
-      <div class="col d-flex align-items-center">
-        Showing 
-        <div class="col-auto">
-          <input type="number" class="form-control" name="per_page" value="{{ request.session.per_page }}" min="1" max="50">
-        </div>
-        Predictions per page
-      </div>
-
-    </div>
-
-    <div class="container p-2 collapse" id="modelCollapse">
-
-      <div class="row mb-3 model-row">
-        <div class="col">
-          <input type="number" class="form-control" name="id" value="{{ request.session.id }}" placeholder="Prediction ID">
-        </div>
-        <div class="col">
-          <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id }}" placeholder="Model ID">
-        </div>
-
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="model_name" value="{{ request.session.model_name|default_if_none:'' }}" placeholder="Model Name">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
-          </div>
+        <div class="col pages-col">
+          <nav aria-label="Predictions pagination">
+            <ul class="pagination">
+              <li class="page-item">
+                {% if request.session.page > 1 %}
+                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
+                {% else %}
+                <a class="page-link disabled">Previous</a>
+                {% endif %}
+              </li>
+              <input
+                type="number"
+                class="form-control"
+                name="page"
+                value="{{ request.session.page }}"
+                min="1"
+                max="{{ request.session.total_pages }}"
+              >
+              <li class="page-item">
+                {% if request.session.page < request.session.total_pages %}
+                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
+                {% else %}
+                <a class="page-link disabled">Next</a>
+                {% endif %}
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
 
-      <div class="row mb-3 author-row">
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
+      <div class="p-2 collapse" id="modelCollapse">
+
+        <div class="row mb-3 model-row">
+          <div class="col">
+            <input type="number" class="form-control" name="id" value="{{ request.session.id }}" placeholder="Prediction ID">
+          </div>
+          <div class="col">
+            <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id }}" placeholder="Model ID">
+          </div>
+
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="model_name" value="{{ request.session.model_name|default_if_none:'' }}" placeholder="Model Name">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
+            </div>
           </div>
         </div>
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
+
+        <div class="row mb-3 author-row">
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
+            </div>
+          </div>
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
+            </div>
+          </div>
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
+            </div>
           </div>
         </div>
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
+
+        <div class="row mb-3 repo-row">
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
+            </div>
+          </div>
+          <!-- <div class="col"> -->
+          <!--   <div class="input-container"> -->
+          <!--     <input type="text" class="form-control" name="commit" value="{{ request.session.commit|default_if_none:'' }}" placeholder="Commit"> -->
+          <!--     <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('commit')"></i> -->
+          <!--   </div> -->
+          <!-- </div> -->
+          <div class="col">
+            <div class="input-container">
+              <input type="text" class="form-control" name="implementation_language" value="{{ request.session.implementation_language|default_if_none:'' }}" placeholder="Language">
+              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('implementation_language')"></i>
+            </div>
           </div>
         </div>
+
+        <div class="row mb-3 dates-row">
+          <div class="col">
+            <label for="predictDate">Predicted at</label>
+            <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
+          </div>
+          <div class="col">
+            <label for="predictAfter">Predicted after than</label>
+            <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+          </div>
+          <div class="col">
+            <label for="predictBefore">Predicted before than</label>
+            <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
       </div>
 
-      <div class="row mb-3 repo-row">
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
-          </div>
-        </div>
-        <!-- <div class="col"> -->
-        <!--   <div class="input-container"> -->
-        <!--     <input type="text" class="form-control" name="commit" value="{{ request.session.commit|default_if_none:'' }}" placeholder="Commit"> -->
-        <!--     <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('commit')"></i> -->
-        <!--   </div> -->
-        <!-- </div> -->
-        <div class="col">
-          <div class="input-container">
-            <input type="text" class="form-control" name="implementation_language" value="{{ request.session.implementation_language|default_if_none:'' }}" placeholder="Language">
-            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('implementation_language')"></i>
-          </div>
-        </div>
+      <ul>
+        {% for prediction in predictions %}
+        <li>{{ prediction }}</li>
+        {% endfor %}
+      </ul>
+
+
+      <div class="d-flex justify-content-between">
+        {% if request.session.total_predictions %}
+          <p class="me-auto mt-auto mb-0 small">
+            {% if request.session.total_predictions == 1 %}
+              1 prediction
+            {% else %}
+              {{ request.session.total_predictions }} predictions
+            {% endif %}
+          </p>
+        {% endif %}      
+        <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
       </div>
 
-      <div class="row mb-3 dates-row">
-        <div class="col">
-          <label for="predictDate">Predicted at</label>
-          <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
+      <hr>
+
+      <div class="d-flex">
+        <div class="col per-page-col d-flex">
+          <span>Showing</span>
+          <div class="col-auto">
+            <input type="number" class="form-control" name="per_page" value="{{ request.session.per_page }}" min="1" max="50">
+          </div>
+          <span>predictions per page</span>
         </div>
-        <div class="col">
-          <label for="predictAfter">Predicted after than</label>
-          <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
-        </div>
-        <div class="col">
-          <label for="predictBefore">Predicted before than</label>
-          <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
-        </div>
+        <p class="me-auto mt-auto mb-0 small">Page {{ request.session.page }} of {{ request.session.total_pages }}</p>
       </div>
-
-      <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
-
-    </div>
-  </form>
-
-  <!-- Display the search results here -->
-  <br></br>
-  <p>API URL: {{api_url}}</p>
-  <p>Message: {{message}}</p>
-  <p>Pagination: {{pagination}}</p>
-  <br></br>
-  <h4>Search Results:</h4>
-  <ul>
-    {% for prediction in predictions %}
-    <li>{{ prediction }}</li>
-    {% endfor %}
-  </ul>
+    </form>
+  </div>
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
 <script src="{% static 'js/main/predictions.js' %}"></script>

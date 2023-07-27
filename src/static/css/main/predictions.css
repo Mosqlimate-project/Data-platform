@@ -3,6 +3,16 @@
    box-shadow: none;
 }
 
+.pagination-row {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+}
+
+ul.pagination {
+  margin-top: 1rem;
+}
+
 .input-container {
   position: relative;
 }
@@ -18,4 +28,17 @@
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 13px;
+} 
+
+.per-page-col {
+  align-items: center;
+}
+
+.per-page-col .col-auto {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.per-page-col .form-control {
+  width: 70px;
 }

@@ -1,6 +1,8 @@
+from typing import Optional
+
+from django.contrib import messages
 from django.shortcuts import render
 import requests
-from typing import Optional
 
 
 def home(request):
@@ -90,10 +92,12 @@ def predictions(request):
         data = response.json()
         context["predictions"] = data["items"]
         context["pagination"] = data["pagination"]
-        context["message"] = data["message"]
         context["api_url"] = "https://api.mosqlimate.org/?" + api_url
 
         store_session(params_in=context["pagination"])
+
+        if data["message"]:
+            messages.warning(request, message=data["message"])
 
     else:
         # TODO: add "no predictions found" template here
