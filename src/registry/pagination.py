@@ -47,9 +47,10 @@ class PredictionsPagination(PaginationBase):
         return {
             "items": predictions,
             "pagination": {
+                "predictions": len(predictions),
                 "total_predictions": total_predictions,
-                "total_pages": total_pages,
                 "page": page,
+                "total_pages": total_pages,
                 "per_page": per_page,
             },
             "message": message,
