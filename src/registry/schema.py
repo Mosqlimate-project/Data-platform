@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, Tuple
+from typing import Optional
 
 from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
@@ -71,4 +71,3 @@ class PredictionFilterSchema(FilterSchema):
     predict_date: Optional[date] = Field(q="predict_date")
     predict_after_than: Optional[date] = Field(q="predict_date__gte")
     predict_before_than: Optional[date] = Field(q="predict_date__lte")
-    predict_between: Optional[Tuple[date, date]] = Field(q="predict_date__range")

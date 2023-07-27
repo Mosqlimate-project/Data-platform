@@ -1,0 +1,21 @@
+.btn,.btn:focus,.btn:active,.page-link {
+   outline: none !important;
+   box-shadow: none;
+}
+
+.input-container {
+  position: relative;
+}
+
+.input-container .form-control {
+  padding-right: 30px;
+}
+
+.clear-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 13px;
+}

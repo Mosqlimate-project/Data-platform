@@ -38,7 +38,6 @@ def predictions(request):
         "predict_date",
         "predict_after_than",
         "predict_before_than",
-        "predict_between",
     ]
 
     def store_session(
@@ -62,11 +61,15 @@ def predictions(request):
                 else:
                     request.session[param] = None
 
-    def include_params(parameters: list[str]) -> None:
+    def get_params(parameters: list[str]) -> dict:
+        params = {}
         for param in parameters:
             value = request.GET.get(param)
+            if param in ["page", "per_page"]:
+                params[param] = request.session.get(param)
             if value:
                 params[param] = value
+        return params
 
     store_session(request_params=predicts_params)
 
@@ -77,9 +80,7 @@ def predictions(request):
         f"http://0.0.0.0:8042/api/registry/predictions/?page={page}&per_page={per_page}"
     )
 
-    params = {"page": page, "per_page": per_page}
-
-    include_params(pagination_params + predicts_params)
+    params = get_params(pagination_params + predicts_params)
 
     response = requests.get(base_url, params=params)
     api_url = "&".join([f"{p}={v}" for p, v in params.items()])

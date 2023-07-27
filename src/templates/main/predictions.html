@@ -3,21 +3,26 @@
 {% block title %}Predictions{% endblock %}
 {% block content %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
-<div class="container models shadow p-3 mb-3 bg-body rounded font-golos">
-  <h1>Predictions</h1>
+<div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
+  <center><h1>Predictions</h1></center>
+
+  <div class="d-grid gap-2">
+    <button class="btn btn-primary lg-3 btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#modelCollapse">
+      <i class="fa-solid fa-arrow-down-short-wide"></i>
+    </button>
+  </div>
+
   <form method="get" action={% url 'predictions' %}>
-    <div class="row mb-3">
+    <div class="row mb-3 pagination-row">
       <div class="col">
-        <nav aria-label="Page navigation example">
-          <label class="form-label">Page</label>
+        <nav aria-label="Predictions pagination">
           <ul class="pagination">
             <li class="page-item">
-            {% if request.session.page > 1 %}
+              {% if request.session.page > 1 %}
               <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
-            {% else %}
+              {% else %}
               <a class="page-link disabled">Previous</a>
-            {% endif %}
+              {% endif %}
             </li>
             <input
               type="number"
@@ -28,29 +33,112 @@
               max="{{ request.session.total_pages }}"
             >
             <li class="page-item">
-            {% if request.session.page < request.session.total_pages %}
+              {% if request.session.page < request.session.total_pages %}
               <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
-            {% else %}
+              {% else %}
               <a class="page-link disabled">Next</a>
-            {% endif %}
+              {% endif %}
             </li>
           </ul>
         </nav>
+        <label class="form-label">Page {{ request.session.page }} of {{ request.session.total_pages }}</label>
       </div>
-      <div class="col">
-        <label class="form-label">Per page</label>
-        <input type="number" class="form-control" name="per_page" value="{{ request.session.per_page }}">
+
+      <div class="col d-flex align-items-center">
+        Showing 
+        <div class="col-auto">
+          <input type="number" class="form-control" name="per_page" value="{{ request.session.per_page }}" min="1" max="50">
+        </div>
+        Predictions per page
       </div>
-      <div class="col">
-        <label class="form-label">ID</label>
-        <input type="number" class="form-control" name="id" value="{{ request.session.id }}">
-      </div>
-      <div class="col">
-        <label class="form-label">Model ID</label>
-        <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id }}">
-      </div>
+
     </div>
-    <button type="submit" class="btn btn-primary">Search</button>
+
+    <div class="container p-2 collapse" id="modelCollapse">
+
+      <div class="row mb-3 model-row">
+        <div class="col">
+          <input type="number" class="form-control" name="id" value="{{ request.session.id }}" placeholder="Prediction ID">
+        </div>
+        <div class="col">
+          <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id }}" placeholder="Model ID">
+        </div>
+
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="model_name" value="{{ request.session.model_name|default_if_none:'' }}" placeholder="Model Name">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3 author-row">
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
+          </div>
+        </div>
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
+          </div>
+        </div>
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3 repo-row">
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
+          </div>
+        </div>
+        <!-- <div class="col"> -->
+        <!--   <div class="input-container"> -->
+        <!--     <input type="text" class="form-control" name="commit" value="{{ request.session.commit|default_if_none:'' }}" placeholder="Commit"> -->
+        <!--     <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('commit')"></i> -->
+        <!--   </div> -->
+        <!-- </div> -->
+        <div class="col">
+          <div class="input-container">
+            <input type="text" class="form-control" name="implementation_language" value="{{ request.session.implementation_language|default_if_none:'' }}" placeholder="Language">
+            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('implementation_language')"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3 dates-row">
+        <div class="col">
+          <label for="predictDate">Predicted at</label>
+          <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
+        </div>
+        <div class="col">
+          <label for="predictAfter">Predicted after than</label>
+          <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+        </div>
+        <div class="col">
+          <label for="predictBefore">Predicted before than</label>
+          <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
+
+    </div>
   </form>
 
   <!-- Display the search results here -->
@@ -66,5 +154,7 @@
     {% endfor %}
   </ul>
 </div>
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
+<script src="{% static 'js/main/predictions.js' %}"></script>
 
   {% endblock %}
