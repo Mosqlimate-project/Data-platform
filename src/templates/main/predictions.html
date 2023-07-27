@@ -14,38 +14,6 @@
 
   <div class="container">
     <form method="get" action={% url 'predictions' %}>
-      <div class="row mb-3 pagination-row">
-
-        <div class="col pages-col">
-          <nav aria-label="Predictions pagination">
-            <ul class="pagination">
-              <li class="page-item">
-                {% if request.session.page > 1 %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
-                {% else %}
-                <a class="page-link disabled">Previous</a>
-                {% endif %}
-              </li>
-              <input
-                type="number"
-                class="form-control"
-                name="page"
-                value="{{ request.session.page }}"
-                min="1"
-                max="{{ request.session.total_pages }}"
-              >
-              <li class="page-item">
-                {% if request.session.page < request.session.total_pages %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
-                {% else %}
-                <a class="page-link disabled">Next</a>
-                {% endif %}
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
       <div class="p-2 collapse" id="modelCollapse">
 
         <div class="row mb-3 model-row">
@@ -131,12 +99,44 @@
         <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
       </div>
 
+      <hr>
+
       <ul>
         {% for prediction in predictions %}
         <li>{{ prediction }}</li>
         {% endfor %}
       </ul>
 
+      <div class="row mb-3 pagination-row">
+        <div class="col pages-col">
+          <nav aria-label="Predictions pagination">
+            <ul class="pagination">
+              <li class="page-item">
+                {% if request.session.page > 1 %}
+                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
+                {% else %}
+                <a class="page-link disabled">Previous</a>
+                {% endif %}
+              </li>
+              <input
+                type="number"
+                class="form-control"
+                name="page"
+                value="{{ request.session.page }}"
+                min="1"
+                max="{{ request.session.total_pages }}"
+              >
+              <li class="page-item">
+                {% if request.session.page < request.session.total_pages %}
+                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
+                {% else %}
+                <a class="page-link disabled">Next</a>
+                {% endif %}
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
 
       <div class="d-flex justify-content-between">
         {% if request.session.total_predictions %}

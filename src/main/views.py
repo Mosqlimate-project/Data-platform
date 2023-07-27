@@ -92,7 +92,9 @@ def predictions(request):
         data = response.json()
         context["predictions"] = data["items"]
         context["pagination"] = data["pagination"]
-        context["api_url"] = "https://api.mosqlimate.org/?" + api_url
+        context["api_url"] = (
+            "https://api.mosqlimate.org/api/registry/predictions/?" + api_url
+        )
 
         store_session(params_in=context["pagination"])
 
