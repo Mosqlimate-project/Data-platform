@@ -83,13 +83,11 @@ def predictions(request):
 
     # Parameters passed in request
     params = get_params(pagination_params + predicts_params)
-    print(f"PARAMS ---------------------------> {params}")
 
     # API request
     response = requests.get(base_api_url, params=params)
     api_url_path = "&".join([f"{p}={v}" for p, v in params.items()])
 
-    print(f"API_URL ---------------------------> {base_api_url}")
     context = {}
     if response.status_code == 200:
         data = response.json()

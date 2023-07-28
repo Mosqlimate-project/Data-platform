@@ -180,7 +180,7 @@ class ModelInUpdate(ModelIn):
 def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
     models = filters.filter(models)
-    return models
+    return models.order_by("-updated")
 
 
 @router.get(
@@ -300,7 +300,7 @@ def list_predictions(
 ):
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
-    return predictions
+    return predictions.order_by("-updated")
 
 
 @router.get(
