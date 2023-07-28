@@ -33,7 +33,10 @@ class PredictionsPagination(PaginationBase):
             per_page = 1
             message = "The minimum Predictions per page is 1"
 
-        total_pages: int = (total_predictions // per_page) + 1
+        total_pages: int = total_predictions // per_page
+
+        if total_pages * per_page < total_predictions:
+            total_pages += 1  # Handles the incomplete page
 
         if page < 1:
             page = 1
