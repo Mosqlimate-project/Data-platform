@@ -47,7 +47,7 @@ def predictions(request):
     ) -> None:
         """Stores parameters in the session"""
         if request_params:
-            # Pass params from request
+            # Stores params from request
             for param in request_params:
                 value = request.GET.get(param)
                 if value:
@@ -64,6 +64,7 @@ def predictions(request):
                     request.session[param] = None
 
     def get_params(parameters: list[str]) -> dict:
+        """Gets parameters from request"""
         params = {}
         for param in parameters:
             value = request.GET.get(param)
@@ -75,34 +76,41 @@ def predictions(request):
 
     store_session(request_params=predicts_params)
 
-    page = request.GET.get("page") or 1
-    per_page = request.GET.get("per_page") or 50
-
-    base_url = (
-        f"http://0.0.0.0:8042/api/registry/predictions/?page={page}&per_page={per_page}"
+    base_api_url = (
+        f"{('https' if request.is_secure() else 'http')}://{request.get_host()}"
+        f"/api/registry/predictions/?"
     )
 
+    # Parameters passed in request
     params = get_params(pagination_params + predicts_params)
+    print(f"PARAMS ---------------------------> {params}")
 
-    response = requests.get(base_url, params=params)
-    api_url = "&".join([f"{p}={v}" for p, v in params.items()])
+    # API request
+    response = requests.get(base_api_url, params=params)
+    api_url_path = "&".join([f"{p}={v}" for p, v in params.items()])
 
+    print(f"API_URL ---------------------------> {base_api_url}")
     context = {}
     if response.status_code == 200:
         data = response.json()
         context["predictions"] = data["items"]
         context["pagination"] = data["pagination"]
         context["api_url"] = (
-            "https://api.mosqlimate.org/api/registry/predictions/?" + api_url
+            "https://api.mosqlimate.org/api/registry/predictions/?" + api_url_path
         )
 
         store_session(params_in=context["pagination"])
 
         if data["message"]:
+            context["message"] = data["message"]
             messages.warning(request, message=data["message"])
 
+    elif response.status_code == 422:
+        message = "Bad API request"
+        context["message"] = message
+        messages.error(request, message=message)
+
     else:
-        # TODO: add "no predictions found" template here
         pass
 
     return render(request, "main/predictions.html", context)

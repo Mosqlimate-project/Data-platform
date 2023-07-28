@@ -61,6 +61,10 @@ ul.pagination {
   padding: 20px;
 }
 
+.not-found-text {
+  text-align: initial;
+}
+
 .not-found-image img {
   width: 150px;
   height: auto;

@@ -100,7 +100,7 @@
         <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
       </div>
 
-      {% if request.session.total_predictions %}
+      {% if predictions %}
       <hr style="margin-top: 0.5rem;">
       <ul>
         {% for prediction in predictions %}
@@ -171,7 +171,7 @@
     </div>
     <div class="col-auto not-found-text">
       <span><h4>No predictions found</h4></span>
-      <span>The query didn't return any result</span>
+      <span>{{ message }}</span>
     </div>
   </div>
   {% endif %}      
