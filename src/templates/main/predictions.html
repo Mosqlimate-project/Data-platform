@@ -87,20 +87,21 @@
             <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
           </div>
           <div class="col">
-            <label for="predictAfter">Predicted after than</label>
-            <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
-          </div>
-          <div class="col">
             <label for="predictBefore">Predicted before than</label>
             <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
           </div>
+          <div class="col">
+            <label for="predictAfter">Predicted after than</label>
+            <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+          </div>
         </div>
 
+        <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
         <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
       </div>
 
-      <hr>
-
+      {% if request.session.total_predictions %}
+      <hr style="margin-top: 0.5rem;">
       <ul>
         {% for prediction in predictions %}
         <li>{{ prediction }}</li>
@@ -139,15 +140,13 @@
       </div>
 
       <div class="d-flex justify-content-between">
-        {% if request.session.total_predictions %}
-          <p class="me-auto mt-auto mb-0 small">
-            {% if request.session.total_predictions == 1 %}
-              1 prediction
-            {% else %}
-              {{ request.session.total_predictions }} predictions
-            {% endif %}
-          </p>
-        {% endif %}      
+        <p class="me-auto mt-auto mb-0 small">
+          {% if request.session.total_predictions == 1 %}
+            1 prediction
+          {% else %}
+            {{ request.session.total_predictions }} predictions
+          {% endif %}
+        </p>
         <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
       </div>
 
@@ -165,6 +164,17 @@
       </div>
     </form>
   </div>
+  {% else %}
+  <div class="row not-found">
+    <div class="col-auto not-found-image">
+      <img src="{% static 'img/predictions/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Predictions"></center>
+    </div>
+    <div class="col-auto not-found-text">
+      <span><h4>No predictions found</h4></span>
+      <span>The query didn't return any result</span>
+    </div>
+  </div>
+  {% endif %}      
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
 <script src="{% static 'js/main/predictions.js' %}"></script>
