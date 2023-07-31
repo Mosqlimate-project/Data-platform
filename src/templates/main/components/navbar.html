@@ -1,6 +1,8 @@
 {% load socialaccount %}
 {% load static %}
 
+<div id="predictions-url" data-base-url="{% url 'predictions' %}"></div>
+
 <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-light" data-navbar-on-scroll="data-navbar-on-scroll">
   <div class="container">
     <!-- Navbar -->
@@ -41,7 +43,7 @@
             {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
             {% endif %}
-            <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">Logout</a>
+            <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">logout</a>
           </form>
         </li>
         {% else %}

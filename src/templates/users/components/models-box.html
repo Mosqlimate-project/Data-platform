@@ -54,14 +54,20 @@
         <a class="nav-link active" aria-current="true" href="#" onclick="changeTab(event, 'info')">Info</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" onclick="changeTab(event, 'json')">JSON</a>
+        <a class="nav-link" href="" onclick="changeTab(event, 'json')">JSON</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" onclick="changeTab(event, 'curl')">Curl</a>
+        <a class="nav-link" href="" onclick="changeTab(event, 'curl')">Curl</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" onclick="changeTab(event, 'python')">Python</a>
+        <a class="nav-link" href="" onclick="changeTab(event, 'python')">Python</a>
       </li>
+      <div class="ms-auto">
+        <a id="predictions-link" href="#" target="_blank" class="btn btn-primary">
+          Predictions
+          <i class="fa-solid fa-square-arrow-up-right"></i>
+        </a>
+      </div>
     </ul>
   </div>
   <div class="card-body">
@@ -88,7 +94,7 @@
       </div>
       {% if user.username == user_profile.username %}
       <div class="info-tab-item">
-        <a href="#">Edit Model</a>
+        <a href="">Edit Model</a>
       </div>
       {% endif %}
     </div>

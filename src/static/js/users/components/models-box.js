@@ -9,6 +9,7 @@ $('.dataTables_length').addClass('show-entries-container');
 $('.dataTables_info').addClass('show-info');
 $('.dataTables_paginate').addClass('pagination-container');
 
+let selectedModelId = null;
 
 function handleModelClick(modelId) {
   const cardElement = document.querySelector('.model-card');
@@ -17,6 +18,10 @@ function handleModelClick(modelId) {
   fetchModelJSON(modelId);
   displayCurlCommand(modelId);
   displayPythonCode(modelId);
+
+  selectedModelId = modelId;
+
+  updatePredictionsLink();
 }
 
 function fetchModelJSON(modelId) {
@@ -65,6 +70,21 @@ function displayPythonCode(modelId) {
   const pythonTabContent = document.getElementById('python-model-code');
   pythonTabContent.innerHTML = pythonCode;
   hljs.highlightBlock(pythonTabContent);
+}
+
+function updatePredictionsLink() {
+  const baseUrl = document.getElementById('predictions-url').dataset.baseUrl;
+  const predictionsLink = document.getElementById('predictions-link');
+  const modelUrlParameter = addModelUrl();
+  const updatedUrl = `${baseUrl}${modelUrlParameter}`;
+  predictionsLink.href = updatedUrl;
+}
+
+function addModelUrl() {
+  if (selectedModelId) {
+    return `?page=1&per_page=50&model_id=${selectedModelId}`;
+  }
+  return '';
 }
 
 function changeTab(event, tabName) {

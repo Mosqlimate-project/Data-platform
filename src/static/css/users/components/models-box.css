@@ -84,7 +84,9 @@ pre {
   gap: .5em;
 }
 
+#info-tab, 
 #python-model-code,
-#curl-model-command {
-  text-align: left;
+#curl-model-command,
+#model-json {
+  text-align: initial;
 }
