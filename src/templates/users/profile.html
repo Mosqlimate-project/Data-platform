@@ -19,7 +19,7 @@
     <div class="name">
       <span>{{ user_profile.name }}</span>
       {% if user.username == user_profile.username %}
-      <a href="#"><i class="fa-solid fa-pencil" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="color: #9a9996;"></i></a>
+      <a href="#"><i class="fa-solid fa-pencil" data-bs-toggle="modal" data-bs-target="#update-author" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
@@ -44,7 +44,7 @@
           <i class="fas fa-building" style="color: #5e5c64;"></i>
         </div>
         <div class="item-text">
-          <a href="#"><i class="fa-solid fa-plus" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="color: #9a9996;"></i></a>
+          <a href="#"><i class="fa-solid fa-plus" data-bs-toggle="modal" data-bs-target="#update-author" style="color: #9a9996;"></i></a>
         </div>
         {% endif %}
       </div>
@@ -101,7 +101,7 @@
 </div>
 
 {% if user.is_authenticated %}
-<div class="modal fade font-golos" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="update-author" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
