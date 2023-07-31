@@ -112,6 +112,7 @@ function changeTab(event, tabName) {
 }
 
 function updateModelModal(modelData) {
+  const updateModelLabel = document.getElementById('update-model-label');
   const updateModelId = document.getElementById('update-model-id');
   const updateModelName = document.getElementById('update-model-name');
   const updateModelDesc = document.getElementById('update-model-desc');
@@ -119,7 +120,8 @@ function updateModelModal(modelData) {
   const updateModelLang = document.getElementById('update-model-lang');
   const updateModelType = document.getElementById('update-model-type');
 
-  updateModelId.textContent = "Update Model #" + modelData.id;
+  updateModelLabel.textContent = "Update Model #" + modelData.id;
+  updateModelId.value = modelData.id;
   updateModelName.value = modelData.name;
   updateModelDesc.value = modelData.description;
   updateModelRepo.value = modelData.repository;

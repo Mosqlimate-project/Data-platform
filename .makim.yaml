@@ -51,12 +51,6 @@ groups:
         run: |
           sugar run --service django --cmd "python manage.py changepassword {{ args.username }}"
 
-      makemigrations:
-        help: Run `makemigrations` inside container
-        env-file: .env
-        run: |
-          sugar run --service django --cmd "python manage.py makemigrations --no-input"
-
       migrate:
         help: Run `migrate` inside container
         env-file: .env

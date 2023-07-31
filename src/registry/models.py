@@ -26,7 +26,7 @@ class Model(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
     repository = models.URLField(max_length=200, null=False, blank=False)
     implementation_language = models.CharField(max_length=100, null=False, blank=False)
-    type = models.CharField(max_length=255, null=True, blank=True)  # TODO: True?
+    type = models.CharField(max_length=255, null=False, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
