@@ -8,72 +8,86 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-xxl">
 
+<link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
+<div class="container-xxl font-golos">
   <div class="profile">
-
     <div class="avatar">
       <img class="border border-5 shadow p-1" src="{{ user_avatar }}"></img>
     </div>
 
-    <div class="name font-golos">
-      {{ user_profile.name }}
+    <div class="name">
+      <span>{{ user_profile.name }}</span>
       {% if user.username == user_profile.username %}
-      <a href="#"><i class="fa-solid fa-pencil" style="color: #9a9996;"></i></a>
+      <a href="#"><i class="fa-solid fa-pencil" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="color: #9a9996;"></i></a>
       {% endif %}
     </div>
 
     <center><hr style="width:30%;"></center>
     
-    <div class="profile-items font-golos">
+    <div class="profile-items">
       {% if user_author.institution %}
-      <div class="institution">
-        <i class="profile-icon fas fa-building" style="color: #5e5c64;"></i>
-        {{ user_author.institution }}
+      <div class="item institution">
+        <div class="item-icon">
+          <i class="fas fa-building" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <span>{{ user_author.institution }}</span>
+        </div>
         {% if user.username == user_profile.username %}
-        <i class="fa-solid fa-pencil" style="color: #9a9996;"></i>
         {% endif %}
       </div>
       {% else %}
-      <div class="update-institution">
+      <div class="item update-institution">
         {% if user.username == user_profile.username %}
-        <i class="fas fa-building" style="color: #5e5c64;"></i>
-        <a href="#"><i class="fa-solid fa-plus" style="color: #9a9996;"></i></a>
+        <div class="item-icon">
+          <i class="fas fa-building" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <a href="#"><i class="fa-solid fa-plus" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="color: #9a9996;"></i></a>
+        </div>
         {% endif %}
       </div>
       {% endif %}
 
-      <div class="models-count">
-        <i class="profile-icon fa-solid fa-scroll" style="color: #5e5c64;"></i>
-        {{ user_models.count }} {% if user_models.count > 1 %}Models{% else %}Model{% endif %}
+      <div class="item models-count">
+        <div class="item-icon">
+          <i class="fa-solid fa-scroll" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+        <span>{{ user_models.count }} {% if user_models.count > 1 %}Models{% else %}Model{% endif %}</span>
+        </div>
       </div>
 
-      <div class="predictions-count">
-        <i class="profile-icon fa-solid fa-code" style="color: #5e5c64;"></i>
-        {{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}
+      <div class="item predictions-count">
+        <div class="item-icon">
+          <i class="fa-solid fa-code" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <span>{{ user_predictions.count }} {% if user_predictions.count > 1 %}Predictions{% else %}Prediction{% endif %}</span>
+        </div>
       </div>
+
     </div>
   </div>
 
-  <div class="content container font-golos models shadow p-4 mb-6 bg-body rounded"
+  <div class="profile-content container models shadow p-4 mb-6 bg-body rounded"
     <!-- Models -->
     {% models_box %}
 
-    <!-- X-UID-Key -->
-    {% if user.username == user_profile.username %}
-    <div class="container x-uid-key font-golos shadow p-3 mb-5 bg-body rounded">
-      <div> 
-        <h4>X-UID-Key:</h4>
-      </div>
+  <!-- X-UID-Key -->
+  {% if user.username == user_profile.username %}
+  <div class="container x-uid-key shadow p-3 mb-5 bg-body rounded">
+    <div class="d-flex justify-content-start">
       <div class="toggle-container">
-        <button id="uid-key" onclick="toggleSecret('uid-key-secret'); toggleButtonText('uid-key');">Show</button>
-        <div id="uid-key-secret" style="display: none;">
-          {{ user.username }}:{{ user.uuid }}
-        </div>
+        <button id="uid-key-btn" class="btn btn-primary" onclick="toggleSecret('uid-key'); toggleButtonText('uid-key-btn'); this.blur();">Show UID:Key</button>
+      </div>
+      <div id="uid-key" style="display: none;">
+        <pre class="uid-key-secret"><code>{"X-UID-Key": "{{ user.username }}:{{ user.uuid }}"}</code></pre>
       </div>
     </div>
-    {% endif %}
   </div>
+  {% endif %}
 
   <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
   <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
@@ -86,68 +100,43 @@
   <script src="{% static 'js/users/components/models-box.js' %}"></script>
 </div>
 
-<style>
-.container-xxl {
-  display: flex;
-  margin-top: 3rem;
-}
-
-.profile {
-  flex: 1;
-  margin-right: 2.5%;
-  position: relative;
-}
-
-.avatar {
-  align-items: center;
-  display: flex;
-  margin-top: 5%;
-  margin-bottom: 5%;
-  justify-content: center;
-  align-items: center;
-}
-
-.avatar img {
-  border-radius: 50%;
-  width: 70%;
-  height: auto;
-}
-
-.name {
-  text-align: center;
-  font-size: 1.5em;
-  position: relative;
-}
-
-.name .fa-pencil {
-  font-size: 0.55em;
-  position: absolute;
-}
-
-.profile-items {
-  padding-left: 0.5em;
-  padding-top: 0.2em;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 3em;
-}
-
-.content {
-  flex: 4;
-}
-
-.content h2 {
-  text-align: center;
-}
-
-@media (max-width: 1200px) {
-  .profile {
-    display: none;
-  }
-}
-
-</style>
+{% if user.is_authenticated %}
+<div class="modal fade font-golos" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Update Author</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="updateAuthorForm" action="{% url 'profile' username=user.username %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col">
+              <label for="first_name">First Name:</label>
+              <input type="text" id="update-author-first-name" name="first_name" value="{{ user.first_name }}" class="form-control" required>
+            </div>
+            <div class="col">
+              <label for="last_name">Last Name:</label>
+              <input type="text" id="update-author-last-name" name="last_name" value="{{ user.last_name }}" class="form-control" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col">
+              <label for="institution">Institution:</label>
+              <input type="text" id="update-author-institution" name="institution" value="{{ user_author.institution|default_if_none:"" }}" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <script>
 function toggleSecret(elementId) {
@@ -161,10 +150,14 @@ function toggleSecret(elementId) {
 
 function toggleButtonText(buttonId) {
   var button = document.getElementById(buttonId);
-  if (button.innerHTML === "Show") {
+  if (button.innerHTML === "Show UID:Key") {
     button.innerHTML = "Hide";
+    button.classList.remove("btn-primary");
+    button.classList.add("btn-outline-primary");
   } else {
-    button.innerHTML = "Show";
+    button.innerHTML = "Show UID:Key";
+    button.classList.remove("btn-outline-primary");
+    button.classList.add("btn-primary");
   }
 }
 </script>

@@ -53,7 +53,7 @@ function fetchModelJSON(modelId) {
 }
 
 function displayCurlCommand(modelId) {
-  const apiUrl = `https://mosqlimate.com/api/registry/models/${modelId}`;
+  const apiUrl = `https://api.mosqlimate.com/api/registry/models/${modelId}`;
   const curlCommand = `curl -X "GET" ${apiUrl}`;
   const curlModelCommandElement = document.getElementById('curl-model-command');
   curlModelCommandElement.textContent = curlCommand;
@@ -61,7 +61,7 @@ function displayCurlCommand(modelId) {
 }
 
 function displayPythonCode(modelId) {
-  const pythonCode = `import requests\nrequests.get("https://mosqlimate.com/api/registry/models/${modelId}").json()`;
+  const pythonCode = `import requests\nrequests.get("https://api.mosqlimate.com/api/registry/models/${modelId}").json()`;
   const pythonTabContent = document.getElementById('python-model-code');
   pythonTabContent.innerHTML = pythonCode;
   hljs.highlightBlock(pythonTabContent);

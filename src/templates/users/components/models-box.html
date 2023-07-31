@@ -1,6 +1,8 @@
 {% block models_box %}
 {% load profile_component %}
+{% load static %}
 
+<link rel="stylesheet" type="text/css" href="{% static 'css/users/components/models-box.css' %}">
 <div class="container models shadow p-3 mb-3 bg-body rounded">
   <h2>Models</h2>
   <table id="models-box" class="table table-hover">
@@ -101,6 +103,5 @@
     </div>
   </div>
 </div>
-
 
 {% endblock %}

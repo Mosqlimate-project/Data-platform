@@ -1,8 +1,9 @@
 import os
-import environ
 from pathlib import Path
 
+from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
+import environ
 
 load_dotenv()
 
@@ -80,6 +81,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mosqlimate.wsgi.application"
+
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "alert-secondary",
+    messages.INFO: "alert-info",
+    messages.SUCCESS: "alert-success",
+    messages.WARNING: "alert-warning",
+    messages.ERROR: "alert-danger",
+}
 
 
 # [Databases]

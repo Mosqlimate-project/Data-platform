@@ -2,9 +2,9 @@ name: Release
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: ["main"]
   pull_request:
-    branches: [main]
+    branches: ["main"]
 
 jobs:
   release:
@@ -17,57 +17,41 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        submodules: recursive
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
 
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        miniconda-version: "latest"
-        mamba-version: "*"
-        environment-file: conda/base.yaml
-        channels: conda-forge,nodefaults
-        activate-environment: mosqlimate
-        use-mamba: true
-        miniforge-variant: Mambaforge
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          mamba-version: "*"
+          environment-file: conda/base.yaml
+          channels: conda-forge,nodefaults
+          activate-environment: mosqlimate
+          use-mamba: true
+          miniforge-variant: Mambaforge
 
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Create file with environment variables
+        run: touch .env
 
-    - name: Test release
-      if: ${{ github.event_name != 'workflow_dispatch' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        npm install marked-mangle marked-gfm-heading-id --save-dev
-        npx --yes \
-          -p semantic-release \
-          -p conventional-changelog-conventionalcommits \
-          -p "@semantic-release/commit-analyzer" \
-          -p "@semantic-release/release-notes-generator" \
-          -p "@semantic-release/changelog" \
-          -p "@semantic-release/exec" \
-          -p "@semantic-release/github" \
-          -p "@semantic-release/git" \
-          -p "semantic-release-replace-plugin" \
-          semantic-release --dry-run
+      - name: Install dependencies
+        run: |
+          # https://github.com/yaml/pyyaml/issues/724
+          pip install "cython<3.0.0" 
+          pip install --no-build-isolation "pyyaml<6.0"
+          poetry install --only dev
 
-    - name: Release
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        npm install marked-mangle marked-gfm-heading-id --save-dev
-        npx --yes \
-          -p semantic-release \
-          -p conventional-changelog-conventionalcommits \
-          -p "@semantic-release/commit-analyzer" \
-          -p "@semantic-release/release-notes-generator" \
-          -p "@semantic-release/changelog" \
-          -p "@semantic-release/exec" \
-          -p "@semantic-release/github" \
-          -p "@semantic-release/git" \
-          -p "semantic-release-replace-plugin" \
-          semantic-release --ci
+      - name: Run semantic release (for tests)
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          makim release.dry
+
+      - name: Release command
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          makim release.ci
