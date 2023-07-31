@@ -20,9 +20,7 @@ class Author(models.Model):
 
 class Model(models.Model):
     author = models.ForeignKey(Author, on_delete=models.RESTRICT, null=False)
-    name = models.CharField(
-        max_length=255, null=False, blank=False, unique=True
-    )  # TODO: Unique true?
+    name = models.CharField(max_length=255, null=False, blank=False)
     description = models.CharField(max_length=255, null=True, blank=True)
     repository = models.URLField(max_length=200, null=False, blank=False)
     implementation_language = models.CharField(max_length=100, null=False, blank=False)

@@ -15,6 +15,7 @@ api = NinjaAPI(
         "<br>"
         "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
     ),
+    version="1",
 )
 
 api.add_router("/registry/", router=registry_router)

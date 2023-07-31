@@ -168,11 +168,15 @@ class ModelIn(Schema):
 
 class ModelInUpdate(ModelIn):
     """
-    Enable User to update Model's author.
-    With this operation, the user will lose model's permissions
+    Enable Author to update Model.
     """
 
-    author: str
+    # author: str
+    name: str
+    description: str
+    repository: str
+    language: str
+    type: str
 
 
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
@@ -230,15 +234,12 @@ def create_model(request, payload: ModelIn):
 )
 def update_model(request, model_id: int, payload: ModelInUpdate):
     try:
-        model = Model.objects.get(pk=model_id)  # TODO: Update by id?
+        model = Model.objects.get(pk=model_id)
 
         if request.user != model.author.user:  # TODO: allow admins here
             return 403, {"message": "You are not authorized to update this Model"}
 
         try:
-            author = Author.objects.get(user__username=request.user)
-            payload.author = author
-
             for attr, value in payload.dict().items():
                 setattr(model, attr, value)
 

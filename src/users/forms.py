@@ -1,5 +1,4 @@
 from django import forms
-from registry.models import Model
 
 
 class UpdateAuthorForm(forms.Form):
@@ -29,10 +28,3 @@ class UpdateModelForm(forms.Form):
     #     if not Author.objects.filter(user__username=author.user.username).exists():
     #         raise forms.ValidationError("Author not found")
     #     return author
-
-    def clean_model_name(self):
-        # TODO: Not required if Model.name is not unique
-        model_name = self.cleaned_data["model_name"]
-        if Model.objects.filter(name=model_name).exists():
-            raise forms.ValidationError("A model with this name already exists")
-        return model_name
