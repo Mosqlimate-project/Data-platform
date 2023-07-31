@@ -117,7 +117,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="staticBackdropLabel">Update Model #TODO: ADD MODEL ID</h5>
+        <h5 class="modal-title" id="update-model-id">Update Model {{model.id}}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="post" id="updateModelForm" action="{% url 'profile' username=user.username %}">
@@ -132,7 +132,7 @@
           <div class="row mb-3">
             <div class="col">
               <label for="model_description">Description:</label>
-              <textarea rows="4" id="update-model-desc" name="model_description" value="{{ model_description|default_if_none:"" }}" class="form-control"></textarea>
+              <textarea rows="4" id="update-model-desc" name="model_description" value="{{ model.description|default_if_none:"" }}" class="form-control"></textarea>
             </div>
           </div>
           <div class="row mb-3">
@@ -140,15 +140,15 @@
               <label for="model_repository">Repository:</label>
               <input type="text" id="update-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" required>
             </div>
-            <div class="col">
-              <label for="model_language">Implementation language:</label>
-              <input type="text" id="update-model-lang" name="model_language" value="{{ model.implementation_language }}" class="form-control" required>
-            </div>
           </div>
           <div class="row mb-3">
             <div class="col">
               <label for="model_type">Type:</label>
               <input type="text" id="update-model-type" name="model_type" value="{{ model.type }}" class="form-control" required>
+            </div>
+            <div class="col">
+              <label for="model_language">Implementation language:</label>
+              <input type="text" id="update-model-lang" name="model_language" value="{{ model.implementation_language }}" class="form-control" required>
             </div>
           </div>
         </div>

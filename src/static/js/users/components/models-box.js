@@ -14,27 +14,25 @@ let selectedModelId = null;
 function handleModelClick(modelId) {
   const cardElement = document.querySelector('.model-card');
   cardElement.style.display = 'block';
-
-  fetchModelJSON(modelId);
-  displayCurlCommand(modelId);
-  displayPythonCode(modelId);
-
   selectedModelId = modelId;
+
+  fetchModelData()
+    .then(modelData => {
+      updateModelModal(modelData);
+    });
+
+  displayCurlCommand();
+  displayPythonCode();
 
   updatePredictionsLink();
 }
 
-function fetchModelJSON(modelId) {
-  const apiUrl = `/api/registry/models/${modelId}`;
+function fetchModelData() {
+  const apiUrl = `/api/registry/models/${selectedModelId}`;
 
-  fetch(apiUrl)
+  return fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-      const resultContainer = document.getElementById('model-json');
-      resultContainer.textContent = JSON.stringify(data, null, 4);
-      hljs.highlightBlock(resultContainer);
-
-      // TODO: isolate in its own function, using django query to get the model 
       const modelNameElement = document.getElementById('model-name');
       const modelDescriptionElement = document.getElementById('model-description');
       const modelRepositoryElement = document.getElementById('model-repository');
@@ -51,22 +49,28 @@ function fetchModelJSON(modelId) {
       repositoryLink.textContent = data.repository;
       modelRepositoryElement.textContent = '';
       modelRepositoryElement.appendChild(repositoryLink);
+
+      const resultContainer = document.getElementById('model-json');
+      resultContainer.textContent = JSON.stringify(data, null, 4);
+      hljs.highlightBlock(resultContainer);
+
+      return data;
     })
     .catch(error => {
       console.error('Error:', error);
     });
 }
 
-function displayCurlCommand(modelId) {
-  const apiUrl = `https://api.mosqlimate.com/api/registry/models/${modelId}`;
+function displayCurlCommand() {
+  const apiUrl = `https://api.mosqlimate.com/api/registry/models/${selectedModelId}`;
   const curlCommand = `curl -X "GET" ${apiUrl}`;
   const curlModelCommandElement = document.getElementById('curl-model-command');
   curlModelCommandElement.textContent = curlCommand;
   hljs.highlightBlock(curlModelCommandElement);
 }
 
-function displayPythonCode(modelId) {
-  const pythonCode = `import requests\nrequests.get("https://api.mosqlimate.com/api/registry/models/${modelId}").json()`;
+function displayPythonCode() {
+  const pythonCode = `import requests\nrequests.get("https://api.mosqlimate.com/api/registry/models/${selectedModelId}").json()`;
   const pythonTabContent = document.getElementById('python-model-code');
   pythonTabContent.innerHTML = pythonCode;
   hljs.highlightBlock(pythonTabContent);
@@ -105,4 +109,20 @@ function changeTab(event, tabName) {
       content.style.display = 'none';
     }
   });
+}
+
+function updateModelModal(modelData) {
+  const updateModelId = document.getElementById('update-model-id');
+  const updateModelName = document.getElementById('update-model-name');
+  const updateModelDesc = document.getElementById('update-model-desc');
+  const updateModelRepo = document.getElementById('update-model-repo');
+  const updateModelLang = document.getElementById('update-model-lang');
+  const updateModelType = document.getElementById('update-model-type');
+
+  updateModelId.textContent = "Update Model #" + modelData.id;
+  updateModelName.value = modelData.name;
+  updateModelDesc.value = modelData.description;
+  updateModelRepo.value = modelData.repository;
+  updateModelLang.value = modelData.implementation_language;
+  updateModelType.value = modelData.type;
 }
