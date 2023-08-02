@@ -19,7 +19,10 @@ def docs(response):
 
 
 def predictions(request):
+    get = request.GET.get
+
     def store_session(**params) -> None:
+        """Stores parameters in session"""
         for param in params:
             value = params.get(param)
             if value:
@@ -27,23 +30,24 @@ def predictions(request):
             else:
                 request.session[param] = None
 
-    predicts_params = [
-        "page",
-        "per_page",
-        "id",
-        "model_id",
-        "model_name",
-        "author_name",
-        "author_username",
-        "author_institution",
-        "repository",
-        "implementation_language",
-        "type",
-        "commit",
-        "predict_date",
-        "predict_after_than",
-        "predict_before_than",
-    ]
+    # Parameters that come in the request
+    predicts_params = {
+        "page": get("page"),
+        "per_page": get("per_page"),
+        "id": get("id", ""),
+        "model_id": get("model_id", ""),
+        "model_name": get("model_name", ""),
+        "author_name": get("author_name", ""),
+        "author_username": get("author_username", ""),
+        "author_institution": get("author_institution", ""),
+        "repository": get("repository", ""),
+        "implementation_language": get("implementation_language", ""),
+        "type": get("type", ""),
+        "commit": get("commit", ""),
+        "predict_date": get("predict_date", ""),
+        "predict_after_than": get("predict_after_than", ""),
+        "predict_before_than": get("predict_before_than", ""),
+    }
 
     def get_filters() -> tuple[PredictionFilterSchema, PredictionsPagination.Input]:
         """Gets parameters from request"""
@@ -54,13 +58,13 @@ def predictions(request):
         )
 
         for param in predicts_params:
-            value = request.GET.get(param)
+            value = predicts_params[param]
+            store_session(**{param: value})
             if value:
                 if param in ["page", "per_page"]:
                     setattr(pagination, param, int(value))
                 else:
                     setattr(filters, param, value)
-                    store_session(**{param: value})
 
         return filters, pagination
 
@@ -73,21 +77,24 @@ def predictions(request):
             ]
         )
 
+    # Request from user
     filters, pagination = get_filters()
 
     # API request
     response = list_predictions(request, filters=filters, ninja_pagination=pagination)
 
+    context = {}
+
+    # Build equivalent API url
     api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
     api_url += build_url_path(response["pagination"].items())
     api_url += build_url_path(filters.__dict__.items())
+    context["api_url"] = api_url
 
-    context = {}
+    context["pagination"] = response["pagination"]
+
     if response["items"]:
         context["predictions"] = response["items"]
-    context["pagination"] = response["pagination"]
-    store_session(**response["pagination"])
-    context["api_url"] = api_url
 
     if response["message"]:
         messages.warning(request, message=response["message"])
