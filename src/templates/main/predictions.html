@@ -114,7 +114,7 @@
             <ul class="pagination">
               <li class="page-item">
                 {% if pagination.page > 1 %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
                 {% else %}
                 <a class="page-link disabled">Previous</a>
                 {% endif %}
@@ -129,7 +129,7 @@
               >
               <li class="page-item">
                 {% if pagination.page < pagination.total_pages %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
+                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
                 {% else %}
                 <a class="page-link disabled">Next</a>
                 {% endif %}
