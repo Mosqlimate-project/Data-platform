@@ -1,14 +1,12 @@
 from allauth.account.decorators import verified_email_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
-from django.middleware import csrf
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.views import View
-import requests
 
 from registry.models import Author, Model, Prediction
 
+from .api import update_model
 from .forms import UpdateAuthorForm, UpdateModelForm
 
 User = get_user_model()
@@ -60,41 +58,42 @@ class ProfileView(View):
             if form.is_valid():
                 model_id = form.cleaned_data["model_id"]
 
+                repository = form.cleaned_data["model_repository"]
+
+                if not any(
+                    str(repository).startswith(p)
+                    for p in ["https://github.com/", "github.com/"]
+                ):
+                    repository = f"https://github.com/{repository}/"
+
                 payload = {
-                    "model_name": form.cleaned_data["model_name"],
-                    "model_description": form.cleaned_data["model_description"],
-                    "model_repository": form.cleaned_data["model_repository"],
-                    "model_language": form.cleaned_data["model_language"],
-                    "model_type": form.cleaned_data["model_type"],
+                    "name": form.cleaned_data["model_name"],
+                    "description": form.cleaned_data["model_description"],
+                    "repository": repository,
+                    "language": form.cleaned_data["model_language"],
+                    "type": form.cleaned_data["model_type"],
                 }
 
-                response = self.update_model_api_call(request, model_id, payload)
+                status_code, model = update_model(
+                    request=request,
+                    model_id=model_id,
+                    payload=payload,
+                )
 
-                if response.status_code == 200:
+                if status_code == 201:
                     messages.success(request, "Model updated successfully")
-                elif response.status_code == 401:
+                elif status_code == 401:
                     messages.error(request, "Unauthorized")
                 else:
-                    print(response.__dict__)
                     messages.error(
                         request,
-                        f"Failed to update model: {response.json().get('message')}",
+                        f"Failed to update model: {status_code}",
                     )
             else:
+                print(request.__dict__)
                 messages.error(request, form.errors.values[0].as_data())
 
         return redirect("profile", username=username)
-
-    def update_model_api_call(self, request, model_id, payload):
-        api_url = request.build_absolute_uri(
-            reverse("api-1:update_model", kwargs={"model_id": model_id})
-        )
-        # csrf_token = request.COOKIES.get("csrftoken")
-        csrf_token = csrf.get_token(request)
-        headers = {"X-CSRFToken": csrf_token}
-        print(headers)
-        response = requests.put(api_url, json=payload, headers=headers)
-        return response
 
 
 def redirect_to_user_profile(request):

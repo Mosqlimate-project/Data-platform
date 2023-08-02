@@ -61,6 +61,8 @@ class PredictionsPagination(PaginationBase):
 
         if total_pages * per_page < total_predictions:
             total_pages += 1  # Handles the incomplete page
+        elif total_pages < 1:
+            total_pages = 1
 
         if page < 1:
             page = 1
