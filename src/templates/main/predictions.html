@@ -1,6 +1,12 @@
 {% extends 'main/base.html' %}
+{% load predictions_components %}
 {% load static %}
 {% block title %}Predictions{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+{% endblock %}
+
 {% block content %}
 
 <div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
@@ -97,16 +103,11 @@
         </div>
 
         <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
-        <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
+        <button type="submit" class="btn btn-primary btn-predict">Search</button>
       </div>
 
       {% if predictions %}
-      <hr style="margin-top: 0.5rem;">
-      <ul>
-        {% for prediction in predictions %}
-        <li>{{ prediction }}</li>
-        {% endfor %}
-      </ul>
+        {% predictions_box predictions %}
 
       <div class="row mb-3 pagination-row">
         <div class="col pages-col">

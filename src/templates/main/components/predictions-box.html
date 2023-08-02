@@ -1,0 +1,44 @@
+{% load static %}
+{% load predictions_components %}
+
+<hr style="margin-top: 0.5rem;">
+<div class="list-group">
+  {% for prediction in predictions %}
+    <div class="list-group-item list-group-item-action flex-column align-items-start prediction-item">
+      <div class="d-flex w-100 justify-content-between">
+        <div class="icon-container">
+          {% with image_path='img/plangs/'|add:prediction.model.implementation_language|lower|add:'.svg' %}
+            {% if image_path|static_file_exists %}
+              <img class="square-image" src="{% static image_path %}" />
+            {% else %}
+              <p>{{ prediction.model.implementation_language }}</p>
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div class="type">
+          <p class="mb-1">{{ prediction.model.type }}</p>
+        </div>
+        <div class="model-name">
+          <p class="mb-1">{{ prediction.model.name }}</p>
+        </div>
+        <div class="author">
+          <p class="mb-1">{{ prediction.model.author.user.name }}</p>
+        </div>
+        <div class="repository">
+          <p class="mb-1">{{ prediction.model.repository }}</p>
+        </div>
+        <div class="predict-date">
+          <p class="mb-1">{{ prediction.predict_date }}</p>
+        </div>
+        <div class="last-update">
+          <p class="mb-1">{{ prediction.updated }}</p>
+        </div>
+        <!-- <div class="description"> -->
+        <!--   <p class="mb-1">{{ prediction.description }}</p> -->
+        <!-- </div> -->
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/components/predictions-box.css' %}">

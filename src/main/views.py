@@ -32,8 +32,8 @@ def predictions(request):
 
     # Parameters that come in the request
     predicts_params = {
-        "page": get("page"),
-        "per_page": get("per_page"),
+        "page": get("page", 1),
+        "per_page": get("per_page", 50),
         "id": get("id", ""),
         "model_id": get("model_id", ""),
         "model_name": get("model_name", ""),
