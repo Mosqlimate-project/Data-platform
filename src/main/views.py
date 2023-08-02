@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.contrib import messages
 from django.shortcuts import render, reverse
 
@@ -21,16 +19,13 @@ def docs(response):
 
 
 def predictions(request):
-    def store_session(request_params: Optional[list[str]]) -> None:
-        """Stores parameters in the session"""
-        if request_params:
-            # Stores params from request
-            for param in request_params:
-                value = request.GET.get(param)
-                if value:
-                    request.session[param] = value
-                else:
-                    request.session[param] = None
+    def store_session(**params) -> None:
+        for param in params:
+            value = params.get(param)
+            if value:
+                request.session[param] = value
+            else:
+                request.session[param] = None
 
     predicts_params = [
         "page",
@@ -65,6 +60,7 @@ def predictions(request):
                     setattr(pagination, param, int(value))
                 else:
                     setattr(filters, param, value)
+                    store_session(**{param: value})
 
         return filters, pagination
 
@@ -76,8 +72,6 @@ def predictions(request):
                 if v and p not in ["predictions", "total_predictions", "total_pages"]
             ]
         )
-
-    store_session(request_params=predicts_params)
 
     filters, pagination = get_filters()
 
@@ -92,6 +86,7 @@ def predictions(request):
     if response["items"]:
         context["predictions"] = response["items"]
     context["pagination"] = response["pagination"]
+    store_session(**response["pagination"])
     context["api_url"] = api_url
 
     if response["message"]:
