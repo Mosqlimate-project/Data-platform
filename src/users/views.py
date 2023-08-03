@@ -70,7 +70,7 @@ class ProfileView(View):
                     "name": form.cleaned_data["model_name"],
                     "description": form.cleaned_data["model_description"],
                     "repository": repository,
-                    "language": form.cleaned_data["model_language"],
+                    "implementation_language": form.cleaned_data["model_language"],
                     "type": form.cleaned_data["model_type"],
                 }
 
