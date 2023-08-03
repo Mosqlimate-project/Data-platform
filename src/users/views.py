@@ -90,8 +90,9 @@ class ProfileView(View):
                         f"Failed to update model: {status_code}",
                     )
             else:
-                print(request.__dict__)
-                messages.error(request, form.errors.values[0].as_data())
+                messages.error(
+                    request, "Form error"
+                )  # TODO: Find a way to retrieve form errors
 
         return redirect("profile", username=username)
 

@@ -111,17 +111,17 @@
           <div class="row mb-3">
             <div class="col">
               <label for="first_name">First Name:</label>
-              <input type="text" id="update-author-first-name" name="first_name" value="{{ user.first_name }}" class="form-control" required>
+              <input type="text" id="update-author-first-name" name="first_name" value="{{ user.first_name }}" class="form-control" maxlength="50" required>
             </div>
             <div class="col">
               <label for="last_name">Last Name:</label>
-              <input type="text" id="update-author-last-name" name="last_name" value="{{ user.last_name }}" class="form-control" required>
+              <input type="text" id="update-author-last-name" name="last_name" value="{{ user.last_name }}" class="form-control" maxlength="50" required>
             </div>
           </div>
           <div class="row mb-3">
             <div class="col">
               <label for="institution">Institution:</label>
-              <input type="text" id="update-author-institution" name="institution" value="{{ user_author.institution|default_if_none:"" }}" class="form-control">
+              <input type="text" id="update-author-institution" name="institution" value="{{ user_author.institution|default_if_none:"" }}" class="form-control" maxlength="100">
             </div>
           </div>
         </div>

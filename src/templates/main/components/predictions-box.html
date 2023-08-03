@@ -26,7 +26,7 @@
       <span class="badge model-id bg-primary rounded-pill">Model ID</span>
     </div>
     <div class="col-10" style="padding-left: 10px;">
-      <p class="mb-1 fw-bold description">Description</p>
+      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-30px;">Description</p>
     </div>
   </div>
   {% for prediction in predictions %}
@@ -58,7 +58,7 @@
       <span class="badge model-id bg-primary rounded-pill">Model {{ prediction.model.id }}</span>
     </div>
     <div class="col-10" style="padding-left: 5px;">
-      <p class="mb-1 description">{{ prediction.description }}</p>
+      <p class="mb-1 description" style="margin-top:-10px;">{{ prediction.description }}</p>
     </div>
   </div>
   {% endfor %}
