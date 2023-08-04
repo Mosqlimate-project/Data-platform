@@ -16,18 +16,6 @@ function clearAllInputs() {
   });
 }
 
-function resetPageInput() {
-  // Resets the page to 1 when submit the form
-  var pageInput = $("input[name='page']");
-  var currentPageValue = pageInput.val();
-  var originalPageValue = "{{ request.session.page }}";
-
-  if (currentPageValue !== originalPageValue) {
-    return;
-  }
-  pageInput.val(1);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   const modelCollapse = document.getElementById('modelCollapse');
   const buttonIcon = document.querySelector('.btn-menu i');

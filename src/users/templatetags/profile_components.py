@@ -22,6 +22,9 @@ def models_box(context):
 @register.filter(name="get_repo")
 def extract_repo_from_github_url(repo_url: str) -> str:
     # Assumes the repository url has been checked before
-    url_path = urlparse(repo_url).path
-    owner, repo = url_path.split("/")[1:]
-    return repo
+    try:
+        url_path = urlparse(repo_url).path
+        owner, repo = url_path.split("/")[1:]
+        return repo
+    except ValueError:
+        return repo_url

@@ -1,8 +1,9 @@
-from typing import Optional
-
 from django.contrib import messages
-from django.shortcuts import render
-import requests
+from django.shortcuts import render, reverse
+
+from registry.api import list_predictions
+from registry.pagination import PredictionsPagination
+from registry.schema import PredictionFilterSchema
 
 
 def home(request):
@@ -18,98 +19,85 @@ def docs(response):
 
 
 def predictions(request):
-    pagination_params = [
-        "predictions",
-        "total_predictions",
-        "page",
-        "total_pages",
-        "per_page",
-    ]
+    get = request.GET.get
 
-    predicts_params = [
-        "id",
-        "model_id",
-        "model_name",
-        "author_name",
-        "author_username",
-        "author_institution",
-        "repository",
-        "implementation_language",
-        "type",
-        "commit",
-        "predict_date",
-        "predict_after_than",
-        "predict_before_than",
-    ]
-
-    def store_session(
-        request_params: Optional[list[str]] = None, params_in: Optional[dict] = None
-    ) -> None:
-        """Stores parameters in the session"""
-        if request_params:
-            # Stores params from request
-            for param in request_params:
-                value = request.GET.get(param)
-                if value:
-                    request.session[param] = value
-                else:
-                    request.session[param] = None
-
-        if params_in:
-            # Pass parameters to session
-            for param, value in params_in.items():
-                if value:
-                    request.session[param] = value
-                else:
-                    request.session[param] = None
-
-    def get_params(parameters: list[str]) -> dict:
-        """Gets parameters from request"""
-        params = {}
-        for param in parameters:
-            value = request.GET.get(param)
-            if param in ["page", "per_page"]:
-                params[param] = request.session.get(param)
+    def store_session(**params) -> None:
+        """Stores parameters in session"""
+        for param in params:
+            value = params.get(param)
             if value:
-                params[param] = value
-        return params
+                request.session[param] = value
+            else:
+                request.session[param] = None
 
-    store_session(request_params=predicts_params)
+    # Parameters that come in the request
+    predicts_params = {
+        "page": get("page", 1),
+        "per_page": get("per_page", 50),
+        "id": get("id", ""),
+        "model_id": get("model_id", ""),
+        "model_name": get("model_name", ""),
+        "author_name": get("author_name", ""),
+        "author_username": get("author_username", ""),
+        "author_institution": get("author_institution", ""),
+        "repository": get("repository", ""),
+        "implementation_language": get("implementation_language", ""),
+        "type": get("type", ""),
+        "commit": get("commit", ""),
+        "predict_date": get("predict_date", ""),
+        "predict_after_than": get("predict_after_than", ""),
+        "predict_before_than": get("predict_before_than", ""),
+    }
 
-    base_api_url = (
-        f"{('https' if request.is_secure() else 'http')}://{request.get_host()}"
-        f"/api/registry/predictions/?"
-    )
-
-    # Parameters passed in request
-    params = get_params(pagination_params + predicts_params)
-
-    # API request
-    response = requests.get(base_api_url, params=params)
-    api_url_path = "&".join([f"{p}={v}" for p, v in params.items()])
-
-    context = {}
-    if response.status_code == 200:
-        data = response.json()
-        context["predictions"] = data["items"]
-        context["pagination"] = data["pagination"]
-        context["api_url"] = (
-            "https://api.mosqlimate.org/api/registry/predictions/?" + api_url_path
+    def get_filters() -> tuple[PredictionFilterSchema, PredictionsPagination.Input]:
+        """Gets parameters from request"""
+        filters = PredictionFilterSchema()
+        pagination = PredictionsPagination.Input(
+            page=int(request.session.get("page") or 1),
+            per_page=int(request.session.get("per_page") or 50),
         )
 
-        store_session(params_in=context["pagination"])
+        for param in predicts_params:
+            value = predicts_params[param]
+            store_session(**{param: value})
+            if value:
+                if param in ["page", "per_page"]:
+                    setattr(pagination, param, int(value))
+                else:
+                    setattr(filters, param, value)
 
-        if data["message"]:
-            context["message"] = data["message"]
-            messages.warning(request, message=data["message"])
+        return filters, pagination
 
-    elif response.status_code == 422:
-        message = "Bad API request"
-        context["message"] = message
-        messages.error(request, message=message)
+    def build_url_path(params) -> str:
+        return "&".join(
+            [
+                f"{p}={v}"
+                for p, v in params
+                if v and p not in ["predictions", "total_predictions", "total_pages"]
+            ]
+        )
 
-    else:
-        pass
+    # Request from user
+    filters, pagination = get_filters()
+
+    # API request
+    response = list_predictions(request, filters=filters, ninja_pagination=pagination)
+
+    context = {}
+
+    # Build equivalent API url
+    api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
+    api_url += build_url_path(response["pagination"].items())
+    api_url += build_url_path(filters.__dict__.items())
+    context["api_url"] = api_url
+
+    context["pagination"] = response["pagination"]
+
+    if response["items"]:
+        context["predictions"] = response["items"]
+
+    if response["message"]:
+        messages.warning(request, message=response["message"])
 
     return render(request, "main/predictions.html", context)
 

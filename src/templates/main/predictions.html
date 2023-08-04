@@ -1,6 +1,12 @@
 {% extends 'main/base.html' %}
+{% load predictions_components %}
 {% load static %}
 {% block title %}Predictions{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+{% endblock %}
+
 {% block content %}
 
 <div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
@@ -83,38 +89,29 @@
 
         <div class="row mb-3 dates-row">
           <div class="col">
-            <label for="predictDate">Predicted at</label>
-            <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
-          </div>
-          <div class="col">
-            <label for="predictBefore">Predicted before than</label>
-            <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
-          </div>
-          <div class="col">
-            <label for="predictAfter">Predicted after than</label>
+            <label for="predictAfter">Start</label>
             <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+          </div>
+          <div class="col">
+            <label for="predictBefore">End</label>
+            <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
           </div>
         </div>
 
         <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
-        <button type="submit" class="btn btn-primary btn-predict" onclick="resetPageInput()">Search</button>
+        <button type="submit" class="btn btn-primary btn-predict">Search</button>
       </div>
 
       {% if predictions %}
-      <hr style="margin-top: 0.5rem;">
-      <ul>
-        {% for prediction in predictions %}
-        <li>{{ prediction }}</li>
-        {% endfor %}
-      </ul>
+        {% predictions_box predictions %}
 
       <div class="row mb-3 pagination-row">
         <div class="col pages-col">
           <nav aria-label="Predictions pagination">
             <ul class="pagination">
               <li class="page-item">
-                {% if request.session.page > 1 %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:-1 }}">Previous</a>
+                {% if pagination.page > 1 %}
+                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
                 {% else %}
                 <a class="page-link disabled">Previous</a>
                 {% endif %}
@@ -123,13 +120,13 @@
                 type="number"
                 class="form-control"
                 name="page"
-                value="{{ request.session.page }}"
+                value="{{ pagination.page }}"
                 min="1"
-                max="{{ request.session.total_pages }}"
+                max="{{ pagination.total_pages }}"
               >
               <li class="page-item">
-                {% if request.session.page < request.session.total_pages %}
-                <a class="page-link" href="{% url 'predictions' %}{% if request.GET %}?{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ request.session.page|add:1 }}">Next</a>
+                {% if pagination.page < pagination.total_pages %}
+                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
                 {% else %}
                 <a class="page-link disabled">Next</a>
                 {% endif %}
@@ -141,10 +138,10 @@
 
       <div class="d-flex justify-content-between">
         <p class="me-auto mt-auto mb-0 small">
-          {% if request.session.total_predictions == 1 %}
+          {% if pagination.total_predictions == 1 %}
             1 prediction
           {% else %}
-            {{ request.session.total_predictions }} predictions
+            {{ pagination.total_predictions }} predictions
           {% endif %}
         </p>
         <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
@@ -156,11 +153,11 @@
         <div class="col per-page-col d-flex">
           <span>Showing</span>
           <div class="col-auto">
-            <input type="number" class="form-control" name="per_page" value="{{ request.session.per_page }}" min="1" max="50">
+            <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
           </div>
           <span>predictions per page</span>
         </div>
-        <p class="me-auto mt-auto mb-0 small">Page {{ request.session.page }} of {{ request.session.total_pages }}</p>
+        <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
       </div>
     </form>
   </div>

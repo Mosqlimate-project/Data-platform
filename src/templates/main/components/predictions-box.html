@@ -1,0 +1,67 @@
+{% load static %}
+{% load predictions_components %}
+{% load profile_components %}
+
+<hr style="margin-top: 0.5rem;">
+<div class="list-group font-golos">
+  <div class="list-group-item row list-group-item-action align-items-start prediction-item">
+    <div class="col-1">
+      <p class="mb-1 fw-bold model-id">ID</p>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      <p class="mb-1 fw-bold model-lang">Lang</p>
+    </div>
+    <div class="col-4">
+      <p class="mb-1 fw-bold model-name">Model name</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold author">Author name</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold repository">Repository</p>
+    </div>
+    <div class="col-3 badge-container">
+      <span class="badge predict-date bg-primary rounded-pill">Predict date</span>
+      <span class="badge type bg-primary rounded-pill">Type</span>
+      <span class="badge model-id bg-primary rounded-pill">Model ID</span>
+    </div>
+    <div class="col-10" style="padding-left: 10px;">
+      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-30px;">Description</p>
+    </div>
+  </div>
+  {% for prediction in predictions %}
+  <div class="list-group-item row list-group-item-action align-items-start prediction-item">
+    <div class="col-1">
+      <p class="mb-1 model-id">{{ prediction.id }}</p>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      {% with image_path='img/plangs/'|add:prediction.model.implementation_language|lower|add:'.svg' %}
+      {% if image_path|static_file_exists %}
+      <img class="icon" src="{% static image_path %}" />
+      {% else %}
+      <p class="mb-1 model-lang">{{ prediction.model.implementation_language }}</p>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div class="col-4">
+      <p class="mb-1 model-name">{{ prediction.model.name }}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 author">{{ prediction.model.author.user.name }}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 repository">{{ prediction.model.repository|get_repo }}</p>
+    </div>
+    <div class="col-3 badge-container">
+      <span class="badge predict-date bg-primary rounded-pill">{{ prediction.predict_date|date:"Y-m-d" }}</span>
+      <span class="badge type bg-primary rounded-pill">{{ prediction.model.type }}</span>
+      <span class="badge model-id bg-primary rounded-pill">Model {{ prediction.model.id }}</span>
+    </div>
+    <div class="col-10" style="padding-left: 5px;">
+      <p class="mb-1 description">{{ prediction.description }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/components/predictions-box.css' %}">

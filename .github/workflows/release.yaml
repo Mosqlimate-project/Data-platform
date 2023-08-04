@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    permissions:
+      issues: write
+      pull-requests: write
+
     defaults:
       run:
         shell: bash -l {0}

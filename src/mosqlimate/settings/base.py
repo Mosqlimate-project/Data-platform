@@ -135,7 +135,7 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_ADAPTER = "main.users.adapter.RedirectOnLogin"
+ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
 
 # Password validation

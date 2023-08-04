@@ -53,11 +53,11 @@ def list_authors(
 ):
     """
     Lists all authors, can be filtered by name
-    Authors that don't have any Prediction won't be listed
+    Authors that don't have any Model won't be listed
     """
     models_count = Author.objects.annotate(num_models=Count("model"))
     authors = models_count.filter(num_models__gt=0)
-    return authors
+    return filters.filter(authors).order_by("-updated")
 
 
 @router.get(
@@ -73,32 +73,6 @@ def get_author(request, username: str):
         return 200, author
     except Author.DoesNotExist:
         return 404, {"message": "Author not found"}
-
-
-# Authors are automatically created at User creation
-# @router.post(
-#     "/authors/",
-#     response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-#     auth=django_auth,
-#     tags=["registry", "authors"],
-#     include_in_schema=False,
-# )
-# def create_author(request, payload: AuthorIn):
-#     """
-#     Posts author to database, requires a User to be created
-#     @note: This call is related to User and shouldn't be done only via API Call
-#     """
-#     try:
-#         user = User.objects.get(username=payload.user)
-#         try:
-#             author = Author.objects.get(user__username=payload.user)
-#             if author:
-#                 return 403, {"message": f"Author '{author}' already registered"}
-#         except Author.DoesNotExist:
-#             author = Author.objects.create(user=user, institution=payload.institution)
-#             return 201, author
-#     except User.DoesNotExist:
-#         return 404, {"message": f"User '{payload.user}' does not exist"}
 
 
 @router.put(
@@ -166,15 +140,6 @@ class ModelIn(Schema):
     type: str
 
 
-class ModelInUpdate(ModelIn):
-    """
-    Enable User to update Model's author.
-    With this operation, the user will lose model's permissions
-    """
-
-    author: str
-
-
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
 @csrf_exempt
 def list_models(request, filters: ModelFilterSchema = Query(...)):
@@ -221,42 +186,6 @@ def create_model(request, payload: ModelIn):
     return 201, model
 
 
-@router.put(
-    "/models/{model_id}",
-    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
-    tags=["registry", "models"],
-    include_in_schema=False,
-)
-def update_model(request, model_id: int, payload: ModelInUpdate):
-    try:
-        model = Model.objects.get(pk=model_id)  # TODO: Update by id?
-
-        if request.user != model.author.user:  # TODO: allow admins here
-            return 403, {"message": "You are not authorized to update this Model"}
-
-        try:
-            author = Author.objects.get(user__username=request.user)
-            payload.author = author
-
-            for attr, value in payload.dict().items():
-                setattr(model, attr, value)
-
-            if not calling_via_swagger(request):
-                # Not realy required, since include_in_schema=False
-                model.save()
-
-            return 201, model
-        except Author.DoesNotExist:
-            return 404, {
-                "message": (
-                    f"Author '{payload.author}' not found, use username instead"
-                )
-            }
-    except Model.DoesNotExist:
-        return 404, {"message": "Model not found"}
-
-
 @router.delete(
     "/models/{model_id}",
     response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
@@ -282,7 +211,7 @@ def delete_model(request, model_id: int):
 
 # [Model] Prediction
 class PredictionIn(Schema):
-    model: int  # TODO: change it. Issue #20
+    model: int
     description: str = None
     commit: str
     predict_date: datetime.date  # YYYY-mm-dd
@@ -297,6 +226,7 @@ class PredictionIn(Schema):
 def list_predictions(
     request,
     filters: PredictionFilterSchema = Query(...),
+    **kwargs,
 ):
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
@@ -326,7 +256,7 @@ def get_prediction(request, predict_id: int):
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
     try:
-        model = Model.objects.get(pk=payload.model)  # TODO: get by id?
+        model = Model.objects.get(pk=payload.model)
     except Model.DoesNotExist:
         return 404, {"message": f"Model '{payload.model}' not found"}
 
