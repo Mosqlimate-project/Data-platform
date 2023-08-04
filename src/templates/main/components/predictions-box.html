@@ -21,7 +21,7 @@
       <p class="mb-1 fw-bold repository">Repository</p>
     </div>
     <div class="col-3 badge-container">
-      <span class="badge predict-date bg-primary rounded-pill">Predicted at</span>
+      <span class="badge predict-date bg-primary rounded-pill">Predict date</span>
       <span class="badge type bg-primary rounded-pill">Type</span>
       <span class="badge model-id bg-primary rounded-pill">Model ID</span>
     </div>
@@ -58,7 +58,7 @@
       <span class="badge model-id bg-primary rounded-pill">Model {{ prediction.model.id }}</span>
     </div>
     <div class="col-10" style="padding-left: 5px;">
-      <p class="mb-1 description" style="margin-top:-10px;">{{ prediction.description }}</p>
+      <p class="mb-1 description">{{ prediction.description }}</p>
     </div>
   </div>
   {% endfor %}

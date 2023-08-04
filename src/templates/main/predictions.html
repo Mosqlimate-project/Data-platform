@@ -89,16 +89,12 @@
 
         <div class="row mb-3 dates-row">
           <div class="col">
-            <label for="predictDate">Predicted at</label>
-            <input id="predictDate" class="form-control" type="date" name="predict_date" value="{{ request.session.predict_date|default_if_none:'' }}">
-          </div>
-          <div class="col">
-            <label for="predictBefore">Predicted before than</label>
-            <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
-          </div>
-          <div class="col">
-            <label for="predictAfter">Predicted after than</label>
+            <label for="predictAfter">Start</label>
             <input id="predictAfter" class="form-control" type="date" name="predict_after_than" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+          </div>
+          <div class="col">
+            <label for="predictBefore">End</label>
+            <input id="predictBefore" class="form-control" type="date" name="predict_before_than" value="{{ request.session.predict_before_than|default_if_none:'' }}">
           </div>
         </div>
 
