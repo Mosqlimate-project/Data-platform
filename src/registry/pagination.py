@@ -42,24 +42,22 @@ class PagesPagination(PaginationBase):
         Notes:
             - If the requested page is < 1 or > last page, return rather 1 or last page
         """
-        total_predictions: int = self._items_count(queryset)
+        total_items: int = self._items_count(queryset)
         page: int = pagination.page
         per_page: int = pagination.per_page
         message: str = ""
 
         if per_page > 50:
             per_page = 50
-            message = (
-                "Maximum Predictions per page exceeded, displaying 50 results per page"
-            )
+            message = "Maximum items per page exceeded, displaying 50 results per page"
             # TODO: Define a better way of sending multiple message and its scope
         elif per_page < 1:
             per_page = 1
-            message = "The minimum Predictions per page is 1"
+            message = "The minimum items per page is 1"
 
-        total_pages: int = total_predictions // per_page
+        total_pages: int = total_items // per_page
 
-        if total_pages * per_page < total_predictions:
+        if total_pages * per_page < total_items:
             total_pages += 1  # Handles the incomplete page
         elif total_pages < 1:
             total_pages = 1
@@ -71,13 +69,13 @@ class PagesPagination(PaginationBase):
             page = total_pages
             message = "Incorrect page, displaying last page"
 
-        predictions = queryset[(page - 1) * per_page : page * per_page]
+        items = queryset[(page - 1) * per_page : page * per_page]
 
         return {
-            "items": predictions,
+            "items": items,
             "pagination": {
-                "predictions": len(predictions),
-                "total_predictions": total_predictions,
+                "items": len(items),
+                "total_items": total_items,
                 "page": page,
                 "total_pages": total_pages,
                 "per_page": per_page,

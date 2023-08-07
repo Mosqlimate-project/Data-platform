@@ -138,10 +138,10 @@
 
       <div class="d-flex justify-content-between">
         <p class="me-auto mt-auto mb-0 small">
-          {% if pagination.total_predictions == 1 %}
+          {% if pagination.total_items == 1 %}
             1 prediction
           {% else %}
-            {{ pagination.total_predictions }} predictions
+            {{ pagination.total_items }} predictions
           {% endif %}
         </p>
         <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
