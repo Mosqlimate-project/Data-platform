@@ -143,7 +143,11 @@ class ModelIn(Schema):
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
 @paginate(PagesPagination)
 @csrf_exempt
-def list_models(request, filters: ModelFilterSchema = Query(...)):
+def list_models(
+    request,
+    filters: ModelFilterSchema = Query(...),
+    **kwargs,
+):
     models = Model.objects.all()
     models = filters.filter(models)
     return models.order_by("-updated")

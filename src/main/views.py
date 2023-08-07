@@ -68,7 +68,7 @@ def models(request):
             [
                 f"{p}={v}"
                 for p, v in params
-                if v and p not in ["models", "total_predictions", "total_pages"]
+                if v and p not in ["items", "total_items", "total_pages"]
             ]
         )
 
