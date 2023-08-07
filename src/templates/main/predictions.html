@@ -3,13 +3,8 @@
 {% load static %}
 {% block title %}Predictions{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
-{% endblock %}
-
 {% block content %}
-
-<div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
+<div class="container predictions shadow p-5 mb-3 bg-body rounded font-golos">
   <center><h1>Predictions</h1></center>
 
   <div class="d-grid gap-2">
@@ -164,7 +159,7 @@
   {% else %}
   <div class="row not-found">
     <div class="col-auto not-found-image">
-      <img src="{% static 'img/predictions/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Predictions"></center>
+      <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Predictions"></center>
     </div>
     <div class="col-auto not-found-text">
       <span><h4>No predictions found</h4></span>
@@ -175,5 +170,4 @@
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/predictions.css' %}">
 <script src="{% static 'js/main/predictions.js' %}"></script>
-
-  {% endblock %}
+{% endblock %}

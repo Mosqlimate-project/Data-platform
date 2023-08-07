@@ -2,3 +2,82 @@
 {% load models_components %}
 {% load static %}
 {% block title %}Models{% endblock %}
+
+{% block content %}
+<div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
+  <center><h1>Models</h1></center>
+
+      {% if models %}
+        {% models_list models %}
+
+      <div class="row mb-3 pagination-row">
+        <div class="col pages-col">
+          <nav aria-label="Models pagination">
+            <ul class="pagination">
+              <li class="page-item">
+                {% if pagination.page > 1 %}
+                <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+                {% else %}
+                <a class="page-link disabled">Previous</a>
+                {% endif %}
+              </li>
+              <input
+                type="number"
+                class="form-control"
+                name="page"
+                value="{{ pagination.page }}"
+                min="1"
+                max="{{ pagination.total_pages }}"
+              >
+              <li class="page-item">
+                {% if pagination.page < pagination.total_pages %}
+                <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
+                {% else %}
+                <a class="page-link disabled">Next</a>
+                {% endif %}
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <p class="me-auto mt-auto mb-0 small">
+          {% if pagination.total_items == 1 %}
+            1 model
+          {% else %}
+            {{ pagination.total_items }} models
+          {% endif %}
+        </p>
+        <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
+      </div>
+
+      <hr>
+
+      <div class="d-flex">
+        <div class="col per-page-col d-flex">
+          <span>Showing</span>
+          <div class="col-auto">
+            <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
+          </div>
+          <span>models per page</span>
+        </div>
+        <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
+      </div>
+    </form>
+  </div>
+  {% else %}
+  <div class="row not-found">
+    <div class="col-auto not-found-image">
+      <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Models"></center>
+    </div>
+    <div class="col-auto not-found-text">
+      <span><h4>No models found</h4></span>
+      <span>{{ message }}</span>
+    </div>
+  </div>
+  {% endif %}      
+</div>
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
+<script src="{% static 'js/main/models.js' %}"></script>
+{% endblock %}

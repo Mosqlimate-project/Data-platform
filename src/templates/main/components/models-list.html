@@ -1,0 +1,66 @@
+{% load static %}
+{% load components %}
+{% load profile_components %}
+{% load models_components %}
+
+<hr style="margin-top: 0.5rem;">
+<div class="list-group font-golos">
+  <div class="list-group-item row list-group-item-action align-items-start model-item">
+    <div class="col-1">
+      <p class="mb-1 fw-bold id">ID</p>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      <p class="mb-1 fw-bold lang">Lang</p>
+    </div>
+    <div class="col-4">
+      <p class="mb-1 fw-bold name">Name</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold author">Author name</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold repository">Repository</p>
+    </div>
+    <div class="col-3 badge-container">
+      <span class="badge created-date bg-primary rounded-pill">Created</span>
+      <span class="badge type bg-primary rounded-pill">Type</span>
+    </div>
+    <div class="col-10" style="padding-left: 10px;">
+      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-30px;">Description</p>
+    </div>
+  </div>
+  {% for model in models %}
+  <div class="list-group-item row list-group-item-action align-items-start model-item">
+    <div class="col-1">
+      <p class="mb-1 id">{{ model.id }}</p>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      {% with image_path='img/plangs/'|add:model.implementation_language|lower|add:'.svg' %}
+      {% if image_path|static_file_exists %}
+      <img class="icon" src="{% static image_path %}" />
+      {% else %}
+      <p class="mb-1 lang">{{ model.implementation_language }}</p>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div class="col-4">
+      <p class="mb-1 model">{{ model.name }}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 author">{{ model.author.user.name }}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 repository">{{ model.repository|get_repo }}</p>
+    </div>
+    <div class="col-3 badge-container">
+      <span class="badge predict-date bg-primary rounded-pill">{{ model.created|date:"Y-m-d" }}</span>
+      <span class="badge type bg-primary rounded-pill">{{ model.type }}</span>
+    </div>
+    <div class="col-10" style="padding-left: 5px;">
+      <p class="mb-1 description">{{ model.description }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/components/models-list.css' %}">
