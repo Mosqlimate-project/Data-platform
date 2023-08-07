@@ -3,7 +3,7 @@ from ninja import Schema
 from typing import Any, List
 
 
-class PredictionsPagination(PaginationBase):
+class PagesPagination(PaginationBase):
     class Input(Schema):
         page: int
         per_page: int

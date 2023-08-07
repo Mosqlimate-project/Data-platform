@@ -23,7 +23,7 @@ from .schema import (
     PredictionFilterSchema,
     PredictionSchema,
 )
-from .pagination import PredictionsPagination
+from .pagination import PagesPagination
 from .utils import calling_via_swagger
 
 router = Router()
@@ -141,6 +141,7 @@ class ModelIn(Schema):
 
 
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
+@paginate(PagesPagination)
 @csrf_exempt
 def list_models(request, filters: ModelFilterSchema = Query(...)):
     models = Model.objects.all()
@@ -221,7 +222,7 @@ class PredictionIn(Schema):
 @router.get(
     "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
 )
-@paginate(PredictionsPagination)
+@paginate(PagesPagination)
 @csrf_exempt
 def list_predictions(
     request,
