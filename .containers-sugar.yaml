@@ -11,11 +11,10 @@ service-groups:
       - containers/compose-prod.yaml
     env-file: .env
     services:
-      default: django,postgres,nginx
+      default: django,postgres
       available:
         - name: django
         - name: postgres
-        - name: nginx
 
   - name: dev
     project-name: mosqlimate

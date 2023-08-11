@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   django:
-    expose:
-      - ${DJANGO_PORT}
+    ports:
+      - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
       - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}

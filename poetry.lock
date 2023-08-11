@@ -447,6 +447,19 @@ files = [
 ]
 
 [[package]]
+name = "dj-static"
+version = "0.0.6"
+description = "Serve production static files with Django."
+optional = false
+python-versions = "*"
+files = [
+    {file = "dj-static-0.0.6.tar.gz", hash = "sha256:032ec1c532617922e6e3e956d504a6fb1acce4fc1c7c94612d0fda21828ce8ef"},
+]
+
+[package.dependencies]
+static3 = "*"
+
+[[package]]
 name = "django"
 version = "4.2.3"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
@@ -1380,6 +1393,20 @@ doc = ["sphinx"]
 test = ["pytest", "pytest-cov"]
 
 [[package]]
+name = "static3"
+version = "0.7.0"
+description = "A really simple WSGI way to serve static (or mixed) content."
+optional = false
+python-versions = "*"
+files = [
+    {file = "static3-0.7.0.tar.gz", hash = "sha256:674641c64bc75507af2eb20bef7e7e3593dca993dec6674be108fa15b42f47c8"},
+]
+
+[package.extras]
+genshimagic = ["Genshi"]
+kidmagic = ["kid"]
+
+[[package]]
 name = "texttable"
 version = "1.6.7"
 description = "module to create simple ASCII tables"
@@ -1502,4 +1529,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "d306c7e748c28d2d03d3702f3265362c89d473d22ea59ea1da1ffb703bf616d7"
+content-hash = "faf5f199bdd3a9e96d9ab22da3e741153647c8ec52688029f5e4713a31a9c7a2"
