@@ -1,0 +1,65 @@
+.list-group-item {
+  align-self: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  max-height: 40px;
+}
+
+.list-group-item:hover{
+  opacity: 1;
+  max-height: none;
+  white-space: none;
+}
+
+.d-flex.justify-content-between {
+  flex-wrap: nowrap;
+}
+
+.info-container {
+  display: flex;
+  flex: 0 0 75%;
+  flex-grow: 1;
+}
+
+.mb-1 {
+  word-wrap: break-word;
+  hyphens: auto;
+  align-items: center;
+  text-align: justify;
+}
+
+.id, .name, .lang {
+  text-align: initial;
+}
+
+.icon {
+  max-width: 30px;
+  max-height: 30px;
+}
+
+.badge-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  flex: 0 0 15%;
+  position: relative;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.badge.type {
+  position: relative;
+  margin-top: 3px;
+  top: 0;
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.list-group-item:hover .badge.type{
+  opacity: 1;
+  transform: translateY(0%);

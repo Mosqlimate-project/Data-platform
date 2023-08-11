@@ -238,19 +238,6 @@ variables = {
     "EMAIL_USE_TLS": dj_email_use_tls,
 }
 
-if env == "prod":
-    print("Production variables:")
-    certbot_domain = var_in(
-        "CERTBOT_DOMAIN", input_text="  CERTBOT_DOMAIN: ", required=True
-    )
-    certbot_email = var_in(
-        "CERTBOT_EMAIL", input_text="  CERTBOT_EMAIL: ", required=True
-    )
-
-    variables["CERTBOT_DOMAIN"] = certbot_domain
-    variables["CERTBOT_EMAIL"] = certbot_email
-    print(variables)
-
 if dotenv_file.exists():
     answer = ""
     print(f"\nNote: .env file found at {project_dir}, replace it? [y/N] ")
