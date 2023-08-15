@@ -1,0 +1,91 @@
+# Project information
+site_name: "Mosqlimate API Documentation"
+site_description: "Mosqlimate API Documentation"
+site_author: "Luã Bida Vacaro"
+site_url: "https://api.mosqlimate.org/docs/"
+
+# Copyright
+copyright: "&copy; 2023 Mosqlimate"
+
+# Repository
+repo_name: "Data-platform"
+repo_url: "https://github.com/Mosqlimate-project/Data-platform"
+edit_uri: "https://github.com/peaceiris/mkdocs-material-boilerplate/edit/main/docs_sample"
+#
+# Configuration
+docs_dir: "/root/docs"
+theme:
+  name: "material"
+  language: "en"
+  shortcuts:
+    help: 191 # ?
+    next: 78 # n
+    previous: 80 # p
+    search: 83 # s
+  palette:
+    primary: "teal"
+    accent: "indigo"
+  features:
+    - tabs
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.tracking
+    - navigation.instant
+    - navigation.instant.prefetch
+  font:
+    text: 'Golos Text'
+    code: 'Ubuntu'
+  icon:
+  logo: 'images/logo.png'
+  favicon: 'images/favicon.ico'
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - abbr
+  - mdx_math:
+      enable_dollar_delimiter: true
+  - toc:
+      permalink: true
+      separator: "_"
+
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+      lang:
+        - en
+
+# Customization
+extra_javascript:
+  - "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML"
+extra_css:
+  - "assets/css/custom.css"
+extra:
+  manifest: "manifest.json"
+  social:
+    - icon: "fontawesome/brands/github-alt"
+      link: "https://github.com/Mosqlimate-project/Data-platform"
+
+# Page tree
+nav:
+  - "Home": "index.md"
+  # - "Material for MkDocs": "material-for-mkdocs.md"
+  # - "Getting started":
+  #     - "Download boilerplate": "getting-started/download-boilerplate.md"
+  #     - "pipenv": "getting-started/pipenv.md"
+  #     - "invoke": "getting-started/invoke.md"
+  #     - "Docker": "getting-started/docker.md"
+  #     - "pip": "getting-started/pip.md"
+  # - "Hosting and Deployment":
+  #     - "Combinations": "hosting-and-deployment/combinations.md"
+  #     - "Netlify": "hosting-and-deployment/netlify.md"
+  #     - "GitHub Pages": "hosting-and-deployment/github-pages.md"
+  #     - "GitLab Pages": "hosting-and-deployment/gitlab-pages.md"
+  #     - "AWS Amplify Console": "hosting-and-deployment/aws-amplify-console.md"
+  # - "Extensions":
+  #     - "MathJax": "extensions/mathjax.md"
+  #     - "Code Hilite": "extensions/code-hilite.md"
+  #     - "Footnote": "extensions/footnote.md"
+  # - "License": "license.md"
