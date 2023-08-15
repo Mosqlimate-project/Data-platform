@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from django.contrib.messages import constants as messages
@@ -21,11 +20,11 @@ DJANGO_CONTAINER_DATA_PATH = Path(
 )
 
 ALLOWED_HOSTS = [
+    "*",  #
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
     "django",
-    env("ALLOWED_HOSTS"),
 ]
 
 DJANGO_APPS = [
@@ -176,15 +175,17 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+STATIC_ROOT = str(BASE_DIR / "staticfiles")
+# https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
-STATIC_ROOT = DJANGO_CONTAINER_DATA_PATH / "static"
-STATICFILES_DIRS = [
-    ("css", os.path.join(BASE_DIR, "static/css")),
-    ("js", os.path.join(BASE_DIR, "static/js")),
-    ("img", os.path.join(BASE_DIR, "static/img")),
-    ("fonts", os.path.join(BASE_DIR, "static/fonts")),
+# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+STATICFILES_DIRS = [str(BASE_DIR / "static")]
+# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
