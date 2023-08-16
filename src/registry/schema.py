@@ -69,5 +69,5 @@ class PredictionFilterSchema(FilterSchema):
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")
     predict_date: Optional[date] = Field(q="predict_date")
-    predict_after_than: Optional[date] = Field(q="predict_date__gte")
-    predict_before_than: Optional[date] = Field(q="predict_date__lte")
+    start: Optional[date] = Field(q="predict_date__gte")
+    end: Optional[date] = Field(q="predict_date__lte")
