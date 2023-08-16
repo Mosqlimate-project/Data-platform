@@ -36,7 +36,7 @@ theme:
     text: 'Golos Text'
     code: 'Ubuntu'
   icon:
-  logo: 'images/logo.png'
+  logo: 'images/logo-medium.png'
   favicon: 'images/favicon.ico'
 
 # Extensions
@@ -45,6 +45,11 @@ markdown_extensions:
   - codehilite
   - footnotes
   - abbr
+  - attr_list
+  - md_in_html
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
   - mdx_math:
       enable_dollar_delimiter: true
   - toc:
@@ -71,7 +76,14 @@ extra:
 # Page tree
 nav:
   - "Home": "index.md"
-  # - "Material for MkDocs": "material-for-mkdocs.md"
+  - "Registry":
+    - "GET":
+      - "Authors": "registry/GET/authors.md"
+      - "Models": "registry/GET/models.md"
+      - "Predictions": "registry/GET/predictions.md"
+    - "POST":
+      - "Models": "registry/POST/models.md"
+      - "Predictions": "registry/POST/predictions.md"
   # - "Getting started":
   #     - "Download boilerplate": "getting-started/download-boilerplate.md"
   #     - "pipenv": "getting-started/pipenv.md"

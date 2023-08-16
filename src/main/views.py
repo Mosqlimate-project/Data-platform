@@ -123,8 +123,8 @@ def predictions(request):
         "implementation_language": get("implementation_language", ""),
         "type": get("type", ""),
         "commit": get("commit", ""),
-        "predict_after_than": get("predict_after_than", ""),
-        "predict_before_than": get("predict_before_than", ""),
+        "start": get("start", ""),
+        "end": get("end", ""),
     }
 
     def get_filters() -> tuple[PredictionFilterSchema, PagesPagination.Input]:
