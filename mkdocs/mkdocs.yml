@@ -41,6 +41,7 @@ theme:
 
 # Extensions
 markdown_extensions:
+  - fenced_code
   - admonition
   - codehilite
   - footnotes
@@ -75,7 +76,10 @@ extra:
 
 # Page tree
 nav:
-  - "Home": "index.md"
+  - "Home": 
+    - "Getting Started": "index.md"
+    - "Registry": "registry/index.md"
+    - "Datastore": "datastore/index.md"
   - "Registry":
     - "GET":
       - "Authors": "registry/GET/authors.md"
@@ -85,3 +89,7 @@ nav:
       - "X-UID-Key Token": "registry/POST/uid-key.md"
       - "Models": "registry/POST/models.md"
       - "Predictions": "registry/POST/predictions.md"
+  # - "Datastore":
+  #   - "GET":
+  #   - "POST":
+  #
