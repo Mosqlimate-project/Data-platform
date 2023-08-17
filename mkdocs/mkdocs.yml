@@ -38,6 +38,9 @@ theme:
   icon:
   logo: 'images/logo-medium.png'
   favicon: 'images/favicon.ico'
+  highlightjs: true
+  hljs_languages:
+    - python
 
 # Extensions
 markdown_extensions:
@@ -51,6 +54,13 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.mark
   - pymdownx.tilde
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
   - mdx_math:
       enable_dollar_delimiter: true
   - toc:
