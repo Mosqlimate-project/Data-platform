@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from registry.models import Author, Model, Prediction
+from registry.api import delete_model
 
 from .api import update_model
-from .forms import UpdateAuthorForm, UpdateModelForm
+from .forms import UpdateAuthorForm, UpdateModelForm, DeleteModelForm
 
 User = get_user_model()
 
@@ -89,10 +90,20 @@ class ProfileView(View):
                         request,
                         f"Failed to update model: {status_code}",
                     )
+
+        elif "delete_model" in request.POST:
+            form = DeleteModelForm(request.POST)
+            if form.is_valid():
+                model_id = form.cleaned_data["model_id"]
+                delete_model(request, model_id)
+                messages.warning(request, "Model deleted")
             else:
-                messages.error(
-                    request, "Form error"
-                )  # TODO: Find a way to retrieve form errors
+                messages.error(request, "Cannot delete Model")
+
+        else:
+            messages.error(
+                request, "Form error"
+            )  # TODO: Find a way to retrieve form errors
 
         return redirect("profile", username=username)
 

@@ -83,7 +83,7 @@ def models(request):
     # Build equivalent API url
     api_url = request.build_absolute_uri(reverse("api-1:list_models")) + "?"
     api_url += build_url_path(response["pagination"].items())
-    api_url += build_url_path(filters.__dict__.items())
+    api_url += "&" + build_url_path(filters.__dict__.items())
     context["api_url"] = api_url
 
     context["pagination"] = response["pagination"]
@@ -166,7 +166,7 @@ def predictions(request):
     # Build equivalent API url
     api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
     api_url += build_url_path(response["pagination"].items())
-    api_url += build_url_path(filters.__dict__.items())
+    api_url += "&" + build_url_path(filters.__dict__.items())
     context["api_url"] = api_url
 
     context["pagination"] = response["pagination"]
