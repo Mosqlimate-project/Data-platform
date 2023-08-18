@@ -23,8 +23,8 @@ theme:
     previous: 80 # p
     search: 83 # s
   palette:
-    primary: "teal"
-    accent: "indigo"
+    primary: "white"
+    accent: "green"
   features:
     - tabs
     - navigation.tabs

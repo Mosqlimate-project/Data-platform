@@ -19,7 +19,7 @@ class Author(models.Model):
 
 
 class Model(models.Model):
-    author = models.ForeignKey(Author, on_delete=models.RESTRICT, null=False)
+    author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=255, null=True, blank=True)
     repository = models.URLField(max_length=150, null=False, blank=False)
@@ -30,6 +30,10 @@ class Model(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    def delete(self):
+        self.author = None
+        self.save()
 
     class Meta:
         verbose_name = "Model"

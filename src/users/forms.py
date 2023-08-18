@@ -28,3 +28,7 @@ class UpdateModelForm(forms.Form):
     #     if not Author.objects.filter(user__username=author.user.username).exists():
     #         raise forms.ValidationError("Author not found")
     #     return author
+
+
+class DeleteModelForm(forms.Form):
+    model_id = forms.IntegerField()

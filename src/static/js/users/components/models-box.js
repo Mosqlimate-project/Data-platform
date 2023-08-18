@@ -19,6 +19,7 @@ function handleModelClick(modelId) {
   fetchModelData()
     .then(modelData => {
       updateModelModal(modelData);
+      deleteModelModal(modelData);
     });
 
   displayCurlCommand();
@@ -127,4 +128,10 @@ function updateModelModal(modelData) {
   updateModelRepo.value = modelData.repository;
   updateModelLang.value = modelData.implementation_language;
   updateModelType.value = modelData.type;
+}
+
+function deleteModelModal(modelData) {
+    const deleteModelId = document.getElementById('delete-model-id');
+
+    deleteModelId.value = modelData.id;
 }
