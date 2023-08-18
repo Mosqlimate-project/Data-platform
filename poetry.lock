@@ -447,19 +447,6 @@ files = [
 ]
 
 [[package]]
-name = "dj-static"
-version = "0.0.6"
-description = "Serve production static files with Django."
-optional = false
-python-versions = "*"
-files = [
-    {file = "dj-static-0.0.6.tar.gz", hash = "sha256:032ec1c532617922e6e3e956d504a6fb1acce4fc1c7c94612d0fda21828ce8ef"},
-]
-
-[package.dependencies]
-static3 = "*"
-
-[[package]]
 name = "django"
 version = "4.2.3"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
@@ -1548,20 +1535,6 @@ doc = ["sphinx"]
 test = ["pytest", "pytest-cov"]
 
 [[package]]
-name = "static3"
-version = "0.7.0"
-description = "A really simple WSGI way to serve static (or mixed) content."
-optional = false
-python-versions = "*"
-files = [
-    {file = "static3-0.7.0.tar.gz", hash = "sha256:674641c64bc75507af2eb20bef7e7e3593dca993dec6674be108fa15b42f47c8"},
-]
-
-[package.extras]
-genshimagic = ["Genshi"]
-kidmagic = ["kid"]
-
-[[package]]
 name = "texttable"
 version = "1.6.7"
 description = "module to create simple ASCII tables"
@@ -1714,6 +1687,20 @@ files = [
 six = "*"
 
 [[package]]
+name = "whitenoise"
+version = "6.5.0"
+description = "Radically simplified static file serving for WSGI applications"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "whitenoise-6.5.0-py3-none-any.whl", hash = "sha256:16468e9ad2189f09f4a8c635a9031cc9bb2cdbc8e5e53365407acf99f7ade9ec"},
+    {file = "whitenoise-6.5.0.tar.gz", hash = "sha256:15fe60546ac975b58e357ccaeb165a4ca2d0ab697e48450b8f0307ca368195a8"},
+]
+
+[package.extras]
+brotli = ["Brotli"]
+
+[[package]]
 name = "xonsh"
 version = "0.14.0"
 description = "Python-powered, cross-platform, Unix-gazing shell"
@@ -1757,4 +1744,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4.0.0"
-content-hash = "c87e9fdfabebc67e6690b4c72a907ddb0ae1cbdfd388ffcbf9939ed4253f7879"
+content-hash = "d8b5c83ccc983ad708481a3d33f8a47e1636f477c58e20d9f16e142548ecd004"
