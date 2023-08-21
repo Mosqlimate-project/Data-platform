@@ -32,10 +32,6 @@ groups:
             help: Specify the username
             type: string
             required: True
-          password:
-            help: Specify the password
-            type: string
-            required: True
         help: Run `createsuperuser` inside container
         run: |
           sugar run --service django --cmd "python manage.py createsuperuser \

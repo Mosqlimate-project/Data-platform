@@ -48,5 +48,5 @@ class CustomUser(AbstractUser):
 @receiver(post_save, sender=CustomUser)
 def create_author(sender, instance, created, **kwargs):
     """Creates Author when User is created"""
-    if created:
+    if created and not instance.is_superuser:
         Author.objects.create(user=instance)
