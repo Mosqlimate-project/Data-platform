@@ -4,7 +4,7 @@ from django.db import models
 
 class Author(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=False
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
     )
     institution = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -19,7 +19,9 @@ class Author(models.Model):
 
 
 class Model(models.Model):
-    author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(
+        Author, on_delete=models.CASCADE, null=False, blank=False
+    )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=255, null=True, blank=True)
     repository = models.URLField(max_length=150, null=False, blank=False)
@@ -30,10 +32,6 @@ class Model(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
-    def delete(self):
-        self.author = None
-        self.save()
 
     class Meta:
         verbose_name = "Model"
