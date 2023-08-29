@@ -51,7 +51,7 @@
       <p class="mb-1 author">{{ prediction.model.author.user.name }}</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 repository">{{ prediction.model.repository|get_repo }}</p>
+        <a href = "{{ prediction.model.repository }}"><p class="mb-1 repository">{{ prediction.model.repository|get_repo }}</p></a>
     </div>
     <div class="col-3 badge-container">
       <span class="badge predict-date bg-primary rounded-pill">{{ prediction.predict_date|date:"Y-m-d" }}</span>

@@ -4,6 +4,7 @@ from django.shortcuts import render, reverse
 from registry.api import list_models, list_predictions
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
+from registry.models import ImplementationLanguage
 
 
 def home(request):
@@ -88,6 +89,9 @@ def models(request):
 
     context["pagination"] = response["pagination"]
 
+    langs = ImplementationLanguage.objects.values_list("language", flat=True)
+    context["implementation_languages"] = list(langs)
+
     if response["items"]:
         context["models"] = response["items"]
 
@@ -168,6 +172,9 @@ def predictions(request):
     api_url += build_url_path(response["pagination"].items())
     api_url += "&" + build_url_path(filters.__dict__.items())
     context["api_url"] = api_url
+
+    langs = ImplementationLanguage.objects.values_list("language", flat=True)
+    context["implementation_languages"] = list(langs)
 
     context["pagination"] = response["pagination"]
 
