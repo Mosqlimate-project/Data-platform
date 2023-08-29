@@ -203,8 +203,10 @@ def create_model(request, payload: ModelIn):
                 "message": f"Unknown language {payload.implementation_language}"
             }
 
-    payload.implementation_language = lang
-    model = Model(author=author, **payload.dict())
+    data = payload.dict()
+    data["implementation_language"] = lang
+    model = Model(author=author, **data)
+
     if not calling_via_swagger(request):
         try:
             model.save()

@@ -8,6 +8,10 @@ from main.schema import Schema
 from users.schema import UserSchema
 
 
+class ImplementationLanguageSchema(Schema):
+    language: str
+
+
 class AuthorSchema(Schema):
     user: UserSchema
     institution: str = None
@@ -27,7 +31,7 @@ class ModelSchema(Schema):
     description: str = None
     author: AuthorSchema
     repository: str
-    implementation_language: str
+    implementation_language: ImplementationLanguageSchema
     type: str
 
 
@@ -40,7 +44,9 @@ class ModelFilterSchema(FilterSchema):
     author_username: Optional[str] = Field(q="author__user__username__icontains")
     author_institution: Optional[str] = Field(q="author__institution__icontains")
     repository: Optional[str] = Field(q="repository__icontains")
-    implementation_language: Optional[str] = Field(q="implementation_language__iexact")
+    implementation_language: Optional[str] = Field(
+        q="implementation_language__language__iexact"
+    )
     type: Optional[str] = Field(q="type__icontains")
 
 
@@ -64,7 +70,7 @@ class PredictionFilterSchema(FilterSchema):
     author_institution: Optional[str] = Field(q="model__author__institution__icontains")
     repository: Optional[str] = Field(q="model__repository__icontains")
     implementation_language: Optional[str] = Field(
-        q="model__implementation_language__iexact"
+        q="model__implementation_language__language__iexact"
     )
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")
