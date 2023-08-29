@@ -14,7 +14,7 @@ from ninja.pagination import paginate
 from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
 from users.auth import UidKeyAuth
 
-from .models import Author, Model, Prediction
+from .models import Author, Model, Prediction, ImplementationLanguage
 from .schema import (
     AuthorFilterSchema,
     AuthorSchema,
@@ -169,7 +169,7 @@ def get_model(request, model_id: int):
 
 @router.post(
     "/models/",
-    response={201: ModelSchema, 403: ForbiddenSchema},
+    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=uidkey,
     tags=["registry", "models"],
 )
@@ -182,6 +182,28 @@ def create_model(request, payload: ModelIn):
         return 403, {"message": "Invalid repository"}
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
+
+    try:
+        lang = ImplementationLanguage.objects.get(
+            language__iexact=payload.implementation_language
+        )
+    except ImplementationLanguage.DoesNotExist:
+        similar_lang = ImplementationLanguage.objects.filter(
+            language__icontains=payload.implementation_language
+        )[0]
+        if similar_lang:
+            return 404, {
+                "message": (
+                    f"Unknown language '{payload.implementation_language}', "
+                    f"did you mean '{similar_lang}'?"
+                )
+            }
+        else:
+            return 404, {
+                "message": f"Unknown language {payload.implementation_language}"
+            }
+
+    payload.implementation_language = lang
     model = Model(author=author, **payload.dict())
     if not calling_via_swagger(request):
         try:
