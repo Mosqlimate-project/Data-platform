@@ -8,7 +8,7 @@ def get_plangs_path() -> str:
 
 
 class ImplementationLanguage(models.Model):
-    language = models.CharField(max_length=100, null=False, blank=False)
+    language = models.CharField(max_length=100, null=False, blank=False, unique=True)
     svg_path = models.FilePathField(path=get_plangs_path(), match=".svg$", null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
