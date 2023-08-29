@@ -35,7 +35,7 @@
       <p class="mb-1 id">{{ model.id }}</p>
     </div>
     <div class="col-1" style="padding-left: 0;">
-      {% with image_path='img/plangs/'|add:model.implementation_language|lower|add:'.svg' %}
+      {% with image_path='img/plangs/'|add:model.implementation_language.svg_path %}
       {% if image_path|static_file_exists %}
       <img class="icon" src="{% static image_path %}" />
       {% else %}
