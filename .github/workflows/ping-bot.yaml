@@ -1,0 +1,16 @@
+name: Ping Services Discord Bot
+on:
+  schedule:
+    - cron:  "0 */3 * * *"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Ping Serivce
+      env:
+        DISCORD_WEBOOK: ${{ secrets.DiscordWebhook }}
+      run: |
+        makim prod.ping --webhook "$DISCORD_WEBOOK" 

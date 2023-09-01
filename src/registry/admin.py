@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Author, Model, Prediction
+from .models import Author, Model, Prediction, ImplementationLanguage
+
+
+@admin.register(ImplementationLanguage)
+class ImplementationLanguageAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "svg_path")
+    search_fields = ("language",)
+    date_hierarchy = "updated"
 
 
 @admin.register(Author)

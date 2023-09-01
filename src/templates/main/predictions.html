@@ -19,10 +19,10 @@
 
         <div class="row mb-3 model-row">
           <div class="col">
-            <input type="number" class="form-control" name="id" value="{{ request.session.id }}" placeholder="Prediction ID">
+            <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="Prediction ID">
           </div>
           <div class="col">
-            <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id }}" placeholder="Model ID">
+            <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id|default_if_none:'' }}" placeholder="Model ID">
           </div>
 
           <div class="col">
@@ -76,8 +76,14 @@
           <!-- </div> -->
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="implementation_language" value="{{ request.session.implementation_language|default_if_none:'' }}" placeholder="Language">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('implementation_language')"></i>
+              <div class="input-group">
+                <select class="form-select selectpicker" name="implementation_language">
+                  <option value="" selected disabled>Implementation language</option>
+                  {% for language in implementation_languages %}
+                  <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
           </div>
         </div>

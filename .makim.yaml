@@ -80,6 +80,19 @@ groups:
         run: |
           python contrib/scripts/do_psqlconf.py
 
+  prod:
+    targets:
+      ping:
+        args:
+          webhook:
+            help: Specify the Discord Webhook URL
+            type: string
+            required: True
+        help: Ping production URL
+        run: |
+          $DISCORD_WEBHOOK = '{{ args.webhook }}'
+          python contrib/scripts/ping_mosqlimate.py
+
   release:
     vars:
       app: |

@@ -1,5 +1,24 @@
+import os
 from django.conf import settings
 from django.db import models
+
+
+def get_plangs_path() -> str:
+    return os.path.join(settings.STATIC_ROOT, "img/plangs")
+
+
+class ImplementationLanguage(models.Model):
+    language = models.CharField(max_length=100, null=False, blank=False, unique=True)
+    svg_path = models.FilePathField(path=get_plangs_path(), match=".svg$", null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.language}"
+
+    class Meta:
+        verbose_name = "Implementation Language"
+        verbose_name_plural = "Implementation Languages"
 
 
 class Author(models.Model):
@@ -24,8 +43,10 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=255, null=True, blank=True)
-    repository = models.URLField(max_length=150, null=False, blank=False)
-    implementation_language = models.CharField(max_length=100, null=False, blank=False)
+    repository = models.CharField(max_length=100, null=False, blank=False)
+    implementation_language = models.ForeignKey(
+        ImplementationLanguage, on_delete=models.PROTECT, null=False, blank=False
+    )
     type = models.CharField(max_length=100, null=False, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
