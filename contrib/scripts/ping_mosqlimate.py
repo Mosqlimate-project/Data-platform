@@ -15,6 +15,7 @@ def send_discord_message(message: str) -> None:
 if __name__ == "__main__":
     URLs = [
         "https://api.mosqlimate.org",
+        "https://api.mosqlimate.org/docs",
     ]
 
     for url in URLs:
