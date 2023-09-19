@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
@@ -97,16 +98,26 @@ MESSAGE_TAGS = {
 
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+DEFAULT_URI = urlparse(env("DEFAULT_POSTGRES_URI"))
+INFODENGUE_URI = urlparse(env("INFODENGUE_POSTGRES_URI"))
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB"),
-        "USER": env("POSTGRES_USER"),
-        "PASSWORD": env("POSTGRES_PASSWORD"),
-        "HOST": env("POSTGRES_HOST"),
-        "PORT": env("POSTGRES_PORT"),
-    }
+        "NAME": DEFAULT_URI.hostname,
+        "USER": DEFAULT_URI.username,
+        "PASSWORD": DEFAULT_URI.password,
+        "HOST": DEFAULT_URI.scheme,
+        "PORT": DEFAULT_URI.port,
+    },
+    "infodengue": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": INFODENGUE_URI.hostname,
+        "USER": INFODENGUE_URI.username,
+        "PASSWORD": INFODENGUE_URI.password,
+        "HOST": INFODENGUE_URI.scheme,
+        "PORT": INFODENGUE_URI.port,
+    },
 }
 
 # 2 Factor Authentication (allauth)

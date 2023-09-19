@@ -2,6 +2,7 @@ from ninja import NinjaAPI
 
 from registry.api import router as registry_router
 from users.api import router as users_router
+from datastore.api import router as datastore_router
 from users.auth import InvalidUIDKey
 from django.urls import reverse
 
@@ -20,6 +21,7 @@ api = NinjaAPI(
 
 api.add_router("/registry/", router=registry_router)
 api.add_router("/user/", router=users_router)
+api.add_router("/datastore", router=datastore_router)
 
 
 @api.exception_handler(InvalidUIDKey)

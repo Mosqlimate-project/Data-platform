@@ -141,6 +141,11 @@ psql_db = var_in(
     default_val="mosqlimate-dev",
 )
 psql_uri = f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
+infodengue_uri = var_in(
+    "INFODENGUE_POSTGRES_URI",
+    input_text="  External psql connection with Infodengue: ",
+    default_val=psql_uri,
+)
 
 
 print("\nPostgreSQL Image:")
@@ -222,7 +227,8 @@ variables = {
     "POSTGRES_USER": psql_user,
     "POSTGRES_PASSWORD": psql_pass,
     "POSTGRES_DB": psql_db,
-    "DATABASE_URL": psql_uri,
+    "DEFAULT_POSTGRES_URI": psql_uri,
+    "INFODENGUE_POSTGRES_URI": infodengue_uri,
     # [Postgres Image]
     "POSTGRES_HOST_UID": psql_uid,
     "POSTGRES_HOST_GID": psql_gid,
