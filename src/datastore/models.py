@@ -39,5 +39,5 @@ class HistoricoAlerta(models.Model):
     casconf = models.IntegerField(db_column="casconf")
 
     class Meta:
-        db_table = "Historico_alerta"
-        schema = "Municipio"
+        managed = False
+        db_table = '"Historico_alerta"'

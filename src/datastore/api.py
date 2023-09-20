@@ -21,6 +21,6 @@ def get_historico_alerta(
     filters: HistoricoAlertaFilterSchema = Query(...),
     **kwargs,
 ):
-    data = HistoricoAlerta.objects.using("infodengue").all()
+    data = HistoricoAlerta.objects.using("Municipio").all()
     data = filters.filter(data)
     return data.order_by("-data_iniSE")

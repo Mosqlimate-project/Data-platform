@@ -104,21 +104,24 @@ INFODENGUE_URI = urlparse(env("INFODENGUE_POSTGRES_URI"))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": DEFAULT_URI.hostname,
+        "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": DEFAULT_URI.scheme,
+        "HOST": "postgres",
         "PORT": DEFAULT_URI.port,
     },
-    "infodengue": {
+    "Municipio": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": INFODENGUE_URI.hostname,
+        "OPTIONS": {"options": '-c search_path="Municipio"'},
+        "NAME": INFODENGUE_URI.path.replace("/", ""),
         "USER": INFODENGUE_URI.username,
         "PASSWORD": INFODENGUE_URI.password,
-        "HOST": INFODENGUE_URI.scheme,
+        "HOST": INFODENGUE_URI.hostname,
         "PORT": INFODENGUE_URI.port,
     },
 }
+
+DATABASE_ROUTERS = ("datastore.routers.MunicipioRouter",)
 
 # 2 Factor Authentication (allauth)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
