@@ -4,9 +4,11 @@ from typing import Any, List
 
 
 class PagesPagination(PaginationBase):
+    max_per_page: int = 50
+
     class Input(Schema):
-        page: int
-        per_page: int
+        page: int = 1
+        per_page: int = 50
 
     class Output(Schema):
         items: List[Any]
@@ -45,11 +47,15 @@ class PagesPagination(PaginationBase):
         total_items: int = self._items_count(queryset)
         page: int = pagination.page
         per_page: int = pagination.per_page
+        max_per_page = self.max_per_page
         message: str = ""
 
-        if per_page > 50:
-            per_page = 50
-            message = "Maximum items per page exceeded, displaying 50 results per page"
+        if per_page > max_per_page:
+            per_page = max_per_page
+            message = (
+                "Maximum items per page exceeded, "
+                f"displaying {max_per_page} results per page"
+            )
             # TODO: Define a better way of sending multiple message and its scope
         elif per_page < 1:
             per_page = 1
