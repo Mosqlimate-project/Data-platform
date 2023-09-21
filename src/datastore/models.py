@@ -41,3 +41,30 @@ class HistoricoAlerta(models.Model):
     class Meta:
         managed = False
         db_table = '"Historico_alerta"'
+
+
+class CopernicusBrasil(models.Model):
+    date = models.DateField(db_column="date", primary_key=True)
+    geocodigo = models.BigIntegerField(db_column="geocodigo")
+    temp_min = models.FloatField(db_column="temp_min")
+    temp_med = models.FloatField(db_column="temp_med")
+    temp_max = models.FloatField(db_column="temp_max")
+    precip_min = models.FloatField(db_column="precip_min")
+    precip_med = models.FloatField(db_column="precip_med")
+    precip_max = models.FloatField(db_column="precip_max")
+    precip_tot = models.FloatField(db_column="precip_tot")
+    pressao_min = models.FloatField(db_column="pressao_min")
+    pressao_med = models.FloatField(db_column="pressao_med")
+    pressao_max = models.FloatField(db_column="pressao_max")
+    umid_min = models.FloatField(db_column="umid_min")
+    umid_med = models.FloatField(db_column="umid_med")
+    umid_max = models.FloatField(db_column="umid_max")
+
+    class Meta:
+        managed = False
+        db_table = "copernicus_brasil"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["date", "geocodigo"], name="composite_primary_key"
+            )
+        ]

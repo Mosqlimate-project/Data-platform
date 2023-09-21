@@ -102,5 +102,6 @@ nav:
   - "Datastore":
     - "GET":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
+      - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
   #   - "POST":
   #
