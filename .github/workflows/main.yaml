@@ -11,9 +11,9 @@ jobs:
     environment: build
     env:
       CI: 1 # anything but falsy values
-      INFODENGUE_POSTGRES_URI: ${{ build.INFODENGUEDEV_POSTGRES_URI }}
-      GITHUB_CLIENT_ID: ${{ build.PROVISORY_GITHUB_CLIENT_ID }}
-      GITHUB_SECRET: ${{ build.PROVISORY_GITHUB_SECRET }}
+      INFODENGUE_POSTGRES_URI: TODO # ${{ secrets.INFODENGUEDEV_POSTGRES_URI }}
+      GITHUB_CLIENT_ID: TODO # ${{ secrets.PROVISORY_GITHUB_CLIENT_ID }}
+      GITHUB_SECRET: TODO # ${{ secrets.PROVISORY_GITHUB_SECRET }}
       EMAIL_HOST_PASSWORD: TODO
     runs-on: ubuntu-latest
     timeout-minutes: 30
