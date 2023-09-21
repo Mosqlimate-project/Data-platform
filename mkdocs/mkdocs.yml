@@ -99,7 +99,8 @@ nav:
       - "X-UID-Key Token": "registry/POST/uid-key.md"
       - "Models": "registry/POST/models.md"
       - "Predictions": "registry/POST/predictions.md"
-  # - "Datastore":
-  #   - "GET":
+  - "Datastore":
+    - "GET":
+      - "Histórico Alerta": "datastore/GET/historico_alerta.md"
   #   - "POST":
   #

@@ -17,6 +17,7 @@ class HistoricoAlertaSchema(Schema):
     nivel: Optional[int]
     id: Optional[int]
     versao_modelo: Optional[str]
+    Rt: Optional[float]
     municipio_nome: Optional[str]
     pop: Optional[float]
     tempmin: Optional[float]

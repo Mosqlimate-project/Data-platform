@@ -28,3 +28,4 @@ service-groups:
       available:
         - name: django
         - name: postgres
+        - name: documentation

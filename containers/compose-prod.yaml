@@ -7,23 +7,3 @@ services:
     volumes:
       - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
     command: python -m gunicorn -w 4 -b 0.0.0.0:${DJANGO_PORT} mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker
-
-  documentation:
-    hostname: docs
-    restart: unless-stopped
-    build:
-      context: ..
-      dockerfile: containers/mkdocs/Dockerfile
-    env_file:
-      - ../.env
-    ports:
-      - ${MKDOCS_PORT}:8000
-    volumes:
-      - ../mkdocs:/root
-    stdin_open: true
-    tty: true
-    command:
-      - "serve"
-      - "--dev-addr=0.0.0.0:8000"
-      - "--config-file"
-      - "./mkdocs.yml"
