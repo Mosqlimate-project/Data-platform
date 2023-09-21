@@ -68,6 +68,10 @@ jobs:
       run: |
         makim docker.start
 
+    - name: Test datastore
+      run: |
+        makim django.test --app datastore
+
     # - name: Container wait
     #   run: |
     #      make container-wait-all

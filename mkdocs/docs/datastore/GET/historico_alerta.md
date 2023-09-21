@@ -71,10 +71,9 @@ resp = requests.get(historico_alerta_api + pagination + filters)
 ```
 
 #### Items
-Items are the dictionaries containing the response's data. It can be parsed to
-Python dictionaries:
+Items are the dictionaries containing the response's data in a list of dicts:
 ```py
-dict(resp.json())["items"]
+resp.json()["items"]
 ```
 
 #### Pagination
@@ -82,5 +81,5 @@ The response's pagination contain information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
 data by changing the `page` parameter on the URL.
 ```py
-dict(resp.json())["pagination"]
+resp.json()["pagination"]
 ```

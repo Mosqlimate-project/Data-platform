@@ -11,7 +11,7 @@ jobs:
 
     - name: Ping Service
       env:
-        DISCORD_WEBHOOK: ${{ secrets.DiscordWebhook }}
+        DISCORD_WEBHOOK: ${{ secrets.DISCORDWEBHOOK }}
       run: |
         export DISCORD_WEBHOOK=$DISCORD_WEBHOOK
         python contrib/scripts/ping_mosqlimate.py
