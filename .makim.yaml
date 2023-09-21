@@ -68,6 +68,16 @@ groups:
         run: |
           sugar run --service django --cmd "python manage.py dbshell"
 
+      test:
+        args:
+          app:
+            help: Specify the django app
+            type: string
+            required: True
+        help: Run django test on an app inside container
+        run: |
+          sugar run --service django --cmd "python manage.py test {{ args.app }}.tests"
+
   dev:
     targets:
       dotenv:
@@ -80,18 +90,6 @@ groups:
         run: |
           python contrib/scripts/do_psqlconf.py
 
-  prod:
-    targets:
-      ping:
-        args:
-          webhook:
-            help: Specify the Discord Webhook URL
-            type: string
-            required: True
-        help: Ping production URL
-        run: |
-          $DISCORD_WEBHOOK = '{{ args.webhook }}'
-          python contrib/scripts/ping_mosqlimate.py
 
   release:
     vars:

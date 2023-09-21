@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
@@ -97,17 +98,30 @@ MESSAGE_TAGS = {
 
 # [Databases]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+DEFAULT_URI = urlparse(env("DEFAULT_POSTGRES_URI"))
+INFODENGUE_URI = urlparse(env("INFODENGUE_POSTGRES_URI"))
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB"),
-        "USER": env("POSTGRES_USER"),
-        "PASSWORD": env("POSTGRES_PASSWORD"),
-        "HOST": env("POSTGRES_HOST"),
-        "PORT": env("POSTGRES_PORT"),
-    }
+        "NAME": DEFAULT_URI.path.replace("/", ""),
+        "USER": DEFAULT_URI.username,
+        "PASSWORD": DEFAULT_URI.password,
+        "HOST": "postgres",
+        "PORT": DEFAULT_URI.port,
+    },
+    "Municipio": {
+        "ENGINE": "django.db.backends.postgresql",
+        "OPTIONS": {"options": '-c search_path="Municipio"'},
+        "NAME": INFODENGUE_URI.path.replace("/", ""),
+        "USER": INFODENGUE_URI.username,
+        "PASSWORD": INFODENGUE_URI.password,
+        "HOST": INFODENGUE_URI.hostname,
+        "PORT": INFODENGUE_URI.port,
+    },
 }
+
+DATABASE_ROUTERS = ("datastore.routers.MunicipioRouter",)
 
 # 2 Factor Authentication (allauth)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

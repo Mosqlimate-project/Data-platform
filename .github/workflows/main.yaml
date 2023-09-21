@@ -6,14 +6,15 @@ on:
   pull_request:
     branches: [ main ]
   
-env:
-  CI: 1 # anything but falsy values
-  GITHUB_CLIENT_ID: ${secrets.PROVISORY_GITHUB_CLIENT_ID}
-  GITHUB_SECRET: ${secrets.PROVISORY_GITHUB_SECRET}
-  EMAIL_HOST_PASSWORD: TODO
-
 jobs:
   build:
+    environment: build
+    env:
+      CI: 1 # anything but falsy values
+      INFODENGUE_POSTGRES_URI: TODO # ${{ secrets.INFODENGUEDEV_POSTGRES_URI }}
+      GITHUB_CLIENT_ID: TODO # ${{ secrets.PROVISORY_GITHUB_CLIENT_ID }}
+      GITHUB_SECRET: TODO # ${{ secrets.PROVISORY_GITHUB_SECRET }}
+      EMAIL_HOST_PASSWORD: TODO
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -66,6 +67,10 @@ jobs:
     - name: Start containers
       run: |
         makim docker.start
+
+    - name: Test datastore
+      run: |
+        makim django.test --app datastore
 
     # - name: Container wait
     #   run: |

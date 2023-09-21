@@ -9,8 +9,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Ping Serivce
+    - name: Ping Service
       env:
-        DISCORD_WEBOOK: ${{ secrets.DiscordWebhook }}
+        DISCORD_WEBHOOK: ${{ secrets.DISCORDWEBHOOK }}
       run: |
-        makim prod.ping --webhook "$DISCORD_WEBOOK" 
+        export DISCORD_WEBHOOK=$DISCORD_WEBHOOK
+        python contrib/scripts/ping_mosqlimate.py

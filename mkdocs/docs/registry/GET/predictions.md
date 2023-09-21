@@ -18,7 +18,7 @@
 | end | no | str _(YYYY-mm-dd)_ | Prediction modeling date before than |
 
 #### Details
-`page` consists in the total amount of Predictions returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned Preditions. E.g.:
+`page` consists in the total amount of Predictions returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned Predictions. E.g.:
 ```py
 'pagination': {
 	'items': 10,                    # Amout of Predictions being displayed 

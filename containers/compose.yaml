@@ -57,3 +57,23 @@ services:
       timeout: 5s
       retries: 10
     command: -p ${POSTGRES_PORT}
+
+  documentation:
+    hostname: docs
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: containers/mkdocs/Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - ${MKDOCS_PORT}:8000
+    volumes:
+      - ../mkdocs:/root
+    stdin_open: true
+    tty: true
+    command:
+      - "serve"
+      - "--dev-addr=0.0.0.0:8000"
+      - "--config-file"
+      - "./mkdocs.yml"
