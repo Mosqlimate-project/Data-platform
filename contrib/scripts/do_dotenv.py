@@ -242,6 +242,8 @@ variables = {
     "EMAIL_HOST_USER": dj_email_host_user,
     "EMAIL_HOST_PASSWORD": dj_email_host_pass,
     "EMAIL_USE_TLS": dj_email_use_tls,
+    # [Mkdocs]
+    "MKDOCS_PORT": 8043,
 }
 
 if dotenv_file.exists():
