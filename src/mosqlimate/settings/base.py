@@ -110,9 +110,9 @@ DATABASES = {
         "HOST": "postgres",
         "PORT": DEFAULT_URI.port,
     },
-    "Municipio": {
+    "infodengue": {
         "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {"options": '-c search_path="Municipio"'},
+        "OPTIONS": {"options": '-c search_path="Municipio",weather'},
         "NAME": INFODENGUE_URI.path.replace("/", ""),
         "USER": INFODENGUE_URI.username,
         "PASSWORD": INFODENGUE_URI.password,
@@ -121,7 +121,10 @@ DATABASES = {
     },
 }
 
-DATABASE_ROUTERS = ("datastore.routers.MunicipioRouter",)
+DATABASE_ROUTERS = (
+    "datastore.routers.MunicipioRouter",
+    "datastore.routers.WeatherRouter",
+)
 
 # 2 Factor Authentication (allauth)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

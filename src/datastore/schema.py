@@ -1,4 +1,5 @@
 from typing import Optional
+
 from datetime import date
 from ninja import Field, Schema, FilterSchema
 
@@ -36,8 +37,34 @@ class HistoricoAlertaSchema(Schema):
     casconf: Optional[int]
 
 
+class CopernicusBrasilSchema(Schema):
+    date: date
+    geocodigo: int
+    temp_min: float
+    temp_med: float
+    temp_max: float
+    precip_min: float
+    precip_med: float
+    precip_max: float
+    precip_tot: float
+    pressao_min: float
+    pressao_med: float
+    pressao_max: float
+    umid_min: float
+    umid_med: float
+    umid_max: float
+
+
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 
     start: date = Field(q="data_iniSE__gte")
     end: date = Field(q="data_iniSE__lte")
+
+
+class CopernicusBrasilFilterSchema(FilterSchema):
+    """url/?paremeters to search for weather.copernicus_brasil table"""
+
+    start: date = Field(q="date__gte")
+    end: date = Field(q="date__lte")
+    geocode: Optional[int] = Field(q="geocodigo")
