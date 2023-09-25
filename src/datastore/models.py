@@ -1,6 +1,16 @@
 from django.db import models
 
 
+class DengueGlobal(models.Model):
+    geocodigo = models.IntegerField(primary_key=True, db_column="geocodigo")
+    nome = models.CharField(db_column="nome")
+    uf = models.CharField(db_column="uf")
+
+    class Meta:
+        managed = False
+        db_table = '"Municipio"'
+
+
 class HistoricoAlerta(models.Model):
     data_iniSE = models.DateField(null=False, db_column="data_iniSE")
     SE = models.IntegerField(null=False, db_column="SE")

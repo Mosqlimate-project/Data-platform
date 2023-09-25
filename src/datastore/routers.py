@@ -23,3 +23,14 @@ class MunicipioRouter(object):
         if model in ROUTED_MODELS:
             return '"Municipio"'
         return None
+
+
+class DengueGlobalRouter(object):
+    """
+    Router for schema "Municipio" in infodengue postgres database
+    """
+
+    def db_for_read(self, model, **hints):
+        if model in ROUTED_MODELS:
+            return '"Dengue_global"'
+        return None

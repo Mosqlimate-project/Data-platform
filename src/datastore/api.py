@@ -1,12 +1,14 @@
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from ninja import Router, Query
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 
-from registry.pagination import PagesPagination
 from main.schema import NotFoundSchema
+from main.utils import UFs
+from registry.pagination import PagesPagination
 from .models import (
+    DengueGlobal,
     HistoricoAlerta,
     HistoricoAlertaZika,
     HistoricoAlertaChik,
@@ -37,6 +39,37 @@ def get_historico_alerta(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
     **kwargs,
 ):
     disease = disease.lower()
@@ -49,6 +82,18 @@ def get_historico_alerta(
         data = HistoricoAlertaZika.objects.using("infodengue").all()
     else:
         return 404, {"message": "Unknown disease. Options: dengue, zika, chik"}
+
+    if uf:
+        uf = uf.upper()
+        if uf not in list(UFs):
+            return 404, {"message": "Unkown UF. Format: SP"}
+        uf_name = UFs[uf]
+        geocodes = (
+            DengueGlobal.objects.using("infodengue")
+            .filter(uf=uf_name)
+            .values_list("geocodigo", flat=True)
+        )
+        data = data.filter(municipio_geocodigo__in=geocodes)
 
     data = filters.filter(data)
     return data.order_by("-data_iniSE")

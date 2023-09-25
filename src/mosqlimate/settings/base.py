@@ -112,7 +112,7 @@ DATABASES = {
     },
     "infodengue": {
         "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {"options": '-c search_path="Municipio",weather'},
+        "OPTIONS": {"options": '-c search_path="Municipio","Dengue_global",weather'},
         "NAME": INFODENGUE_URI.path.replace("/", ""),
         "USER": INFODENGUE_URI.username,
         "PASSWORD": INFODENGUE_URI.password,
