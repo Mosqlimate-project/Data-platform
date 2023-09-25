@@ -60,6 +60,7 @@ class HistoricoAlertaFilterSchema(FilterSchema):
 
     start: date = Field(q="data_iniSE__gte")
     end: date = Field(q="data_iniSE__lte")
+    geocode: Optional[int] = Field(q="municipio_geocodigo")
 
 
 class CopernicusBrasilFilterSchema(FilterSchema):

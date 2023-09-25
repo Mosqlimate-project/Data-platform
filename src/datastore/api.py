@@ -1,11 +1,17 @@
-from typing import List
+from typing import List, Literal
 
 from ninja import Router, Query
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 
 from registry.pagination import PagesPagination
-from .models import HistoricoAlerta, CopernicusBrasil
+from main.schema import NotFoundSchema
+from .models import (
+    HistoricoAlerta,
+    HistoricoAlertaZika,
+    HistoricoAlertaChik,
+    CopernicusBrasil,
+)
 from .schema import (
     HistoricoAlertaSchema,
     HistoricoAlertaFilterSchema,
@@ -22,17 +28,28 @@ paginator.max_per_page = 100
 
 @router.get(
     "/historico_alerta/",
-    response=List[HistoricoAlertaSchema],
+    response={200: List[HistoricoAlertaSchema], 404: NotFoundSchema},
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
 @csrf_exempt
 def get_historico_alerta(
     request,
+    disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
     **kwargs,
 ):
-    data = HistoricoAlerta.objects.using("infodengue").all()
+    disease = disease.lower()
+
+    if disease in ["chik", "chikungunya"]:
+        data = HistoricoAlertaChik.objects.using("infodengue").all()
+    elif disease in ["deng", "dengue"]:
+        data = HistoricoAlerta.objects.using("infodengue").all()
+    elif disease == "zika":
+        data = HistoricoAlertaZika.objects.using("infodengue").all()
+    else:
+        return 404, {"message": "Unknown disease. Options: dengue, zika, chik"}
+
     data = filters.filter(data)
     return data.order_by("-data_iniSE")
 
