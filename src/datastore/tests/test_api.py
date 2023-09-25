@@ -7,13 +7,13 @@ class DatastoreAPITest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_historico_alerta_with_requests(self):
+    def test_historico_alerta_dengue_with_requests(self):
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=180)
 
         url = "https://api.mosqlimate.org/api/datastore/historico_alerta/?"
         pagination = "page=%s&per_page=100&"
-        filters = f"start={start_date}&end={end_date}"
+        filters = f"disease=dengue&start={start_date}&end={end_date}"
 
         r = requests.get(url + pagination % (1) + filters, timeout=60)
         items = r.json()["items"]

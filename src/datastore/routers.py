@@ -27,7 +27,7 @@ class MunicipioRouter(object):
 
 class DengueGlobalRouter(object):
     """
-    Router for schema "Municipio" in infodengue postgres database
+    Router for schema "Dengue_global" in infodengue postgres database
     """
 
     def db_for_read(self, model, **hints):
