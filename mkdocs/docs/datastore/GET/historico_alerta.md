@@ -6,8 +6,11 @@
 |--|--|--|--|
 | *page | yes | int | Page to be displayed |
 | *per_page | yes | int | How many items will be displayed per page (up to 100) |
+| disease | yes | str | Dengue, Zika or Chik[ungunya] |
 | start | yes | str _(YYYY-mm-dd)_ | Start date (epidemiological week) |
 | end | yes | str _(YYYY-mm-dd)_ | End date (epidemiological week) |
+| uf | no | str _(UF)_ | Two letters brazilian's state abbreviation. E.g: SP |
+| geocode | no | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
 
 ### Output (items)
 | Parameter name | Type | Description |
@@ -61,8 +64,9 @@ import requests
 
 historico_alerta_api = "https://api.mosqlimate.org/api/datastore/historico_alerta/"
 
-pagination = "?page=%s&per_page=%s&" % (1, 100)
-filters = "start=%s&end=%s" % ("2022-12-30", "2023-12-30")
+page = 1
+pagination = f"?page={page}&per_page=100&"
+filters = "disease=%s&start=%s&end=%s" % ("dengue", "2022-12-30", "2023-12-30")
 ```
 
 #### API Call

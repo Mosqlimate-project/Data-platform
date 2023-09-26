@@ -4,6 +4,12 @@ from datetime import date
 from ninja import Field, Schema, FilterSchema
 
 
+class DengueGlobalSchema(Schema):
+    geocodigo: int
+    nome: str
+    uf: str
+
+
 class HistoricoAlertaSchema(Schema):
     data_iniSE: date
     SE: Optional[int]
@@ -60,6 +66,7 @@ class HistoricoAlertaFilterSchema(FilterSchema):
 
     start: date = Field(q="data_iniSE__gte")
     end: date = Field(q="data_iniSE__lte")
+    geocode: Optional[int] = Field(q="municipio_geocodigo")
 
 
 class CopernicusBrasilFilterSchema(FilterSchema):
