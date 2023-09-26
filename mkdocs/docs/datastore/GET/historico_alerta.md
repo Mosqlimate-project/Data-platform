@@ -58,7 +58,7 @@
 },
 ```
 
-## Python usage
+## Usage examples
 
 === "Python"
     ```py
@@ -95,6 +95,14 @@
     items <- json_content$items
     pagination_data <- json_content$pagination
     ```
+
+=== "curl"
+    ```sh
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/datastore/historico_alerta/?disease=dengue&start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
+      -H 'accept: application/json'
+    ```
+
 
 *The response's pagination contains information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
