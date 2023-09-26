@@ -87,3 +87,32 @@ data by changing the `page` parameter on the URL.
 ```py
 resp.json()["pagination"]
 ```
+
+## R usage
+```R
+library(httr)
+library(jsonlite)
+
+historico_alerta_api <- "https://api.mosqlimate.org/api/datastore/historico_alerta/"
+page <- "1"
+pagination <- paste0("?page=", page, "&per_page=100&")
+filters <- paste0("disease=dengue&start=2022-12-30&end=2023-12-30")
+```
+
+#### API Call & JSON parsing
+```R
+url <- paste0(historico_alerta_api, pagination, filters)
+resp <- GET(url)
+content <- content(resp, "text")
+json_content <- fromJSON(content)
+```
+
+#### Items
+```R
+items <- json_content$items
+```
+
+#### Pagination
+```
+pagination_data <- json_content$pagination
+```
