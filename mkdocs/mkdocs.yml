@@ -26,6 +26,9 @@ theme:
     primary: "white"
     accent: "green"
   features:
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
     - tabs
     - navigation.tabs
     - navigation.tabs.sticky
@@ -44,6 +47,9 @@ theme:
 
 # Extensions
 markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - fenced_code
   - admonition
   - codehilite
@@ -76,8 +82,6 @@ plugins:
 # Customization
 extra_javascript:
   - "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-MML-AM_CHTML"
-extra_css:
-  - "assets/css/custom.css"
 extra:
   manifest: "manifest.json"
   social:
