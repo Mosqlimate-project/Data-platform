@@ -24,50 +24,112 @@
 },
 ```  
 
-## Python Usage
-```py
-import requests
-```
+## Usage examples
 
-```py
-models_api = "https://api.mosqlimate.org/api/registry/models/"
+=== "Python"
+    ```py
+    import requests
 
-page = 1
-per_page = 5
-pagination = "?page={page}&per_page={per_page}&"
-```
+    models_api = "https://api.mosqlimate.org/api/registry/models/"
 
-### Listing all models
-```py
-requests.get(models_api + pagination).json()
-```
+    page = 1
+    per_page = 5
+    pagination = "?page={page}&per_page={per_page}&"
 
-### Filtering by _implementation_language_
-```py
-requests.get(models_api + pagination + "implementation_language=python").json()
-```
+    # List all Models
+    requests.get(models_api + pagination).json()
 
-### Incorrect page warning message
-```py
-requests.get(models_api + pagination + "id=1").json()['message']
-```
+    # get specific Model
+    requests.get(models_api + "1").json() # Model id
 
-### Multiple parameters
-```py
-requests.get(models_api + pagination + "implementation_language=python" + "&" + "name=test").json()
-```
+    # Filter by implementation language
+    requests.get(models_api + pagination + "implementation_language=python").json()
 
-### Advanced usage
-```py
-parameters = {
-	"page": 1,
-	"per_page": 2,
-}
+    # combining filters
+    requests.get(models_api + pagination + "implementation_language=python" + "&" + "name=test").json()
 
-def get_models(parameters: dict):
-	models_api = "https://api.mosqlimate.org/api/registry/models/?"
-	parameters_url = "&".join([f"{p}={v}" for p,v in parameters.items()])
-	return requests.get(models_api + parameters_url).json()
-		
-get_predictions(parameters)
-```
+
+    # Advanced Usage:
+    parameters = {
+        "page": 1,
+        "per_page": 2,
+        # Add parameters here
+    }
+
+    def get_models(parameters: dict):
+        models_api = "https://api.mosqlimate.org/api/registry/models/?"
+        parameters_url = "&".join([f"{p}={v}" for p,v in parameters.items()])
+        return requests.get(models_api + parameters_url).json()
+            
+    get_predictions(parameters)
+    ```
+
+=== "R"
+    ```R
+    library(httr)
+
+    models_api <- "https://api.mosqlimate.org/api/registry/models/"
+
+    page <- 1
+    per_page <- 5
+    pagination <- paste0("?page=", page, "&per_page=", per_page, "&")
+
+    # List all Models
+    response_all <- GET(paste0(models_api, pagination))
+    all_models <- content(response_all, "text") |> fromJSON()
+
+    # Get specific Model
+    response_specific <- GET(paste0(models_api, "1")) # Model id
+    specific_model <- content(response_specific, "text") |> fromJSON()
+
+    # Filter by implementation language
+    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"))
+    models_python <- content(response_python, "text") |> fromJSON()
+
+    # Combining filters
+    filters_combined <- paste0("implementation_language=python", "&", "name=test")
+    response_combined <- GET(paste0(models_api, pagination, filters_combined))
+    models_multi_filters <- content(response_combined, "text") |> fromJSON()
+
+
+    # Advanced Usage
+    parameters <- list(
+      page = 1,
+      per_page = 2
+      # Add parameters here
+    )
+
+    get_models <- function(parameters) {
+      models_api <- "https://api.mosqlimate.org/api/registry/models/?"
+      parameters_url <- paste0(names(parameters), "=", unlist(parameters), collapse = "&")
+      response <- GET(paste0(models_api, parameters_url))
+      models <- content(response, "text") |> fromJSON()
+      return(models)
+    }
+
+    get_models(parameters)
+    ```
+
+=== "curl"
+    ```sh
+    # List all models
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/registry/models/?page=1&per_page=5' \
+      -H 'accept: application/json'
+
+    # Get specific Model
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/registry/models/1' \ # Model id
+      -H 'accept: application/json'
+
+    # Filter by implementation language
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/registry/models/?implementation_language=python&page=1&per_page=5' \
+      -H 'accept: application/json'
+
+    # Combining filters
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/registry/models/?id=1&name=test&implementation_language=python&page=1&per_page=5' \
+      -H 'accept: application/json'
+
+    ```
