@@ -106,4 +106,4 @@
 
 *The response's pagination contains information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
-data by changing the `page` parameter on the URL.
+data by changing the `page` parameter on the URL. [See details](#details)
