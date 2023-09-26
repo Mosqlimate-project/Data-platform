@@ -107,5 +107,4 @@ nav:
     - "GET":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
-  #   - "POST":
-  #
+  - "Back to API": "https://api.mosqlimate.org/"
