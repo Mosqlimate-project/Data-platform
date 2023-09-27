@@ -8,7 +8,7 @@
 | description | str or None | Model description |
 | repository | str | Github repository URL |
 | implementation_language | str | Implementation language |
-| type | str | Model type |
+| type | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 
 ## X-UID-Key
 POST requests require [User API Token](uid-key.md) to be called.

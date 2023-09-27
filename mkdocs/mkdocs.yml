@@ -74,6 +74,7 @@ markdown_extensions:
       separator: "_"
 
 plugins:
+  - mkdocs-jupyter
   - search:
       separator: '[\s\-\.]+'
       lang:
@@ -107,4 +108,6 @@ nav:
     - "GET":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
+  - "Utils":
+    - "Async requests": "utils/AsyncRequests.ipynb"
   - "Back to API": "https://api.mosqlimate.org/"

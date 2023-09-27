@@ -77,7 +77,7 @@ def get_historico_alerta(
 
 @router.get(
     "/copernicus_brasil/",
-    response=List[CopernicusBrasilSchema],
+    response={200: List[CopernicusBrasilSchema], 404: NotFoundSchema},
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -85,8 +85,28 @@ def get_historico_alerta(
 def get_copernicus_brasil(
     request,
     filters: CopernicusBrasilFilterSchema = Query(...),
+    # fmt: off
+    uf: Optional[Literal[
+        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
+        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
+        "SE", "TO", "DF"
+    ]] = None,
+    # fmt: on
     **kwargs,
 ):
     data = CopernicusBrasil.objects.using("infodengue").all()
+
+    if uf:
+        uf = uf.upper()
+        if uf not in list(UFs):
+            return 404, {"message": "Unkown UF. Format: SP"}
+        uf_name = UFs[uf]
+        geocodes = (
+            DengueGlobal.objects.using("infodengue")
+            .filter(uf=uf_name)
+            .values_list("geocodigo", flat=True)
+        )
+        data = data.filter(geocodigo__in=geocodes)
+
     data = filters.filter(data)
     return data
