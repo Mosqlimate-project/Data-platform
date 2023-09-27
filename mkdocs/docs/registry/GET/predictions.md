@@ -11,7 +11,7 @@
 | author_institution | no | str _(icontains)_ | Author institution |
 | repository | no | str (icontains) | Github repository |
 | implementation_language | no | str _(icontains)_ | Implementation language |
-| type | no | str _(icontains)_ | Model type |
+| type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 | commit | no | str | Prediction git commit |
 | predict_date | no | str _(icontains)_ | Prediction modeling date |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |
@@ -28,6 +28,9 @@
 	'per_page': 50		       # *request parameter
 },
 ```  
+
+> Note: for fetching a big amount of pages, please consider using [Async](../../utils/AsyncRequests.ipynb) code
+
 
 ## Usage examples
 === "Python"

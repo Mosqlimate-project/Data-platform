@@ -10,7 +10,7 @@
 | author_institution | no | str _(icontains)_ | Author institution |
 | repository | no | str (icontains) | Github repository |
 | implementation_language | no | str _(icontains)_ | Implementation language |
-| type | no | str _(icontains)_ | Model type |
+| type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 
 #### Details
 `page` consists in the total amount of Models returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned Models. E.g.:
@@ -23,6 +23,8 @@
 	'per_page': 50		    	# *request parameter
 },
 ```  
+
+> Note: for fetching a big amount of pages, please consider using [Async](../../utils/AsyncRequests.ipynb) code
 
 ## Usage examples
 

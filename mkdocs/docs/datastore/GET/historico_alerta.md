@@ -58,6 +58,9 @@
 },
 ```
 
+> Note: for fetching a big amount of pages, please consider using [Async](../../utils/AsyncRequests.ipynb) code
+
+
 ## Usage examples
 
 === "Python"
