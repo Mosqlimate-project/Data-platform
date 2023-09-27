@@ -24,7 +24,7 @@ service-groups:
       - containers/compose-dev.yaml
     env-file: .env
     services:
-      default: django,postgres
+      default: django,postgres,documentation
       available:
         - name: django
         - name: postgres

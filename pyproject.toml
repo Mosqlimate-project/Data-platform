@@ -7,16 +7,15 @@ license = "GNU"
 readme = "README.md"
 # packages = [{include = "src"}]
 
+
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0.0"
 django-ninja = "^0.22.2"
 django-extensions = "^3.2.1"
 dr-scaffold = "^2.1.2"
-jinja2 = "<3.0.3"
+jinja2 = ">=3.0.3"
 psycopg2-binary = "^2.9.6"
 django = "^4.2.2"
-containers-sugar = ">=1.8"
-docker-compose = "^1.29.2"
 python-environ = "^0.4.54"
 django-allauth = "^0.54.0"
 fontawesomefree = "^6.4.0"
@@ -25,6 +24,7 @@ uvicorn = "^0.23.2"
 gunicorn = "^21.2.0"
 whitenoise = "^6.5.0"
 pydantic = "<2.0"
+python-dotenv = "<0.22.0"
 
 
 [tool.poetry.group.pre-commit.dependencies]
@@ -34,12 +34,16 @@ ruff = "^0.0.272"
 
 
 [tool.poetry.group.dev.dependencies]
+compose-go = "^2.22.0"
+containers-sugar = ">=1.8"
 makim = "^1.8.1"
 pygments = "^2.15.1"
 
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.2"
+notebook = "^7.0.4"
+
 
 [build-system]
 requires = ["poetry-core"]
