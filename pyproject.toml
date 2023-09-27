@@ -25,6 +25,7 @@ gunicorn = "^21.2.0"
 whitenoise = "^6.5.0"
 pydantic = "<2.0"
 python-dotenv = "<0.22.0"
+msgspec = "^0.18.2"
 
 
 [tool.poetry.group.pre-commit.dependencies]
