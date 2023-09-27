@@ -8,6 +8,7 @@
 | start | yes | str _(YYYY-mm-dd)_ | Start date |
 | end | yes | str _(YYYY-mm-dd)_ | End date |
 | geocode | no | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
+| uf | no | str _(UF)_ | Two letters brazilian's state abbreviation. E.g: SP |
 
 ### Output (items)
 | Parameter name | Type | Description |
