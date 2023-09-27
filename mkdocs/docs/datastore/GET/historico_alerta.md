@@ -58,32 +58,52 @@
 },
 ```
 
-## Python usage
-```py
-import requests
+## Usage examples
 
-historico_alerta_api = "https://api.mosqlimate.org/api/datastore/historico_alerta/"
+=== "Python"
+    ```py
+    import requests
 
-page = 1
-pagination = f"?page={page}&per_page=100&"
-filters = "disease=%s&start=%s&end=%s" % ("dengue", "2022-12-30", "2023-12-30")
-```
+    historico_alerta_api = "https://api.mosqlimate.org/api/datastore/historico_alerta/"
 
-#### API Call
-```py
-resp = requests.get(historico_alerta_api + pagination + filters)
-```
+    page = 1
+    pagination = f"?page={page}&per_page=100&"
+    filters = "disease=%s&start=%s&end=%s" % ("dengue", "2022-12-30", "2023-12-30")
 
-#### Items
-Items are the dictionaries containing the response's data in a list of dicts:
-```py
-resp.json()["items"]
-```
+    resp = requests.get(historico_alerta_api + pagination + filters) # GET request
 
-#### Pagination
-The response's pagination contain information about the amount of items returned
+    items = resp.json()["items"] # JSON data in dict format
+    resp.json()["pagination"] # Pagination*
+    ```
+
+=== "R"
+    ```R
+    library(httr)
+    library(jsonlite)
+
+    historico_alerta_api <- "https://api.mosqlimate.org/api/datastore/historico_alerta/"
+
+    page <- "1"
+    pagination <- paste0("?page=", page, "&per_page=100&")
+    filters <- paste0("disease=dengue&start=2022-12-30&end=2023-12-30")
+
+    url <- paste0(historico_alerta_api, pagination, filters)
+    resp <- GET(url)
+    content <- content(resp, "text")
+    json_content <- fromJSON(content)
+
+    items <- json_content$items
+    pagination_data <- json_content$pagination
+    ```
+
+=== "curl"
+    ```sh
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/datastore/historico_alerta/?disease=dengue&start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
+      -H 'accept: application/json'
+    ```
+
+
+*The response's pagination contains information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
-data by changing the `page` parameter on the URL.
-```py
-resp.json()["pagination"]
-```
+data by changing the `page` parameter on the URL. [See details](#details)

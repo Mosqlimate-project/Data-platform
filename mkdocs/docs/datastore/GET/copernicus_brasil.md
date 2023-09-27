@@ -40,41 +40,66 @@
 },
 ```
 
-## Python usage
-```py
-import requests
+## Usage examples
 
-copernicus_brasil_api = "https://api.mosqlimate.org/api/datastore/copernicus_brasil/"
+=== "Python"
+    ```py
+    import requests
 
-page = 1 # total amount of pages is returned in the request
-per_page = 100
-pagination = f"?page={page}&per_page={per_page}&"
-filters = "start=%s&end=%s" % ("2022-12-30", "2023-12-30")
-```
+    copernicus_brasil_api = "https://api.mosqlimate.org/api/datastore/copernicus_brasil/"
 
-#### API Call
-```py
-resp = requests.get(copernicus_brasil_api + pagination + filters)
-# Or you can add a geocode to the filters
-geocode = 3304557
-resp = requests.get(
-    copernicus_brasil_api + 
-    pagination + 
-    filters +
-    f"&geocode={geocode}"
-)
-```
+    page = 1 # total amount of pages is returned in the request
+    per_page = 100
+    pagination = f"?page={page}&per_page={per_page}&"
+    filters = "start=%s&end=%s" % ("2022-12-30", "2023-12-30")
 
-#### Items
-Items are the dictionaries containing the response's data (a list of dicts):
-```py
-resp.json()["items"]
-```
+    resp = requests.get(copernicus_brasil_api + pagination + filters)
 
-#### Pagination
-The response's pagination contain information about the amount of items returned
+    # Or you can add a geocode to the filters
+    geocode = 3304557
+    resp = requests.get(
+        copernicus_brasil_api + 
+        pagination + 
+        filters +
+        f"&geocode={geocode}"
+    )
+
+    items = resp.json()["items"] # JSON data in dict format
+    resp.json()["pagination"] # Pagination*
+    ```
+
+=== "R"
+    ```R
+    library(httr)
+    library(jsonlite)
+
+    copernicus_brasil_api <- "https://api.mosqlimate.org/api/datastore/copernicus_brasil/"
+    page <- "1"
+    pagination <- paste0("?page=", page, "&per_page=100&")
+    filters <- paste0("start=2022-12-30&end=2023-12-30")
+
+    url <- paste0(copernicus_brasil_api, pagination, filters)
+    resp <- GET(url)
+    content <- content(resp, "text")
+    json_content <- fromJSON(content)
+
+    items <- json_content$items
+    pagination_data <- json_content$pagination
+    ```
+
+=== "curl"
+    ```sh
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/datastore/copernicus_brasil/?start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
+      -H 'accept: application/json'
+
+    # Or you can add a geocode to the filters
+    curl -X 'GET' \
+      'https://api.mosqlimate.org/api/datastore/copernicus_brasil/?start=2022-12-30&end=2023-12-30&geocode=3304557&page=1&per_page=100' \
+      -H 'accept: application/json'
+
+    ```
+
+*The response's pagination contain information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
-data by changing the `page` parameter on the URL.
-```py
-resp.json()["pagination"]
-```
+data by changing the `page` parameter on the URL. [See details](#details)
