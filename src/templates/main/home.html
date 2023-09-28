@@ -1,5 +1,11 @@
 {% extends 'main/base.html' %}
+{% load vis_home %}
+
 {% block title %}Home{% endblock %}
+
 {% block content %}
-<h1>Home</h1>
+<h3>Home</h3>
+
+{% vis_echarts %}
+
 {% endblock %}
