@@ -180,6 +180,16 @@ def create_model(request, payload: ModelIn):
         return 403, {"message": "Model repository must be on Github"}
     if not repo_url.path:
         return 403, {"message": "Invalid repository"}
+
+    description = payload.description
+    if len(description) > 255:
+        return 403, {
+            "message": (
+                "Description too big, maximum allowed: 255. "
+                f"Remove {len(description) - 255} characters."
+            )
+        }
+
     uid, _ = request.headers.get("X-UID-Key").split(":")
     author = Author.objects.get(user__username=uid)
 
@@ -198,10 +208,7 @@ def create_model(request, payload: ModelIn):
                     f"did you mean '{similar_lang}'?"
                 )
             }
-        else:
-            return 404, {
-                "message": f"Unknown language {payload.implementation_language}"
-            }
+        return 404, {"message": f"Unknown language {payload.implementation_language}"}
 
     data = payload.dict()
     data["implementation_language"] = lang
@@ -288,6 +295,15 @@ def create_prediction(request, payload: PredictionIn):
         model = Model.objects.get(pk=payload.model)
     except Model.DoesNotExist:
         return 404, {"message": f"Model '{payload.model}' not found"}
+
+    description = payload.description
+    if len(description) > 255:
+        return 403, {
+            "message": (
+                "Description too big, maximum allowed: 255. "
+                f"Remove {len(description) - 255} characters."
+            )
+        }
 
     payload.model = model
     # TODO: Add commit verification here #19
