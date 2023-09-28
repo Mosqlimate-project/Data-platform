@@ -38,7 +38,7 @@
         <td>{{model.name}}</td>
         <td>{{model.type}}</td>
         <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
-        <td><center>{{model.implementation_language}}</center></td>
+        <td><center>{{model.implementation_language.language}}</center></td>
         <td><center>{{model.predictions_count}}</center></td> 
         <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
       </tr>
