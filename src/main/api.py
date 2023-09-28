@@ -21,7 +21,7 @@ api = NinjaAPI(
 
 api.add_router("/registry/", router=registry_router)
 api.add_router("/user/", router=users_router)
-api.add_router("/datastore", router=datastore_router)
+api.add_router("/datastore/", router=datastore_router)
 
 
 @api.exception_handler(InvalidUIDKey)
