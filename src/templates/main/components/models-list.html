@@ -39,7 +39,7 @@
       {% if image_path|static_file_exists %}
       <img class="icon" src="{% static image_path %}" />
       {% else %}
-      <p class="mb-1 lang">{{ model.implementation_language }}</p>
+      <p class="mb-1 lang">{{ model.implementation_language.language }}</p>
       {% endif %}
       {% endwith %}
     </div>
@@ -59,6 +59,9 @@
     <div class="col-10" style="padding-left: 5px;">
       <p class="mb-1 description">{{ model.description }}</p>
     </div>
+    {% if user == model.author.user %}
+     <a href="#"><i class="fa-solid fa-pencil" data-bs-toggle="modal" data-bs-target="#update-model" style="color: #9a9996;"></i></a>
+    {% endif %}
   </div>
   {% endfor %}
 </div>

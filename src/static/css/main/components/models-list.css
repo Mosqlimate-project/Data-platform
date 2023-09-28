@@ -63,3 +63,11 @@
 .list-group-item:hover .badge.type{
   opacity: 1;
   transform: translateY(0%);
+}
+
+.fa-pencil {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 13px;
+}
