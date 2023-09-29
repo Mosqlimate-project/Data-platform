@@ -27,7 +27,6 @@ class ModelsView(View):
     template_name = "main/models.html"
 
     def get(self, request):
-        print("\nGET\n")
         get = request.GET.get
 
         def store_session(**params) -> None:
@@ -113,8 +112,6 @@ class ModelsView(View):
         return render(request, self.template_name, context)
 
     def post(self, request):
-        print("\nPOST\n")
-
         if "edit_model" in request.POST:
             form = UpdateModelForm(request.POST)
             if form.is_valid():
