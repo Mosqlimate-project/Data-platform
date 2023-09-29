@@ -6,127 +6,152 @@
     padding: 10px;
     /* Optional: Add padding for better spacing */
   }
+
+  /* Add CSS for the floating window */
+  .floating-window {
+    position: fixed;
+    top: 40%;
+    right: -50%; /* Start off-screen to the right */
+    width: 50%; /* Adjust the width as needed */
+    /* height: 50%; */
+    background-color: rgba(255, 255, 255, 0.9); /* Opacity */
+    transition: right 1s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 999; /* Ensure it's above other content */
+  }
+
+  /* Add a class to open the floating window */
+  .floating-window.open {
+    right: 0;
+  }
 </style>
+
 <!-- Start Component -->
 {% block vis_echarts %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <div id="main" style="width: 100%; height: 300px;"></div>
-      <script type="text/javascript">
-        // Initialize ECharts
-        var myChart = echarts.init(document.getElementById('main'));
+<div class="floating-window" id="floatingWindow">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div id="main" style="width: 100%; height: 300px;"></div>
+        <script type="text/javascript">
+          // Initialize ECharts
+          var myChart = echarts.init(document.getElementById('main'));
 
-        if (myChart) {
-          // Load the BR map data
-          $.get("https://info.dengue.mat.br/datasets/cdn/BR.json", function (brJson) {
-            // Log the loaded geographic data
-            myChart.hideLoading();
-            echarts.registerMap('BR', brJson, {
-              'Acre': {
-                left: -76,
-                top: 26,
-                width: 2
-              }
-            });
-            // Fake data
-            var br_data = [
-                        // { name: 'Acre', value: 5000 },
-                        // { name: 'Alagoas', value: 7500 },
-                        // { name: 'Amapá', value: 3000 },
-                        // { name: 'Amazonas', value: 9000 },
-                        // { name: 'Bahia', value: 12000 },
-                        // { name: 'Ceará', value: 150000 },
-                        // { name: 'Distrito Federal', value: 7000 },
-                        // { name: 'Espírito Santo', value: 8500 },
-                        // { name: 'Goiás', value: 10500 },
-                        // { name: 'Maranhão', value: 4500 },
-                        // { name: 'Mato Grosso', value: 6200 },
-                        // { name: 'Mato Grosso do Sul', value: 4700 },
-                        // { name: 'Minas Gerais', value: 20000 },
-                        { name: 'Pará', value: 8000 },
-                        { name: 'Paraíba', value: 6000 },
-                        { name: 'Paraná', value: 14500 },
-                        // { name: 'Pernambuco', value: 11000 },
-                        // { name: 'Piauí', value: 4000 },
-                        { name: 'Rio de Janeiro', value: 18000 },
-                        // { name: 'Rio Grande do Norte', value: 5500 },
-                        // { name: 'Rio Grande do Sul', value: 14000 },
-                        // { name: 'Rondônia', value: 3500 },
-                        // { name: 'Roraima', value: 2500 },
-                        { name: 'Santa Catarina', value: 12000 },
-                        // { name: 'São Paulo', value: 25000 },
-                        // { name: 'Sergipe', value: 3500 },
-                        // { name: 'Tocantins', value: 3000 }
-            ];
+          if (myChart) {
+            // Load the BR map data
+            $.get("{% static 'data/geo/BR.json' %}", function (brJson) {
+              // Log the loaded geographic data
+              myChart.hideLoading();
+              echarts.registerMap('BR', brJson);
 
-            br_data.sort(function (a, b) {
-              return a.value - b.value;
-            });
+              var br_data = [
+                // { name: 'Acre', value: 5000 },
+                // { name: 'Alagoas', value: 7500 },
+                // { name: 'Amapá', value: 3000 },
+                // { name: 'Amazonas', value: 9000 },
+                // { name: 'Bahia', value: 12000 },
+                // { name: 'Ceará', value: 150000 },
+                // { name: 'Distrito Federal', value: 7000 },
+                // { name: 'Espírito Santo', value: 8500 },
+                // { name: 'Goiás', value: 10500 },
+                // { name: 'Maranhão', value: 4500 },
+                // { name: 'Mato Grosso', value: 6200 },
+                // { name: 'Mato Grosso do Sul', value: 4700 },
+                // { name: 'Minas Gerais', value: 20000 },
+                // { name: 'Pará', value: 8000 },
+                // { name: 'Paraíba', value: 6000 },
+                // { name: 'Paraná', value: 14500 },
+                // { name: 'Pernambuco', value: 11000 },
+                // { name: 'Piauí', value: 4000 },
+                // { name: 'Rio de Janeiro', value: 18000 },
+                // { name: 'Rio Grande do Norte', value: 5500 },
+                // { name: 'Rio Grande do Sul', value: 14000 },
+                // { name: 'Rondônia', value: 3500 },
+                { name: 'Roraima', value: 2500 },
+                { name: 'Santa Catarina', value: 12000 },
+                { name: 'São Paulo', value: 25000 },
+                { name: 'Sergipe', value: 3500 },
+                { name: 'Tocantins', value: 3000 }
+              ];
 
-            const mapOption = {
-              visualMap: {
-                left: 'right',
-                min: 5000,
-                max: 636000,
-                inRange: {
-                  // prettier-ignore
-                  color: [
-                    '#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8',
-                    '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'
-                  ]
+              br_data.sort(function (a, b) {
+                return a.value - b.value;
+              });
+
+              const mapOption = {
+                visualMap: {
+                  left: 'right',
+                  min: 5000,
+                  max: 636000,
+                  inRange: {
+                    // prettier-ignore
+                    color: [
+                      '#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8',
+                      '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'
+                    ]
+                  },
+                  text: ['High', 'Low'],
+                  calculable: true
                 },
-                text: ['High', 'Low'],
-                calculable: true
-              },
-              series: [
-                {
+                series: [
+                  {
+                    id: 'population',
+                    type: 'map',
+                    roam: true,
+                    mapType: 'BR',
+                    animationDurationUpdate: 1000,
+                    universalTransition: true,
+                    data: br_data
+                  }
+                ],
+                // geo: {
+                //   map: 'BR',
+                //   zoom: 1.2 // Adjust the zoom level as needed
+                // }
+              };
+
+              const barOption = {
+                xAxis: {
+                  type: 'value'
+                },
+                yAxis: {
+                  type: 'category',
+                  axisLabel: {
+                    rotate: 55
+                  },
+                  data: br_data.map(function (item) {
+                    return item.name;
+                  })
+                },
+                animationDurationUpdate: 1000,
+                series: {
+                  type: 'bar',
                   id: 'population',
-                  type: 'map',
-                  roam: true,
-                  map: 'BR',
-                  animationDurationUpdate: 2000,
-                  universalTransition: true,
-                  data: br_data
+                  data: br_data.map(function (item) {
+                    return item.value;
+                  }),
+                  universalTransition: true
                 }
-              ]
-            };
+              };
 
-            const barOption = {
-              xAxis: {
-                type: 'value'
-              },
-              yAxis: {
-                type: 'category',
-                axisLabel: {
-                  rotate: 30
-                },
-                data: br_data.map(function (item) {
-                  return item.name;
-                })
-              },
-              animationDurationUpdate: 2000,
-              series: {
-                type: 'bar',
-                id: 'population',
-                data: br_data.map(function (item) {
-                  return item.value;
-                }),
-                universalTransition: true
-              }
-            };
+              let currentOption = mapOption;
 
-            let currentOption = mapOption;
+              myChart.setOption(mapOption);
 
-            myChart.setOption(mapOption);
+              setInterval(function () {
+                currentOption = currentOption === mapOption ? barOption : mapOption;
+                myChart.setOption(currentOption, true);
+              }, 3000);
+            });
+          }
 
-            setInterval(function () {
-              currentOption = currentOption === mapOption ? barOption : mapOption;
-              myChart.setOption(currentOption, true);
-            }, 5000);
-          });
-        }
-      </script>
+          // JavaScript to control the floating window behavior
+          const floatingWindow = document.getElementById('floatingWindow');
+          setTimeout(function () {
+            floatingWindow.classList.add('open');
+          }, 1000); // Open the window after 1 second (adjust as needed)
+        </script>
+      </div>
     </div>
   </div>
 </div>
