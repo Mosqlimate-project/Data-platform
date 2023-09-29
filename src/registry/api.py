@@ -186,7 +186,7 @@ def create_model(request, payload: ModelIn):
         return 403, {
             "message": (
                 "Description too big, maximum allowed: 500. "
-                f"Remove {len(description) - 500} characters."
+                f"Please remove {len(description) - 500} characters."
             )
         }
 
@@ -301,7 +301,7 @@ def create_prediction(request, payload: PredictionIn):
         return 403, {
             "message": (
                 "Description too big, maximum allowed: 500. "
-                f"Remove {len(description) - 500} characters."
+                f"Please remove {len(description) - 500} characters."
             )
         }
 

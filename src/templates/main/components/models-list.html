@@ -105,7 +105,11 @@
             </div>
             <div class="col">
               <label for="model_language">Implementation language:</label>
-              <input type="text" id="edit-model-lang" name="model_language" value="{{ model.implementation_language.language }}" class="form-control" maxlength="100" required>
+                <select id="edit-model-lang" name="model_language" class="form-control" required>
+                  {% for language in implementation_languages %}
+                    <option value="{{ language }}">{{ language }}</option>
+                  {% endfor %}
+                </select>
             </div>
           </div>
         </div>

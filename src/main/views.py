@@ -101,7 +101,7 @@ class ModelsView(View):
         ).filter(ref_count__gt=0)
 
         langs = languages_refs.values_list("language", flat=True)
-        context["implementation_languages"] = list(langs)
+        context["implementation_languages_with_refs"] = list(langs)
 
         if response["items"]:
             context["models"] = response["items"]
