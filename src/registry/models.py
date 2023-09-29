@@ -42,7 +42,7 @@ class Model(models.Model):
         Author, on_delete=models.CASCADE, null=False, blank=False
     )
     name = models.CharField(max_length=100, null=False, blank=False)
-    description = models.TextField(max_length=255, null=True, blank=True)
+    description = models.TextField(max_length=500, null=True, blank=True)
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage, on_delete=models.PROTECT, null=False, blank=False
@@ -61,7 +61,7 @@ class Model(models.Model):
 
 class Prediction(models.Model):
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
-    description = models.TextField(max_length=255, null=True, blank=True)
+    description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)

@@ -18,7 +18,7 @@ class UpdateModelForm(forms.Form):
     # model_author = forms.ModelChoiceField(queryset=Author.objects.all())
     model_id = forms.IntegerField()
     model_name = forms.CharField(max_length=100)
-    model_description = forms.CharField(max_length=255)
+    model_description = forms.CharField(max_length=500)
     model_repository = forms.CharField(max_length=200)
     model_language = forms.CharField(max_length=100)
     model_type = forms.CharField(max_length=100)
