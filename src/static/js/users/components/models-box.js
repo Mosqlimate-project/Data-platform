@@ -42,7 +42,7 @@ function fetchModelData() {
       
       modelNameElement.textContent = data.name;
       modelDescriptionElement.textContent = data.description;
-      modelLanguageElement.textContent = data.implementation_language;
+      modelLanguageElement.textContent = data.implementation_language.language;
       modelTypeElement.textContent = data.type;
 
       const repositoryLink = document.createElement('a');
@@ -126,7 +126,7 @@ function updateModelModal(modelData) {
   updateModelName.value = modelData.name;
   updateModelDesc.value = modelData.description;
   updateModelRepo.value = modelData.repository;
-  updateModelLang.value = modelData.implementation_language;
+  updateModelLang.value = modelData.implementation_language.language;
   updateModelType.value = modelData.type;
 }
 

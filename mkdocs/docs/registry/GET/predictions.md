@@ -13,7 +13,7 @@
 | implementation_language | no | str _(icontains)_ | Implementation language |
 | type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 | commit | no | str | Prediction git commit |
-| predict_date | no | str _(icontains)_ | Prediction modeling date |
+| predict_date | no | str _(YYYY-mm-dd)_ | Prediction modeling date |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |
 | end | no | str _(YYYY-mm-dd)_ | Prediction modeling date before than |
 

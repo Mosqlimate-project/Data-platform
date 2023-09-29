@@ -93,9 +93,8 @@ extra:
 nav:
   - "Home": 
     - "Getting Started": "index.md"
-    - "Registry": "registry/index.md"
-    - "Datastore": "datastore/index.md"
   - "Registry":
+    - "Registry API": "registry/index.md"
     - "GET":
       - "Authors": "registry/GET/authors.md"
       - "Models": "registry/GET/models.md"
@@ -105,6 +104,7 @@ nav:
       - "Models": "registry/POST/models.md"
       - "Predictions": "registry/POST/predictions.md"
   - "Datastore":
+    - "Datastore API": "datastore/index.md"
     - "GET":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"

@@ -102,65 +102,65 @@
         <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
         <button type="submit" class="btn btn-primary btn-predict">Search</button>
       </div>
-
-      {% if predictions %}
-        {% predictions_list predictions %}
-
-      <div class="row mb-3 pagination-row">
-        <div class="col pages-col">
-          <nav aria-label="Predictions pagination">
-            <ul class="pagination">
-              <li class="page-item">
-                {% if pagination.page > 1 %}
-                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
-                {% else %}
-                <a class="page-link disabled">Previous</a>
-                {% endif %}
-              </li>
-              <input
-                type="number"
-                class="form-control"
-                name="page"
-                value="{{ pagination.page }}"
-                min="1"
-                max="{{ pagination.total_pages }}"
-              >
-              <li class="page-item">
-                {% if pagination.page < pagination.total_pages %}
-                <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
-                {% else %}
-                <a class="page-link disabled">Next</a>
-                {% endif %}
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-between">
-        <p class="me-auto mt-auto mb-0 small">
-          {% if pagination.total_items == 1 %}
-            1 prediction
-          {% else %}
-            {{ pagination.total_items }} predictions
-          {% endif %}
-        </p>
-        <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
-      </div>
-
-      <hr>
-
-      <div class="d-flex">
-        <div class="col per-page-col d-flex">
-          <span>Showing</span>
-          <div class="col-auto">
-            <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
-          </div>
-          <span>predictions per page</span>
-        </div>
-        <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
-      </div>
     </form>
+
+    {% if predictions %}
+      {% predictions_list predictions %}
+
+    <div class="row mb-3 pagination-row">
+      <div class="col pages-col">
+        <nav aria-label="Predictions pagination">
+          <ul class="pagination">
+            <li class="page-item">
+              {% if pagination.page > 1 %}
+              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+              {% else %}
+              <a class="page-link disabled">Previous</a>
+              {% endif %}
+            </li>
+            <input
+              type="number"
+              class="form-control"
+              name="page"
+              value="{{ pagination.page }}"
+              min="1"
+              max="{{ pagination.total_pages }}"
+            >
+            <li class="page-item">
+              {% if pagination.page < pagination.total_pages %}
+              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
+              {% else %}
+              <a class="page-link disabled">Next</a>
+              {% endif %}
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <p class="me-auto mt-auto mb-0 small">
+        {% if pagination.total_items == 1 %}
+          1 prediction
+        {% else %}
+          {{ pagination.total_items }} predictions
+        {% endif %}
+      </p>
+      <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
+    </div>
+
+    <hr>
+
+    <div class="d-flex">
+      <div class="col per-page-col d-flex">
+        <span>Showing</span>
+        <div class="col-auto">
+          <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
+        </div>
+        <span>predictions per page</span>
+      </div>
+      <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
+    </div>
   </div>
   {% else %}
   <div class="row not-found">

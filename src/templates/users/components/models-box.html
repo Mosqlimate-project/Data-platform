@@ -38,7 +38,7 @@
         <td>{{model.name}}</td>
         <td>{{model.type}}</td>
         <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
-        <td><center>{{model.implementation_language}}</center></td>
+        <td><center>{{model.implementation_language.language}}</center></td>
         <td><center>{{model.predictions_count}}</center></td> 
         <td><center>{{model.updated|date:"Y-m-d"}}</center></td>
       </tr>
@@ -134,6 +134,7 @@
 </div>
 {% endif %}
 
+<!-- TODO: Isolate this into its own templatetag -->
 {% if user.is_authenticated %}
 <div class="modal fade" id="update-model" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="update-model-label" aria-hidden="true">
   <div class="modal-dialog">
@@ -155,7 +156,7 @@
           <div class="row mb-3">
             <div class="col">
               <label for="model_description">Description:</label>
-              <textarea rows="4" id="update-model-desc" name="model_description" value="{{ model.description|default_if_none:"" }}" class="form-control" maxlength="255"></textarea>
+              <textarea rows="4" id="update-model-desc" name="model_description" value="{{ model.description|default_if_none:"" }}" class="form-control" maxlength="500"></textarea>
             </div>
           </div>
           <div class="row mb-3">
@@ -171,7 +172,7 @@
             </div>
             <div class="col">
               <label for="model_language">Implementation language:</label>
-              <input type="text" id="update-model-lang" name="model_language" value="{{ model.implementation_language }}" class="form-control" maxlength="100" required>
+              <input type="text" id="update-model-lang" name="model_language" value="{{ model.implementation_language.language }}" class="form-control" maxlength="100" required>
             </div>
           </div>
         </div>

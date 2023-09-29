@@ -1,12 +1,13 @@
 from ninja import Router, Schema, Form
 from ninja.security import django_auth
 
-from .models import CustomUser
-from .schema import UserInPost, UserSchema
 from main.schema import ForbiddenSchema, NotFoundSchema
 from registry.schema import ModelSchema
-from registry.models import Author, Model
+from registry.models import Author, Model, ImplementationLanguage
 from registry.utils import calling_via_swagger
+
+from .models import CustomUser
+from .schema import UserInPost, UserSchema
 
 router = Router()
 
@@ -42,7 +43,7 @@ class UpdateModelForm(Schema):
     name: str
     description: str = None
     repository: str
-    language: str
+    implementation_language: str
     type: str
 
 
@@ -61,6 +62,24 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 
         try:
             for attr, value in payload.items():
+                if attr == "implementation_language":
+                    try:
+                        lang = ImplementationLanguage.objects.get(
+                            language__iexact=value
+                        )
+                        value = lang
+                    except ImplementationLanguage.DoesNotExist:
+                        similar_lang = ImplementationLanguage.objects.filter(
+                            language__icontains=value
+                        )[0]
+                        if similar_lang:
+                            return 404, {
+                                "message": (
+                                    f"Unknown language '{value}', "
+                                    f"did you mean '{similar_lang}'?"
+                                )
+                            }
+                        return 404, {"message": f"Unknown language {value}"}
                 setattr(model, attr, value)
 
             if not calling_via_swagger(request):
