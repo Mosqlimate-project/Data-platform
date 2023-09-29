@@ -134,6 +134,7 @@
 </div>
 {% endif %}
 
+<!-- TODO: Isolate this into its own templatetag -->
 {% if user.is_authenticated %}
 <div class="modal fade" id="update-model" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="update-model-label" aria-hidden="true">
   <div class="modal-dialog">
