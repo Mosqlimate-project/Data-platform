@@ -39,34 +39,34 @@
 
           if (myChart) {
             // Load the BR map data
-            $.get("{% static 'data/geo/BR.json' %}", function (brJson) {
+            $.get("https://info.dengue.mat.br/datasets/cdn/BR.json", function (brJson) {
               // Log the loaded geographic data
               myChart.hideLoading();
               echarts.registerMap('BR', brJson);
 
               var br_data = [
-                // { name: 'Acre', value: 5000 },
-                // { name: 'Alagoas', value: 7500 },
-                // { name: 'Amapá', value: 3000 },
-                // { name: 'Amazonas', value: 9000 },
-                // { name: 'Bahia', value: 12000 },
-                // { name: 'Ceará', value: 150000 },
-                // { name: 'Distrito Federal', value: 7000 },
-                // { name: 'Espírito Santo', value: 8500 },
-                // { name: 'Goiás', value: 10500 },
-                // { name: 'Maranhão', value: 4500 },
-                // { name: 'Mato Grosso', value: 6200 },
-                // { name: 'Mato Grosso do Sul', value: 4700 },
-                // { name: 'Minas Gerais', value: 20000 },
-                // { name: 'Pará', value: 8000 },
-                // { name: 'Paraíba', value: 6000 },
-                // { name: 'Paraná', value: 14500 },
-                // { name: 'Pernambuco', value: 11000 },
-                // { name: 'Piauí', value: 4000 },
-                // { name: 'Rio de Janeiro', value: 18000 },
-                // { name: 'Rio Grande do Norte', value: 5500 },
-                // { name: 'Rio Grande do Sul', value: 14000 },
-                // { name: 'Rondônia', value: 3500 },
+                { name: 'Acre', value: 5000 },
+                { name: 'Alagoas', value: 7500 },
+                { name: 'Amapá', value: 3000 },
+                { name: 'Amazonas', value: 9000 },
+                { name: 'Bahia', value: 12000 },
+                { name: 'Ceará', value: 150000 },
+                { name: 'Distrito Federal', value: 7000 },
+                { name: 'Espírito Santo', value: 8500 },
+                { name: 'Goiás', value: 10500 },
+                { name: 'Maranhão', value: 4500 },
+                { name: 'Mato Grosso', value: 6200 },
+                { name: 'Mato Grosso do Sul', value: 4700 },
+                { name: 'Minas Gerais', value: 20000 },
+                { name: 'Pará', value: 8000 },
+                { name: 'Paraíba', value: 6000 },
+                { name: 'Paraná', value: 14500 },
+                { name: 'Pernambuco', value: 11000 },
+                { name: 'Piauí', value: 4000 },
+                { name: 'Rio de Janeiro', value: 18000 },
+                { name: 'Rio Grande do Norte', value: 5500 },
+                { name: 'Rio Grande do Sul', value: 14000 },
+                { name: 'Rondônia', value: 3500 },
                 { name: 'Roraima', value: 2500 },
                 { name: 'Santa Catarina', value: 12000 },
                 { name: 'São Paulo', value: 25000 },
