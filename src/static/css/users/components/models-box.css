@@ -90,3 +90,8 @@ pre {
 #model-json {
   text-align: initial;
 }
+
+.fa-pencil {
+  font-size: 13px;
+  color: #9a9996;
+}

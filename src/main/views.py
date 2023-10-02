@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.db.models import Count
 from django.views import View
 
@@ -8,7 +8,7 @@ from users.api import update_model
 from registry.api import list_models, list_predictions, delete_model
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
-from registry.models import ImplementationLanguage
+from registry.models import Model, ImplementationLanguage
 
 
 def home(request):
@@ -111,13 +111,39 @@ class ModelsView(View):
 
         return render(request, self.template_name, context)
 
-    def post(self, request):
-        if "edit_model" in request.POST:
-            form = UpdateModelForm(request.POST)
-            if form.is_valid():
-                model_id = form.cleaned_data["model_id"]
+
+class EditModelView(View):
+    template_name = "main/edit-model.html"
+
+    def get(self, request, model_id: int):
+        model = get_object_or_404(Model, pk=model_id)
+
+        if request.user != model.author.user:
+            return redirect("models")
+
+        languages = ImplementationLanguage.objects.all()
+
+        context = {
+            "model": model,
+            "implementation_languages": languages,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, model_id: int):
+        model = Model.objects.get(pk=model_id)
+
+        if request.user == model.author.user:
+            if "save_model" in request.POST:
+                form = UpdateModelForm(request.POST)
+                if not form.is_valid():
+                    messages.error(request, "Invalid form")
+                    redirect("models")
 
                 repository = form.cleaned_data["model_repository"]
+                try:
+                    description = form.cleaned_data["model_description"]
+                except KeyError:
+                    description = ""
 
                 if not any(
                     str(repository).startswith(p)
@@ -127,7 +153,7 @@ class ModelsView(View):
 
                 payload = {
                     "name": form.cleaned_data["model_name"],
-                    "description": form.cleaned_data["model_description"],
+                    "description": description,
                     "repository": repository,
                     "implementation_language": form.cleaned_data["model_language"],
                     "type": form.cleaned_data["model_type"],
@@ -149,19 +175,14 @@ class ModelsView(View):
                         f"Failed to update model: {status_code}",
                     )
 
-        elif "delete_model" in request.POST:
-            form = DeleteModelForm(request.POST)
-            if form.is_valid():
-                model_id = form.cleaned_data["model_id"]
-                delete_model(request, model_id)
-                messages.warning(request, "Model deleted")
-            else:
-                messages.error(request, "Cannot delete Model")
-
-        else:
-            messages.error(
-                request, "Form error"
-            )  # TODO: Find a way to retrieve form errors
+            elif "delete_model" in request.POST:
+                form = DeleteModelForm(request.POST)
+                if form.is_valid():
+                    model_id = form.cleaned_data["model_id"]
+                    delete_model(request, model_id)
+                    messages.warning(request, "Model deleted")
+                else:
+                    messages.error(request, "Cannot delete Model")
 
         return redirect("models")
 
