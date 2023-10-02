@@ -19,19 +19,19 @@
             <div class="row mb-3">
                 <div class="col">
                     <label for="model_description">Description:</label>
-                    <textarea rows="4" id="edit-model-desc" name="model_description" class="form-control" maxlength="500">{{ model.description }}</textarea>
+                    <textarea rows="4" id="edit-model-desc" name="model_description" class="form-control" maxlength="500" placeholder="Model description">{{ model.description }}</textarea>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col">
                     <label for="model_repository">Github Repository:</label>
-                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" required>
+                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col">
                     <label for="model_type">Type:</label>
-                    <input type="text" id="edit-model-type" name="model_type" value="{{ model.type }}" class="form-control" maxlength="100" required>
+                    <input type="text" id="edit-model-type" name="model_type" value="{{ model.type }}" class="form-control" maxlength="100" placeholder="E.g: Nowcast" required>
                 </div>
                 <div class="col">
                     <label for="model_language">Implementation language:</label>
