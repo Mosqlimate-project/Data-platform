@@ -166,6 +166,17 @@ class ModelsView(View):
         return redirect("models")
 
 
+class EditModelView(View):
+    template_name = "main/edit-model.html"
+
+    def get(self, request, id):
+        context = {}
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        return redirect("models")
+
+
 def predictions(request):
     get = request.GET.get
 

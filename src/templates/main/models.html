@@ -5,155 +5,155 @@
 
 {% block content %}
 <div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
-  <center><h1>Models</h1></center>
+    <center><h1>Models</h1></center>
 
-  <div class="d-grid gap-2">
-    <button class="btn btn-primary lg-3 btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#modelCollapse">
-      <i class="fa-solid fa-arrow-down-short-wide"></i>
-    </button>
-  </div>
+    <div class="d-grid gap-2">
+        <button class="btn btn-primary lg-3 btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#modelCollapse">
+            <i class="fa-solid fa-arrow-down-short-wide"></i>
+        </button>
+    </div>
 
-  <div class="container">
-    <form method="get" action={% url 'models' %}>
-      <div class="p-2 collapse" id="modelCollapse">
+    <div class="container">
+        <form method="get" action={% url 'models' %}>
+            <div class="p-2 collapse" id="modelCollapse">
 
-        <div class="row mb-2 model-row">
-          <div class="col-3">
-            <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="Model ID">
-          </div>
+                <div class="row mb-2 model-row">
+                    <div class="col-3">
+                        <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="Model ID">
+                    </div>
 
-          <div class="col-6">
-            <div class="input-container">
-              <input type="text" class="form-control" name="name" value="{{ request.session.name|default_if_none:'' }}" placeholder="Name">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
+                    <div class="col-6">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="name" value="{{ request.session.name|default_if_none:'' }}" placeholder="Name">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3 author-row">
+                    <div class="col">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3 repo-row">
+                    <div class="col">
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
+                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="input-container">
+                            <div class="input-group">
+                                <select class="form-select selectpicker" name="implementation_language">
+                                    <option value="" selected disabled>Implementation language</option>
+                                    {% for language in implementation_languages_with_refs %}
+                                    <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
+                <button type="submit" class="btn btn-primary btn-models">Search</button>
             </div>
-          </div>
+        </form>
 
-          <div class="col-3">
-            <div class="input-container">
-              <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
+        {% if models %}
+        {% models_list models=models %}
+
+        <div class="row mb-3 pagination-row">
+            <div class="col pages-col">
+                <nav aria-label="Models pagination">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            {% if pagination.page > 1 %}
+                            <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+                            {% else %}
+                            <a class="page-link disabled">Previous</a>
+                            {% endif %}
+                        </li>
+                        <input
+                        type="number"
+                        class="form-control"
+                        name="page"
+                        value="{{ pagination.page }}"
+                        min="1"
+                        max="{{ pagination.total_pages }}"
+                        >
+                        <li class="page-item">
+                            {% if pagination.page < pagination.total_pages %}
+                            <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
+                            {% else %}
+                            <a class="page-link disabled">Next</a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </nav>
             </div>
-          </div>
         </div>
 
-        <div class="row mb-3 author-row">
-          <div class="col">
-            <div class="input-container">
-              <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
-            </div>
-          </div>
-          <div class="col">
-            <div class="input-container">
-              <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
-            </div>
-          </div>
-          <div class="col">
-            <div class="input-container">
-              <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
-            </div>
-          </div>
-        </div>
-
-        <div class="row mb-3 repo-row">
-          <div class="col">
-            <div class="input-container">
-              <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
-              <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
-            </div>
-          </div>
-
-          <div class="col">
-              <div class="input-container">
-                  <div class="input-group">
-                      <select class="form-select selectpicker" name="implementation_language">
-                          <option value="" selected disabled>Implementation language</option>
-                          {% for language in implementation_languages_with_refs %}
-                          <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
-                          {% endfor %}
-                      </select>
-                  </div>
-              </div>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
-        <button type="submit" class="btn btn-primary btn-models">Search</button>
-      </div>
-    </form>
-
-  {% if models %}
-    {% models_list models=models %}
-
-  <div class="row mb-3 pagination-row">
-    <div class="col pages-col">
-      <nav aria-label="Models pagination">
-        <ul class="pagination">
-          <li class="page-item">
-            {% if pagination.page > 1 %}
-            <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+        <div class="d-flex justify-content-between">
+            <p class="me-auto mt-auto mb-0 small">
+            {% if pagination.total_items == 1 %}
+            1 model
             {% else %}
-            <a class="page-link disabled">Previous</a>
+            {{ pagination.total_items }} models
             {% endif %}
-          </li>
-          <input
-            type="number"
-            class="form-control"
-            name="page"
-            value="{{ pagination.page }}"
-            min="1"
-            max="{{ pagination.total_pages }}"
-          >
-          <li class="page-item">
-            {% if pagination.page < pagination.total_pages %}
-            <a class="page-link" href="{% url 'models' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
-            {% else %}
-            <a class="page-link disabled">Next</a>
-            {% endif %}
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
+            </p>
+            <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
+        </div>
 
-  <div class="d-flex justify-content-between">
-    <p class="me-auto mt-auto mb-0 small">
-      {% if pagination.total_items == 1 %}
-        1 model
-      {% else %}
-        {{ pagination.total_items }} models
-      {% endif %}
-    </p>
-    <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
-  </div>
+        <hr>
 
-  <hr>
-
-  <div class="d-flex">
-    <div class="col per-page-col d-flex">
-      <span>Showing</span>
-      <div class="col-auto">
-        <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
-      </div>
-      <span>models per page</span>
+        <div class="d-flex">
+            <div class="col per-page-col d-flex">
+                <span>Showing</span>
+                <div class="col-auto">
+                    <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
+                </div>
+                <span>models per page</span>
+            </div>
+            <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
+        </div>
     </div>
-    <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
-  </div>
-  </div>
-  {% else %}
-  <div class="row not-found">
-    <div class="col-auto not-found-image">
-      <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Models"></center>
+    {% else %}
+    <div class="row not-found">
+        <div class="col-auto not-found-image">
+            <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Models"></center>
+        </div>
+        <div class="col-auto not-found-text">
+            <span><h4>No models found</h4></span>
+            <span>{{ message }}</span>
+        </div>
     </div>
-    <div class="col-auto not-found-text">
-      <span><h4>No models found</h4></span>
-      <span>{{ message }}</span>
-    </div>
-  </div>
-  {% endif %}      
+    {% endif %}      
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
 <script src="{% static 'js/main/predictions.js' %}"></script>

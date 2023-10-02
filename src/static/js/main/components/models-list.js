@@ -5,7 +5,7 @@ function handleEditModel(modelId) {
   fetchModelData(modelId);
 }
 
-function fetchModelData(modelId) {
+async function fetchModelData(modelId) {
   const apiUrl = `/api/registry/models/${modelId}`;
   const editModelLabel = document.getElementById('edit-model-label');
   const editModelId = document.getElementById('edit-model-id');
