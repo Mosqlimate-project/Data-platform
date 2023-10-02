@@ -65,7 +65,7 @@
   transform: translateY(0%);
 }
 
-i .fa-pencil {
+.fa-pencil {
   position: absolute;
   top: 8px;
   right: 8px;

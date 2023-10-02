@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.db.models import Count
 from django.views import View
 
@@ -8,7 +8,7 @@ from users.api import update_model
 from registry.api import list_models, list_predictions, delete_model
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
-from registry.models import ImplementationLanguage
+from registry.models import Model, ImplementationLanguage
 
 
 def home(request):
@@ -169,8 +169,18 @@ class ModelsView(View):
 class EditModelView(View):
     template_name = "main/edit-model.html"
 
-    def get(self, request, id):
-        context = {}
+    def get(self, request, model_id: int):
+        model = get_object_or_404(Model, pk=model_id)
+
+        if request.user != model.author.user:
+            redirect("models")
+
+        languages = ImplementationLanguage.objects.all()
+
+        context = {
+            "model": model,
+            "implementation_languages": languages,
+        }
         return render(request, self.template_name, context)
 
     def post(self, request):
