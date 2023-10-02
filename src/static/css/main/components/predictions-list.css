@@ -31,7 +31,7 @@
   text-align: justify;
 }
 
-.model-id, .model-name, .model-lang {
+.model-id, .model-name, .model-lang .description {
   text-align: initial;
 }
 
@@ -65,3 +65,11 @@
 .list-group-item:hover .badge.model-id {
   opacity: 1;
   transform: translateY(0%);
+
+.fa-pencil {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 13px;
+  color: #9a9996;
+}

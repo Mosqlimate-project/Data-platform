@@ -2,6 +2,7 @@ import datetime
 from typing import List
 from urllib.parse import urlparse
 
+from django.forms import Form
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
@@ -220,6 +221,65 @@ def create_model(request, payload: ModelIn):
         except IntegrityError:
             return 403, {"message": f"Model {model.name} already exists"}
     return 201, model
+
+
+class UpdateModelForm(Schema):
+    # author: str
+    name: str
+    description: str = None
+    repository: str
+    implementation_language: str
+    type: str
+
+
+@router.put(
+    "/models/{model_id}",
+    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=django_auth,
+    include_in_schema=False,
+)
+def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
+    try:
+        model = Model.objects.get(pk=model_id)
+
+        if request.user != model.author.user:  # TODO: allow admins here
+            return 403, {"message": "You are not authorized to update this Model"}
+
+        try:
+            for attr, value in payload.items():
+                if attr == "implementation_language":
+                    try:
+                        lang = ImplementationLanguage.objects.get(
+                            language__iexact=value
+                        )
+                        value = lang
+                    except ImplementationLanguage.DoesNotExist:
+                        similar_lang = ImplementationLanguage.objects.filter(
+                            language__icontains=value
+                        )[0]
+                        if similar_lang:
+                            return 404, {
+                                "message": (
+                                    f"Unknown language '{value}', "
+                                    f"did you mean '{similar_lang}'?"
+                                )
+                            }
+                        return 404, {"message": f"Unknown language {value}"}
+                setattr(model, attr, value)
+
+            if not calling_via_swagger(request):
+                # Not realy required, since include_in_schema=False
+                model.save()
+
+            return 201, model
+        except Author.DoesNotExist:
+            return 404, {
+                "message": (
+                    f"Author '{payload.author}' not found, use username instead"
+                )
+            }
+    except Model.DoesNotExist:
+        return 404, {"message": "Model not found"}
 
 
 @router.delete(

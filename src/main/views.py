@@ -3,12 +3,37 @@ from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.db.models import Count
 from django.views import View
 
-from users.forms import UpdateModelForm, DeleteModelForm
-from users.api import update_model
-from registry.api import list_models, list_predictions, delete_model
+from users.forms import (
+    UpdateModelForm,
+    DeleteModelForm,
+    UpdatePredictionForm,
+    DeletePredictionForm,
+)
+from registry.api import (
+    list_models,
+    list_predictions,
+    update_model,
+    delete_model,
+    update_prediction,
+    delete_prediction,
+)
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
-from registry.models import Model, ImplementationLanguage
+from registry.models import Model, Prediction, ImplementationLanguage
+
+
+# -- Utils --
+def build_url_path(params) -> str:
+    return "&".join(
+        [
+            f"{p}={v}"
+            for p, v in params
+            if v and p not in ["items", "total_items", "total_pages"]
+        ]
+    )
+
+
+# --
 
 
 def home(request):
@@ -60,8 +85,7 @@ class ModelsView(View):
                 per_page=int(request.session.get("per_page") or 50),
             )
 
-            for param in predicts_params:
-                value = predicts_params[param]
+            for param, value in predicts_params.items():
                 store_session(**{param: value})
                 if value:
                     if param in ["page", "per_page"]:
@@ -70,15 +94,6 @@ class ModelsView(View):
                         setattr(filters, param, value)
 
             return filters, pagination
-
-        def build_url_path(params) -> str:
-            return "&".join(
-                [
-                    f"{p}={v}"
-                    for p, v in params
-                    if v and p not in ["items", "total_items", "total_pages"]
-                ]
-            )
 
         # Request from user
         filters, pagination = get_filters()
@@ -187,94 +202,142 @@ class EditModelView(View):
         return redirect("models")
 
 
-def predictions(request):
-    get = request.GET.get
+class PredictionsView(View):
+    template_name = "main/predictions.html"
 
-    def store_session(**params) -> None:
-        """Stores parameters in session"""
-        for param in params:
-            value = params.get(param)
-            if value:
-                request.session[param] = value
-            else:
-                request.session[param] = None
+    def get(self, request):
+        get = request.GET.get
 
-    # Parameters that come in the request
-    predicts_params = {
-        "page": get("page", 1),
-        "per_page": get("per_page", 50),
-        "id": get("id", ""),
-        "model_id": get("model_id", ""),
-        "model_name": get("model_name", ""),
-        "author_name": get("author_name", ""),
-        "author_username": get("author_username", ""),
-        "author_institution": get("author_institution", ""),
-        "repository": get("repository", ""),
-        "implementation_language": get("implementation_language", ""),
-        "type": get("type", ""),
-        "commit": get("commit", ""),
-        "start": get("start", ""),
-        "end": get("end", ""),
-    }
-
-    def get_filters() -> tuple[PredictionFilterSchema, PagesPagination.Input]:
-        """Gets parameters from request"""
-        filters = PredictionFilterSchema()
-        pagination = PagesPagination.Input(
-            page=int(request.session.get("page") or 1),
-            per_page=int(request.session.get("per_page") or 50),
-        )
-
-        for param in predicts_params:
-            value = predicts_params[param]
-            store_session(**{param: value})
-            if value:
-                if param in ["page", "per_page"]:
-                    setattr(pagination, param, int(value))
+        def store_session(**params) -> None:
+            """Stores parameters in session"""
+            for param, value in params.items():
+                if value:
+                    request.session[param] = value
                 else:
-                    setattr(filters, param, value)
+                    request.session[param] = None
 
-        return filters, pagination
+        # Parameters that come in the request
+        predicts_params = {
+            "page": get("page", 1),
+            "per_page": get("per_page", 50),
+            "id": get("id", ""),
+            "model_id": get("model_id", ""),
+            "model_name": get("model_name", ""),
+            "author_name": get("author_name", ""),
+            "author_username": get("author_username", ""),
+            "author_institution": get("author_institution", ""),
+            "repository": get("repository", ""),
+            "implementation_language": get("implementation_language", ""),
+            "type": get("type", ""),
+            "commit": get("commit", ""),
+            "start": get("start", ""),
+            "end": get("end", ""),
+        }
 
-    def build_url_path(params) -> str:
-        return "&".join(
-            [
-                f"{p}={v}"
-                for p, v in params
-                if v and p not in ["items", "total_items", "total_pages"]
-            ]
+        def get_filters() -> tuple[PredictionFilterSchema, PagesPagination.Input]:
+            """Gets parameters from request"""
+            filters = PredictionFilterSchema()
+            pagination = PagesPagination.Input(
+                page=int(request.session.get("page") or 1),
+                per_page=int(request.session.get("per_page") or 50),
+            )
+
+            for param, value in predicts_params.items():
+                store_session(**{param: value})
+                if value:
+                    if param in ["page", "per_page"]:
+                        setattr(pagination, param, int(value))
+                    else:
+                        setattr(filters, param, value)
+
+            return filters, pagination
+
+        # Request from user
+        filters, pagination = get_filters()
+
+        # API request
+        response = list_predictions(
+            request, filters=filters, ninja_pagination=pagination
         )
 
-    # Request from user
-    filters, pagination = get_filters()
+        context = {}
 
-    # API request
-    response = list_predictions(request, filters=filters, ninja_pagination=pagination)
+        # Build equivalent API url
+        api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
+        api_url += build_url_path(response["pagination"].items())
+        api_url += "&" + build_url_path(filters.__dict__.items())
+        context["api_url"] = api_url
 
-    context = {}
+        languages_refs = ImplementationLanguage.objects.annotate(
+            ref_count=Count("model")
+        ).filter(ref_count__gt=0)
 
-    # Build equivalent API url
-    api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
-    api_url += build_url_path(response["pagination"].items())
-    api_url += "&" + build_url_path(filters.__dict__.items())
-    context["api_url"] = api_url
+        langs = languages_refs.values_list("language", flat=True)
 
-    languages_refs = ImplementationLanguage.objects.annotate(
-        ref_count=Count("model")
-    ).filter(ref_count__gt=0)
+        context["implementation_languages"] = list(langs)
+        context["pagination"] = response["pagination"]
 
-    langs = languages_refs.values_list("language", flat=True)
+        if response["items"]:
+            context["predictions"] = response["items"]
 
-    context["implementation_languages"] = list(langs)
-    context["pagination"] = response["pagination"]
+        if response["message"]:
+            messages.warning(request, message=response["message"])
 
-    if response["items"]:
-        context["predictions"] = response["items"]
+        return render(request, self.template_name, context)
 
-    if response["message"]:
-        messages.warning(request, message=response["message"])
 
-    return render(request, "main/predictions.html", context)
+class EditPredictionView(View):
+    template_name = "main/edit-prediction.html"
+
+    def get(self, request, prediction_id: int):
+        prediction = get_object_or_404(Prediction, pk=prediction_id)
+
+        if request.user != prediction.model.author.user:
+            return redirect("predictions")
+
+        context = {
+            "prediction": prediction,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, prediction_id: int):
+        prediction = Prediction.objects.get(pk=prediction_id)
+
+        if request.user == prediction.model.author.user:
+            if "save_prediction" in request.POST:
+                form = UpdatePredictionForm(request.POST)
+                if not form.is_valid():
+                    messages.error(request, "Invalid form")
+                    redirect("predictions")
+
+                payload = {}
+
+                status_code, model = update_prediction(
+                    request=request,
+                    prediction_id=prediction_id,
+                    payload=payload,
+                )
+
+                if status_code == 201:
+                    messages.success(request, "Prediction updated successfully")
+                elif status_code == 401:
+                    messages.error(request, "Unauthorized")
+                else:
+                    messages.error(
+                        request,
+                        f"Failed to update prediction: {status_code}",
+                    )
+
+            elif "delete_prediction" in request.POST:
+                form = DeletePredictionForm(request.POST)
+                if form.is_valid():
+                    prediction_id = form.cleaned_data["prediction_id"]
+                    delete_prediction(request, prediction_id)
+                    messages.warning(request, "Model deleted")
+                else:
+                    messages.error(request, "Cannot delete prediction")
+
+        return redirect("predictions")
 
 
 def error_404(request, *args, **kwargs):

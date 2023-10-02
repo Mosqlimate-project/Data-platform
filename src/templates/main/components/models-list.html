@@ -16,7 +16,7 @@
       <p class="mb-1 fw-bold name">Name</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 fw-bold author">Author name</p>
+      <p class="mb-1 fw-bold author">Author</p>
     </div>
     <div class="col-2">
       <p class="mb-1 fw-bold repository">Repository</p>
@@ -25,6 +25,7 @@
       <span class="badge created-date bg-primary rounded-pill">Created</span>
       <span class="badge type bg-primary rounded-pill">Type</span>
     </div>
+    <hr style="margin-top:5px;">
     <div class="col-10" style="padding-left: 10px;">
       <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">Description</p>
     </div>
@@ -47,15 +48,16 @@
       <p class="mb-1 model">{{ model.name }}</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 author">{{ model.author.user.name }}</p>
+      <a href="{% url 'profile' username=model.author.user.username %}"><p class="mb-1 author">{{ model.author.user.username }}</p></a>
     </div>
     <div class="col-2">
-        <a href = "{{ model.repository }}"><p class="mb-1 repository">{{ model.repository|get_repo }}</p></a>    
+        <a href="{{ model.repository }}"><p class="mb-1 repository">{{ model.repository|get_repo }}</p></a>    
     </div>
     <div class="col-3 badge-container">
       <span class="badge predict-date bg-primary rounded-pill">{{ model.created|date:"Y-m-d" }}</span>
       <span class="badge type bg-primary rounded-pill">{{ model.type }}</span>
     </div>
+    <hr style="margin-top:5px;">
     <div class="col-10" style="padding-left: 5px;">
       <p class="mb-1 description">{{ model.description }}</p>
     </div>

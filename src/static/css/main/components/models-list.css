@@ -28,10 +28,14 @@
   word-wrap: break-word;
   hyphens: auto;
   align-items: center;
-  text-align: justify;
+  text-align: center;
 }
 
-.id, .name, .lang {
+.name {
+  text-align: center;
+}
+
+.id, .lang, .description {
   text-align: initial;
 }
 
