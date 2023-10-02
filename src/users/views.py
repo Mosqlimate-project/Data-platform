@@ -5,10 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from registry.models import Author, Model, Prediction
-from registry.api import delete_model
-
-from .api import update_model
-from .forms import UpdateAuthorForm, UpdateModelForm, DeleteModelForm
+from .forms import UpdateAuthorForm
 
 User = get_user_model()
 
@@ -53,53 +50,6 @@ class ProfileView(View):
                 messages.success(request, "Author updated successfully")
             else:
                 messages.error(request, "Invalid request")
-
-        elif "update_model" in request.POST:
-            form = UpdateModelForm(request.POST)
-            if form.is_valid():
-                model_id = form.cleaned_data["model_id"]
-
-                repository = form.cleaned_data["model_repository"]
-
-                if not any(
-                    str(repository).startswith(p)
-                    for p in ["https://github.com/", "github.com/"]
-                ):
-                    repository = f"https://github.com/{repository}/"
-
-                payload = {
-                    "name": form.cleaned_data["model_name"],
-                    "description": form.cleaned_data["model_description"],
-                    "repository": repository,
-                    "implementation_language": form.cleaned_data["model_language"],
-                    "type": form.cleaned_data["model_type"],
-                }
-
-                status_code, model = update_model(
-                    request=request,
-                    model_id=model_id,
-                    payload=payload,
-                )
-
-                if status_code == 201:
-                    messages.success(request, "Model updated successfully")
-                elif status_code == 401:
-                    messages.error(request, "Unauthorized")
-                else:
-                    messages.error(
-                        request,
-                        f"Failed to update model: {status_code}",
-                    )
-
-        elif "delete_model" in request.POST:
-            form = DeleteModelForm(request.POST)
-            if form.is_valid():
-                model_id = form.cleaned_data["model_id"]
-                delete_model(request, model_id)
-                messages.warning(request, "Model deleted")
-            else:
-                messages.error(request, "Cannot delete Model")
-
         else:
             messages.error(
                 request, "Form error"

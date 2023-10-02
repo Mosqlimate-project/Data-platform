@@ -173,7 +173,7 @@ class EditModelView(View):
         model = get_object_or_404(Model, pk=model_id)
 
         if request.user != model.author.user:
-            redirect("models")
+            return redirect("models")
 
         languages = ImplementationLanguage.objects.all()
 
