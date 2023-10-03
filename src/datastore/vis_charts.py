@@ -1,5 +1,5 @@
 # from main.utils import UFs, // TODO UPDATE THE DICTIONARY
-import pendulum
+from datetime import datetime as dt
 from datastore.models import HistoricoAlerta
 from django.db.models import Sum
 from typing import Dict, Union
@@ -57,7 +57,7 @@ def get_data() -> Dict[str, Union[str, int]]:
         Dict[str, Union[str, int]]: A dictionary where keys are IBGE codes
         and values are dictionaries containing the state name and total cases.
     """
-    current_year = pendulum.now().year
+    current_year = dt.now().year
     results = {}
 
     # Calculate the maximum date for the given year for all states in a single query
@@ -94,9 +94,8 @@ def get_data() -> Dict[str, Union[str, int]]:
             total_cases = (
                 HistoricoAlerta.objects.using("infodengue")
                 .filter(
-                    data_iniSE__year=current_year,
                     municipio_geocodigo__startswith=uf_code,
-                    data_iniSE=cached_max_date,
+                    data_iniSE__startswith=current_year,
                 )
                 .aggregate(total_cases=Sum("casos"))
             )["total_cases"]
