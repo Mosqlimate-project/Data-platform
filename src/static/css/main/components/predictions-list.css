@@ -28,10 +28,13 @@
   word-wrap: break-word;
   hyphens: auto;
   align-items: center;
-  text-align: justify;
 }
 
-.model-id, .model-name, .model-lang .description {
+.mb-1 .description {
+  text-align: initial; !important
+}
+
+.model-id, .model-name, .model-lang {
   text-align: initial;
 }
 
@@ -65,6 +68,7 @@
 .list-group-item:hover .badge.model-id {
   opacity: 1;
   transform: translateY(0%);
+}
 
 .fa-pencil {
   position: absolute;

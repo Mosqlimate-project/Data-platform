@@ -14,7 +14,7 @@ function clearAllInputs() {
       input.value = '';
     }
     if (input.name == 'implementation_language') {
-      input.selectpicker('refresh')
+      $(input).selectpicker('refresh') // #TODO Not working
     }
   });
 }
