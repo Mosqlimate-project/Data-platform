@@ -389,7 +389,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
         if request.user != prediction.model.author.user:
             return 403, {"message": "You are not authorized to update this prediction"}
 
-        for attr, value in payload.dict().items():
+        for attr, value in payload.items():
             setattr(prediction, attr, value)
         # TODO: Add commit verification if commit has changed
 

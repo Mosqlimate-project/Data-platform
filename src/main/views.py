@@ -291,12 +291,14 @@ class EditPredictionView(View):
 
     def get(self, request, prediction_id: int):
         prediction = get_object_or_404(Prediction, pk=prediction_id)
+        models = Model.objects.filter(author__user=prediction.model.author.user)
 
         if request.user != prediction.model.author.user:
             return redirect("predictions")
 
         context = {
             "prediction": prediction,
+            "user_models": models,
         }
         return render(request, self.template_name, context)
 
@@ -310,11 +312,23 @@ class EditPredictionView(View):
                     messages.error(request, "Invalid form")
                     redirect("predictions")
 
-                payload = {}
+                try:
+                    description = form.cleaned_data["prediction_description"]
+                except KeyError:
+                    description = ""
 
-                status_code, model = update_prediction(
+                model = Model.objects.get(pk=form.cleaned_data["prediction_model"])
+
+                payload = {
+                    "model": model,
+                    "description": description,
+                    "commit": form.cleaned_data["prediction_commit"],
+                    "predict_date": form.cleaned_data["prediction_date"],
+                }
+
+                status_code, prediction = update_prediction(
                     request=request,
-                    prediction_id=prediction_id,
+                    predict_id=prediction_id,
                     payload=payload,
                 )
 
@@ -333,12 +347,16 @@ class EditPredictionView(View):
                 if form.is_valid():
                     prediction_id = form.cleaned_data["prediction_id"]
                     delete_prediction(request, prediction_id)
-                    messages.warning(request, "Model deleted")
+                    messages.warning(request, "Prediction deleted")
                 else:
-                    messages.error(request, "Cannot delete prediction")
+                    messages.error(request, "Error deleting prediction")
 
         return redirect("predictions")
 
 
 def error_404(request, *args, **kwargs):
     return render(request, "main/404.html", {}, status=404)
+
+
+def error_500(request, *args, **kwargs):
+    return render(request, "main/505.html", {}, status=500)

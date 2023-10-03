@@ -35,6 +35,7 @@ class DeleteModelForm(forms.Form):
 
 
 class UpdatePredictionForm(forms.Form):
+    prediction_model = forms.IntegerField()
     prediction_description = forms.CharField(max_length=500)
     prediction_commit = forms.CharField(max_length=100)
     prediction_date = forms.DateField()
