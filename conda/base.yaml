@@ -4,7 +4,6 @@ channels:
   - nodefaults
 dependencies:
   - python 3.*
-  - six
   - pip
-  - poetry
+  - poetry >= 1.6.1
   - postgresql
