@@ -1,9 +1,13 @@
+# from main.utils import UFs, // TODO UPDATE THE DICTIONARY
+from typing import Dict, Union
 import pendulum
+
+from django.core.cache import cache
+from django.db.models import Max
+from django.db.models import Sum
+
 from datastore.models import HistoricoAlerta
 
-# from main.utils import UFs, // TODO UPDATE THE DICTIONARY
-from django.db.models import Sum
-from typing import Dict, List, Union
 
 # Mapping between state abbreviations and IBGE codes
 uf_ibge_mapping: Dict[str, Dict[str, str]] = {
@@ -47,47 +51,58 @@ municipio_estado_mapping: Dict[str, str] = {
 }
 
 
-def cases_uf_by_year(uf_abbv: str, year: int) -> List[Dict[str, Union[str, int]]]:
-    """
-    Get the total cases for a state in a given year.
-
-    Args:
-        uf_abbv (str): The state abbreviation.
-        year (int): The year for which to retrieve the data.
-
-    Returns:
-        List[Dict[str, Union[str, int]]]: A list of dictionaries containing the state
-        abbreviation and the total number of cases for the specified year.
-    """
-    uf_code = uf_ibge_mapping.get(uf_abbv)["code"]
-
-    resultado = (
-        HistoricoAlerta.objects.using("infodengue")
-        .filter(data_iniSE__year=year, municipio_geocodigo__startswith=uf_code)
-        .values("data_iniSE__year")
-        .annotate(total_cases=Sum("casos"))
-    )
-
-    result_list = [{uf_abbv: item["total_cases"]} for item in resultado]
-
-    return result_list
-
-
-def get_data() -> List[List[Dict[str, Union[str, int]]]]:
+def get_data() -> Dict[str, Union[str, int]]:
     """
     Get total cases for all states in the current year.
 
     Returns:
-        List[List[Dict[str, Union[str, int]]]]: A list of lists,
-        where each inner list contains dictionaries with state
-        abbreviations and total cases for the current year.
+        Dict[str, Union[str, int]]: A dictionary where keys are state abbreviations
+        and values are the total cases for the current year.
     """
     current_year = pendulum.now().year
-    ufs_abbv = [k for k in uf_ibge_mapping]
-    results = []
+    results = {}
 
-    for uf in ufs_abbv:
-        result = cases_uf_by_year(uf, current_year)
-        results.append(result)
+    # Calculate the maximum date for the given year for all states in a single query
+    max_dates = (
+        HistoricoAlerta.objects.using("infodengue")
+        .filter(data_iniSE__year=current_year)
+        .values("municipio_geocodigo")
+        .annotate(max_date=Max("data_iniSE"))
+    )
+
+    # Create a cache key for the maximum date, which is common to all states
+    max_date_cache_key = f"max_date_{current_year}"
+    cached_max_date = cache.get(max_date_cache_key)
+
+    if cached_max_date is None:
+        # If max date is not in the cache, set it and cache it with a reasonable timeout
+        cached_max_date = max_dates[0]["max_date"] if max_dates else None
+        cache.set(max_date_cache_key, cached_max_date, 3600)
+
+    for uf_abbv in uf_ibge_mapping:
+        # Create a cache key specific to the state and maximum date
+        cache_key = f"cases_{uf_abbv}_{cached_max_date}"
+
+        # Attempt to retrieve data from the cache
+        cached_data = cache.get(cache_key)
+
+        if cached_data is not None:
+            results[uf_abbv] = cached_data
+        else:
+            uf_code = uf_ibge_mapping[uf_abbv]["code"]
+            total_cases = (
+                HistoricoAlerta.objects.using("infodengue")
+                .filter(
+                    data_iniSE__year=current_year,
+                    municipio_geocodigo__startswith=uf_code,
+                    data_iniSE=cached_max_date,
+                )
+                .aggregate(total_cases=Sum("casos"))
+            )["total_cases"]
+
+            results[uf_abbv] = total_cases
+
+            # Cache the data with a reasonable timeout (e.g., 1 hour)
+            cache.set(cache_key, total_cases, 3600)
 
     return results
