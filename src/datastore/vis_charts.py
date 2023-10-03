@@ -1,12 +1,10 @@
 # from main.utils import UFs, // TODO UPDATE THE DICTIONARY
-from typing import Dict, Union
 import pendulum
-
+from datastore.models import HistoricoAlerta
+from django.db.models import Sum
+from typing import Dict, Union
 from django.core.cache import cache
 from django.db.models import Max
-from django.db.models import Sum
-
-from datastore.models import HistoricoAlerta
 
 
 # Mapping between state abbreviations and IBGE codes
@@ -56,8 +54,8 @@ def get_data() -> Dict[str, Union[str, int]]:
     Get total cases for all states in the current year.
 
     Returns:
-        Dict[str, Union[str, int]]: A dictionary where keys are state abbreviations
-        and values are the total cases for the current year.
+        Dict[str, Union[str, int]]: A dictionary where keys are IBGE codes
+        and values are dictionaries containing the state name and total cases.
     """
     current_year = pendulum.now().year
     results = {}
@@ -87,7 +85,10 @@ def get_data() -> Dict[str, Union[str, int]]:
         cached_data = cache.get(cache_key)
 
         if cached_data is not None:
-            results[uf_abbv] = cached_data
+            # Convert the state abbreviation to the IBGE code
+            ibge_code = uf_ibge_mapping[uf_abbv]["code"]
+            state_name = uf_ibge_mapping[uf_abbv]["name"]
+            results[ibge_code] = {state_name: cached_data}
         else:
             uf_code = uf_ibge_mapping[uf_abbv]["code"]
             total_cases = (
@@ -100,7 +101,10 @@ def get_data() -> Dict[str, Union[str, int]]:
                 .aggregate(total_cases=Sum("casos"))
             )["total_cases"]
 
-            results[uf_abbv] = total_cases
+            # Convert the state abbreviation to the IBGE code
+            ibge_code = uf_ibge_mapping[uf_abbv]["code"]
+            state_name = uf_ibge_mapping[uf_abbv]["name"]
+            results[ibge_code] = {state_name: total_cases}
 
             # Cache the data with a reasonable timeout (e.g., 1 hour)
             cache.set(cache_key, total_cases, 3600)
