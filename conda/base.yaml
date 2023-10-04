@@ -5,5 +5,5 @@ channels:
 dependencies:
   - python 3.*
   - pip
-  - poetry
+  - poetry >= 1.6.1
   - postgresql

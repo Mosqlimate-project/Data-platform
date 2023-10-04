@@ -16,7 +16,7 @@
       <p class="mb-1 fw-bold model-name">Model name</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 fw-bold author">Author name</p>
+      <p class="mb-1 fw-bold author">Author</p>
     </div>
     <div class="col-2">
       <p class="mb-1 fw-bold repository">Repository</p>
@@ -26,8 +26,9 @@
       <span class="badge type bg-primary rounded-pill">Type</span>
       <span class="badge model-id bg-primary rounded-pill">Model ID</span>
     </div>
+    <hr style="margin-top:5px;">
     <div class="col-10" style="padding-left: 10px;">
-      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-30px;">Description</p>
+      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">Description</p>
     </div>
   </div>
   {% for prediction in predictions %}
@@ -48,7 +49,7 @@
       <p class="mb-1 model-name">{{ prediction.model.name }}</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 author">{{ prediction.model.author.user.name }}</p>
+      <a href="{% url 'profile' username=prediction.model.author.user.username %}"><p class="mb-1 author">{{ prediction.model.author.user.username }}</p></a>
     </div>
     <div class="col-2">
         <a href = "{{ prediction.model.repository }}"><p class="mb-1 repository">{{ prediction.model.repository|get_repo }}</p></a>
@@ -58,9 +59,14 @@
       <span class="badge type bg-primary rounded-pill">{{ prediction.model.type }}</span>
       <span class="badge model-id bg-primary rounded-pill">Model {{ prediction.model.id }}</span>
     </div>
+    <hr style="margin-top:5px;">
     <div class="col-10" style="padding-left: 5px;">
       <p class="mb-1 description">{{ prediction.description }}</p>
     </div>
+    {{user.authenticated}}
+    {% if user == prediction.model.author.user %}
+      <a href="{% url 'edit-prediction' prediction_id=prediction.id %}"><i class="fa-solid fa-pencil"></i></a>
+    {% endif %}
   </div>
   {% endfor %}
 </div>

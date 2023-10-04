@@ -28,7 +28,10 @@
   word-wrap: break-word;
   hyphens: auto;
   align-items: center;
-  text-align: justify;
+}
+
+.mb-1 .description {
+  text-align: initial; !important
 }
 
 .model-id, .model-name, .model-lang {
@@ -65,3 +68,12 @@
 .list-group-item:hover .badge.model-id {
   opacity: 1;
   transform: translateY(0%);
+}
+
+.fa-pencil {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 13px;
+  color: #9a9996;
+}
