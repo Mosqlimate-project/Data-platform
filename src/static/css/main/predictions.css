@@ -69,3 +69,7 @@ ul.pagination {
   width: 150px;
   height: auto;
 }
+
+.api-url {
+    text-align: end;
+}
