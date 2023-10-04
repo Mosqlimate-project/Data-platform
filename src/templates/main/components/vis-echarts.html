@@ -52,8 +52,8 @@
               const mapOption = {
                 visualMap: {
                   left: 'right',
-                  min: 5000,
-                  max: 636000,
+                  min: {{ min_total_cases|safe }},
+                  max: {{ max_total_cases|safe }},
                   inRange: {
                     // prettier-ignore
                     color: [
