@@ -2,7 +2,7 @@
 from datetime import datetime as dt
 from datastore.models import HistoricoAlerta
 from django.db.models import Sum
-from typing import Dict, Union
+from typing import Dict, Union, List
 from django.core.cache import cache
 from django.db.models import Max
 
@@ -49,16 +49,16 @@ municipio_estado_mapping: Dict[str, str] = {
 }
 
 
-def get_data() -> Dict[str, Union[str, int]]:
+def get_data() -> List[Dict[str, Union[str, int]]]:
     """
     Get total cases for all states in the current year.
 
     Returns:
-        Dict[str, Union[str, int]]: A dictionary where keys are IBGE codes
-        and values are dictionaries containing the state name and total cases.
+        List[Dict[str, Union[str, int]]]: A list of dictionaries where each dictionary
+        has "name" for the state name and "value" for the total cases.
     """
     current_year = dt.now().year
-    results = {}
+    results = []
 
     # Calculate the maximum date for the given year for all states in a single query
     max_dates = (
@@ -86,9 +86,9 @@ def get_data() -> Dict[str, Union[str, int]]:
 
         if cached_data is not None:
             # Convert the state abbreviation to the IBGE code
-            ibge_code = uf_ibge_mapping[uf_abbv]["code"]
+            # ibge_code = uf_ibge_mapping[uf_abbv]["code"]
             state_name = uf_ibge_mapping[uf_abbv]["name"]
-            results[ibge_code] = {state_name: cached_data}
+            results.append({"name": state_name, "value": cached_data})
         else:
             uf_code = uf_ibge_mapping[uf_abbv]["code"]
             total_cases = (
@@ -101,11 +101,10 @@ def get_data() -> Dict[str, Union[str, int]]:
             )["total_cases"]
 
             # Convert the state abbreviation to the IBGE code
-            ibge_code = uf_ibge_mapping[uf_abbv]["code"]
+            # ibge_code = uf_ibge_mapping[uf_abbv]["code"]
             state_name = uf_ibge_mapping[uf_abbv]["name"]
-            results[ibge_code] = {state_name: total_cases}
+            results.append({"name": state_name, "value": total_cases})
 
-            # Cache the data with a reasonable timeout (e.g., 1 hour)
             cache.set(cache_key, total_cases, 3600)
 
     return results
