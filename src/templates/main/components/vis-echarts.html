@@ -105,7 +105,8 @@
             return item.value;
           }),
           universalTransition: true
-        }
+        },
+        responsive: true
       };
 
       let currentOption = mapOption;
@@ -116,6 +117,10 @@
         currentOption = currentOption === mapOption ? barOption : mapOption;
         myChart.setOption(currentOption, true);
       }, 3000);
+      // Resize the chart when the window is resized
+      window.addEventListener('resize', function() {
+        myChart.resize();
+      });
     });
   }
 </script>
