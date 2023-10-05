@@ -13,9 +13,8 @@ function clearAllInputs() {
     if (input.name !== 'page' && input.name !== 'per_page') {
       input.value = '';
     }
-    if (input.name == 'implementation_language') {
-      $(input).selectpicker('refresh') // #TODO Not working
-    }
+    const selectpickerElement = document.querySelector('.selectpicker');
+    selectpickerElement.selectedIndex = 0;
   });
 }
 
