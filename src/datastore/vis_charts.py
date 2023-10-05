@@ -107,4 +107,4 @@ def get_data() -> List[Dict[str, Union[str, int]]]:
 
             cache.set(cache_key, total_cases, 3600)
 
-    return results
+    return results, current_year
