@@ -42,7 +42,8 @@
       const mapOption = {
         title: {
           text: map_title,
-          left: 'center'
+          left: 'center',
+          padding: [20, 0, 0, 0]
         },
         visualMap: {
           min: min_total_cases,
@@ -55,11 +56,14 @@
             ]
           },
           text: ['High', 'Low'],
-          calculable: true
+          calculable: true,
+          orient: 'vertical',
+          top: '57%',
+          left: '10%', // set the vertical position of the legend to 90% of the container height
         },
         series: [
           {
-            id: 'population',
+            id: 'total_cases',
             type: 'map',
             roam: true,
             mapType: 'BR',
@@ -71,9 +75,13 @@
       };
 
       const barOption = {
+        grid: {
+          left: '15%'
+        },
         title: {
           text: chart_title,
-          left: 'center'
+          left: 'center',
+          padding: [20, 0, 0, 0] // adds margin-top
         },
         xAxis: {
           type: 'value'
@@ -81,8 +89,9 @@
         yAxis: {
           type: 'category',
           axisLabel: {
-            rotate: 0, 
+            rotate: 55, 
             interval: 0,
+            fontSize: 15,
           },
           data: br_data.map(function (item) {
             return item.name;
@@ -91,7 +100,7 @@
         animationDurationUpdate: 1000,
         series: {
           type: 'bar',
-          id: 'population',
+          id: 'total_cases',
           data: br_data.map(function (item) {
             return item.value;
           }),
