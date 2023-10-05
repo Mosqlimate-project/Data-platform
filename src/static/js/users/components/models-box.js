@@ -16,12 +16,7 @@ function handleModelClick(modelId) {
   cardElement.style.display = 'block';
   selectedModelId = modelId;
 
-  fetchModelData()
-    .then(modelData => {
-      updateModelModal(modelData);
-      deleteModelModal(modelData);
-    });
-
+  fetchModelData();
   displayCurlCommand();
   displayPythonCode();
 
@@ -43,6 +38,7 @@ function fetchModelData() {
       modelNameElement.textContent = data.name;
       modelDescriptionElement.textContent = data.description;
       modelLanguageElement.textContent = data.implementation_language.language;
+      console.log(data.implementation_language.language);
       modelTypeElement.textContent = data.type;
 
       const repositoryLink = document.createElement('a');
@@ -110,28 +106,4 @@ function changeTab(event, tabName) {
       content.style.display = 'none';
     }
   });
-}
-
-function updateModelModal(modelData) {
-  const updateModelLabel = document.getElementById('update-model-label');
-  const updateModelId = document.getElementById('update-model-id');
-  const updateModelName = document.getElementById('update-model-name');
-  const updateModelDesc = document.getElementById('update-model-desc');
-  const updateModelRepo = document.getElementById('update-model-repo');
-  const updateModelLang = document.getElementById('update-model-lang');
-  const updateModelType = document.getElementById('update-model-type');
-
-  updateModelLabel.textContent = "Update Model #" + modelData.id;
-  updateModelId.value = modelData.id;
-  updateModelName.value = modelData.name;
-  updateModelDesc.value = modelData.description;
-  updateModelRepo.value = modelData.repository;
-  updateModelLang.value = modelData.implementation_language.language;
-  updateModelType.value = modelData.type;
-}
-
-function deleteModelModal(modelData) {
-    const deleteModelId = document.getElementById('delete-model-id');
-
-    deleteModelId.value = modelData.id;
 }
