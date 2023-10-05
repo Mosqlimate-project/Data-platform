@@ -177,3 +177,4 @@ tests/report/
 data/
 */staticfiles/
 */media/
+*cache/

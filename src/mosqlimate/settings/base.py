@@ -129,6 +129,19 @@ DATABASE_ROUTERS = (
 # 2 Factor Authentication (allauth)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
+##
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": f"{BASE_DIR.parent}/djangocache",
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,  # Adjust as needed
+            "CULL_FREQUENCY": 10,  # Adjust as needed
+        },
+    }
+}
+
+
 SOCIALACCOUNT_PROVIDERS = {
     "github": {
         "VERIFIED_EMAIL": True,
