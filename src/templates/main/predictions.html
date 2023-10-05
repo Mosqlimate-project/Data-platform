@@ -15,6 +15,7 @@
 
   <div class="container">
     <form method="get" action={% url 'predictions' %}>
+      <input type="hidden" class="form-control" name="per_page" value="{{ pagination.per_page|default_if_none:50 }}" min="1" max="50">
       <div class="p-2 collapse" id="modelCollapse">
 
         <div class="row mb-3 model-row">
@@ -78,7 +79,7 @@
             <div class="input-container">
               <div class="input-group">
                 <select class="form-select selectpicker" name="implementation_language">
-                  <option value="" selected disabled>Implementation language</option>
+                  <option value="" style="color: grey;">Implementation language</option>
                   {% for language in implementation_languages %}
                   <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
                   {% endfor %}
@@ -139,27 +140,20 @@
     </div>
 
     <div class="d-flex justify-content-between">
-      <p class="me-auto mt-auto mb-0 small">
+      <p class="mb-0 small">
         {% if pagination.total_items == 1 %}
           1 prediction
         {% else %}
           {{ pagination.total_items }} predictions
         {% endif %}
       </p>
-      <p class="my-auto mt-auto mb-0 small">{{ api_url }}</p>
+      <p class="ml-auto mb-0 small api-url">{{ api_url }}</p>
     </div>
 
     <hr>
 
-    <div class="d-flex">
-      <div class="col per-page-col d-flex">
-        <span>Showing</span>
-        <div class="col-auto">
-          <input type="number" class="form-control" name="per_page" value="{{ pagination.per_page }}" min="1" max="50">
-        </div>
-        <span>predictions per page</span>
-      </div>
-      <p class="me-auto mt-auto mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
+    <div class="d-flex justify-content-center">
+        <p class="mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
     </div>
   </div>
   {% else %}
