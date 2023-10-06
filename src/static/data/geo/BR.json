@@ -7343,10 +7343,11 @@
       "type": "Feature",
       "properties": {
         "id": 9,
-        "name": "Goias",
+        "name": "Goiás",
         "sigla": "GO",
         "regiao_id": "5",
         "codigo_ibg": "52"
+
       },
       "geometry": {
         "type": "MultiPolygon",
