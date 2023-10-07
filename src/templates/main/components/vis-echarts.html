@@ -1,27 +1,14 @@
-<!-- src/templates/main/components/vis-echarts.html -->
-
 {% load static %}
-
-<style>
-  /* Add CSS for the floating window */
-  .floating-window {
-    margin-top: 20px;
-    width: 100%;
-    height: 800px;
-    background-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    overflow: auto;
-  }
-</style>
-
-<!-- Start Component -->
 {% block vis_echarts %}
-<div class="floating-window" id="floatingWindow" style="width: 100%; height: calc(100vw * 0.7);"></div>
+<div class="floating-window-container" style="box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
+  <div class="floating-window" id="floatingWindow" style="height: 600px;"></div>
+</div>
 <script type="text/javascript">
-  // Initialize ECharts
+/**
+ * Initialize and configure ECharts chart.
+ */
+function initializeEChart() {
   var myChart = echarts.init(document.getElementById('floatingWindow'));
-
   const blueVioletPalette = [
     '#cddcf9',
     '#4169E1',
@@ -50,6 +37,9 @@
       });
 
       const mapOption = {
+        grid: {
+          top: '55%'
+        },
         title: {
           text: map_title,
           left: 'center',
@@ -75,7 +65,7 @@
             type: 'map',
             roam: true,
             mapType: 'BR',
-            animationDurationUpdate: 2000,
+            animationDurationUpdate: 1000,
             universalTransition: true,
             data: br_data,
           }
@@ -89,17 +79,20 @@
         title: {
           text: chart_title,
           left: 'center',
-          padding: [20, 0, 0, 0] // adds margin-top
+          padding: [20, 0, 0, 0]
         },
         xAxis: {
-          type: 'value'
+          type: 'value',
+          axisLabel: {
+            fontSize: 12 // adjust font size for smaller screens
+          }
         },
         yAxis: {
           type: 'category',
           axisLabel: {
             rotate: 55, 
             interval: 0,
-            fontSize: 15,
+            fontSize: 12 // adjust font size for smaller screens
           },
           data: br_data.map(function (item) {
             return item.name;
@@ -117,6 +110,7 @@
             position: 'right',
             formatter: '{c}'
           },
+          color: blueVioletPalette[6],
           universalTransition: true
         },
         responsive: true
@@ -129,12 +123,19 @@
       setInterval(function () {
         currentOption = currentOption === mapOption ? barOption : mapOption;
         myChart.setOption(currentOption, true);
-      }, 5000);
+      }, 4000);
+
       // Resize the chart when the window is resized
       window.addEventListener('resize', function() {
         myChart.resize();
       });
     });
   }
+}
+
+// Call the initialize function when the document is ready
+$(document).ready(function() {
+  initializeEChart();
+});
 </script>
 {% endblock %}
