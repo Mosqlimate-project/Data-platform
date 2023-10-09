@@ -1,8 +1,11 @@
 {% load static %}
+
 {% block vis_echarts %}
+
 <div class="floating-window-container" style="box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
-  <div class="floating-window" id="floatingWindow" style="height: 600px;"></div>
+  <div class="floating-window" id="floatingWindow" style="height: 650px; width: 100%;" div>
 </div>
+
 <script type="text/javascript">
 /**
  * Initialize and configure ECharts chart.
@@ -23,7 +26,8 @@ function initializeEChart() {
     $.get("{% static 'data/geo/BR.json' %}", function (brJson) {
       // Log the loaded geographic data
       myChart.hideLoading();
-      echarts.registerMap('BR', brJson);
+      // echarts.registerMap('BR', brJson);
+      echarts.registerMap('BR', {geoJSON: brJson});
 
       var br_data = {{ br_data|safe }};
       
@@ -37,8 +41,10 @@ function initializeEChart() {
       });
 
       const mapOption = {
+        width: '512px',
+        height: '529px',
         grid: {
-          top: '55%'
+          top: '0%'
         },
         title: {
           text: map_title,
@@ -46,6 +52,7 @@ function initializeEChart() {
           padding: [20, 0, 0, 0]
         },
         visualMap: {
+          left: 'right',
           min: min_total_cases,
           max: max_total_cases,
           inRange: {
@@ -56,8 +63,8 @@ function initializeEChart() {
           text: ['High', 'Low'],
           calculable: true,
           orient: 'vertical',
-          top: '57%',
-          left: '10%',
+          top: '25%',
+          left: '80%',
         },
         series: [
           {
@@ -73,18 +80,21 @@ function initializeEChart() {
       };
 
       const barOption = {
+        width: '80%',
+        height: '80%',
         grid: {
-          left: '15%'
+          left: '10%'
         },
         title: {
           text: chart_title,
           left: 'center',
-          padding: [20, 0, 0, 0]
+          padding: [20, 0, 0, 0],
+          fontSize: 18,
         },
         xAxis: {
           type: 'value',
           axisLabel: {
-            fontSize: 12 // adjust font size for smaller screens
+            fontSize: 14
           }
         },
         yAxis: {
@@ -92,7 +102,8 @@ function initializeEChart() {
           axisLabel: {
             rotate: 55, 
             interval: 0,
-            fontSize: 12 // adjust font size for smaller screens
+            fontSize: 13,
+            padding: [0, 0, 0, 0], 
           },
           data: br_data.map(function (item) {
             return item.name;
@@ -108,12 +119,15 @@ function initializeEChart() {
           label: {
             show: true,
             position: 'right',
-            formatter: '{c}'
+            formatter: '{c}',
+            // fontWeight: 'bold',
+            fontSize: 13,
           },
-          color: blueVioletPalette[6],
+          color: blueVioletPalette[6], // ['#83b861']
           universalTransition: true
         },
-        responsive: true
+        responsive: true,
+        maintainAspectRatio: false
       };
 
       let currentOption = mapOption;
@@ -138,4 +152,5 @@ $(document).ready(function() {
   initializeEChart();
 });
 </script>
+
 {% endblock %}
