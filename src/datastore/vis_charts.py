@@ -105,6 +105,6 @@ def get_data() -> List[Dict[str, Union[str, int]]]:
             state_name = uf_ibge_mapping[uf_abbv]["name"]
             results.append({"name": state_name, "value": total_cases})
 
-            cache.set(cache_key, total_cases, 3600)
+            cache.set(cache_key, total_cases, 86400)
 
     return results, current_year
