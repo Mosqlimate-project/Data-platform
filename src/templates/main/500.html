@@ -1,5 +1,64 @@
 {% extends 'main/base.html' %}
-{% block title %}Server error{% endblock %}
+
 {% block content %}
-<h1>Something went wrong</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}Something went wrong{% endblock %}</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .content {
+      flex: 1;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    h1 {
+      color: #ff0000;
+      font-size: 36px;
+    }
+
+    p {
+      color: #000000;
+      font-size: 18px;
+    }
+
+    .image-container {
+      flex: 1;
+      display: flex;
+      justify-content: center; /* Center the image horizontally */
+      align-items: center; /* Center the image vertically */
+      overflow: hidden;
+      height: 100%;
+    }
+
+    img {
+      max-width: 100%; /* Make the image slightly larger, adjust as needed */
+      height: auto; /* Maintain aspect ratio */
+      object-fit: cover; /* Crop the image */
+      margin-right: -20%; /* Crop the right side of the image */
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>Something went wrong.</h1>
+    <p>500. That's the error</p>
+    <p>The server encountered an error and could not complete your request.</p>
+    <p>If the problem persists, please contact us and mention this error message.</p>
+  </div>
+  <div class="image-container">
+    <img src=https://blog.hubspot.com/hs-fs/hubfs/http-error-500-google.webp?width=975&height=693&name=http-error-500-google.webp>
+  </div>
+</body>
+</html>
 {% endblock %}
