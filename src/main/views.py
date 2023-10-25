@@ -359,4 +359,4 @@ def error_404(request, *args, **kwargs):
 
 
 def error_500(request, *args, **kwargs):
-    return render(request, "main/505.html", {}, status=500)
+    return render(request, "main/500.html", {}, status=500)
