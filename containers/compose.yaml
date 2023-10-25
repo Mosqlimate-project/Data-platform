@@ -26,6 +26,9 @@ services:
       postgres:
         condition: service_healthy
     command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
+    networks:
+      # - infodengue-prod_infodengue
+      - infodengue-dev_infodengue
 
   postgres:
     hostname: postgres
@@ -77,3 +80,10 @@ services:
       - "--dev-addr=0.0.0.0:8000"
       - "--config-file"
       - "./mkdocs.yml"
+
+networks:
+  infodengue-prod_infodengue:
+    external: true
+
+  infodengue-dev_infodengue:
+    external: true

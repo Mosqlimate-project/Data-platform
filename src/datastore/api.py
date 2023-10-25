@@ -4,8 +4,9 @@ from typing import List, Literal, Optional
 from ninja import Router, Query
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
+from django.db.utils import OperationalError
 
-from main.schema import NotFoundSchema
+from main.schema import NotFoundSchema, InternalErrorSchema
 from main.utils import UFs
 from registry.pagination import PagesPagination
 from .models import (
@@ -32,7 +33,11 @@ paginator.max_per_page = 100
 
 @router.get(
     "/historico_alerta/",
-    response={200: List[HistoricoAlertaSchema], 404: NotFoundSchema},
+    response={
+        200: List[HistoricoAlertaSchema],
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -52,14 +57,17 @@ def get_historico_alerta(
 ):
     disease = disease.lower()
 
-    if disease in ["chik", "chikungunya"]:
-        data = HistoricoAlertaChik.objects.using("infodengue").all()
-    elif disease in ["deng", "dengue"]:
-        data = HistoricoAlerta.objects.using("infodengue").all()
-    elif disease == "zika":
-        data = HistoricoAlertaZika.objects.using("infodengue").all()
-    else:
-        return 404, {"message": "Unknown disease. Options: dengue, zika, chik"}
+    try:
+        if disease in ["chik", "chikungunya"]:
+            data = HistoricoAlertaChik.objects.using("infodengue").all()
+        elif disease in ["deng", "dengue"]:
+            data = HistoricoAlerta.objects.using("infodengue").all()
+        elif disease == "zika":
+            data = HistoricoAlertaZika.objects.using("infodengue").all()
+        else:
+            return 404, {"message": "Unknown disease. Options: dengue, zika, chik"}
+    except OperationalError:
+        return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
         uf = uf.upper()
@@ -79,7 +87,11 @@ def get_historico_alerta(
 
 @router.get(
     "/copernicus_brasil/",
-    response={200: List[CopernicusBrasilSchema], 404: NotFoundSchema},
+    response={
+        200: List[CopernicusBrasilSchema],
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -96,7 +108,10 @@ def get_copernicus_brasil(
     # fmt: on
     **kwargs,
 ):
-    data = CopernicusBrasil.objects.using("infodengue").all()
+    try:
+        data = CopernicusBrasil.objects.using("infodengue").all()
+    except OperationalError:
+        return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
         uf = uf.upper()
@@ -116,7 +131,11 @@ def get_copernicus_brasil(
 
 @router.post(
     "/contaovos/",
-    response={200: List[ContaOvosSchema], 404: NotFoundSchema},
+    response={
+        200: List[ContaOvosSchema],
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
     tags=["datastore", "contaovos"],
 )
 @csrf_exempt
@@ -127,4 +146,6 @@ def get_contaovos(request, key: str, page: int):
 
     if response.status_code == 200:
         return 200, [ContaOvosSchema(**i) for i in response.json()]
+    elif response.status_code == 500:
+        return 500, {"message": "Internal error. Please contact the moderation"}
     return 404, {"message": response.json()}
