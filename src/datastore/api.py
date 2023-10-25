@@ -1,3 +1,4 @@
+import requests
 from typing import List, Literal, Optional
 
 from ninja import Router, Query
@@ -19,6 +20,7 @@ from .schema import (
     HistoricoAlertaFilterSchema,
     CopernicusBrasilSchema,
     CopernicusBrasilFilterSchema,
+    ContaOvosSchema,
 )
 
 
@@ -110,3 +112,19 @@ def get_copernicus_brasil(
 
     data = filters.filter(data)
     return data
+
+
+@router.post(
+    "/contaovos/",
+    response={200: List[ContaOvosSchema], 404: NotFoundSchema},
+    tags=["datastore", "contaovos"],
+)
+@csrf_exempt
+def get_contaovos(request, key: str, page: int):
+    url = "https://contaovos.dengue.mat.br/pt-br/api/lastcounting"
+    data = {"key": key, "page": page}
+    response = requests.post(url, data=data, timeout=20)
+
+    if response.status_code == 200:
+        return 200, [ContaOvosSchema(**i) for i in response.json()]
+    return 404, {"message": response.json()}

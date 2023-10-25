@@ -61,6 +61,27 @@ class CopernicusBrasilSchema(Schema):
     umid_max: float
 
 
+class ContaOvosSchema(Schema):
+    """https://contaovos.dengue.mat.br"""
+
+    complement: str
+    district: str
+    eggs: int
+    latitude: float
+    loc_inst: str
+    longitude: float
+    municipality: str
+    number: str
+    ovitrap_id: str
+    ovitrap_website_id: int
+    sector: Optional[str]
+    street: str
+    time: str
+    user: str
+    week: int
+    year: int
+
+
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 
