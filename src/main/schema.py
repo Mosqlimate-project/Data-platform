@@ -17,3 +17,9 @@ class NotFoundSchema(Schema):
     """404"""
 
     message: str
+
+
+class InternalErrorSchema(Schema):
+    """500"""
+
+    message: str

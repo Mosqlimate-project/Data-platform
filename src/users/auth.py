@@ -26,6 +26,7 @@ class UidKeyAuth(APIKeyHeader):
         """Searches for the User with the exact pair"""
         try:
             User.objects.get(username=uid, uuid=key)
+            return True
         except (User.DoesNotExist, ValidationError):
             return False
-        return True
+        return False

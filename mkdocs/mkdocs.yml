@@ -108,6 +108,8 @@ nav:
     - "GET":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
+    - "POST":
+      - "ContaOvos API": "datastore/POST/contaovos.md"
   - "Utils":
     - "Async requests": "utils/AsyncRequests.ipynb"
   - "Back to API": "https://api.mosqlimate.org/"

@@ -107,7 +107,7 @@ DATABASES = {
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": "postgres",
+        "HOST": "mosqlimate-postgres",
         "PORT": DEFAULT_URI.port,
     },
     "infodengue": {
