@@ -27,11 +27,12 @@ services:
         condition: service_healthy
     command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
     networks:
+      - mosqlimate
       # - infodengue-prod_infodengue
       - infodengue-dev_infodengue
 
   postgres:
-    hostname: postgres
+    hostname: mosqlimate-postgres
     restart: unless-stopped
     build:
       context: ..
@@ -60,6 +61,8 @@ services:
       timeout: 5s
       retries: 10
     command: -p ${POSTGRES_PORT}
+    networks:
+      - mosqlimate
 
   documentation:
     hostname: docs
@@ -80,8 +83,13 @@ services:
       - "--dev-addr=0.0.0.0:8000"
       - "--config-file"
       - "./mkdocs.yml"
+    networks:
+      - mosqlimate
 
 networks:
+  mosqlimate:
+    driver: bridge
+
   infodengue-prod_infodengue:
     external: true
 
