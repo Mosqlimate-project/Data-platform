@@ -3,3 +3,7 @@
 .font-golos {
   font-family: 'Golos Text', sans-serif;
 }
+
+html {
+  overflow-y: scroll;
+}
