@@ -69,7 +69,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
 === "curl"
     ```sh
     curl -X 'POST' \
-    'https://api.mosqlimate.org/api/datastore/contaovos/?key=contaovos-api-key&page=50' \
+    'https://api.mosqlimate.org/api/datastore/contaovos/?key=contaovos-api-key&page=1' \
     -H 'accept: application/json' \
     -d ''
     ```
