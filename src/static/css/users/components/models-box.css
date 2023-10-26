@@ -80,8 +80,12 @@ pre {
 .info-tab-item {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
-  gap: .5em;
+  justify-content: center;
+  padding-bottom: 2%;
+}
+
+.info-tab-item-var {
+  font-size: small;
 }
 
 #info-tab, 
