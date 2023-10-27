@@ -1,4 +1,4 @@
-`api/datastore/contaovos/` is the API call that retrieves information from [Contaovos](https://contaovos.dengue.mat.br/pt-br/api/) API.
+`api/datastore/contaovos/` is the API call that retrieves information from [Contaovos API](https://contaovos.dengue.mat.br/pt-br/api/).
 The request requires an API key provided by Contaovos moderation. To more information, please access
 [Contaovos website](https://contaovos.dengue.mat.br/pt-br/).
 
@@ -42,7 +42,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
     page = 1
     parameters = f"?page={page}&key={key}&"
 
-    resp = requests.post(contaovos_api + parameters)
+    resp = requests.get(contaovos_api + parameters)
 
     items = resp.json() # JSON data in dict format
     ```
@@ -57,7 +57,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
     page <- 1
 
     url <- paste0(contaovos_api, "?page=", page, "&key=", key)
-    resp <- POST(url)
+    resp <- GET(url)
 
     if (http_type(resp) == "application/json") {
       items <- content(resp, "parsed")
@@ -68,7 +68,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
 
 === "curl"
     ```sh
-    curl -X 'POST' \
+    curl -X 'GET' \
     'https://api.mosqlimate.org/api/datastore/contaovos/?key=contaovos-api-key&page=1' \
     -H 'accept: application/json' \
     -d ''

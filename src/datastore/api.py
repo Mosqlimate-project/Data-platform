@@ -129,7 +129,7 @@ def get_copernicus_brasil(
     return data
 
 
-@router.post(
+@router.get(
     "/contaovos/",
     response={
         200: List[ContaOvosSchema],
@@ -141,11 +141,13 @@ def get_copernicus_brasil(
 @csrf_exempt
 def get_contaovos(request, key: str, page: int):
     url = "https://contaovos.dengue.mat.br/pt-br/api/lastcounting"
-    data = {"key": key, "page": page}
-    response = requests.post(url, data=data, timeout=20)
+    params = {"key": key, "page": page}
+    response = requests.get(url, params=params, timeout=20)
 
     if response.status_code == 200:
         return 200, [ContaOvosSchema(**i) for i in response.json()]
-    elif response.status_code == 500:
+
+    if response.status_code == 500:
         return 500, {"message": "Internal error. Please contact the moderation"}
+
     return 404, {"message": response.json()}
