@@ -129,7 +129,7 @@ def get_copernicus_brasil(
     return data
 
 
-@router.post(
+@router.get(
     "/contaovos/",
     response={
         200: List[ContaOvosSchema],
@@ -142,7 +142,7 @@ def get_copernicus_brasil(
 def get_contaovos(request, key: str, page: int):
     url = "https://contaovos.dengue.mat.br/pt-br/api/lastcounting"
     data = {"key": key, "page": page}
-    response = requests.post(url, data=data, timeout=20)
+    response = requests.get(url, data=data, timeout=20)
 
     if response.status_code == 200:
         return 200, [ContaOvosSchema(**i) for i in response.json()]
