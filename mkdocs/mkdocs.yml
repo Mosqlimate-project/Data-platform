@@ -93,23 +93,22 @@ extra:
 nav:
   - "Home": 
     - "Getting Started": "index.md"
-  - "Registry":
+  - "Model Registry":
     - "Registry API": "registry/index.md"
-    - "GET":
+    - "Retrieve":
       - "Authors": "registry/GET/authors.md"
       - "Models": "registry/GET/models.md"
       - "Predictions": "registry/GET/predictions.md"
-    - "POST":
+    - "Insert":
       - "X-UID-Key Token": "registry/POST/uid-key.md"
       - "Models": "registry/POST/models.md"
       - "Predictions": "registry/POST/predictions.md"
   - "Datastore":
     - "Datastore API": "datastore/index.md"
-    - "GET":
+    - "Retrieve":
       - "Histórico Alerta": "datastore/GET/historico_alerta.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
-    - "POST":
-      - "ContaOvos API": "datastore/POST/contaovos.md"
+      - "ContaOvos API": "datastore/GET/contaovos.md"
   - "Utils":
     - "Async requests": "utils/AsyncRequests.ipynb"
   - "Back to API": "https://api.mosqlimate.org/"
