@@ -1,18 +1,18 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
-{% block title %}Edit prediction #{{prediction.id}}{% endblock %}
+{% block title %}{% translate "Edit prediction" %} #{{prediction.id}}{% endblock %}
 {% block content %}
 
 {% if user.is_authenticated %}
 <div class="container edit-prediction shadow p-5 mb-3 bg-body rounded font-golos">
-    <legend>Edit prediction #{{prediction.id}}</legend>
+    <legend>{% translate "Edit prediction" %} #{{prediction.id}}</legend>
     <form method="post" id="editPredicionForm" action="{% url 'edit-prediction' prediction_id=prediction.id %}">
         {% csrf_token %}
         <div class="container shadow p-5 mb-3 bg-body rounded">
             <div class="row mb-3">
                 <div class="col">
-                    <label for="prediction_model">Model:</label>
+                    <label for="prediction_model">{% translate "Model" %}:</label>
                     <select class="form-select selectpicker" name="prediction_model">
                       {% for model in user_models %}
                       <option value="{{ model.id }}"{% if model == prediction.model %}selected{% endif %}>{{ model.name }}</option>
@@ -24,23 +24,24 @@
                     <input type="text" id="edit-predict-commit" name="prediction_commit" value="{{ prediction.commit|default_if_none:prediction.commit }}" class="form-control" maxlength="100" placeholder="fd3ec908a88c3ed909b6a7c47cfd4fb48972516d" required>
                 </div>
                 <div class="col">
-                    <label for="prediction_date">Prediction date:</label>
+                    <label for="prediction_date">{% translate "Prediction date" %}:</label>
                     <input id="edit-predict-date" name="prediction_date" class="form-control" type="date", value="{{ prediction.predict_date|date:'Y-m-d'|default_if_none:prediction.predict_date }}" required>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="prediction_description">Description:</label>
+                    <label for="prediction_description">{% translate "Description" %}:</label>
                     <textarea rows="5" id="edit-predict-desc" name="prediction_description" class="form-control" maxlength="500" placeholder="Prediction description" value="{{ prediction.description|default_if_none:prediction.description }}">{{ prediction.description }}</textarea>
                 </div>
             </div>
         </div>
         <div class="row justify-content-between">
             <div class="col-auto">
-                <a data-bs-toggle="modal" data-bs-target="#delete-prediction" name="delete_prediction" class="btn btn-outline-danger">Delete prediction</a>
+                <a data-bs-toggle="modal" data-bs-target="#delete-prediction"
+                    name="delete_prediction" class="btn btn-outline-danger">{% translate "Delete prediction" %}</a>
             </div>
             <div class="col-auto">
-                <button type="submit" name="save_prediction" class="btn btn-primary">Save changes</button>
+                <button type="submit" name="save_prediction" class="btn btn-primary">{% translate "Save changes" %}</button>
             </div>
         </div>
     </form>
@@ -52,15 +53,15 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="delete-prediction-label">Delete prediction #{{prediction.id}}?</h5>
+        <h5 class="modal-title" id="delete-prediction-label">{% translate "Delete prediction" %} #{{prediction.id}}?</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="post" id="deletePredictionForm" action="{% url 'edit-prediction' prediction_id=prediction.id %}">
         <input type="hidden" id="update-predict-id" name="prediction_id" value="{{ prediction.id }}">
         {% csrf_token %}
         <div class="modal-body">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" name="delete_prediction" class="btn btn-danger">Delete</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" name="delete_prediction" class="btn btn-danger">{% translate "Delete" %}</button>
         </div>
       </form>
     </div>

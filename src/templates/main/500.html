@@ -1,5 +1,8 @@
 {% extends 'main/base.html' %}
-{% block title %}Server error{% endblock %}
+{% load i18n %}
+
+{% block title %}{% translate "Server error" %}{% endblock %}
+
 {% block content %}
-<h1>Something went wrong</h1>
+<h1>{% translate "Something went wrong" %}</h1>
 {% endblock %}

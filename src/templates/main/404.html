@@ -1,5 +1,8 @@
 {% extends 'main/base.html' %}
-{% block title %}Page Not Found{% endblock %}
+{% load i18n %}
+
+{% block title %}{% translate "Page Not Found" %}{% endblock %}
+
 {% block content %}
-<h1>Page Not Found</h1>
+<h1>{% translate "Page Not Found" %}</h1>
 {% endblock %}

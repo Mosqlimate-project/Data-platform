@@ -1,11 +1,13 @@
 {% extends 'main/base.html' %}
 {% load models_components %}
 {% load static %}
-{% block title %}Models{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Models" %}{% endblock %}
 
 {% block content %}
 <div class="container models shadow p-5 mb-3 bg-body rounded font-golos">
-    <center><h1>Models</h1></center>
+    <center><h1>{% trans "Models" %}</h1></center>
 
     <div class="d-grid gap-2">
         <button class="btn btn-primary lg-3 btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#modelCollapse">

@@ -205,6 +205,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = [str(BASE_DIR / "templates" / "locale")]
+
+LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/

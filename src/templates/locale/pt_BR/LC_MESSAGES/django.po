@@ -1,0 +1,171 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-30 11:52-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/templates/account/messages/logged_in.txt:4
+#, python-format
+msgid "Successfully signed in as %(name)s."
+msgstr ""
+
+#: src/templates/account/messages/logged_out.txt:2
+msgid "You have signed out."
+msgstr ""
+
+#: src/templates/main/404.html:4 src/templates/main/404.html:7
+msgid "Page Not Found"
+msgstr ""
+
+#: src/templates/main/500.html:4
+msgid "Server error"
+msgstr ""
+
+#: src/templates/main/500.html:7
+msgid "Something went wrong"
+msgstr ""
+
+#: src/templates/main/about.html:4
+msgid "About"
+msgstr ""
+
+#: src/templates/main/about.html:7
+msgid "About Mosqlimate"
+msgstr ""
+
+#: src/templates/main/edit-model.html:5 src/templates/main/edit-model.html:10
+msgid "Edit model"
+msgstr ""
+
+#: src/templates/main/edit-model.html:16
+msgid "Model Name"
+msgstr ""
+
+#: src/templates/main/edit-model.html:22
+#: src/templates/main/edit-prediction.html:33
+msgid "Description"
+msgstr ""
+
+#: src/templates/main/edit-model.html:24
+msgid "Model description"
+msgstr ""
+
+#: src/templates/main/edit-model.html:29
+msgid "Github Repository"
+msgstr ""
+
+#: src/templates/main/edit-model.html:35
+msgid "Type"
+msgstr ""
+
+#: src/templates/main/edit-model.html:39
+msgid "Implementation language"
+msgstr ""
+
+#: src/templates/main/edit-model.html:52 src/templates/main/edit-model.html:67
+msgid "Delete model"
+msgstr ""
+
+#: src/templates/main/edit-model.html:55
+#: src/templates/main/edit-prediction.html:44
+msgid "Save changes"
+msgstr ""
+
+#: src/templates/main/edit-model.html:74
+#: src/templates/main/edit-prediction.html:63
+msgid "Cancel"
+msgstr ""
+
+#: src/templates/main/edit-model.html:75
+#: src/templates/main/edit-prediction.html:64
+msgid "Delete"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:4
+#: src/templates/main/edit-prediction.html:9
+msgid "Edit prediction"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:15
+msgid "Model"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:27
+msgid "Prediction date"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:41
+#: src/templates/main/edit-prediction.html:56
+msgid "Delete prediction"
+msgstr ""
+
+#: src/templates/main/home.html:5
+msgid "Home"
+msgstr ""
+
+#: src/templates/main/home.html:9
+msgid "Mosqlimate Data API"
+msgstr ""
+
+#: src/templates/main/home.html:11
+msgid ""
+"\n"
+"      This platform makes available data to be used in the forecast of "
+"Arbovirus diseases in Brazil. It also serves as an open registry of <a "
+"href=\"https://api.mosqlimate.org/models/\">forecasting models</a> for such "
+"diseases in Brazil. Relevant climate data is also made available to help "
+"include climate influence into the modeling.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/home.html:16
+msgid ""
+"\n"
+"      Currently, only data for dengue and chikungunya are available through "
+"this platform. More datasets will be made available in time. All the data "
+"made available are in the public domain and are official data made available "
+"by the Brazilian Ministry of Health.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/home.html:21
+msgid ""
+"\n"
+"      The purpose of this platform is to enhance the comparability of "
+"forecasting models by making it possible for all models to learn from the "
+"same data. The model registry is open to anyone willing to contribute but "
+"will require creating a user account first. The Mosqlimate project reserves "
+"the right to curate the model collection and decide which one to make "
+"available through the platform.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/models.html:6 src/templates/main/models.html:10
+msgid "Models"
+msgstr ""
+
+#: src/users/models.py:14
+msgid "The Email must be set"
+msgstr ""
+
+#: src/users/models.py:27
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: src/users/models.py:29
+msgid "Superuser must have is_superuser=True."
+msgstr ""
