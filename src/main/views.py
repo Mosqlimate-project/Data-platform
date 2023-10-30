@@ -45,7 +45,7 @@ def about(response):
 
 
 def docs(response):
-    return render(response, "main/docs/index.html", {})
+    return redirect("http://0.0.0.0:8043/", code=302)
 
 
 class ModelsView(View):

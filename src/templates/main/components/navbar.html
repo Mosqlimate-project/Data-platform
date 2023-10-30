@@ -1,5 +1,6 @@
 {% load socialaccount %}
 {% load static %}
+{% load i18n %}
 
 <div id="predictions-url" data-base-url="{% url 'predictions' %}"></div>
 
@@ -16,25 +17,25 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'home' %}">Home</a>
+          <a class="nav-link" aria-current="page" href="{% url 'home' %}">{% trans 'Home' %}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'about' %}">About</a>
+          <a class="nav-link" aria-current="page" href="{% url 'about' %}">{% trans 'About' %}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'docs' %}">Documentation</a>
+          <a class="nav-link" aria-current="page" href="{% url 'docs' %}">{% trans 'Documentation' %}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'api-1:openapi-view' %}">API Demo</a>
+          <a class="nav-link" aria-current="page" href="{% url 'api-1:openapi-view' %}">{% trans 'API Demo' %}</a>
         </li>
         <li class="nav-item">
           <div class="nav-link disabled">|</div>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'models' %}">Models</a>
+          <a class="nav-link" aria-current="page" href="{% url 'models' %}">{% trans 'Models' %}</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{% url 'predictions' %}">Predictions</a>
+          <a class="nav-link" aria-current="page" href="{% url 'predictions' %}">{% trans 'Predictions' %}</a>
         </li>
       </ul>
       <!-- Navbar User & Login/out -->
@@ -52,14 +53,14 @@
             {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
             {% endif %}
-            <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">logout</a>
+            <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">{% trans 'logout' %}</a>
           </form>
         </li>
         {% else %}
         <li class="nav-item">
           <form method="post" action="{% provider_login_url "github" %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary me-auto" role="button">Login with Github</i></button>
+            <button type="submit" class="btn btn-primary me-auto" role="button">{% trans 'Login with Github' %}</i></button>
           </form>
           {% endif %}
         </li>

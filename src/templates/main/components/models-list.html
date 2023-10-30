@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 {% load components %}
 {% load profile_components %}
 {% load models_components %}
@@ -10,24 +11,24 @@
       <p class="mb-1 fw-bold id">ID</p>
     </div>
     <div class="col-1" style="padding-left: 0;">
-      <p class="mb-1 fw-bold lang">Lang</p>
+      <p class="mb-1 fw-bold lang">{% trans 'Lang' %}</p>
     </div>
     <div class="col-4">
-      <p class="mb-1 fw-bold name">Name</p>
+      <p class="mb-1 fw-bold name">{% trans 'Name' %}</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 fw-bold author">Author</p>
+      <p class="mb-1 fw-bold author">{% trans 'Author' %}</p>
     </div>
     <div class="col-2">
-      <p class="mb-1 fw-bold repository">Repository</p>
+      <p class="mb-1 fw-bold repository">{% trans 'Repository' %}</p>
     </div>
     <div class="col-3 badge-container">
-      <span class="badge created-date bg-primary rounded-pill">Created</span>
-      <span class="badge type bg-primary rounded-pill">Type</span>
+      <span class="badge created-date bg-primary rounded-pill">{% trans 'Created' %}</span>
+      <span class="badge type bg-primary rounded-pill">{% trans 'Type' %}</span>
     </div>
     <hr style="margin-top:5px;">
     <div class="col-10" style="padding-left: 10px;">
-      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">Description</p>
+      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">{% trans 'Description' %}</p>
     </div>
   </div>
   {% for model in models %}
