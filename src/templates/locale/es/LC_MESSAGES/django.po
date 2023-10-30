@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 17:31-0300\n"
+"POT-Creation-Date: 2023-10-30 18:45-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: src/templates/account/messages/logged_in.txt:4
 #, python-format
 msgid "Successfully signed in as %(name)s."
@@ -53,6 +54,8 @@ msgstr ""
 
 #: src/templates/main/components/models-list.html:17
 #: src/templates/main/models.html:30
+#: src/templates/users/components/models-box.html:17
+#: src/templates/users/components/models-box.html:85
 msgid "Name"
 msgstr ""
 
@@ -63,6 +66,8 @@ msgstr ""
 
 #: src/templates/main/components/models-list.html:23
 #: src/templates/main/components/predictions-list.html:23
+#: src/templates/users/components/models-box.html:23
+#: src/templates/users/components/models-box.html:93
 msgid "Repository"
 msgstr ""
 
@@ -74,13 +79,16 @@ msgstr ""
 #: src/templates/main/components/predictions-list.html:27
 #: src/templates/main/edit-model.html:35 src/templates/main/models.html:37
 #: src/templates/main/predictions.html:39
+#: src/templates/users/components/models-box.html:20
+#: src/templates/users/components/models-box.html:101
 msgid "Type"
 msgstr ""
 
 #: src/templates/main/components/models-list.html:31
 #: src/templates/main/components/predictions-list.html:32
 #: src/templates/main/edit-model.html:22
-#: src/templates/main/edit-prediction.html:33
+#: src/templates/main/edit-prediction.html:34
+#: src/templates/users/components/models-box.html:89
 msgid "Description"
 msgstr ""
 
@@ -98,11 +106,15 @@ msgstr ""
 
 #: src/templates/main/components/navbar.html:35
 #: src/templates/main/models.html:6 src/templates/main/models.html:10
+#: src/templates/users/profile.html:56
 msgid "Models"
 msgstr ""
 
 #: src/templates/main/components/navbar.html:38
 #: src/templates/main/predictions.html:5 src/templates/main/predictions.html:9
+#: src/templates/users/components/models-box.html:29
+#: src/templates/users/components/models-box.html:76
+#: src/templates/users/profile.html:65
 msgid "Predictions"
 msgstr ""
 
@@ -153,35 +165,37 @@ msgid "Delete model"
 msgstr ""
 
 #: src/templates/main/edit-model.html:55
-#: src/templates/main/edit-prediction.html:44
+#: src/templates/main/edit-prediction.html:45
 msgid "Save changes"
 msgstr ""
 
 #: src/templates/main/edit-model.html:74
-#: src/templates/main/edit-prediction.html:63
+#: src/templates/main/edit-prediction.html:64
+#: src/templates/users/profile.html:130
 msgid "Cancel"
 msgstr ""
 
 #: src/templates/main/edit-model.html:75
-#: src/templates/main/edit-prediction.html:64
+#: src/templates/main/edit-prediction.html:65
 msgid "Delete"
 msgstr ""
 
-#: src/templates/main/edit-prediction.html:4
-#: src/templates/main/edit-prediction.html:9
+#: src/templates/main/edit-prediction.html:5
+#: src/templates/main/edit-prediction.html:10
 msgid "Edit prediction"
 msgstr ""
 
-#: src/templates/main/edit-prediction.html:15
+#: src/templates/main/edit-prediction.html:16
+#: src/templates/users/profile.html:56
 msgid "Model"
 msgstr ""
 
-#: src/templates/main/edit-prediction.html:27
+#: src/templates/main/edit-prediction.html:28
 msgid "Prediction date"
 msgstr ""
 
-#: src/templates/main/edit-prediction.html:41
-#: src/templates/main/edit-prediction.html:56
+#: src/templates/main/edit-prediction.html:42
+#: src/templates/main/edit-prediction.html:57
 msgid "Delete prediction"
 msgstr ""
 
@@ -235,6 +249,7 @@ msgid "Author Institution"
 msgstr ""
 
 #: src/templates/main/models.html:77
+#: src/templates/users/components/models-box.html:97
 msgid "Implementation Language"
 msgstr ""
 
@@ -304,6 +319,50 @@ msgstr ""
 
 #: src/templates/main/predictions.html:166
 msgid "No predictions found"
+msgstr ""
+
+#: src/templates/users/components/models-box.html:26
+msgid "Language"
+msgstr ""
+
+#: src/templates/users/components/models-box.html:32
+msgid "Updated"
+msgstr ""
+
+#: src/templates/users/profile.html:65
+msgid "Prediction"
+msgstr ""
+
+#: src/templates/users/profile.html:81
+msgid "Show"
+msgstr ""
+
+#: src/templates/users/profile.html:106
+msgid "Update Author"
+msgstr ""
+
+#: src/templates/users/profile.html:107
+msgid "Close"
+msgstr ""
+
+#: src/templates/users/profile.html:114
+msgid "First Name"
+msgstr ""
+
+#: src/templates/users/profile.html:118
+msgid "Last Name"
+msgstr ""
+
+#: src/templates/users/profile.html:124
+msgid "Institution"
+msgstr ""
+
+#: src/templates/users/profile.html:131
+msgid "Update"
+msgstr ""
+
+#: src/templates/users/profile.html:152
+msgid "Hide"
 msgstr ""
 
 #: src/users/models.py:14
