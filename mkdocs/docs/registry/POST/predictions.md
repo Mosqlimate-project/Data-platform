@@ -46,34 +46,56 @@ POST requests require [User API Token](uid-key.md) to be called.
             "prediction": predict
         }
         return requests.post(url, json=prediction, headers=headers)
+
+
+    # Example
+    post_prediction(
+        model_id = 0, # Check the ID in models list or profile
+        description = "My Prediction description",
+        commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
+        predict_date = "2023-10-31",
+        predict = {
+            "prediction": "example"
+        }
+    )
     ```
 
 === "R"
     ```R
     library(httr)
 
-    # Warning: this method generates real object in database if called with
+    # Warning: this method generates a real object in the database if called with
     # the correct UID Key
     post_prediction <- function(
-        model_id,
-        description,
-        commit,
-        predict_date,
-        predict,
+      model_id,
+      description,
+      commit,
+      predict_date,
+      predict
     ) {
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
-      headers <- c("X-UID-Key" = "See X-UID-Key documentation")
+      headers <- add_headers("X-UID-Key" = "See X-UID-Key documentation")
       prediction <- list(
-        model_id = model_id,
+        model = model_id,
         description = description,
         commit = commit,
         predict_date = predict_date,
-        predict = predict
+        prediction = predict
       )
-      
-      response <- POST(url, body = toJSON(model), add_headers(.headers = headers))
-      return(response)
+      response <- POST(url, body = list(prediction), encode = "json", headers = headers)
+      return(content(response, "text"))
     }
+
+    # Example
+    post_prediction(
+      model_id = 0, # Check the ID in models list or profile
+      description = "My Prediction description",
+      commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
+      predict_date = "2023-10-31",
+      predict = list(
+        prediction = "example"
+      )
+    )
     ```
 
 === "curl"
@@ -87,9 +109,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       -H 'Content-Type: application/json' \
       -d '{
       "model": 0,
-      "description": "string",
-      "commit": "string",
-      "predict_date": "2023-01-01",
-      "prediction": {}
+      "description": "My Prediction description",
+      "commit": "3d1d2cd016fe38b6e7d517f724532de994d77618",
+      "predict_date": "2023-10-31",
+      "prediction": {"prediction": "example"}
     }'   
     ```
