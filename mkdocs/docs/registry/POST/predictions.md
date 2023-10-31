@@ -25,7 +25,7 @@ POST requests require [User API Token](uid-key.md) to be called.
 
 ## Usage examples
 
-=== "Python"
+=== "Python3"
     ```py
     # Warning: this method generates real object in database if called with
     # the correct UID Key
