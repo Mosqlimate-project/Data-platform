@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-30 18:45-0300\n"
+"POT-Creation-Date: 2023-10-31 13:47-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,62 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/main/views.py:156
+msgid "Invalid form"
+msgstr ""
+
+#: src/main/views.py:186
+msgid "Model updated successfully"
+msgstr ""
+
+#: src/main/views.py:188 src/main/views.py:347
+msgid "Unauthorized"
+msgstr ""
+
+#: src/main/views.py:193
+msgid "Failed to update model: "
+msgstr ""
+
+#: src/main/views.py:202
+msgid "Model deleted"
+msgstr ""
+
+#: src/main/views.py:204
+msgid "Cannot delete Model"
+msgstr ""
+
+#: src/main/views.py:344
+msgid "Prediction updated successfully"
+msgstr ""
+
+#: src/main/views.py:352
+msgid "Failed to update prediction: "
+msgstr ""
+
+#: src/main/views.py:361
+msgid "Prediction deleted"
+msgstr ""
+
+#: src/main/views.py:363
+msgid "Error deleting prediction"
+msgstr ""
+
+#: src/registry/models.py:67
+msgid "National"
+msgstr ""
+
+#: src/registry/models.py:68
+msgid "State"
+msgstr ""
+
+#: src/registry/models.py:69
+msgid "Municipality"
+msgstr ""
+
+#: src/registry/models.py:70
+msgid "Sub Municipality"
+msgstr ""
 
 #: src/templates/account/messages/logged_in.txt:4
 #, python-format
@@ -375,4 +431,12 @@ msgstr ""
 
 #: src/users/models.py:29
 msgid "Superuser must have is_superuser=True."
+msgstr ""
+
+#: src/users/views.py:51
+msgid "Author updated successfully"
+msgstr ""
+
+#: src/users/views.py:53
+msgid "Invalid request"
 msgstr ""
