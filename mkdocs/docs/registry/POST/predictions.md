@@ -17,6 +17,7 @@ The prediction itself, must be provided as a JSON object. Please refer to our vi
 | model_id | int | Model ID | 
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
+| ADM_level | int | One of the following options: 0, 1, 2 or 3 (National, State, Municipality or Sub Municipality respectively) |
 | predict_date | date _(YYYY-mm-dd)_ | Date when Prediction was generated |
 | predict | dict _(JSON)_ | The Prediction result data |
 
@@ -33,6 +34,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         model_id: int, 
         description: str, 
         commit: str, 
+        adm_level: int,
         predict_date: str, 
         predict: dict
     ):
@@ -42,6 +44,7 @@ POST requests require [User API Token](uid-key.md) to be called.
             "model": model_id,
             "description": description,
             "commit": commit,
+            "ADM_level": adm_level,
             "predict_date": predict_date,
             "prediction": predict
         }
@@ -53,6 +56,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         model_id = 0, # Check the ID in models list or profile
         description = "My Prediction description",
         commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
+        adm_level = 0, # National
         predict_date = "2023-10-31",
         predict = {
             "prediction": "example"
@@ -70,6 +74,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       model_id,
       description,
       commit,
+      adm_level,
       predict_date,
       predict
     ) {
@@ -79,6 +84,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         model = model_id,
         description = description,
         commit = commit,
+        ADM_level = adm_level,
         predict_date = predict_date,
         prediction = predict
       )
@@ -91,6 +97,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       model_id = 0, # Check the ID in models list or profile
       description = "My Prediction description",
       commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
+      adm_level = 0, # National
       predict_date = "2023-10-31",
       predict = list(
         prediction = "example"
@@ -111,6 +118,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       "model": 0,
       "description": "My Prediction description",
       "commit": "3d1d2cd016fe38b6e7d517f724532de994d77618",
+      "ADM_level": 0,
       "predict_date": "2023-10-31",
       "prediction": {"prediction": "example"}
     }'   

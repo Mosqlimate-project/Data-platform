@@ -55,6 +55,7 @@ class PredictionSchema(Schema):
     model: ModelSchema
     description: str = None
     commit: str
+    ADM_level: int
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject
 
@@ -74,6 +75,7 @@ class PredictionFilterSchema(FilterSchema):
     )
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")
+    ADM_level: Optional[int] = Field(q="ADM_level")
     predict_date: Optional[date] = Field(q="predict_date")
     start: Optional[date] = Field(q="predict_date__gte")
     end: Optional[date] = Field(q="predict_date__lte")

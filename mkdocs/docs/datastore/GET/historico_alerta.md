@@ -63,7 +63,7 @@
 
 ## Usage examples
 
-=== "Python"
+=== "Python3"
     ```py
     import requests
 

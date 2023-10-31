@@ -32,7 +32,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
 
 ## Usage examples
 
-=== "Python"
+=== "Python3"
     ```py
     import requests
 
