@@ -1,0 +1,378 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-30 18:45-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/templates/account/messages/logged_in.txt:4
+#, python-format
+msgid "Successfully signed in as %(name)s."
+msgstr ""
+
+#: src/templates/account/messages/logged_out.txt:2
+msgid "You have signed out."
+msgstr ""
+
+#: src/templates/main/404.html:4 src/templates/main/404.html:7
+msgid "Page Not Found"
+msgstr ""
+
+#: src/templates/main/500.html:4
+msgid "Server error"
+msgstr ""
+
+#: src/templates/main/500.html:7
+msgid "Something went wrong"
+msgstr ""
+
+#: src/templates/main/about.html:4 src/templates/main/components/navbar.html:23
+msgid "About"
+msgstr ""
+
+#: src/templates/main/about.html:7
+msgid "About Mosqlimate"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:14
+#: src/templates/main/components/predictions-list.html:14
+msgid "Lang"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:17
+#: src/templates/main/models.html:30
+#: src/templates/users/components/models-box.html:17
+#: src/templates/users/components/models-box.html:85
+msgid "Name"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:20
+#: src/templates/main/components/predictions-list.html:20
+msgid "Author"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:23
+#: src/templates/main/components/predictions-list.html:23
+#: src/templates/users/components/models-box.html:23
+#: src/templates/users/components/models-box.html:93
+msgid "Repository"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:26
+msgid "Created"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:27
+#: src/templates/main/components/predictions-list.html:27
+#: src/templates/main/edit-model.html:35 src/templates/main/models.html:37
+#: src/templates/main/predictions.html:39
+#: src/templates/users/components/models-box.html:20
+#: src/templates/users/components/models-box.html:101
+msgid "Type"
+msgstr ""
+
+#: src/templates/main/components/models-list.html:31
+#: src/templates/main/components/predictions-list.html:32
+#: src/templates/main/edit-model.html:22
+#: src/templates/main/edit-prediction.html:34
+#: src/templates/users/components/models-box.html:89
+msgid "Description"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:20 src/templates/main/home.html:5
+msgid "Home"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:26
+msgid "Documentation"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:29
+msgid "API Demo"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:35
+#: src/templates/main/models.html:6 src/templates/main/models.html:10
+#: src/templates/users/profile.html:56
+msgid "Models"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:38
+#: src/templates/main/predictions.html:5 src/templates/main/predictions.html:9
+#: src/templates/users/components/models-box.html:29
+#: src/templates/users/components/models-box.html:76
+#: src/templates/users/profile.html:65
+msgid "Predictions"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:56
+msgid "logout"
+msgstr ""
+
+#: src/templates/main/components/navbar.html:63
+msgid "Login with Github"
+msgstr ""
+
+#: src/templates/main/components/predictions-list.html:17
+msgid "Model name"
+msgstr ""
+
+#: src/templates/main/components/predictions-list.html:26
+msgid "Predict date"
+msgstr ""
+
+#: src/templates/main/components/predictions-list.html:28
+#: src/templates/main/models.html:25 src/templates/main/predictions.html:27
+msgid "Model ID"
+msgstr ""
+
+#: src/templates/main/edit-model.html:5 src/templates/main/edit-model.html:10
+msgid "Edit model"
+msgstr ""
+
+#: src/templates/main/edit-model.html:16 src/templates/main/predictions.html:32
+msgid "Model Name"
+msgstr ""
+
+#: src/templates/main/edit-model.html:24
+msgid "Model description"
+msgstr ""
+
+#: src/templates/main/edit-model.html:29 src/templates/main/models.html:68
+#: src/templates/main/predictions.html:69
+msgid "Github Repository"
+msgstr ""
+
+#: src/templates/main/edit-model.html:39 src/templates/main/predictions.html:83
+msgid "Implementation language"
+msgstr ""
+
+#: src/templates/main/edit-model.html:52 src/templates/main/edit-model.html:67
+msgid "Delete model"
+msgstr ""
+
+#: src/templates/main/edit-model.html:55
+#: src/templates/main/edit-prediction.html:45
+msgid "Save changes"
+msgstr ""
+
+#: src/templates/main/edit-model.html:74
+#: src/templates/main/edit-prediction.html:64
+#: src/templates/users/profile.html:130
+msgid "Cancel"
+msgstr ""
+
+#: src/templates/main/edit-model.html:75
+#: src/templates/main/edit-prediction.html:65
+msgid "Delete"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:5
+#: src/templates/main/edit-prediction.html:10
+msgid "Edit prediction"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:16
+#: src/templates/users/profile.html:56
+msgid "Model"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:28
+msgid "Prediction date"
+msgstr ""
+
+#: src/templates/main/edit-prediction.html:42
+#: src/templates/main/edit-prediction.html:57
+msgid "Delete prediction"
+msgstr ""
+
+#: src/templates/main/home.html:9
+msgid "Mosqlimate Data API"
+msgstr ""
+
+#: src/templates/main/home.html:11
+msgid ""
+"\n"
+"      This platform makes available data to be used in the forecast of "
+"Arbovirus diseases in Brazil. It also serves as an open registry of <a "
+"href=\"https://api.mosqlimate.org/models/\">forecasting models</a> for such "
+"diseases in Brazil. Relevant climate data is also made available to help "
+"include climate influence into the modeling.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/home.html:16
+msgid ""
+"\n"
+"      Currently, only data for dengue and chikungunya are available through "
+"this platform. More datasets will be made available in time. All the data "
+"made available are in the public domain and are official data made available "
+"by the Brazilian Ministry of Health.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/home.html:21
+msgid ""
+"\n"
+"      The purpose of this platform is to enhance the comparability of "
+"forecasting models by making it possible for all models to learn from the "
+"same data. The model registry is open to anyone willing to contribute but "
+"will require creating a user account first. The Mosqlimate project reserves "
+"the right to curate the model collection and decide which one to make "
+"available through the platform.\n"
+"      "
+msgstr ""
+
+#: src/templates/main/models.html:46 src/templates/main/predictions.html:48
+msgid "Author Name"
+msgstr ""
+
+#: src/templates/main/models.html:52 src/templates/main/predictions.html:54
+msgid "Author Username"
+msgstr ""
+
+#: src/templates/main/models.html:59 src/templates/main/predictions.html:60
+msgid "Author Institution"
+msgstr ""
+
+#: src/templates/main/models.html:77
+#: src/templates/users/components/models-box.html:97
+msgid "Implementation Language"
+msgstr ""
+
+#: src/templates/main/models.html:87 src/templates/main/predictions.html:104
+msgid "Clear"
+msgstr ""
+
+#: src/templates/main/models.html:88 src/templates/main/predictions.html:105
+msgid "Search"
+msgstr ""
+
+#: src/templates/main/models.html:97
+msgid "Models pagination"
+msgstr ""
+
+#: src/templates/main/models.html:101 src/templates/main/models.html:103
+#: src/templates/main/predictions.html:118
+#: src/templates/main/predictions.html:120
+msgid "Previous"
+msgstr ""
+
+#: src/templates/main/models.html:116 src/templates/main/models.html:118
+#: src/templates/main/predictions.html:133
+#: src/templates/main/predictions.html:135
+msgid "Next"
+msgstr ""
+
+#: src/templates/main/models.html:129 src/templates/main/predictions.html:146
+msgid "prediction"
+msgstr ""
+
+#: src/templates/main/models.html:131 src/templates/main/predictions.html:148
+msgid "predictions"
+msgstr ""
+
+#: src/templates/main/models.html:140 src/templates/main/predictions.html:157
+msgid "Page"
+msgstr ""
+
+#: src/templates/main/models.html:140 src/templates/main/predictions.html:157
+msgid "of"
+msgstr ""
+
+#: src/templates/main/models.html:146
+msgid "No Models"
+msgstr ""
+
+#: src/templates/main/models.html:149
+msgid "No models found"
+msgstr ""
+
+#: src/templates/main/predictions.html:24
+msgid "Prediction ID"
+msgstr ""
+
+#: src/templates/main/predictions.html:95
+msgid "Start"
+msgstr ""
+
+#: src/templates/main/predictions.html:99
+msgid "End"
+msgstr ""
+
+#: src/templates/main/predictions.html:163
+msgid "No Predictions"
+msgstr ""
+
+#: src/templates/main/predictions.html:166
+msgid "No predictions found"
+msgstr ""
+
+#: src/templates/users/components/models-box.html:26
+msgid "Language"
+msgstr ""
+
+#: src/templates/users/components/models-box.html:32
+msgid "Updated"
+msgstr ""
+
+#: src/templates/users/profile.html:65
+msgid "Prediction"
+msgstr ""
+
+#: src/templates/users/profile.html:81
+msgid "Show"
+msgstr ""
+
+#: src/templates/users/profile.html:106
+msgid "Update Author"
+msgstr ""
+
+#: src/templates/users/profile.html:107
+msgid "Close"
+msgstr ""
+
+#: src/templates/users/profile.html:114
+msgid "First Name"
+msgstr ""
+
+#: src/templates/users/profile.html:118
+msgid "Last Name"
+msgstr ""
+
+#: src/templates/users/profile.html:124
+msgid "Institution"
+msgstr ""
+
+#: src/templates/users/profile.html:131
+msgid "Update"
+msgstr ""
+
+#: src/templates/users/profile.html:152
+msgid "Hide"
+msgstr ""
+
+#: src/users/models.py:14
+msgid "The Email must be set"
+msgstr ""
+
+#: src/users/models.py:27
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: src/users/models.py:29
+msgid "Superuser must have is_superuser=True."
+msgstr ""

@@ -1,11 +1,12 @@
 {% extends 'main/base.html' %}
 {% load predictions_components %}
+{% load i18n %}
 {% load static %}
-{% block title %}Predictions{% endblock %}
+{% block title %}{% trans 'Predictions' %}{% endblock %}
 
 {% block content %}
 <div class="container predictions shadow p-5 mb-3 bg-body rounded font-golos">
-  <center><h1>Predictions</h1></center>
+  <center><h1>{% trans 'Predictions' %}</h1></center>
 
   <div class="d-grid gap-2">
     <button class="btn btn-primary lg-3 btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#modelCollapse">
@@ -20,22 +21,22 @@
 
         <div class="row mb-3 model-row">
           <div class="col">
-            <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="Prediction ID">
+            <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="{% trans 'Prediction ID' %}">
           </div>
           <div class="col">
-            <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id|default_if_none:'' }}" placeholder="Model ID">
+            <input type="number" class="form-control" name="model_id" value="{{ request.session.model_id|default_if_none:'' }}" placeholder="{% trans 'Model ID' %}">
           </div>
 
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="model_name" value="{{ request.session.model_name|default_if_none:'' }}" placeholder="Model Name">
+              <input type="text" class="form-control" name="model_name" value="{{ request.session.model_name|default_if_none:'' }}" placeholder="{% trans 'Model Name' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
             </div>
           </div>
 
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="Type">
+              <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="{% trans 'Type' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
             </div>
           </div>
@@ -44,19 +45,19 @@
         <div class="row mb-3 author-row">
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="Author Name">
+              <input type="text" class="form-control" name="author_name" value="{{ request.session.author_name|default_if_none:'' }}" placeholder="{% trans 'Author Name' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_name')"></i>
             </div>
           </div>
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="Author Username">
+              <input type="text" class="form-control" name="author_username" value="{{ request.session.author_username|default_if_none:'' }}" placeholder="{% trans 'Author Username' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_username')"></i>
             </div>
           </div>
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="Author Institution">
+              <input type="text" class="form-control" name="author_institution" value="{{ request.session.author_institution|default_if_none:'' }}" placeholder="{% trans 'Author Institution' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('author_institution')"></i>
             </div>
           </div>
@@ -65,7 +66,7 @@
         <div class="row mb-3 repo-row">
           <div class="col">
             <div class="input-container">
-              <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="Github repository">
+              <input type="text" class="form-control" name="repository" value="{{ request.session.repository|default_if_none:'' }}" placeholder="{% trans 'Github Repository' %}">
               <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('repository')"></i>
             </div>
           </div>
@@ -79,7 +80,7 @@
             <div class="input-container">
               <div class="input-group">
                 <select class="form-select selectpicker" name="implementation_language">
-                  <option value="" style="color: grey;">Implementation language</option>
+                  <option value="" style="color: grey;">{% trans 'Implementation language' %}</option>
                   {% for language in implementation_languages %}
                   <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
                   {% endfor %}
@@ -91,17 +92,17 @@
 
         <div class="row mb-3 dates-row">
           <div class="col">
-            <label for="predictAfter">Start</label>
+            <label for="predictAfter">{% trans 'Start' %}</label>
             <input id="predictAfter" class="form-control" type="date" name="start" value="{{ request.session.predict_after_than|default_if_none:'' }}">
           </div>
           <div class="col">
-            <label for="predictBefore">End</label>
+            <label for="predictBefore">{% trans 'End' %}</label>
             <input id="predictBefore" class="form-control" type="date" name="end" value="{{ request.session.predict_before_than|default_if_none:'' }}">
           </div>
         </div>
 
-        <button type="button" class="btn btn-danger" onclick="clearAllInputs()">Clear</button>
-        <button type="submit" class="btn btn-primary btn-predict">Search</button>
+        <button type="button" class="btn btn-danger" onclick="clearAllInputs()">{% trans 'Clear' %}</button>
+        <button type="submit" class="btn btn-primary btn-predict">{% trans 'Search' %}</button>
       </div>
     </form>
 
@@ -114,9 +115,9 @@
           <ul class="pagination">
             <li class="page-item">
               {% if pagination.page > 1 %}
-              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">Previous</a>
+              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:-1 }}">{% trans 'Previous' %}</a>
               {% else %}
-              <a class="page-link disabled">Previous</a>
+              <a class="page-link disabled">{% trans 'Previous' %}</a>
               {% endif %}
             </li>
             <input
@@ -129,9 +130,9 @@
             >
             <li class="page-item">
               {% if pagination.page < pagination.total_pages %}
-              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">Next</a>
+              <a class="page-link" href="{% url 'predictions' %}?{% for key, value in request.GET.items %}{% if key != 'page' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ pagination.page|add:1 }}">{% trans 'Next' %}</a>
               {% else %}
-              <a class="page-link disabled">Next</a>
+              <a class="page-link disabled">{% trans 'Next' %}</a>
               {% endif %}
             </li>
           </ul>
@@ -142,9 +143,9 @@
     <div class="d-flex justify-content-between">
       <p class="mb-0 small">
         {% if pagination.total_items == 1 %}
-          1 prediction
+          1 {% trans 'prediction' %}
         {% else %}
-          {{ pagination.total_items }} predictions
+          {{ pagination.total_items }} {% trans 'predictions' %}
         {% endif %}
       </p>
       <p class="ml-auto mb-0 small api-url">{{ api_url }}</p>
@@ -153,16 +154,16 @@
     <hr>
 
     <div class="d-flex justify-content-center">
-        <p class="mb-0 small">Page {{ pagination.page }} of {{ pagination.total_pages }}</p>
+        <p class="mb-0 small">{% trans 'Page' %} {{ pagination.page }} {% trans 'of' %} {{ pagination.total_pages }}</p>
     </div>
   </div>
   {% else %}
   <div class="row not-found">
     <div class="col-auto not-found-image">
-      <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="No Predictions"></center>
+      <img src="{% static 'img/main/find-data-find-file-find-information-svgrepo-com.svg' %}" alt="{% trans 'No Predictions' %}"></center>
     </div>
     <div class="col-auto not-found-text">
-      <span><h4>No predictions found</h4></span>
+      <span><h4>{% trans 'No predictions found' %}</h4></span>
       <span>{{ message }}</span>
     </div>
   </div>

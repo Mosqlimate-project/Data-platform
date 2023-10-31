@@ -1,5 +1,8 @@
 {% extends 'main/base.html' %}
-{% block title %}About{% endblock %}
+{% load i18n %}
+
+{% block title %}{% translate "About" %}{% endblock %}
+
 {% block content %}
-<h1>About Mosqlimate</h1>
+<h1>{% translate "About Mosqlimate" %}</h1>
 {% endblock %}
