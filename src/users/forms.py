@@ -38,6 +38,7 @@ class UpdatePredictionForm(forms.Form):
     prediction_model = forms.IntegerField()
     prediction_description = forms.CharField(max_length=500)
     prediction_commit = forms.CharField(max_length=100)
+    prediction_adm_level = forms.IntegerField(max_value=3, min_value=0)
     prediction_date = forms.DateField()
 
 
