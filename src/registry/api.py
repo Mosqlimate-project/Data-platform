@@ -12,7 +12,13 @@ from ninja.orm.fields import AnyObject
 from ninja.security import django_auth
 from ninja.pagination import paginate
 
-from main.schema import ForbiddenSchema, NotFoundSchema, Schema, SuccessSchema
+from main.schema import (
+    ForbiddenSchema,
+    NotFoundSchema,
+    Schema,
+    SuccessSchema,
+    InternalErrorSchema,
+)
 from users.auth import UidKeyAuth
 
 from .models import Author, Model, Prediction, ImplementationLanguage
@@ -310,6 +316,7 @@ class PredictionIn(Schema):
     model: int
     description: str = None
     commit: str
+    ADM_level: int
     predict_date: datetime.date  # YYYY-mm-dd
     prediction: AnyObject
 
@@ -345,7 +352,12 @@ def get_prediction(request, predict_id: int):
 
 @router.post(
     "/predictions/",
-    response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={
+        201: PredictionSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
     auth=uidkey,
     tags=["registry", "predictions"],
 )
@@ -362,6 +374,14 @@ def create_prediction(request, payload: PredictionIn):
             "message": (
                 "Description too big, maximum allowed: 500. "
                 f"Please remove {len(description) - 500} characters."
+            )
+        }
+
+    if payload.ADM_level not in [0, 1, 2, 3]:
+        return 403, {
+            "message": (
+                "ADM_level must be 0, 1, 2 or 3 "
+                "(National, State, Municipality or Sub Municipality)"
             )
         }
 

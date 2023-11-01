@@ -1,0 +1,41 @@
+{% load static %}
+
+<footer>
+<div class= "footer navbar navbar-inverse navbar-static-bottom" role="navigation">
+    <div class="navbar-text pull-left">
+      <a href="https://github.com/Mosqlimate-project/Data-platform">
+      <i class="fa-brands fa-github fa-2x" style="color: #42464d;"></i></a>
+    </div>
+
+    <div class= "navbar-text pull-right">
+      <a href="https://info.dengue.mat.br/"><img class="d-inline-block infodengue-logo" src="{% static 'img/infodengue-logo.png' %}"
+        alt="infodengue-logo" width="90"></a>
+    </div>
+      
+    <div class="navbar-text pull-left">
+      &copy; <a href="https://mosqlimate.org/">Mosqlimate Project</a>, 2023
+    </div>
+</div>	
+</footer>
+
+<style>
+  footer {
+    background-color: #f8f9fa;
+    z-index: 1000;
+    opacity: 0.9;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+  }
+
+  .footer {
+    height: 4rem;
+    text-align: center;
+    align-items: center;
+  }
+
+  .navbar-text {
+    padding-top: 0;
+  }
+</style>

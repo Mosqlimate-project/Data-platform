@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import render, reverse, redirect, get_object_or_404
+from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.views import View
 
@@ -151,7 +152,7 @@ class EditModelView(View):
             if "save_model" in request.POST:
                 form = UpdateModelForm(request.POST)
                 if not form.is_valid():
-                    messages.error(request, "Invalid form")
+                    messages.error(request, _("Invalid form"))
                     redirect("models")
 
                 repository = form.cleaned_data["model_repository"]
@@ -181,13 +182,16 @@ class EditModelView(View):
                 )
 
                 if status_code == 201:
-                    messages.success(request, "Model updated successfully")
+                    messages.success(request, _("Model updated successfully"))
                 elif status_code == 401:
-                    messages.error(request, "Unauthorized")
+                    messages.error(request, _("Unauthorized"))
                 else:
                     messages.error(
                         request,
-                        f"Failed to update model: {status_code}",
+                        (
+                            _("Failed to update model: "),
+                            f"{status_code}",
+                        ),
                     )
 
             elif "delete_model" in request.POST:
@@ -195,9 +199,9 @@ class EditModelView(View):
                 if form.is_valid():
                     model_id = form.cleaned_data["model_id"]
                     delete_model(request, model_id)
-                    messages.warning(request, "Model deleted")
+                    messages.warning(request, _("Model deleted"))
                 else:
-                    messages.error(request, "Cannot delete Model")
+                    messages.error(request, _("Cannot delete Model"))
 
         return redirect("models")
 
@@ -299,6 +303,12 @@ class EditPredictionView(View):
         context = {
             "prediction": prediction,
             "user_models": models,
+            "adm_levels": [
+                (0, "National"),
+                (1, "State"),
+                (2, "Municipality"),
+                (3, "Sub Municipality"),
+            ],
         }
         return render(request, self.template_name, context)
 
@@ -319,10 +329,15 @@ class EditPredictionView(View):
 
                 model = Model.objects.get(pk=form.cleaned_data["prediction_model"])
 
+                print("\n\n\n")
+                print(form.cleaned_data)
+                print("\n\n\n")
+
                 payload = {
                     "model": model,
                     "description": description,
                     "commit": form.cleaned_data["prediction_commit"],
+                    "ADM_level": form.cleaned_data["prediction_adm_level"],
                     "predict_date": form.cleaned_data["prediction_date"],
                 }
 
@@ -333,13 +348,16 @@ class EditPredictionView(View):
                 )
 
                 if status_code == 201:
-                    messages.success(request, "Prediction updated successfully")
+                    messages.success(request, _("Prediction updated successfully"))
                 elif status_code == 401:
-                    messages.error(request, "Unauthorized")
+                    messages.error(request, _("Unauthorized"))
                 else:
                     messages.error(
                         request,
-                        f"Failed to update prediction: {status_code}",
+                        (
+                            _("Failed to update prediction: "),
+                            f"{status_code}",
+                        ),
                     )
 
             elif "delete_prediction" in request.POST:
@@ -347,9 +365,9 @@ class EditPredictionView(View):
                 if form.is_valid():
                     prediction_id = form.cleaned_data["prediction_id"]
                     delete_prediction(request, prediction_id)
-                    messages.warning(request, "Prediction deleted")
+                    messages.warning(request, _("Prediction deleted"))
                 else:
-                    messages.error(request, "Error deleting prediction")
+                    messages.error(request, _("Error deleting prediction"))
 
         return redirect("predictions")
 

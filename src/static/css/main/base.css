@@ -7,3 +7,9 @@
 html {
   overflow-y: scroll;
 }
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}

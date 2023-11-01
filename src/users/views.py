@@ -2,6 +2,7 @@ from allauth.account.decorators import verified_email_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views import View
 
 from registry.models import Author, Model, Prediction
@@ -47,9 +48,9 @@ class ProfileView(View):
                 author.institution = form.cleaned_data["institution"]
                 author.save()
 
-                messages.success(request, "Author updated successfully")
+                messages.success(request, _("Author updated successfully"))
             else:
-                messages.error(request, "Invalid request")
+                messages.error(request, _("Invalid request"))
         else:
             messages.error(
                 request, "Form error"

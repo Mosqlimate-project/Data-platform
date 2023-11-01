@@ -1,6 +1,7 @@
 import os
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 def get_plangs_path() -> str:
@@ -60,11 +61,20 @@ class Model(models.Model):
 
 
 class Prediction(models.Model):
+    class ADM_levels(models.IntegerChoices):
+        NATIONAL = 0, _("National")
+        STATE = 1, _("State")
+        MUNICIPALITY = 2, _("Municipality")
+        SUB_MUNICIPALITY = 3, _("Sub Municipality")
+
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
+    ADM_level = models.IntegerField(
+        choices=ADM_levels.choices, null=True
+    )  # TODO: Change to false
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
