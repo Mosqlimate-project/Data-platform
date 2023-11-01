@@ -1,4 +1,6 @@
-`api/datastore/historico_alerta/` is the API call to get Dengue data from [Infodengue](https://info.dengue.mat.br/). For an example of API usage in Mosqlimate, please refer to [API Demo](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_historico_alerta). Python examples are found below.
+`api/datastore/infodengue/` is the endpoint that gives access to data for the [Infodengue](https://info.dengue.mat.br/) project, which provide a number of epidemiological variables for all the Brazilian municipalities on a weekly time scale. The request parameters and data variables are described below.
+
+For an example of API usage in Mosqlimate, please refer to [API Demo](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue). Python examples are found below.
 
 ## Parameters Table 
 ### Input
@@ -67,13 +69,13 @@
     ```py
     import requests
 
-    historico_alerta_api = "https://api.mosqlimate.org/api/datastore/historico_alerta/"
+    infodengue_api = "https://api.mosqlimate.org/api/datastore/infodengue/"
 
     page = 1
     pagination = f"?page={page}&per_page=100&"
     filters = "disease=%s&start=%s&end=%s" % ("dengue", "2022-12-30", "2023-12-30")
 
-    resp = requests.get(historico_alerta_api + pagination + filters) # GET request
+    resp = requests.get(infodengue_api + pagination + filters) # GET request
 
     items = resp.json()["items"] # JSON data in dict format
     resp.json()["pagination"] # Pagination*
@@ -84,13 +86,13 @@
     library(httr)
     library(jsonlite)
 
-    historico_alerta_api <- "https://api.mosqlimate.org/api/datastore/historico_alerta/"
+    infodengue_api <- "https://api.mosqlimate.org/api/datastore/infodengue/"
 
     page <- "1"
     pagination <- paste0("?page=", page, "&per_page=100&")
     filters <- paste0("disease=dengue&start=2022-12-30&end=2023-12-30")
 
-    url <- paste0(historico_alerta_api, pagination, filters)
+    url <- paste0(infodengue_api, pagination, filters)
     resp <- GET(url)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
@@ -102,7 +104,7 @@
 === "curl"
     ```sh
     curl -X 'GET' \
-      'https://api.mosqlimate.org/api/datastore/historico_alerta/?disease=dengue&start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
+      'https://api.mosqlimate.org/api/datastore/infodengue/?disease=dengue&start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
       -H 'accept: application/json'
     ```
 

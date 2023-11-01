@@ -32,7 +32,7 @@ paginator.max_per_page = 100
 
 
 @router.get(
-    "/historico_alerta/",
+    "/infodengue/",
     response={
         200: List[HistoricoAlertaSchema],
         404: NotFoundSchema,
@@ -42,7 +42,7 @@ paginator.max_per_page = 100
 )
 @paginate(paginator)
 @csrf_exempt
-def get_historico_alerta(
+def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),

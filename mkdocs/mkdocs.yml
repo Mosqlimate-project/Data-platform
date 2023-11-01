@@ -106,7 +106,7 @@ nav:
   - "Datastore":
     - "Datastore API": "datastore/index.md"
     - "Retrieve":
-      - "Histórico Alerta": "datastore/GET/historico_alerta.md"
+      - "Infodengue": "datastore/GET/infodengue.md"
       - "Copernicus Brasil": "datastore/GET/copernicus_brasil.md"
       - "ContaOvos API": "datastore/GET/contaovos.md"
   - "Utils":
