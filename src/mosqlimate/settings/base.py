@@ -47,6 +47,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "django_plotly_dash.apps.DjangoPlotlyDashConfig",
 ]
 
 LOCAL_APPS = ["main", "datastore", "registry", "users"]
@@ -62,6 +63,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
+    "django_plotly_dash.middleware.BaseMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"
@@ -226,6 +229,8 @@ STATICFILES_FINDERS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
+
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
