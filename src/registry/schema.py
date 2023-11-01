@@ -55,7 +55,7 @@ class PredictionSchema(Schema):
     model: ModelSchema
     description: str = None
     commit: str
-    ADM_level: int
+    ADM_level: int = None
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject
 
