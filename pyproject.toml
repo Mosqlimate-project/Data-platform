@@ -29,6 +29,7 @@ msgspec = "^0.18.2"
 six = "^1.16.0"
 django-plotly-dash = "^2.2.2"
 pandas = "^2.1.2"
+dpd-static-support = "^0.0.5"
 
 
 [tool.poetry.group.pre-commit.dependencies]

@@ -823,6 +823,17 @@ files = [
 ]
 
 [[package]]
+name = "dpd-static-support"
+version = "0.0.5"
+description = "Support for static assets in django-plotly-dash"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "dpd-static-support-0.0.5.tar.gz", hash = "sha256:ba03e2fde126b45b20df63e3c5eb162d1e9c2ca83868ef37b6f5482abe6f81aa"},
+    {file = "dpd_static_support-0.0.5-py3-none-any.whl", hash = "sha256:34037d342a27e3f183f36150c5956e26fb17de7ee8c4a5b651f7c4edaa6c465d"},
+]
+
+[[package]]
 name = "dr-scaffold"
 version = "2.1.2"
 description = "a Django package for scaffolding django rest apis using cli"
@@ -3228,4 +3239,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "1845cda57e5d28dbd78cf570a6f802cb9ebb0b99a9e8ff841720e0fcd4d83426"
+content-hash = "fb86edd17d3866781cf78bdca2da403245b89d8bcd178ab696a079d7d3e4b22f"

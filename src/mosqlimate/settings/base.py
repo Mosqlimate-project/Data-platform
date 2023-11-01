@@ -47,7 +47,9 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
+    "dpd_static_support",
 ]
 
 LOCAL_APPS = ["main", "datastore", "registry", "users"]
@@ -69,7 +71,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "mosqlimate.urls"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# https://stackoverflow.com/a/32347324
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 TEMPLATES = [
     {
@@ -224,6 +227,10 @@ STATICFILES_DIRS = [str(BASE_DIR / "static")]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    # Plotly Dash
+    "django_plotly_dash.finders.DashAssetFinder",
+    "django_plotly_dash.finders.DashComponentFinder",
+    "django_plotly_dash.finders.DashAppDirectoryFinder",
 ]
 
 
@@ -231,6 +238,14 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
+
+PLOTLY_COMPONENTS = [
+    # django-plotly-dash components
+    "dpd_components",
+    # static support if serving local assets
+    "dpd_static_support",
+    "dash_bootstrap_components",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
