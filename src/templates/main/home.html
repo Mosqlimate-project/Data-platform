@@ -1,5 +1,6 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
+{% load plotly_dash %}
 {% load vis_echarts_components %}
 
 {% block title %}{% translate "Home" %}{% endblock %}
@@ -31,6 +32,8 @@
       </div>
     </div>
   </div>
+
+  {% plotly_app name="home_chart" ratio=1 %}
 
   <!-- footer -->
   <div style="margin-bottom: 100px;"></div>

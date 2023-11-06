@@ -50,9 +50,11 @@ THIRD_PARTY_APPS = [
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",
+    "channels",
+    "channels_redis",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users"]
+LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -246,6 +248,17 @@ PLOTLY_COMPONENTS = [
     "dpd_static_support",
     "dash_bootstrap_components",
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                ("redis", env("REDIS_PORT", default=6379)),
+            ],
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

@@ -1,8 +1,13 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
+{% load plotly_dash %}
 
 {% block title %}{% translate "About" %}{% endblock %}
 
 {% block content %}
 <h1>{% translate "About Mosqlimate" %}</h1>
+
+<div class="container">
+    {% plotly_app name="geocodes" ratio=1 %}
+</div>
 {% endblock %}

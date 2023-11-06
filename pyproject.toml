@@ -30,6 +30,14 @@ six = "^1.16.0"
 django-plotly-dash = "^2.2.2"
 pandas = "^2.1.2"
 dpd-static-support = "^0.0.5"
+channels = "^4.0.0"
+daphne = "^4.0.0"
+redis = "^5.0.1"
+django-redis = "^5.4.0"
+channels-redis = "^4.1.0"
+matplotlib = "^3.8.1"
+geopandas = "^0.14.0"
+pyproj = "^3.6.1"
 
 
 [tool.poetry.group.pre-commit.dependencies]
