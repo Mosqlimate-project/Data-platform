@@ -228,12 +228,12 @@ def create_model(request, payload: ModelIn):
     except ImplementationLanguage.DoesNotExist:
         similar_lang = ImplementationLanguage.objects.filter(
             language__icontains=payload.implementation_language
-        )[0]
+        )
         if similar_lang:
             return 404, {
                 "message": (
                     f"Unknown language '{payload.implementation_language}', "
-                    f"did you mean '{similar_lang}'?"
+                    f"did you mean '{similar_lang.first()}'?"
                 )
             }
         return 404, {"message": f"Unknown language {payload.implementation_language}"}
