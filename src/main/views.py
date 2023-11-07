@@ -152,7 +152,7 @@ class EditModelView(View):
                 ("daily", _("Daily")),
                 ("weekly", _("Weekly")),
                 ("monthly", _("Monthly")),
-                ("Yearly", _("Yearly")),
+                ("yearly", _("Yearly")),
             ],
         }
         return render(request, self.template_name, context)
