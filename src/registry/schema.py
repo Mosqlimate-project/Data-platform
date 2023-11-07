@@ -33,6 +33,7 @@ class ModelSchema(Schema):
     repository: str
     implementation_language: ImplementationLanguageSchema
     type: str
+    ADM_level: int = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -48,6 +49,7 @@ class ModelFilterSchema(FilterSchema):
         q="implementation_language__language__iexact"
     )
     type: Optional[str] = Field(q="type__icontains")
+    ADM_level: Optional[int] = Field(q="ADM_level")
 
 
 class PredictionSchema(Schema):
@@ -55,7 +57,6 @@ class PredictionSchema(Schema):
     model: ModelSchema
     description: str = None
     commit: str
-    ADM_level: int = None
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject
 
@@ -75,7 +76,7 @@ class PredictionFilterSchema(FilterSchema):
     )
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")
-    ADM_level: Optional[int] = Field(q="ADM_level")
+    ADM_level: Optional[int] = Field(q="model__ADM_level")
     predict_date: Optional[date] = Field(q="predict_date")
     start: Optional[date] = Field(q="predict_date__gte")
     end: Optional[date] = Field(q="predict_date__lte")

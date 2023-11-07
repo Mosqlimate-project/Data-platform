@@ -142,6 +142,12 @@ class EditModelView(View):
         context = {
             "model": model,
             "implementation_languages": languages,
+            "adm_levels": [
+                (0, "National"),
+                (1, "State"),
+                (2, "Municipality"),
+                (3, "Sub Municipality"),
+            ],
         }
         return render(request, self.template_name, context)
 
@@ -173,6 +179,7 @@ class EditModelView(View):
                     "repository": repository,
                     "implementation_language": form.cleaned_data["model_language"],
                     "type": form.cleaned_data["model_type"],
+                    "ADM_level": form.cleaned_data["model_adm_level"],
                 }
 
                 status_code, model = update_model(
@@ -303,12 +310,6 @@ class EditPredictionView(View):
         context = {
             "prediction": prediction,
             "user_models": models,
-            "adm_levels": [
-                (0, "National"),
-                (1, "State"),
-                (2, "Municipality"),
-                (3, "Sub Municipality"),
-            ],
         }
         return render(request, self.template_name, context)
 
@@ -329,15 +330,10 @@ class EditPredictionView(View):
 
                 model = Model.objects.get(pk=form.cleaned_data["prediction_model"])
 
-                print("\n\n\n")
-                print(form.cleaned_data)
-                print("\n\n\n")
-
                 payload = {
                     "model": model,
                     "description": description,
                     "commit": form.cleaned_data["prediction_commit"],
-                    "ADM_level": form.cleaned_data["prediction_adm_level"],
                     "predict_date": form.cleaned_data["prediction_date"],
                 }
 

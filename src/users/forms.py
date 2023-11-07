@@ -22,6 +22,7 @@ class UpdateModelForm(forms.Form):
     model_repository = forms.CharField(max_length=200)
     model_language = forms.CharField(max_length=100)
     model_type = forms.CharField(max_length=100)
+    model_adm_level = forms.IntegerField(max_value=3, min_value=0)
 
     # def clean_model_author(self):
     #     author = self.cleaned_data["model_author"]
@@ -38,7 +39,6 @@ class UpdatePredictionForm(forms.Form):
     prediction_model = forms.IntegerField()
     prediction_description = forms.CharField(max_length=500)
     prediction_commit = forms.CharField(max_length=100)
-    prediction_adm_level = forms.IntegerField(max_value=3, min_value=0)
     prediction_date = forms.DateField()
 
 
