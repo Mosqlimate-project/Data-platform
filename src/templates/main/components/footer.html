@@ -1,41 +1,46 @@
 {% load static %}
+{% load i18n %}
 
 <footer>
-<div class= "footer navbar navbar-inverse navbar-static-bottom" role="navigation">
-    <div class="navbar-text pull-left">
+<div class="footer navbar navbar-inverse navbar-static-bottom font-golos" role="navigation">
+    <div class="navbar-text">
       <a href="https://github.com/Mosqlimate-project/Data-platform">
       <i class="fa-brands fa-github fa-2x" style="color: #42464d;"></i></a>
     </div>
 
-    <div class= "navbar-text pull-right">
-      <a href="https://info.dengue.mat.br/"><img class="d-inline-block infodengue-logo" src="{% static 'img/infodengue-logo.png' %}"
-        alt="infodengue-logo" width="90"></a>
-    </div>
-      
-    <div class="navbar-text pull-left">
+    <div class="navbar-text text-white">
       &copy; <a href="https://mosqlimate.org/">Mosqlimate Project</a>, 2023
     </div>
+
+    <div class="navbar-text">
+        <div class="partner-text text-white">{% translate "Partners" %}:</div>
+      <a href="https://info.dengue.mat.br/">
+        <img class="d-inline-block infodengue-logo" src="{% static 'img/infodengue-logo.png' %}" alt="infodengue-logo" width="90">
+      </a>
+    </div>
+      
 </div>	
 </footer>
 
 <style>
-  footer {
-    background-color: #f8f9fa;
-    z-index: 1000;
-    opacity: 0.9;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-  }
-
-  .footer {
-    height: 4rem;
-    text-align: center;
+  footer, .footer {
+    background-color: #000000de;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
     align-items: center;
+    border-top: var(--border);
+    opacity: 0.945;
+    width: 100%;
   }
 
   .navbar-text {
     padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .partner-text {
+    text-align: center;
   }
 </style>
