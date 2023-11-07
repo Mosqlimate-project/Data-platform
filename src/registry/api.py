@@ -147,6 +147,7 @@ class ModelIn(Schema):
     implementation_language: str
     type: str
     ADM_level: Literal[0, 1, 2, 3]
+    periodicity: Literal["daily", "weekly", "monthly", "yearly"]
 
 
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
@@ -201,6 +202,11 @@ def create_model(request, payload: ModelIn):
                 "ADM_level must be 0, 1, 2 or 3 "
                 "(National, State, Municipality or Sub Municipality)"
             )
+        }
+
+    if payload.periodicity not in ["daily", "weekly", "monthly", "yearly"]:
+        return 422, {
+            "message": ('Periodicity must be "daily", "weekly", "monthly" or "yearly"')
         }
 
     description = payload.description

@@ -39,6 +39,12 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    class Periodicities(models.TextChoices):
+        DAILY = "daily", _("Daily")
+        WEEKLY = "weekly", _("Weekly")
+        MONTHLY = "monthly", _("Monthly")
+        YEARLY = "yearly", _("Yearly")
+
     class ADM_levels(models.IntegerChoices):
         NATIONAL = 0, _("National")
         STATE = 1, _("State")
@@ -58,6 +64,7 @@ class Model(models.Model):
     ADM_level = models.IntegerField(
         choices=ADM_levels.choices, null=True
     )  # TODO: Change to false
+    periodicity = models.CharField(choices=Periodicities.choices, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

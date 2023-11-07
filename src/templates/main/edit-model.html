@@ -55,6 +55,16 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col">
+                    <label for="model_periodicity">{% translate "Periodicity" %}:</label>
+                    <select id="edit-periodicity" name="model_periodicity" class="form-control" required>
+                        {% for value, label in periodicities %}
+                        <option value="{{ value }}" {% if value == model.periodicity %}selected{% endif %}>
+                        {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
         <div class="row justify-content-between">
