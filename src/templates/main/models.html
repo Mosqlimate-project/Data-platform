@@ -126,9 +126,9 @@
         <div class="d-flex justify-content-between">
           <p class="mb-0 small">
             {% if pagination.total_items == 1 %}
-              1 {% trans 'prediction' %}
+              1 {% trans 'model' %}
             {% else %}
-              {{ pagination.total_items }} {% trans 'predictions' %}
+              {{ pagination.total_items }} {% trans 'models' %}
             {% endif %}
           </p>
           <p class="ml-auto mb-0 small api-url">{{ api_url }}</p>
