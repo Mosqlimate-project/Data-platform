@@ -45,6 +45,26 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col">
+                    <label for="model_adm_level">{% translate "ADM Level" %}:</label>
+                    <select id="edit-adm-level" name="model_adm_level" class="form-control" required>
+                        {% for level, label in adm_levels %}
+                        <option value="{{ level }}" {% if level == model.ADM_level %}selected{% endif %}>
+                        {{ level }} - {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="model_periodicity">{% translate "Periodicity" %}:</label>
+                    <select id="edit-periodicity" name="model_periodicity" class="form-control" required>
+                        {% for value, label in periodicities %}
+                        <option value="{{ value }}" {% if value == model.periodicity %}selected{% endif %}>
+                        {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
         <div class="row justify-content-between">

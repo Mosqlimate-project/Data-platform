@@ -11,6 +11,8 @@
 | repository | no | str (icontains) | Github repository |
 | implementation_language | no | str _(icontains)_ | Implementation language |
 | type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
+| ADM_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| periodicity | no | str _(iexact)_ | Options are: daily, weekly, monthly or yearly |
 
 #### Details
 `page` consists in the total amount of Models returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned Models. E.g.:
@@ -63,7 +65,7 @@
         parameters_url = "&".join([f"{p}={v}" for p,v in parameters.items()])
         return requests.get(models_api + parameters_url).json()
             
-    get_predictions(parameters)
+    get_models(parameters)
     ```
 
 === "R"

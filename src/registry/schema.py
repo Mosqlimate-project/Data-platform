@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, Literal
 
 from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
@@ -33,6 +33,8 @@ class ModelSchema(Schema):
     repository: str
     implementation_language: ImplementationLanguageSchema
     type: str
+    ADM_level: int = None
+    periodicity: str = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -48,6 +50,10 @@ class ModelFilterSchema(FilterSchema):
         q="implementation_language__language__iexact"
     )
     type: Optional[str] = Field(q="type__icontains")
+    ADM_level: Optional[int] = Field(q="ADM_level")
+    periodicity: Optional[Literal["daily", "weekly", "monthly", "yearly"]] = Field(
+        q="periodicity__iexact"
+    )
 
 
 class PredictionSchema(Schema):
@@ -55,7 +61,6 @@ class PredictionSchema(Schema):
     model: ModelSchema
     description: str = None
     commit: str
-    ADM_level: int = None
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject
 
@@ -66,6 +71,10 @@ class PredictionFilterSchema(FilterSchema):
     id: Optional[int] = Field(q="id__exact")
     model_id: Optional[int] = Field(q="model__id__exact")
     model_name: Optional[str] = Field(q="model__name__icontains")
+    model_ADM_level: Optional[int] = Field(q="model__ADM_level")
+    model_periodicity: Optional[
+        Literal["daily", "weekly", "monthly", "yearly"]
+    ] = Field(q="model__periodicity__iexact")
     author_name: Optional[str] = Field(q="model__author__user__name__icontains")
     author_username: Optional[str] = Field(q="model__author__user__username__icontains")
     author_institution: Optional[str] = Field(q="model__author__institution__icontains")
@@ -75,7 +84,6 @@ class PredictionFilterSchema(FilterSchema):
     )
     type: Optional[str] = Field(q="model__type__icontains")
     commit: Optional[str] = Field(q="commit")
-    ADM_level: Optional[int] = Field(q="ADM_level")
     predict_date: Optional[date] = Field(q="predict_date")
     start: Optional[date] = Field(q="predict_date__gte")
     end: Optional[date] = Field(q="predict_date__lte")

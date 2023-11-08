@@ -1,5 +1,5 @@
 import datetime
-from typing import List
+from typing import List, Literal
 from urllib.parse import urlparse
 
 from django.forms import Form
@@ -18,6 +18,7 @@ from main.schema import (
     Schema,
     SuccessSchema,
     InternalErrorSchema,
+    UnprocessableContentSchema,
 )
 from users.auth import UidKeyAuth
 
@@ -145,6 +146,8 @@ class ModelIn(Schema):
     repository: str  # TODO: Validate repository?
     implementation_language: str
     type: str
+    ADM_level: Literal[0, 1, 2, 3]
+    periodicity: Literal["daily", "weekly", "monthly", "yearly"]
 
 
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
@@ -176,7 +179,12 @@ def get_model(request, model_id: int):
 
 @router.post(
     "/models/",
-    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={
+        201: ModelSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+        422: UnprocessableContentSchema,
+    },
     auth=uidkey,
     tags=["registry", "models"],
 )
@@ -187,6 +195,19 @@ def create_model(request, payload: ModelIn):
         return 403, {"message": "Model repository must be on Github"}
     if not repo_url.path:
         return 403, {"message": "Invalid repository"}
+
+    if payload.ADM_level not in [0, 1, 2, 3]:
+        return 422, {
+            "message": (
+                "ADM_level must be 0, 1, 2 or 3 "
+                "(National, State, Municipality or Sub Municipality)"
+            )
+        }
+
+    if payload.periodicity not in ["daily", "weekly", "monthly", "yearly"]:
+        return 422, {
+            "message": ('Periodicity must be "daily", "weekly", "monthly" or "yearly"')
+        }
 
     description = payload.description
     if len(description) > 500:
@@ -207,12 +228,12 @@ def create_model(request, payload: ModelIn):
     except ImplementationLanguage.DoesNotExist:
         similar_lang = ImplementationLanguage.objects.filter(
             language__icontains=payload.implementation_language
-        )[0]
+        )
         if similar_lang:
             return 404, {
                 "message": (
                     f"Unknown language '{payload.implementation_language}', "
-                    f"did you mean '{similar_lang}'?"
+                    f"did you mean '{similar_lang.first()}'?"
                 )
             }
         return 404, {"message": f"Unknown language {payload.implementation_language}"}
@@ -316,7 +337,6 @@ class PredictionIn(Schema):
     model: int
     description: str = None
     commit: str
-    ADM_level: int
     predict_date: datetime.date  # YYYY-mm-dd
     prediction: AnyObject
 
@@ -374,14 +394,6 @@ def create_prediction(request, payload: PredictionIn):
             "message": (
                 "Description too big, maximum allowed: 500. "
                 f"Please remove {len(description) - 500} characters."
-            )
-        }
-
-    if payload.ADM_level not in [0, 1, 2, 3]:
-        return 403, {
-            "message": (
-                "ADM_level must be 0, 1, 2 or 3 "
-                "(National, State, Municipality or Sub Municipality)"
             )
         }
 

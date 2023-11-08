@@ -18,8 +18,8 @@ class ImplementationLanguage(models.Model):
         return f"{self.language}"
 
     class Meta:
-        verbose_name = "Implementation Language"
-        verbose_name_plural = "Implementation Languages"
+        verbose_name = _("Implementation Language")
+        verbose_name_plural = _("Implementation Languages")
 
 
 class Author(models.Model):
@@ -34,11 +34,23 @@ class Author(models.Model):
         return f"{self.user.name}"
 
     class Meta:
-        verbose_name = "Author"
-        verbose_name_plural = "Authors"
+        verbose_name = _("Author")
+        verbose_name_plural = _("Authors")
 
 
 class Model(models.Model):
+    class Periodicities(models.TextChoices):
+        DAILY = "daily", _("Daily")
+        WEEKLY = "weekly", _("Weekly")
+        MONTHLY = "monthly", _("Monthly")
+        YEARLY = "yearly", _("Yearly")
+
+    class ADM_levels(models.IntegerChoices):
+        NATIONAL = 0, _("National")
+        STATE = 1, _("State")
+        MUNICIPALITY = 2, _("Municipality")
+        SUB_MUNICIPALITY = 3, _("Sub Municipality")
+
     author = models.ForeignKey(
         Author, on_delete=models.CASCADE, null=False, blank=False
     )
@@ -49,6 +61,10 @@ class Model(models.Model):
         ImplementationLanguage, on_delete=models.PROTECT, null=False, blank=False
     )
     type = models.CharField(max_length=100, null=False, blank=True)
+    ADM_level = models.IntegerField(
+        choices=ADM_levels.choices, null=True
+    )  # TODO: Change to false
+    periodicity = models.CharField(choices=Periodicities.choices, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -56,25 +72,16 @@ class Model(models.Model):
         return f"{self.name}"
 
     class Meta:
-        verbose_name = "Model"
-        verbose_name_plural = "Models"
+        verbose_name = _("Model")
+        verbose_name_plural = _("Models")
 
 
 class Prediction(models.Model):
-    class ADM_levels(models.IntegerChoices):
-        NATIONAL = 0, _("National")
-        STATE = 1, _("State")
-        MUNICIPALITY = 2, _("Municipality")
-        SUB_MUNICIPALITY = 3, _("Sub Municipality")
-
     model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
-    ADM_level = models.IntegerField(
-        choices=ADM_levels.choices, null=True
-    )  # TODO: Change to false
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -82,5 +89,5 @@ class Prediction(models.Model):
         return f"{self.commit}"  # TODO: Change it
 
     class Meta:
-        verbose_name = "Prediction"
-        verbose_name_plural = "Predictions"
+        verbose_name = _("Prediction")
+        verbose_name_plural = _("Predictions")

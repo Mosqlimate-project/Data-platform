@@ -28,16 +28,6 @@
                     <label for="prediction_date">{% translate "Prediction date" %}:</label>
                     <input id="edit-predict-date" name="prediction_date" class="form-control" type="date", value="{{ prediction.predict_date|date:'Y-m-d'|default_if_none:prediction.predict_date }}" required>
                 </div>
-                <div class="col">
-                    <label for="prediction_adm_level">{% translate "ADM Level" %}:</label>
-                    <select id="edit-adm-level" name="prediction_adm_level" class="form-control" required>
-                        {% for level, label in adm_levels %}
-                        <option value="{{ level }}" {% if level == prediction.ADM_level %}selected{% endif %}>
-                        {{ level }} - {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
             </div>
             <div class="row mb-3">
                 <div class="col">

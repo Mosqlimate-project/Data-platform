@@ -19,6 +19,12 @@ class NotFoundSchema(Schema):
     message: str
 
 
+class UnprocessableContentSchema(Schema):
+    """422"""
+
+    message: str
+
+
 class InternalErrorSchema(Schema):
     """500"""
 

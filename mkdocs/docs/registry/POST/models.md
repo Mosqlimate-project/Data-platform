@@ -9,6 +9,8 @@
 | repository | str | Github repository URL |
 | implementation_language | str | Implementation language |
 | type | str _(icontains)_ | Model type. E.g: nowcast / forecast |
+| ADM_level | str _(iexact)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| periodicity | str _(iexact)_ | Options are: daily, weekly, monthly or yearly |
 
 
 ### Implementation Language
@@ -39,7 +41,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         description: str, 
         repository: str, 
         implementation_language: str, 
-        mtype: str
+        mtype: str,
+        adm_level: Literal[0, 1, 2, 3],
+        periodicity: Literal["daily", "weekly", "monthly", "yearly"],
     ):
         url = "https://api.mosqlimate.org/api/registry/models/"
         headers = {"X-UID-Key": "See X-UID-Key documentation"}
@@ -48,7 +52,9 @@ POST requests require [User API Token](uid-key.md) to be called.
             "description": description,
             "repository": repository,
             "implementation_language": implementation_language,
-            "type": mtype
+            "type": mtype,
+            "ADM_level": adm_level,
+            "periodicity": periodicity,
         }
         return requests.post(url, json=model, headers=headers)
 
@@ -61,7 +67,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = "My Model description",
         repository = "https://github.com/Mosqlimate-project/Data-platform",
         implementation_language = "Python",
-        mtype = types[0]
+        mtype = types[0],
+        adm_level = 0, # National
+        periodicity = "weekly",
     )
     ```
 
@@ -76,7 +84,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       description,
       repository,
       implementation_language,
-      mtype
+      mtype,
+      adm_level,
+      periodicity
     ) {
       url <- "https://api.mosqlimate.org/api/registry/models/"
       headers <- add_headers("X-UID-Key" = "See X-UID-Key documentation")
@@ -85,7 +95,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = description,
         repository = repository,
         implementation_language = implementation_language,
-        type = mtype
+        type = mtype,
+        ADM_level = adm_level,
+        periodicity = periodicity
       )
       response <- POST(url, body = list(model), encode = "json", headers = headers)
       return(content(response, "text"))
@@ -99,7 +111,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       description = "My Model description",
       repository = "https://github.com/Mosqlimate-project/Data-platform",
       implementation_language = "R",
-      mtype = types[1]
+      mtype = types[1],
+      adm_level = 0,
+      periodicity = "weekly"
     )
     ```
 
@@ -115,6 +129,8 @@ POST requests require [User API Token](uid-key.md) to be called.
         "description": "My Model description",
         "repository": "https://github.com/Mosqlimate-project/Data-platform",
         "implementation_language": "Python",
-        "type": "nowcast"
+        "type": "nowcast",
+        "ADM_level": 0,
+        "periodicity": "weekly"
     }'
     ```
