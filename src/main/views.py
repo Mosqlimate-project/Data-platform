@@ -148,11 +148,11 @@ class EditModelView(View):
                 (2, _("Municipality")),
                 (3, _("Sub Municipality")),
             ],
-            "periodicities": [
-                ("daily", _("Daily")),
-                ("weekly", _("Weekly")),
-                ("monthly", _("Monthly")),
-                ("yearly", _("Yearly")),
+            "time_resolutions": [
+                ("day", _("Day")),
+                ("week", _("Week")),
+                ("month", _("Month")),
+                ("year", _("Year")),
             ],
         }
         return render(request, self.template_name, context)
@@ -186,7 +186,7 @@ class EditModelView(View):
                     "implementation_language": form.cleaned_data["model_language"],
                     "type": form.cleaned_data["model_type"],
                     "ADM_level": form.cleaned_data["model_adm_level"],
-                    "periodicity": form.cleaned_data["model_periodicity"],
+                    "time_resolution": form.cleaned_data["model_time_resolution"],
                 }
 
                 status_code, model = update_model(
