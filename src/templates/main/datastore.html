@@ -4,5 +4,15 @@
 {% block title %}Datastore{% endblock %}
 
 {% block content %}
-<h1>Datastore</h1>
+<div class="container infodengue shadow p-5 mb-3 bg-body rounded">
+  {% include 'main/components/datastore/infodengue.html' %}
+</div>
+
+<div class="container climate shadow p-5 mb-3 bg-body rounded">
+  {% include 'main/components/datastore/climate.html' %}
+</div>
+
+<div class="container mosquito shadow p-5 mb-3 bg-body rounded">
+  {% include 'main/components/datastore/mosquito.html' %}
+</div>
 {% endblock %}
