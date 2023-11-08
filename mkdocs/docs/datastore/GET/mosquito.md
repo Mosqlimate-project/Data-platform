@@ -1,4 +1,6 @@
-`api/datastore/contaovos/` is the API call that retrieves information from [Contaovos API](https://contaovos.dengue.mat.br/pt-br/api/).
+## Mosquito Abundance Data
+Here you get access to mosquito abundance data from the [Contaovos project](https://contaovos.dengue.mat.br/), co-developed by the Mosqlimate project. These data, described below, are based on eggtraps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.
+
 The request requires an API key provided by Contaovos moderation. To more information, please access
 [Contaovos website](https://contaovos.dengue.mat.br/pt-br/).
 
@@ -36,13 +38,13 @@ The request requires an API key provided by Contaovos moderation. To more inform
     ```py
     import requests
 
-    contaovos_api = "https://api.mosqlimate.org/api/datastore/contaovos/"
+    mosquito_api = "https://api.mosqlimate.org/api/datastore/mosquito/"
 
     key = "contaovos-api-key"
     page = 1
     parameters = f"?page={page}&key={key}&"
 
-    resp = requests.get(contaovos_api + parameters)
+    resp = requests.get(mosquito_api + parameters)
 
     items = resp.json() # JSON data in dict format
     ```
@@ -51,12 +53,12 @@ The request requires an API key provided by Contaovos moderation. To more inform
     ```R
     library(httr)
 
-    contaovos_api <- "https://api.mosqlimate.org/api/datastore/contaovos/"
+    mosquito_api <- "https://api.mosqlimate.org/api/datastore/mosquito/"
 
     key <- "contaovos-api-key"
     page <- 1
 
-    url <- paste0(contaovos_api, "?page=", page, "&key=", key)
+    url <- paste0(mosquito_api, "?page=", page, "&key=", key)
     resp <- GET(url)
 
     if (http_type(resp) == "application/json") {
@@ -69,7 +71,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
 === "curl"
     ```sh
     curl -X 'GET' \
-    'https://api.mosqlimate.org/api/datastore/contaovos/?key=contaovos-api-key&page=1' \
+    'https://api.mosqlimate.org/api/datastore/mosquito/?key=contaovos-api-key&page=1' \
     -H 'accept: application/json' \
     -d ''
     ```

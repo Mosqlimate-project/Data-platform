@@ -32,7 +32,7 @@ paginator.max_per_page = 100
 
 
 @router.get(
-    "/historico_alerta/",
+    "/infodengue/",
     response={
         200: List[HistoricoAlertaSchema],
         404: NotFoundSchema,
@@ -42,7 +42,7 @@ paginator.max_per_page = 100
 )
 @paginate(paginator)
 @csrf_exempt
-def get_historico_alerta(
+def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
@@ -86,7 +86,7 @@ def get_historico_alerta(
 
 
 @router.get(
-    "/copernicus_brasil/",
+    "/climate/",
     response={
         200: List[CopernicusBrasilSchema],
         404: NotFoundSchema,
@@ -130,7 +130,7 @@ def get_copernicus_brasil(
 
 
 @router.get(
-    "/contaovos/",
+    "/mosquito/",
     response={
         200: List[ContaOvosSchema],
         404: NotFoundSchema,
