@@ -2,21 +2,29 @@
 {% load i18n %}
 
 <footer>
-<div class="footer navbar navbar-inverse navbar-static-bottom font-golos" role="navigation">
+<div class="footer navbar navbar-inverse navbar-static-bottom font-golos text-white" role="navigation">
     <div class="navbar-text">
       <a href="https://github.com/Mosqlimate-project/Data-platform">
       <i class="fa-brands fa-github fa-2x" style="color: #42464d;"></i></a>
     </div>
 
-    <div class="navbar-text text-white">
+    <div class="navbar-text">
       &copy; <a href="https://mosqlimate.org/">Mosqlimate Project</a>, 2023
     </div>
 
-    <div class="navbar-text">
-        <div class="partner-text text-white">{% translate "Partners" %}:</div>
-      <a href="https://info.dengue.mat.br/">
-        <img class="d-inline-block infodengue-logo" src="{% static 'img/infodengue-logo.png' %}" alt="infodengue-logo" width="90">
-      </a>
+    <div class="navbar-text partners-funding">
+        <div class="funding">
+            <div class="funding-text">{% translate "Funding" %}:</div>
+          <a href="https://wellcome.org/">
+            <img class="d-inline-block wt-logo" src="{% static 'img/WT-logo-white.png' %}" alt="wt-logo" width="70">
+          </a> 
+        </div>
+        <div class="partners">
+            <div class="partner-text">{% translate "Partners" %}:</div>
+          <a href="https://info.dengue.mat.br/">
+            <img class="d-inline-block infodengue-logo" src="{% static 'img/infodengue-logo.png' %}" alt="infodengue-logo" width="90">
+          </a> 
+        </div>
     </div>
       
 </div>	
@@ -40,7 +48,21 @@
     padding-bottom: 0;
   }
 
-  .partner-text {
+  .partners-funding {
+      margin-top: -10px;
+      display: flex;
+      flex-direction: row;
+  }
+
+  .funding {
+      padding-right: 30px;
+  }
+
+  .funding-text .partner-text {
     text-align: center;
+  }
+
+  .infodengue-logo {
+      margin-top: 10px;
   }
 </style>
