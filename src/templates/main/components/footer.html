@@ -3,7 +3,7 @@
 
 <footer>
 <div class="footer navbar navbar-inverse navbar-static-bottom font-golos text-white" role="navigation">
-    <div class="navbar-text">
+    <div class="navbar-text gh-icon justify-content-start">
       <a href="https://github.com/Mosqlimate-project/Data-platform">
       <i class="fa-brands fa-github fa-2x" style="color: #42464d;"></i></a>
     </div>
@@ -12,7 +12,7 @@
       &copy; <a href="https://mosqlimate.org/">Mosqlimate Project</a>, 2023
     </div>
 
-    <div class="navbar-text partners-funding">
+    <div class="navbar-text partners-funding justify-content-end">
         <div class="funding">
             <div class="funding-text">{% translate "Funding" %}:</div>
           <a href="https://wellcome.org/">
@@ -31,19 +31,24 @@
 </footer>
 
 <style>
-  footer, .footer {
-    background-color: #000000de;
-    flex-shrink: 0;
+  footer {
+    margin-top: 30px;
+  }
+
+  .footer {
+    background-color: #161616;
     display: flex;
-    justify-content: space-between;
     flex-direction: row;
     align-items: center;
     border-top: var(--border);
-    opacity: 0.945;
+    opacity: 1;
     width: 100%;
   }
 
   .navbar-text {
+    display: flex;
+    flex: 1;
+    justify-content: center;
     padding-top: 0;
     padding-bottom: 0;
   }
@@ -55,7 +60,7 @@
   }
 
   .funding {
-      padding-right: 30px;
+      padding-right: 40px;
   }
 
   .funding-text .partner-text {

@@ -375,6 +375,14 @@ class EditPredictionView(View):
         return redirect("predictions")
 
 
+class DataStoreView(View):
+    template_name = "main/datastore.html"
+
+    def get(self, request):
+        context = {}
+        return render(request, self.template_name, context)
+
+
 def error_404(request, *args, **kwargs):
     return render(request, "main/404.html", {}, status=404)
 
