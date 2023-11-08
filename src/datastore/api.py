@@ -86,7 +86,7 @@ def get_infodengue(
 
 
 @router.get(
-    "/copernicus_brasil/",
+    "/climate/",
     response={
         200: List[CopernicusBrasilSchema],
         404: NotFoundSchema,
@@ -130,7 +130,7 @@ def get_copernicus_brasil(
 
 
 @router.get(
-    "/contaovos/",
+    "/mosquito/",
     response={
         200: List[ContaOvosSchema],
         404: NotFoundSchema,

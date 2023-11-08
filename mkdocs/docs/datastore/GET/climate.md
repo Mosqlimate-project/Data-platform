@@ -1,3 +1,5 @@
+## Climate time series
+Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based [reanalysis data provided by Copernicus ERA5](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview). These series are on a daily timescale.
 
 ## Parameters Table 
 ### Input
@@ -50,19 +52,19 @@
     ```py
     import requests
 
-    copernicus_brasil_api = "https://api.mosqlimate.org/api/datastore/copernicus_brasil/"
+    climate_api = "https://api.mosqlimate.org/api/datastore/climate/"
 
     page = 1 # total amount of pages is returned in the request
     per_page = 100
     pagination = f"?page={page}&per_page={per_page}&"
     filters = "start=%s&end=%s" % ("2022-12-30", "2023-12-30")
 
-    resp = requests.get(copernicus_brasil_api + pagination + filters)
+    resp = requests.get(climate_api + pagination + filters)
 
     # Or you can add a geocode to the filters
     geocode = 3304557
     resp = requests.get(
-        copernicus_brasil_api + 
+        climate_api + 
         pagination + 
         filters +
         f"&geocode={geocode}"
@@ -77,12 +79,12 @@
     library(httr)
     library(jsonlite)
 
-    copernicus_brasil_api <- "https://api.mosqlimate.org/api/datastore/copernicus_brasil/"
+    climate_api <- "https://api.mosqlimate.org/api/datastore/climate/"
     page <- "1"
     pagination <- paste0("?page=", page, "&per_page=100&")
     filters <- paste0("start=2022-12-30&end=2023-12-30")
 
-    url <- paste0(copernicus_brasil_api, pagination, filters)
+    url <- paste0(climate_api, pagination, filters)
     resp <- GET(url)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
@@ -94,12 +96,12 @@
 === "curl"
     ```sh
     curl -X 'GET' \
-      'https://api.mosqlimate.org/api/datastore/copernicus_brasil/?start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
+      'https://api.mosqlimate.org/api/datastore/climate/?start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
       -H 'accept: application/json'
 
     # Or you can add a geocode to the filters
     curl -X 'GET' \
-      'https://api.mosqlimate.org/api/datastore/copernicus_brasil/?start=2022-12-30&end=2023-12-30&geocode=3304557&page=1&per_page=100' \
+      'https://api.mosqlimate.org/api/datastore/climate/?start=2022-12-30&end=2023-12-30&geocode=3304557&page=1&per_page=100' \
       -H 'accept: application/json'
 
     ```
