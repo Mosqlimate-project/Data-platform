@@ -9,11 +9,10 @@ project, which provide a number of epidemiological variables for all the Brazili
 municipalities on a weekly time scale.
 </p>
 
-
 <div class="row mb-3">
     <div class="col">
         <label>{% translate "Disease" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
-        <select id="select-disease" name="disease" class="form-control">
+        <select id="infodengue-select-disease" name="infodengue-disease" class="form-control">
             {% for value, label in diseases %}
             <option value="{{ value }}" {% if value == "dengue" %}selected{% endif %}>
             {{ label }}
@@ -23,11 +22,11 @@ municipalities on a weekly time scale.
     </div>
     <div class="col">
         <label>{% translate "Start" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
-        <input id="select-start" name="start" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+        <input id="infodengue-select-start" name="infodengue-start" class="form-control" type="date", value="{% now 'Y-m-d' %}">
     </div>
     <div class="col">
         <label>{% translate "End" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
-        <input id="select-end" name="end" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+        <input id="infodengue-select-end" name="infodengue-end" class="form-control" type="date", value="{% now 'Y-m-d' %}">
     </div>
 </div>
 <div class="row mb-3">
@@ -36,8 +35,8 @@ municipalities on a weekly time scale.
         <input
             type="text"
             min="0"
-            id="select-geocode"
-            name="geocode"
+            id="infodengue-select-geocode"
+            name="infodengue-geocode"
             value=""
             class="form-control"
             maxlength="7"
@@ -48,7 +47,7 @@ municipalities on a weekly time scale.
     </div>
     <div class="col">
         <label>UF:</label>
-        <select id="select-uf" name="uf" class="form-control">
+        <select id="infodengue-select-uf" name="infodengue-uf" class="form-control">
             <option value="">
             {% for value, label in UFs %}
             <option value="{{ value }}">
@@ -62,59 +61,71 @@ municipalities on a weekly time scale.
 
 <center><hr></center>
 
-<div class="api-url">
-    <a id="api-url" href="#" target="_blank"></a>
+<div class="infodengue-api-url">
+    <a id="infodengue-api-url" href="#" target="_blank"></a>
 </div>
 
 <style>
-    .api-url {
+    .infodengue-api-url {
       width: 100%;
       overflow-x: auto;
     }
 
-    #api-url {
+    #infodengue-api-url {
       white-space: nowrap;
       color: black;
       text-decoration: none;
     }
 
-    #api-url:hover {
+    #infodengue-api-url:hover {
       text-decoration: underline;
     }
 </style>
 
 <script>
-    const api_url = document.getElementById("api-url");
-    const defaultApiUrl = "https://api.mosqlimate.org/api/datastore/infodengue/?page=1&per_page=50";
+    const infodengueApiUrl = document.getElementById("infodengue-api-url");
+    const infodengueDefaultApiUrl = "https://api.mosqlimate.org/api/datastore/infodengue/?page=1&per_page=50";
 
-    const disease = document.getElementById("select-disease");
-    const start = document.getElementById("select-start");
-    const end = document.getElementById("select-end");
-    const geocode = document.getElementById("select-geocode");
-    const uf = document.getElementById("select-uf");
+    const infodengueDisease = document.getElementById("infodengue-select-disease");
+    const infodengueStart = document.getElementById("infodengue-select-start");
+    const infodengueEnd = document.getElementById("infodengue-select-end");
+    const infodengueGeocode = document.getElementById("infodengue-select-geocode");
+    const infodengueUf = document.getElementById("infodengue-select-uf");
 
-    disease.addEventListener("change", updateUrl);
-    start.addEventListener("input", updateUrl);
-    end.addEventListener("input", updateUrl);
-    geocode.addEventListener("input", updateUrl);
-    uf.addEventListener("change", updateUrl);
+    infodengueDisease.addEventListener("change", updateInfodengueUrl);
+    infodengueStart.addEventListener("input", updateInfodengueUrl);
+    infodengueEnd.addEventListener("input", updateInfodengueUrl);
+    infodengueGeocode.addEventListener("input", updateInfodengueUrl);
+    infodengueUf.addEventListener("change", updateInfodengueUrl);
 
-    function updateUrl() {
-      const updatedUrl = buildApiUrl(geocode.value, disease.value, start.value, end.value, uf.value);
-      updateApiUrl(updatedUrl);
+    function updateInfodengueUrl() {
+      const updatedInfodengueUrl = buildApiUrl(
+          infodengueGeocode.value, 
+          infodengueDisease.value, 
+          infodengueStart.value, 
+          infodengueEnd.value, 
+          infodengueUf.value
+      );
+      updateApiUrl(updatedInfodengueUrl);
     }
 
-    function buildApiUrl(geocodeValue, diseaseValue, startValue, endValue, ufValue) {
-      const diseasePart = "&disease=" + diseaseValue;
-      const startPart = "&start=" + startValue;
-      const endPart = "&end=" + endValue;
-      const geocodePart = geocodeValue.trim() !== "" ? "&geocode=" + geocodeValue : "";
-      const ufPart = ufValue.trim() !== "" ? "&uf=" + ufValue : "";
-      return defaultApiUrl + diseasePart + startPart + endPart + geocodePart + ufPart;
+    function buildApiUrl(
+        infodengueGeocodeValue, 
+        infodengueDiseaseValue, 
+        infodengueStartValue, 
+        infodengueEndValue, 
+        infodengueUfValue
+    ) {
+      const infodengueDiseasePart = "&disease=" + infodengueDiseaseValue;
+      const infodengueStartPart = "&start=" + infodengueStartValue;
+      const infodengueEndPart = "&end=" + infodengueEndValue;
+      const infodengueGeocodePart = infodengueGeocodeValue.trim() !== "" ? "&geocode=" + infodengueGeocodeValue : "";
+      const infodengueUfPart = infodengueUfValue.trim() !== "" ? "&uf=" + infodengueUfValue : "";
+      return infodengueDefaultApiUrl + infodengueDiseasePart + infodengueStartPart + infodengueEndPart + infodengueGeocodePart + infodengueUfPart;
     }
 
-    function updateApiUrl(updatedUrl) {
-      api_url.textContent = updatedUrl;
-      api_url.href = updatedUrl;
+    function updateApiUrl(updatedInfodengueUrl) {
+      infodengueApiUrl.textContent = updatedInfodengueUrl;
+      infodengueApiUrl.href = updatedInfodengueUrl;
     }
 </script>

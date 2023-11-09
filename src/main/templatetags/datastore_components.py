@@ -20,7 +20,7 @@ def infodengue():
 
 @register.inclusion_tag("main/components/datastore/climate.html")
 def climate():
-    context = {}
+    context = {"UFs": UFs.items()}
     return context
 
 
