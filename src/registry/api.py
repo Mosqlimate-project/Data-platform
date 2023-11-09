@@ -33,6 +33,7 @@ from .schema import (
 )
 from .pagination import PagesPagination
 from .utils import calling_via_swagger
+from .validations import validate_prediction_data
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -420,6 +421,8 @@ def create_prediction(request, payload: PredictionIn):
 
     payload.model = model
     # TODO: Add commit verification here #19
+
+    validate_prediction_data(payload.prediction)
     prediction = Prediction(**payload.dict())
 
     if not calling_via_swagger(request):
