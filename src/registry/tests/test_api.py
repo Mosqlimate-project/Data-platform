@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
 import re
-
+from pathlib import Path
 from django.test import TestCase
 from django.http import HttpRequest
 from ninja import Router
@@ -9,7 +8,6 @@ from ninja import Router
 from registry.models import Author, Model, Prediction, ImplementationLanguage
 from users.models import CustomUser
 from registry.api import PredictionIn, create_prediction
-
 
 app_dir = Path(__file__).parent.parent
 
@@ -21,12 +19,18 @@ router = Router()
 )
 class TestCreatePrediction(TestCase):
     def setUp(self):
-        data_path = app_dir / "tests/data/prediction.test.json"
-        with open(data_path, "r") as file:
+        # Load Brazilian Municipaities and State names for geocode validation
+        self.validation_data_path = app_dir / "tests/data/validation_data.json"
+        # Load the validation Brazilian Municipalities and State names
+        with open(self.validation_data_path, "r") as validation_file:
+            self.validation_data = json.load(validation_file)
+
+        # Load prediction data
+        with open(app_dir / "tests/data/prediction.test.json", "r") as file:
             self.data = json.load(file)
 
-        user, created = CustomUser.objects.get_or_create(username="usertest")
-
+        # Create a user and language for the model
+        user, _ = CustomUser.objects.get_or_create(username="usertest")
         language = ImplementationLanguage.objects.create(language="MosqLang")
 
         self.model = Model.objects.create(
@@ -55,26 +59,30 @@ class TestCreatePrediction(TestCase):
         self.assertEqual(data["adm_1"], "AL")
         self.assertEqual(data["adm_0"], "BR")
 
-        # Check string length
+        # Check string field lengths
         self.assertLessEqual(len(data["dates"]), 10)  # Max length of 'YYYY-MM-DD'
-        self.assertLessEqual(len(data["adm_1"]), 2)  # ISO UF code
-        self.assertLessEqual(len(data["adm_0"]), 2)  # ISO country code
+        self.assertLessEqual(len(data["adm_1"]), 2)  # UF code
+        self.assertLessEqual(len(data["adm_0"]), 2)  # Country code
 
         # Check date format using a regular expression
         date_pattern = r"\d{4}-\d{2}-\d{2}"
         self.assertTrue(re.match(date_pattern, data["dates"]))
 
-        # Test a valid geocode for a Brazilian municipality (7 digits)
+        # Verify if the geocode is within the range for the Brazilian IBGE code
         self.assertGreaterEqual(data["adm_2"], 1100015)  # Alta Floresta D'Oeste
         self.assertLessEqual(data["adm_2"], 5300108)  # Brasília
 
+        # Check if "geocodigo" is in validation_data
+        self.assertTrue(
+            data["adm_2"] in [entry["geocodigo"] for entry in self.validation_data]
+        )
+
     def test_create_prediction(self):
-        # breakpoint()
+        # Create a payload for testing
         payload = PredictionIn(
             model=self.model.pk,
             description="Test description",
             ADM_level=1,
-            value=42.0,
             commit="76eb927067cf54ae52da53503a14519d78a37da8",
             predict_date="2023-11-08",
             prediction=self.data,
@@ -84,6 +92,7 @@ class TestCreatePrediction(TestCase):
         request.method = "POST"
         request.POST = payload.dict()
 
+        # Call the create_prediction function and check the response
         response = create_prediction(request, payload)
 
         self.assertEqual(response[0], 201)
@@ -93,14 +102,14 @@ class TestCreatePrediction(TestCase):
         self.assertEqual(prediction.model, self.model)
         self.assertEqual(prediction.description, "Test description")
         self.assertEqual(prediction.ADM_level, 1)
-        self.assertEqual(prediction.value, 42.0)
+        self.assertEqual(prediction.commit, "76eb927067cf54ae52da53503a14519d78a37da8")
 
     def test_create_prediction_invalid_payload(self):
+        # Create an invalid payload for testing
         payload = PredictionIn(
             model=self.model.pk,
             description="x" * 501,
             ADM_level=4,
-            value=42.0,
             commit="76eb927067cf54ae52da53503a14519d78a37da8",
             predict_date="2023-11-08",
             prediction=self.data,
@@ -110,6 +119,7 @@ class TestCreatePrediction(TestCase):
         request.method = "POST"
         request.POST = payload.dict()
 
+        # Call the create_prediction function and check the response
         response = create_prediction(request, payload)
 
         self.assertEqual(response[0], 403)
