@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <center><h1>mosquito</h1></center>
 
 <center><hr></center>
@@ -5,3 +7,84 @@
 <p>
 Here you get access to mosquito abundance data from the <a href="https://contaovos.dengue.mat.br/">Contaovos project</a>, co-developed by the Mosqlimate project. These data are based on egg traps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.
 </p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "ContaOvos Key" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input
+            type="text"
+            id="mosquito-select-key"
+            name="mosquito-key"
+            value=""
+            class="form-control"
+        >
+    </div>
+    <div class="col">
+        <label>{% translate "Page" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input
+            type="number"
+            min="1"
+            id="mosquito-select-page"
+            name="mosquito-page"
+            value=""
+            class="form-control"
+        >
+    </div>
+</div>
+<span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
+
+<center><hr></center>
+
+<div class="mosquito-api-url">
+    <a id="mosquito-api-url" href="#" target="_blank"></a>
+</div>
+
+<style>
+    .mosquito-api-url {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    #mosquito-api-url {
+      white-space: nowrap;
+      color: black;
+      text-decoration: none;
+    }
+
+    #mosquito-api-url:hover {
+      text-decoration: underline;
+    }
+</style>
+
+<script>
+    const mosquitoApiUrl = document.getElementById("mosquito-api-url");
+    const defaultMosquitoApiUrl = "https://api.mosqlimate.org/api/datastore/mosquito/?";
+
+    const mosquitoKey = document.getElementById("mosquito-select-key");
+    const mosquitoPage = document.getElementById("mosquito-select-page");
+
+    mosquitoKey.addEventListener("input", updateMosquitoUrl);
+    mosquitoPage.addEventListener("input", updateMosquitoUrl);
+
+    function updateMosquitoUrl() {
+      const updatedMosquitoUrl = buildMosquitoApiUrl(
+          mosquitoKey.value, 
+          mosquitoPage.value, 
+      );
+      updateMosquitoApiUrl(updatedMosquitoUrl);
+    }
+
+    function buildMosquitoApiUrl(
+        mosquitoKey, 
+        mosquitoPage, 
+    ) {
+      const mosquitoKeyPart = "key=" + mosquitoKey;
+      const mosquitoPagePart = "&page=" + mosquitoPage;
+      return defaultMosquitoApiUrl + mosquitoKeyPart + mosquitoPagePart;
+    }
+
+    function updateMosquitoApiUrl(updatedMosquitoUrl) {
+      mosquitoApiUrl.textContent = updatedMosquitoUrl;
+      mosquitoApiUrl.href = updatedMosquitoUrl;
+    }
+</script>
