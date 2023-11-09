@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 
 from django.test import TestCase
 from django.http import HttpRequest
@@ -24,7 +25,7 @@ class TestCreatePrediction(TestCase):
         with open(data_path, "r") as file:
             self.data = json.load(file)
 
-        user, created = CustomUser.objects.get_or_create(username="esloch")
+        user, created = CustomUser.objects.get_or_create(username="usertest")
 
         language = ImplementationLanguage.objects.create(language="MosqLang")
 
@@ -33,6 +34,39 @@ class TestCreatePrediction(TestCase):
             name="Test Model",
             implementation_language=language,
         )
+
+    def test_validate_prediction(self):
+        data = self.data[0]
+
+        # Check data types
+        self.assertIsInstance(data["dates"], str)
+        self.assertIsInstance(data["preds"], float)
+        self.assertIsInstance(data["lower"], float)
+        self.assertIsInstance(data["upper"], float)
+        self.assertIsInstance(data["adm_2"], int)
+        self.assertIsInstance(data["adm_1"], str)
+        self.assertIsInstance(data["adm_0"], str)
+
+        # Check data values
+        self.assertEqual(data["dates"], "2022-01-02")
+        self.assertAlmostEqual(data["preds"], 23.4811749402)
+        self.assertAlmostEqual(data["lower"], 0.0)
+        self.assertAlmostEqual(data["upper"], 42.6501866267)
+        self.assertEqual(data["adm_1"], "AL")
+        self.assertEqual(data["adm_0"], "BR")
+
+        # Check string length
+        self.assertLessEqual(len(data["dates"]), 10)  # Max length of 'YYYY-MM-DD'
+        self.assertLessEqual(len(data["adm_1"]), 2)  # ISO UF code
+        self.assertLessEqual(len(data["adm_0"]), 2)  # ISO country code
+
+        # Check date format using a regular expression
+        date_pattern = r"\d{4}-\d{2}-\d{2}"
+        self.assertTrue(re.match(date_pattern, data["dates"]))
+
+        # Test a valid geocode for a Brazilian municipality (7 digits)
+        self.assertGreaterEqual(data["adm_2"], 1100015)  # Alta Floresta D'Oeste
+        self.assertLessEqual(data["adm_2"], 5300108)  # Brasília
 
     def test_create_prediction(self):
         # breakpoint()
@@ -83,6 +117,6 @@ class TestCreatePrediction(TestCase):
             response[1],
             {
                 "message": "Description too big, maximum allowed: 500."
-                + "Please remove 1 character."
+                " Please remove 1 characters."
             },
         )
