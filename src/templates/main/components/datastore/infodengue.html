@@ -63,7 +63,7 @@ municipalities on a weekly time scale.
 <center><hr></center>
 
 <div class="api-url">
-    <p id="api-url"></p>
+    <a id="api-url" href="#" target="_blank"></a>
 </div>
 
 <style>
@@ -74,6 +74,12 @@ municipalities on a weekly time scale.
 
     #api-url {
       white-space: nowrap;
+      color: black;
+      text-decoration: none;
+    }
+
+    #api-url:hover {
+      text-decoration: underline;
     }
 </style>
 
@@ -109,5 +115,6 @@ municipalities on a weekly time scale.
 
     function updateApiUrl(updatedUrl) {
       api_url.textContent = updatedUrl;
+      api_url.href = updatedUrl;
     }
 </script>
