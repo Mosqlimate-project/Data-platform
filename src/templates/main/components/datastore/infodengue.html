@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <center><h1>infodengue</h1></center>
 <center><hr></center>
 
@@ -6,3 +8,106 @@ This endpoint gives access to data from the <a href="https://info.dengue.mat.br/
 project, which provide a number of epidemiological variables for all the Brazilian 
 municipalities on a weekly time scale.
 </p>
+
+
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "Disease" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <select id="select-disease" name="disease" class="form-control">
+            {% for value, label in diseases %}
+            <option value="{{ value }}" {% if value == "dengue" %}selected{% endif %}>
+            {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <label>{% translate "Start" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="select-start" name="start" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+    <div class="col">
+        <label>{% translate "End" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="select-end" name="end" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "Geocode" %}:</label>
+        <input
+            type="text"
+            min="0"
+            id="select-geocode"
+            name="geocode"
+            value=""
+            class="form-control"
+            maxlength="7"
+            onkeydown="return (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8;"
+            oninput="this.value=this.value.slice(0,this.maxLength)"
+            placeholder="3304557"
+        >
+    </div>
+    <div class="col">
+        <label>UF:</label>
+        <select id="select-uf" name="uf" class="form-control">
+            <option value="">
+            {% for value, label in UFs %}
+            <option value="{{ value }}">
+            {{ value }} - {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
+
+<center><hr></center>
+
+<div class="api-url">
+    <p id="api-url"></p>
+</div>
+
+<style>
+    .api-url {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    #api-url {
+      white-space: nowrap;
+    }
+</style>
+
+<script>
+    const api_url = document.getElementById("api-url");
+    const defaultApiUrl = "https://api.mosqlimate.org/api/datastore/infodengue/?page=1&per_page=50";
+
+    const disease = document.getElementById("select-disease");
+    const start = document.getElementById("select-start");
+    const end = document.getElementById("select-end");
+    const geocode = document.getElementById("select-geocode");
+    const uf = document.getElementById("select-uf");
+
+    disease.addEventListener("change", updateUrl);
+    start.addEventListener("input", updateUrl);
+    end.addEventListener("input", updateUrl);
+    geocode.addEventListener("input", updateUrl);
+    uf.addEventListener("change", updateUrl);
+
+    function updateUrl() {
+      const updatedUrl = buildApiUrl(geocode.value, disease.value, start.value, end.value, uf.value);
+      updateApiUrl(updatedUrl);
+    }
+
+    function buildApiUrl(geocodeValue, diseaseValue, startValue, endValue, ufValue) {
+      const diseasePart = "&disease=" + diseaseValue;
+      const startPart = "&start=" + startValue;
+      const endPart = "&end=" + endValue;
+      const geocodePart = geocodeValue.trim() !== "" ? "&geocode=" + geocodeValue : "";
+      const ufPart = ufValue.trim() !== "" ? "&uf=" + ufValue : "";
+      return defaultApiUrl + diseasePart + startPart + endPart + geocodePart + ufPart;
+    }
+
+    function updateApiUrl(updatedUrl) {
+      api_url.textContent = updatedUrl;
+    }
+</script>

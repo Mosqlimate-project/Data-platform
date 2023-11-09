@@ -1,21 +1,30 @@
 from django import template
 
+from main.utils import UFs
+
 register = template.Library()
 
 
-@register.inclusion_tag("main/components/datastore/infodengue.html", takes_context=True)
-def infodengue(context):
+@register.inclusion_tag("main/components/datastore/infodengue.html")
+def infodengue():
+    diseases = [
+        ("dengue", "Dengue"),
+        ("zika", "Zika"),
+        ("chik", "Chikungunya"),
+    ]
+
+    context = {"diseases": diseases, "UFs": UFs.items()}
+
+    return context
+
+
+@register.inclusion_tag("main/components/datastore/climate.html")
+def climate():
     context = {}
     return context
 
 
-@register.inclusion_tag("main/components/datastore/climate.html", takes_context=True)
-def climate(context):
-    context = {}
-    return context
-
-
-@register.inclusion_tag("main/components/datastore/mosquito.html", takes_context=True)
-def mosquito(context):
+@register.inclusion_tag("main/components/datastore/mosquito.html")
+def mosquito():
     context = {}
     return context
