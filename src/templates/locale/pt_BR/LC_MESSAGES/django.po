@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 13:47-0300\n"
+"POT-Creation-Date: 2023-11-09 17:41-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,60 +18,117 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/main/views.py:156
-msgid "Invalid form"
-msgstr ""
-
-#: src/main/views.py:186
-msgid "Model updated successfully"
-msgstr ""
-
-#: src/main/views.py:188 src/main/views.py:347
-msgid "Unauthorized"
-msgstr ""
-
-#: src/main/views.py:193
-msgid "Failed to update model: "
-msgstr ""
-
-#: src/main/views.py:202
-msgid "Model deleted"
-msgstr ""
-
-#: src/main/views.py:204
-msgid "Cannot delete Model"
-msgstr ""
-
-#: src/main/views.py:344
-msgid "Prediction updated successfully"
-msgstr ""
-
-#: src/main/views.py:352
-msgid "Failed to update prediction: "
-msgstr ""
-
-#: src/main/views.py:361
-msgid "Prediction deleted"
-msgstr ""
-
-#: src/main/views.py:363
-msgid "Error deleting prediction"
-msgstr ""
-
-#: src/registry/models.py:67
+#: src/main/views.py:146 src/registry/models.py:49
 msgid "National"
 msgstr ""
 
-#: src/registry/models.py:68
+#: src/main/views.py:147 src/registry/models.py:50
 msgid "State"
 msgstr ""
 
-#: src/registry/models.py:69
+#: src/main/views.py:148 src/registry/models.py:51
 msgid "Municipality"
 msgstr ""
 
-#: src/registry/models.py:70
+#: src/main/views.py:149 src/registry/models.py:52
 msgid "Sub Municipality"
+msgstr ""
+
+#: src/main/views.py:152 src/registry/models.py:43 src/users/forms.py:29
+msgid "Day"
+msgstr ""
+
+#: src/main/views.py:153 src/registry/models.py:44 src/users/forms.py:30
+msgid "Week"
+msgstr ""
+
+#: src/main/views.py:154 src/registry/models.py:45 src/users/forms.py:31
+msgid "Month"
+msgstr ""
+
+#: src/main/views.py:155 src/registry/models.py:46 src/users/forms.py:32
+msgid "Year"
+msgstr ""
+
+#: src/main/views.py:167
+msgid "Invalid form"
+msgstr ""
+
+#: src/main/views.py:199
+msgid "Model updated successfully"
+msgstr ""
+
+#: src/main/views.py:201 src/main/views.py:356
+msgid "Unauthorized"
+msgstr ""
+
+#: src/main/views.py:206
+msgid "Failed to update model: "
+msgstr ""
+
+#: src/main/views.py:216
+msgid "Model deleted"
+msgstr ""
+
+#: src/main/views.py:218
+msgid "Cannot delete Model"
+msgstr ""
+
+#: src/main/views.py:354
+msgid "Prediction updated successfully"
+msgstr ""
+
+#: src/main/views.py:361
+msgid "Failed to update prediction: "
+msgstr ""
+
+#: src/main/views.py:371
+msgid "Prediction deleted"
+msgstr ""
+
+#: src/main/views.py:373
+msgid "Error deleting prediction"
+msgstr ""
+
+#: src/registry/models.py:21 src/templates/main/models.html:77
+#: src/templates/users/components/models-box.html:97
+msgid "Implementation Language"
+msgstr ""
+
+#: src/registry/models.py:22
+msgid "Implementation Languages"
+msgstr ""
+
+#: src/registry/models.py:37 src/templates/main/components/models-list.html:20
+#: src/templates/main/components/predictions-list.html:20
+msgid "Author"
+msgstr ""
+
+#: src/registry/models.py:38
+msgid "Authors"
+msgstr ""
+
+#: src/registry/models.py:75 src/templates/main/edit-prediction.html:16
+#: src/templates/users/profile.html:56
+msgid "Model"
+msgstr ""
+
+#: src/registry/models.py:76 src/templates/main/components/navbar.html:35
+#: src/templates/main/models.html:6 src/templates/main/models.html:10
+#: src/templates/users/profile.html:56
+msgid "Models"
+msgstr ""
+
+#: src/registry/models.py:92 src/templates/users/profile.html:65
+msgid "Prediction"
+msgstr ""
+
+#: src/registry/models.py:93 src/templates/main/components/navbar.html:38
+#: src/templates/main/predictions.html:5 src/templates/main/predictions.html:9
+#: src/templates/users/components/models-box.html:29
+#: src/templates/users/components/models-box.html:76
+#: src/templates/users/profile.html:65
+msgid "Predictions"
 msgstr ""
 
 #: src/templates/account/messages/logged_in.txt:4
@@ -103,6 +160,50 @@ msgstr ""
 msgid "About Mosqlimate"
 msgstr ""
 
+#: src/templates/main/components/datastore/climate.html:13
+#: src/templates/main/components/datastore/infodengue.html:24
+#: src/templates/main/predictions.html:95
+msgid "Start"
+msgstr ""
+
+#: src/templates/main/components/datastore/climate.html:17
+#: src/templates/main/components/datastore/infodengue.html:28
+#: src/templates/main/predictions.html:99
+msgid "End"
+msgstr ""
+
+#: src/templates/main/components/datastore/climate.html:21
+#: src/templates/main/components/datastore/infodengue.html:34
+msgid "Geocode"
+msgstr ""
+
+#: src/templates/main/components/datastore/climate.html:47
+#: src/templates/main/components/datastore/infodengue.html:60
+#: src/templates/main/components/datastore/mosquito.html:34
+msgid "Required inputs"
+msgstr ""
+
+#: src/templates/main/components/datastore/infodengue.html:14
+msgid "Disease"
+msgstr ""
+
+#: src/templates/main/components/datastore/mosquito.html:13
+msgid "ContaOvos API Key"
+msgstr ""
+
+#: src/templates/main/components/datastore/mosquito.html:23
+#: src/templates/main/models.html:140 src/templates/main/predictions.html:157
+msgid "Page"
+msgstr ""
+
+#: src/templates/main/components/footer.html:17
+msgid "Funding"
+msgstr ""
+
+#: src/templates/main/components/footer.html:23
+msgid "Partners"
+msgstr ""
+
 #: src/templates/main/components/models-list.html:14
 #: src/templates/main/components/predictions-list.html:14
 msgid "Lang"
@@ -113,11 +214,6 @@ msgstr ""
 #: src/templates/users/components/models-box.html:17
 #: src/templates/users/components/models-box.html:85
 msgid "Name"
-msgstr ""
-
-#: src/templates/main/components/models-list.html:20
-#: src/templates/main/components/predictions-list.html:20
-msgid "Author"
 msgstr ""
 
 #: src/templates/main/components/models-list.html:23
@@ -160,25 +256,11 @@ msgstr ""
 msgid "API Demo"
 msgstr ""
 
-#: src/templates/main/components/navbar.html:35
-#: src/templates/main/models.html:6 src/templates/main/models.html:10
-#: src/templates/users/profile.html:56
-msgid "Models"
-msgstr ""
-
-#: src/templates/main/components/navbar.html:38
-#: src/templates/main/predictions.html:5 src/templates/main/predictions.html:9
-#: src/templates/users/components/models-box.html:29
-#: src/templates/users/components/models-box.html:76
-#: src/templates/users/profile.html:65
-msgid "Predictions"
-msgstr ""
-
-#: src/templates/main/components/navbar.html:56
+#: src/templates/main/components/navbar.html:59
 msgid "logout"
 msgstr ""
 
-#: src/templates/main/components/navbar.html:63
+#: src/templates/main/components/navbar.html:66
 msgid "Login with Github"
 msgstr ""
 
@@ -216,22 +298,30 @@ msgstr ""
 msgid "Implementation language"
 msgstr ""
 
-#: src/templates/main/edit-model.html:52 src/templates/main/edit-model.html:67
+#: src/templates/main/edit-model.html:49
+msgid "ADM Level"
+msgstr ""
+
+#: src/templates/main/edit-model.html:59
+msgid "Time resolution"
+msgstr ""
+
+#: src/templates/main/edit-model.html:72 src/templates/main/edit-model.html:87
 msgid "Delete model"
 msgstr ""
 
-#: src/templates/main/edit-model.html:55
+#: src/templates/main/edit-model.html:75
 #: src/templates/main/edit-prediction.html:45
 msgid "Save changes"
 msgstr ""
 
-#: src/templates/main/edit-model.html:74
+#: src/templates/main/edit-model.html:94
 #: src/templates/main/edit-prediction.html:64
 #: src/templates/users/profile.html:130
 msgid "Cancel"
 msgstr ""
 
-#: src/templates/main/edit-model.html:75
+#: src/templates/main/edit-model.html:95
 #: src/templates/main/edit-prediction.html:65
 msgid "Delete"
 msgstr ""
@@ -239,11 +329,6 @@ msgstr ""
 #: src/templates/main/edit-prediction.html:5
 #: src/templates/main/edit-prediction.html:10
 msgid "Edit prediction"
-msgstr ""
-
-#: src/templates/main/edit-prediction.html:16
-#: src/templates/users/profile.html:56
-msgid "Model"
 msgstr ""
 
 #: src/templates/main/edit-prediction.html:28
@@ -304,11 +389,6 @@ msgstr ""
 msgid "Author Institution"
 msgstr ""
 
-#: src/templates/main/models.html:77
-#: src/templates/users/components/models-box.html:97
-msgid "Implementation Language"
-msgstr ""
-
 #: src/templates/main/models.html:87 src/templates/main/predictions.html:104
 msgid "Clear"
 msgstr ""
@@ -333,16 +413,12 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: src/templates/main/models.html:129 src/templates/main/predictions.html:146
-msgid "prediction"
+#: src/templates/main/models.html:129
+msgid "model"
 msgstr ""
 
-#: src/templates/main/models.html:131 src/templates/main/predictions.html:148
-msgid "predictions"
-msgstr ""
-
-#: src/templates/main/models.html:140 src/templates/main/predictions.html:157
-msgid "Page"
+#: src/templates/main/models.html:131
+msgid "models"
 msgstr ""
 
 #: src/templates/main/models.html:140 src/templates/main/predictions.html:157
@@ -361,12 +437,12 @@ msgstr ""
 msgid "Prediction ID"
 msgstr ""
 
-#: src/templates/main/predictions.html:95
-msgid "Start"
+#: src/templates/main/predictions.html:146
+msgid "prediction"
 msgstr ""
 
-#: src/templates/main/predictions.html:99
-msgid "End"
+#: src/templates/main/predictions.html:148
+msgid "predictions"
 msgstr ""
 
 #: src/templates/main/predictions.html:163
@@ -383,10 +459,6 @@ msgstr ""
 
 #: src/templates/users/components/models-box.html:32
 msgid "Updated"
-msgstr ""
-
-#: src/templates/users/profile.html:65
-msgid "Prediction"
 msgstr ""
 
 #: src/templates/users/profile.html:81
