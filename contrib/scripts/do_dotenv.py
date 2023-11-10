@@ -99,6 +99,13 @@ dj_cont_data = var_in(
     default_val="/opt/services/storage/django",
 )
 
+print("\nRedis:")
+redis_port = var_in("REDIS_PORT", input_text="  Redis port [8044]: ", default_val=8044)
+
+print("\nDjango Image:")
+worker_port = var_in(
+    "WORKER_PORT", input_text="  Django Worker port [8044]: ", default_val=8045
+)
 
 print("\nDjango OAuth:")
 site_domain = var_in(
@@ -216,6 +223,8 @@ variables = {
     "DJANGO_PORT": dj_port,
     "DJANGO_HOST_DATA_PATH": str(dj_host_data),
     "DJANGO_CONTAINER_DATA_PATH": str(dj_cont_data),
+    # [Django Worker]
+    "WORKER_PORT": worker_port,
     # [Django Oauth]
     "SITE_DOMAIN": site_domain,
     "SITE_NAME": site_name,
@@ -244,6 +253,8 @@ variables = {
     "EMAIL_USE_TLS": dj_email_use_tls,
     # [Mkdocs]
     "MKDOCS_PORT": 8043,
+    # [Redis]
+    "REDIS_PORT": redis_port,
 }
 
 if dotenv_file.exists():
