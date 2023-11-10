@@ -260,6 +260,9 @@ CHANNEL_LAYERS = {
     },
 }
 
+CELERY_BROKER_URL = f"redis://redis:{env('REDIS_PORT')}"
+CELERY_RESULT_BACKEND = f"redis://redis:{env('REDIS_PORT')}"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

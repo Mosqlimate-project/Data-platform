@@ -7,6 +7,12 @@ services:
     volumes:
       - ../src/:/opt/services/mosqlimate
       - django_data:/opt/services/storage
+    networks:
+      - infodengue-dev_infodengue
 
 volumes:
   django_data:
+
+networks:
+  infodengue-dev_infodengue:
+    external: true

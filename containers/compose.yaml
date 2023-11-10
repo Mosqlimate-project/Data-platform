@@ -28,8 +28,33 @@ services:
     command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
     networks:
       - mosqlimate
-      # - infodengue-prod_infodengue
-      - infodengue-dev_infodengue
+
+  worker:
+    hostname: worker
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: containers/mosqlimate/Dockerfile
+      args:
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+    env_file:
+      - ../.env
+    ports:
+      - ${WORKER_PORT}:${WORKER_PORT}
+    user: "mosqlimate:mosqlimate"
+    command: celery -A mosqlimate worker -l info
+    healthcheck:
+      test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mosqlimate
 
   postgres:
     hostname: mosqlimate-postgres
@@ -38,8 +63,6 @@ services:
       context: ..
       dockerfile: containers/postgres/Dockerfile
       args:
-        # note: if you want to use a specific UID and GID, ensure to add it to
-        #       the .env file
         - UID=${POSTGRES_HOST_UID}
         - GID=${POSTGRES_HOST_GID}
         - environment=${ENV}
@@ -111,12 +134,6 @@ services:
 networks:
   mosqlimate:
     driver: bridge
-
-  infodengue-prod_infodengue:
-    external: true
-
-  infodengue-dev_infodengue:
-    external: true
 
 volumes:
   redis:
