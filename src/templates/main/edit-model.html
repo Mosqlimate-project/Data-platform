@@ -56,10 +56,10 @@
                     </select>
                 </div>
                 <div class="col">
-                    <label for="model_periodicity">{% translate "Periodicity" %}:</label>
-                    <select id="edit-periodicity" name="model_periodicity" class="form-control" required>
-                        {% for value, label in periodicities %}
-                        <option value="{{ value }}" {% if value == model.periodicity %}selected{% endif %}>
+                    <label for="model_time_resolution">{% translate "Time resolution" %}:</label>
+                    <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
+                        {% for value, label in time_resolution %}
+                        <option value="{{ value }}" {% if value == model.time_resolution %}selected{% endif %}>
                         {{ label }}
                         </option>
                         {% endfor %}

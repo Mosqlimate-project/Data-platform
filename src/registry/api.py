@@ -147,7 +147,7 @@ class ModelIn(Schema):
     implementation_language: str
     type: str
     ADM_level: Literal[0, 1, 2, 3]
-    periodicity: Literal["daily", "weekly", "monthly", "yearly"]
+    time_resolution: Literal["day", "week", "month", "year"]
 
 
 @router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
@@ -204,9 +204,9 @@ def create_model(request, payload: ModelIn):
             )
         }
 
-    if payload.periodicity not in ["daily", "weekly", "monthly", "yearly"]:
+    if payload.time_resolution not in ["day", "week", "month", "year"]:
         return 422, {
-            "message": ('Periodicity must be "daily", "weekly", "monthly" or "yearly"')
+            "message": ('Time resolution must be "day", "week", "month" or "year"')
         }
 
     description = payload.description

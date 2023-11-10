@@ -34,7 +34,7 @@ class ModelSchema(Schema):
     implementation_language: ImplementationLanguageSchema
     type: str
     ADM_level: int = None
-    periodicity: str = None
+    time_resolution: str = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -51,8 +51,8 @@ class ModelFilterSchema(FilterSchema):
     )
     type: Optional[str] = Field(q="type__icontains")
     ADM_level: Optional[int] = Field(q="ADM_level")
-    periodicity: Optional[Literal["daily", "weekly", "monthly", "yearly"]] = Field(
-        q="periodicity__iexact"
+    time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
+        q="time_resolution__iexact"
     )
 
 
@@ -72,9 +72,9 @@ class PredictionFilterSchema(FilterSchema):
     model_id: Optional[int] = Field(q="model__id__exact")
     model_name: Optional[str] = Field(q="model__name__icontains")
     model_ADM_level: Optional[int] = Field(q="model__ADM_level")
-    model_periodicity: Optional[
-        Literal["daily", "weekly", "monthly", "yearly"]
-    ] = Field(q="model__periodicity__iexact")
+    model_time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
+        q="model__time_resolution__iexact"
+    )
     author_name: Optional[str] = Field(q="model__author__user__name__icontains")
     author_username: Optional[str] = Field(q="model__author__user__username__icontains")
     author_institution: Optional[str] = Field(q="model__author__institution__icontains")

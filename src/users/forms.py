@@ -24,12 +24,12 @@ class UpdateModelForm(forms.Form):
     model_language = forms.CharField(max_length=100)
     model_type = forms.CharField(max_length=100)
     model_adm_level = forms.IntegerField(max_value=3, min_value=0)
-    model_periodicity = forms.ChoiceField(
+    model_time_resolution = forms.ChoiceField(
         choices=[
-            ("daily", _("Daily")),
-            ("weekly", _("Weekly")),
-            ("monthly", _("Monthly")),
-            ("yearly", _("Yearly")),
+            ("day", _("Day")),
+            ("week", _("Week")),
+            ("month", _("Month")),
+            ("year", _("Year")),
         ]
     )
 
