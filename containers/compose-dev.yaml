@@ -10,6 +10,10 @@ services:
     networks:
       - infodengue-dev_infodengue
 
+  worker:
+    networks:
+      - infodengue-dev_infodengue
+
 volumes:
   django_data:
 

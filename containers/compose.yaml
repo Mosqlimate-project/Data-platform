@@ -38,6 +38,7 @@ services:
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
+        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
     env_file:
       - ../.env
     ports:

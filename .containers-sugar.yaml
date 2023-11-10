@@ -11,9 +11,10 @@ service-groups:
       - containers/compose-prod.yaml
     env-file: .env
     services:
-      default: django,postgres,documentation,redis
+      default: django,worker,postgres,documentation,redis
       available:
         - name: django
+        - name: worker
         - name: postgres
         - name: documentation
         - name: redis
@@ -25,9 +26,10 @@ service-groups:
       - containers/compose-dev.yaml
     env-file: .env
     services:
-      default: django,postgres,documentation,redis
+      default: django,worker,postgres,documentation,redis
       available:
         - name: django
+        - name: worker
         - name: postgres
         - name: documentation
         - name: redis
