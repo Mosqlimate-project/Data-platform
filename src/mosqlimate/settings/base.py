@@ -25,7 +25,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "django",
+    "mosqlimate-django",
 ]
 
 DJANGO_APPS = [
@@ -254,14 +254,14 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                ("redis", env("REDIS_PORT", default=6379)),
+                ("mosqlimate-redis", 6379),
             ],
         },
     },
 }
 
-CELERY_BROKER_URL = f"redis://redis:{env('REDIS_PORT')}"
-CELERY_RESULT_BACKEND = f"redis://redis:{env('REDIS_PORT')}"
+CELERY_BROKER_URL = "redis://mosqlimate-redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://mosqlimate-redis:6379/0"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

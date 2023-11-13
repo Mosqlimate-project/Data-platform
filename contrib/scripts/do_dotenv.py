@@ -174,7 +174,7 @@ psql_host_conf = var_in(
 )
 psql_host_data = var_in(
     "POSTGRES_DATA_DIR_HOST",
-    input_text=f"  Postgresql data directory on host: [{def_psql_dir}/pgdata/]: ",
+    input_text=(f"  Postgresql data directory on host: [{def_psql_dir}/pgdata/]: "),
     default_val=(def_psql_dir / "pgdata").absolute(),
 )
 

@@ -93,6 +93,11 @@ groups:
         run: |
           python contrib/scripts/do_psqlconf.py
 
+      redis-conf:
+        help: Configure redis.conf file
+        run: |
+          python contrib/scripts/do_redisconf.py
+
 
   release:
     vars:

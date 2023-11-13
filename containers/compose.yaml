@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   django:
-    hostname: django
+    hostname: mosqlimate-django
     restart: unless-stopped
     build:
       context: ..
@@ -30,7 +30,7 @@ services:
       - mosqlimate
 
   worker:
-    hostname: worker
+    hostname: mosqlimate-worker
     restart: unless-stopped
     build:
       context: ..
@@ -89,7 +89,7 @@ services:
       - mosqlimate
 
   documentation:
-    hostname: docs
+    hostname: mosqlimate-docs
     restart: unless-stopped
     build:
       context: ..
@@ -113,7 +113,7 @@ services:
   redis:
     platform: linux/amd64
     image: redis:alpine
-    hostname: redis
+    hostname: mosqlimate-redis
     restart: unless-stopped
     # environment:
       # DISABLE_COMMANDS: "FLUSHDB,FLUSHALL,CONFIG"
