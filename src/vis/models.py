@@ -62,7 +62,7 @@ class TotalCases(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.uf} - {self.year}: {self.total_cases} cases of {self.disease}"
+        return f"{self.disease} - {self.year} - {self.uf} - {self.total_cases}"
 
 
 class TotalCases100kHab(models.Model):
@@ -88,4 +88,4 @@ class TotalCases100kHab(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.uf} - {self.year}: {self.total_cases} cases of {self.disease}"
+        return f"{self.disease} - {self.year} - {self.uf} - {self.total_cases}"

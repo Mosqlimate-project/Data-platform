@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from dash import dcc, html, Input, Output
 import plotly.express as px
 from django_plotly_dash import DjangoDash
 
-from vis.home.vis_charts import get_data
+from vis.home.vis_charts import national_total_cases_data
 
 
 app = DjangoDash("home_chart")
@@ -23,13 +25,15 @@ app.layout = html.Div(
 
 @app.callback(Output("bar_chart", "figure"), Input("disease", "value"))
 def select_disease(disease):
-    df, year = get_data(disease)
-    # df = df.sort_values('value')
+    data, year = national_total_cases_data(disease, datetime.now().year)
     fig = px.bar(
-        df,
+        data,
         x="value",
         y="name",
-        labels={"name": f"Total cases of {disease} in {year}"},
+        labels={
+            "name": f"Total cases of {disease} in {year}",
+            "value": "Cases",
+        },
         height=800,
     )
     return fig

@@ -1,9 +1,8 @@
 from datetime import datetime as dt
 from django.db.models import Sum
-from typing import Dict, Union, List
-from django.core.cache import cache
-from django.db.models import Max
+from typing import Dict, Union, List, Tuple
 
+from main.utils import UFs
 from datastore.models import (
     HistoricoAlerta,
     HistoricoAlertaChik,
@@ -67,12 +66,50 @@ def historico_alerta_data_for(
     elif disease == "zika":
         data = HistoricoAlertaZika.objects.using("infodengue").all()
     else:
-        raise KeyError("Unknown disease. Options: dengue, zika, chik")
+        raise ValueError("Unknown disease. Options: dengue, zika, chik")
     return data
 
 
 def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
-    ...
+    """
+    Gets total cases for a disease, uf and year. Saves the result if it hasn't
+    been called before
+    """
+    disease = disease.lower()
+    uf = uf.upper()
+    year = int(year)
+
+    if disease not in ["dengue", "chik", "chikungunya", "zika"]:
+        raise ValueError("Unknown disease. Options: dengue, zika, chik")
+
+    if uf not in UFs:
+        raise ValueError(f"Unknown UF. Options are {list(UFs)}")
+
+    if year < 1970 or year > dt.now().year:
+        raise ValueError("Incorrect year. Min year: 1970")
+
+    try:
+        total_cases = TotalCases.objects.get(uf=uf, year=year, disease=disease)
+    except TotalCases.DoesNotExist:
+        data = historico_alerta_data_for(disease)
+        uf_code = uf_ibge_mapping[uf]["code"]
+
+        historico_alerta_total_cases = (
+            data.filter(
+                municipio_geocodigo__startswith=uf_code,
+                data_iniSE__year=year,
+            ).aggregate(total_cases=Sum("casos"))
+        )["total_cases"]
+
+        total_cases = TotalCases(
+            uf=uf,
+            year=year,
+            disease=disease,
+            total_cases=historico_alerta_total_cases,
+        )
+        total_cases.save()
+
+    return total_cases
 
 
 def get_total_cases_100k_hab(
@@ -81,60 +118,23 @@ def get_total_cases_100k_hab(
     ...
 
 
-def get_data(disease: str) -> List[Dict[str, Union[str, int]]]:
+def national_total_cases_data(
+    disease: str, year: int
+) -> Tuple[List[Dict[str, Union[str, int]]], int]:
     """
-    Get total cases for a disease of all states in the current year.
+    Get total cases for a disease of all states in a year.
 
     Returns:
         List[Dict[str, Union[str, int]]]: A list of dictionaries where each dictionary
-        has "name" for the state name and "value" for the total cases.
+            has "name" for the state name and "value" for the total cases.
+        year: int
     """
-    current_year = dt.now().year
     results = []
-
     disease = disease.lower()
 
-    if disease in ["chik", "chikungunya"]:
-        data = HistoricoAlertaChik.objects.using("infodengue").all()
-    elif disease in ["deng", "dengue"]:
-        data = HistoricoAlerta.objects.using("infodengue").all()
-    elif disease == "zika":
-        data = HistoricoAlertaZika.objects.using("infodengue").all()
-    else:
-        raise KeyError("Unknown disease. Options: dengue, zika, chik")
-
-    max_dates = (
-        data.filter(data_iniSE__year=current_year)
-        .values("municipio_geocodigo")
-        .annotate(max_date=Max("data_iniSE"))
-    )
-
-    max_date_cache_key = f"max_date_{current_year}_{disease}"
-    cached_max_date = cache.get(max_date_cache_key)
-
-    if cached_max_date is None:
-        cached_max_date = max_dates[0]["max_date"] if max_dates else None
-        cache.set(max_date_cache_key, cached_max_date, 3600)
-
     for uf_abbv in uf_ibge_mapping:
-        cache_key = f"cases_{uf_abbv}_{cached_max_date}_{disease}"
-        cached_data = cache.get(cache_key)
+        state_name = uf_ibge_mapping[uf_abbv]["name"]
+        total_cases = get_total_cases(disease, uf_abbv, year)
+        results.append({"name": state_name, "value": total_cases.total_cases})
 
-        if cached_data is not None:
-            state_name = uf_ibge_mapping[uf_abbv]["name"]
-            results.append({"name": state_name, "value": cached_data})
-        else:
-            uf_code = uf_ibge_mapping[uf_abbv]["code"]
-            total_cases = (
-                data.filter(
-                    municipio_geocodigo__startswith=uf_code,
-                    data_iniSE__startswith=current_year,
-                ).aggregate(total_cases=Sum("casos"))
-            )["total_cases"]
-
-            state_name = uf_ibge_mapping[uf_abbv]["name"]
-            results.append({"name": state_name, "value": total_cases})
-
-            cache.set(cache_key, total_cases, 86400)
-
-    return results, current_year
+    return sorted(results, key=lambda x: x["value"]), year
