@@ -50,12 +50,76 @@ def validate_predict_date(predict_date):
         return "Invalid predict_date format. Use YYYY-MM-DD."
 
 
-def validate_prediction_metadata(payload):
+def validate_prediction_obj(obj):
+    """
+    Validate prediction data according to specified criteria.
+
+    Args:
+        obj (list[dict]):List of prediction data entries.
+
+    Raises:
+        : If any validation check fails.
+
+    Note:
+        This function uses 'if not' to validate the data
+        and raises status code with an error message
+        if any validation fails.
+    """
+    for entry in obj:
+        if not isinstance(entry.get("dates"), str):
+            return "Invalid data type for 'dates' field."
+
+        if not len(entry.get("dates")) == 10:
+            return "Invalid length for 'dates' field."
+
+        if not re.match(r"\d{4}-\d{2}-\d{2}", entry.get("dates")):
+            return "Invalid 'dates' format."
+
+        if not isinstance(entry.get("preds"), float):
+            return "Invalid data type for 'preds' field."
+
+        if not isinstance(entry.get("lower"), float):
+            return "Invalid data type for 'lower' field."
+
+        if not isinstance(entry.get("upper"), float):
+            return "Invalid data type for 'upper' field."
+
+        if not isinstance(entry.get("adm_2"), int):
+            return "Invalid data type for 'adm_2' field."
+
+        if not isinstance(entry.get("adm_1"), str):
+            return "Invalid data type for 'adm_1' field."
+
+        if not isinstance(entry.get("adm_0"), str):
+            return "Invalid data type for 'adm_0' field."
+
+        if not len(entry.get("adm_1")) == 2:
+            return "Invalid length for 'adm_1' field."
+
+        if not len(entry.get("adm_0")) == 2:
+            return "Invalid length for 'adm_0' field."
+
+        # Geocode validations
+        date_pattern = r"\d{4}-\d{2}-\d{2}"
+        if not re.match(date_pattern, entry.get("dates")):
+            return "Invalid 'dates' format."
+
+        if not (1100015 <= entry.get("adm_2") <= 5300108):
+            return "Invalid value for 'adm_2' field."
+
+        # Check if "geocodigo" is in validation_data
+        geocodigo_values = [entry["geocodigo"] for entry in validation_data]
+        if entry.get("adm_2") not in geocodigo_values:
+            return "Invalid value for 'adm_2' field."
+
+
+def validate_prediction(payload):
     # model = validate_model(payload.model)
     description_error = validate_description(payload.description)
     ADM_level_error = validate_ADM_level(payload.ADM_level)
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
+    predict_obj_error = validate_prediction_obj(payload.prediction)
 
     if commit_error:
         return 403, {"message": commit_error}
@@ -65,69 +129,5 @@ def validate_prediction_metadata(payload):
         return 403, {"message": ADM_level_error}
     if predict_date_error:
         return 403, {"message": predict_date_error}
-
-
-def validate_prediction_data(data):
-    """
-    Validate prediction data according to specified criteria.
-
-    Args:
-        data (list[dict]): List of prediction data entries.
-
-    Raises:
-        AssertionError: If any validation check fails.
-
-    Note:
-        This function uses assert statements to validate the data
-        and raises AssertionError with an error message
-        if any validation fails.
-    """
-    for entry in data:
-        try:
-            assert isinstance(
-                entry.get("dates"), str
-            ), "Invalid data type for 'dates' field."
-            assert len(entry.get("dates")) == 10, "Invalid length for 'dates' field."
-            assert re.match(
-                r"\d{4}-\d{2}-\d{2}", entry.get("dates")
-            ), "Invalid 'dates' format."
-
-            assert isinstance(
-                entry.get("preds"), float
-            ), "Invalid data type for 'preds' field."
-            assert isinstance(
-                entry.get("lower"), float
-            ), "Invalid data type for 'lower' field."
-            assert isinstance(
-                entry.get("upper"), float
-            ), "Invalid data type for 'upper' field."
-            assert isinstance(
-                entry.get("adm_2"), int
-            ), "Invalid data type for 'adm_2' field."
-            assert isinstance(
-                entry.get("adm_1"), str
-            ), "Invalid data type for 'adm_1' field."
-            assert isinstance(
-                entry.get("adm_0"), str
-            ), "Invalid data type for 'adm_0' field."
-
-            assert len(entry.get("adm_1")) == 2, "Invalid length for 'adm_1' field."
-            assert len(entry.get("adm_0")) == 2, "Invalid length for 'adm_0' field."
-
-            # Geocode validations
-            date_pattern = r"\d{4}-\d{2}-\d{2}"
-            assert re.match(date_pattern, entry.get("dates")), "Invalid 'dates' format."
-
-            assert (
-                1100015 <= entry.get("adm_2") <= 5300108
-            ), "Invalid value for 'adm_2' field."
-
-            # Check if "geocodigo" is in validation_data
-            geocodigo_values = [entry["geocodigo"] for entry in validation_data]
-            assert (
-                entry.get("adm_2") in geocodigo_values
-            ), "Invalid value for 'adm_2' field."
-
-        except AssertionError as e:
-            print(e)
-            # breakpoint()
+    if predict_obj_error:
+        return 403, {"message": predict_obj_error}

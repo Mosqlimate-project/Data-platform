@@ -126,7 +126,7 @@ class TestCreatePrediction(TestCase):
         self.assertEqual(
             response[1],
             {
-                "message": "Description too big, maximum allowed: 500."
-                " Please remove 1 characters."
+                "message": "Description too big, maximum allowed: 500.\n"
+                "        Please remove 1 characters."
             },
         )
