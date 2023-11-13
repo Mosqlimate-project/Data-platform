@@ -53,7 +53,9 @@ class AuthorInPost(Schema):
     institution: str
 
 
-@router.get("/authors/", response=List[AuthorSchema], tags=["registry", "authors"])
+@router.get(
+    "/authors/", response=List[AuthorSchema], tags=["registry", "authors"]
+)
 @csrf_exempt
 def list_authors(
     request,
@@ -99,7 +101,9 @@ def update_author(request, username: str, payload: AuthorInPost):
         author = Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to update this author"}
+            return 403, {
+                "message": "You are not authorized to update this author"
+            }
 
         author.institution = payload.institution
 
@@ -128,13 +132,17 @@ def delete_author(request, username: str):
         author = Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to delete this author"}
+            return 403, {
+                "message": "You are not authorized to delete this author"
+            }
 
         if not calling_via_swagger(request):
             # Not realy required, since include_in_schema=False
             author.delete()
 
-        return 200, {"message": f"Author '{author.user.name}' deleted successfully"}
+        return 200, {
+            "message": f"Author '{author.user.name}' deleted successfully"
+        }
     except Author.DoesNotExist:
         return 404, {"message": "Author not found"}
 
@@ -150,7 +158,9 @@ class ModelIn(Schema):
     time_resolution: Literal["day", "week", "month", "year"]
 
 
-@router.get("/models/", response=List[ModelSchema], tags=["registry", "models"])
+@router.get(
+    "/models/", response=List[ModelSchema], tags=["registry", "models"]
+)
 @paginate(PagesPagination)
 @csrf_exempt
 def list_models(
@@ -206,7 +216,9 @@ def create_model(request, payload: ModelIn):
 
     if payload.time_resolution not in ["day", "week", "month", "year"]:
         return 422, {
-            "message": ('Time resolution must be "day", "week", "month" or "year"')
+            "message": (
+                'Time resolution must be "day", "week", "month" or "year"'
+            )
         }
 
     description = payload.description
@@ -236,7 +248,9 @@ def create_model(request, payload: ModelIn):
                     f"did you mean '{similar_lang.first()}'?"
                 )
             }
-        return 404, {"message": f"Unknown language {payload.implementation_language}"}
+        return 404, {
+            "message": f"Unknown language {payload.implementation_language}"
+        }
 
     data = payload.dict()
     data["implementation_language"] = lang
@@ -270,7 +284,9 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
         model = Model.objects.get(pk=model_id)
 
         if request.user != model.author.user:  # TODO: allow admins here
-            return 403, {"message": "You are not authorized to update this Model"}
+            return 403, {
+                "message": "You are not authorized to update this Model"
+            }
 
         try:
             for attr, value in payload.items():
@@ -321,7 +337,9 @@ def delete_model(request, model_id: int):
         model = Model.objects.get(pk=model_id)
 
         if request.user != model.author.user:
-            return 403, {"message": "You are not authorized to delete this Model"}
+            return 403, {
+                "message": "You are not authorized to delete this Model"
+            }
 
         if not calling_via_swagger(request):
             # Not realy required, since include_in_schema=False
@@ -342,7 +360,9 @@ class PredictionIn(Schema):
 
 
 @router.get(
-    "/predictions/", response=List[PredictionSchema], tags=["registry", "predictions"]
+    "/predictions/",
+    response=List[PredictionSchema],
+    tags=["registry", "predictions"],
 )
 @paginate(PagesPagination)
 @csrf_exempt
@@ -409,7 +429,11 @@ def create_prediction(request, payload: PredictionIn):
 
 @router.put(
     "/predictions/{predict_id}",
-    response={201: PredictionSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={
+        201: PredictionSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+    },
     auth=django_auth,
     tags=["registry", "predictions"],
     include_in_schema=False,
@@ -419,7 +443,9 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
         prediction = Prediction.objects.get(pk=predict_id)
 
         if request.user != prediction.model.author.user:
-            return 403, {"message": "You are not authorized to update this prediction"}
+            return 403, {
+                "message": "You are not authorized to update this prediction"
+            }
 
         for attr, value in payload.items():
             setattr(prediction, attr, value)
@@ -446,12 +472,16 @@ def delete_prediction(request, predict_id: int):
         prediction = Prediction.objects.get(pk=predict_id)
 
         if request.user != prediction.model.author.user:
-            return 403, {"message": "You are not authorized to delete this prediction"}
+            return 403, {
+                "message": "You are not authorized to delete this prediction"
+            }
 
         if not calling_via_swagger(request):
             # Not realy required, since include_in_schema=False
             prediction.delete()
 
-        return 204, {"message": f"Prediction {prediction.id} deleted successfully"}
+        return 204, {
+            "message": f"Prediction {prediction.id} deleted successfully"
+        }
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}

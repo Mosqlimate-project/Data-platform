@@ -15,7 +15,9 @@ class Migration(migrations.Migration):
                 (
                     "geocodigo",
                     models.IntegerField(
-                        db_column="geocodigo", primary_key=True, serialize=False
+                        db_column="geocodigo",
+                        primary_key=True,
+                        serialize=False,
                     ),
                 ),
                 ("nome", models.CharField(db_column="nome")),

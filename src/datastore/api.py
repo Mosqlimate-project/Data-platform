@@ -65,7 +65,9 @@ def get_infodengue(
         elif disease == "zika":
             data = HistoricoAlertaZika.objects.using("infodengue").all()
         else:
-            return 404, {"message": "Unknown disease. Options: dengue, zika, chik"}
+            return 404, {
+                "message": "Unknown disease. Options: dengue, zika, chik"
+            }
     except OperationalError:
         return 500, {"message": "Server error. Please contact the moderation"}
 
@@ -148,6 +150,8 @@ def get_contaovos(request, key: str, page: int):
         return 200, [ContaOvosSchema(**i) for i in response.json()]
 
     if response.status_code == 500:
-        return 500, {"message": "Internal error. Please contact the moderation"}
+        return 500, {
+            "message": "Internal error. Please contact the moderation"
+        }
 
     return 404, {"message": response.json()}

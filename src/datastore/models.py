@@ -27,21 +27,39 @@ class HistoricoAlerta(models.Model):
     nivel = models.SmallIntegerField(db_column="nivel")
     id = models.BigAutoField(primary_key=True, db_column="id")
     versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(max_length=128, db_column="municipio_nome")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
     tweet = models.DecimalField(
-        max_digits=5, decimal_places=0, null=True, default=None, db_column="tweet"
+        max_digits=5,
+        decimal_places=0,
+        null=True,
+        default=None,
+        db_column="tweet",
     )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmin")
-    umidmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmax")
+    tempmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmin"
+    )
+    umidmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmax"
+    )
     receptivo = models.SmallIntegerField(db_column="receptivo")
     transmissao = models.SmallIntegerField(db_column="transmissao")
     nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmed")
-    umidmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmin")
-    tempmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmed")
-    tempmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmax")
+    umidmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmed"
+    )
+    umidmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmin"
+    )
+    tempmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmed"
+    )
+    tempmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmax"
+    )
     casprov = models.IntegerField(db_column="casprov")
     casprov_est = models.FloatField(db_column="casprov_est")
     casprov_est_min = models.IntegerField(db_column="casprov_est_min")
@@ -69,21 +87,39 @@ class HistoricoAlertaChik(models.Model):
     nivel = models.SmallIntegerField(db_column="nivel")
     id = models.BigAutoField(primary_key=True, db_column="id")
     versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(max_length=128, db_column="municipio_nome")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
     tweet = models.DecimalField(
-        max_digits=5, decimal_places=0, null=True, default=None, db_column="tweet"
+        max_digits=5,
+        decimal_places=0,
+        null=True,
+        default=None,
+        db_column="tweet",
     )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmin")
-    umidmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmax")
+    tempmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmin"
+    )
+    umidmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmax"
+    )
     receptivo = models.SmallIntegerField(db_column="receptivo")
     transmissao = models.SmallIntegerField(db_column="transmissao")
     nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmed")
-    umidmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmin")
-    tempmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmed")
-    tempmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmax")
+    umidmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmed"
+    )
+    umidmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmin"
+    )
+    tempmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmed"
+    )
+    tempmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmax"
+    )
     casprov = models.IntegerField(db_column="casprov")
     casprov_est = models.FloatField(db_column="casprov_est")
     casprov_est_min = models.IntegerField(db_column="casprov_est_min")
@@ -111,21 +147,39 @@ class HistoricoAlertaZika(models.Model):
     nivel = models.SmallIntegerField(db_column="nivel")
     id = models.BigAutoField(primary_key=True, db_column="id")
     versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(max_length=128, db_column="municipio_nome")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
     tweet = models.DecimalField(
-        max_digits=5, decimal_places=0, null=True, default=None, db_column="tweet"
+        max_digits=5,
+        decimal_places=0,
+        null=True,
+        default=None,
+        db_column="tweet",
     )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmin")
-    umidmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmax")
+    tempmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmin"
+    )
+    umidmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmax"
+    )
     receptivo = models.SmallIntegerField(db_column="receptivo")
     transmissao = models.SmallIntegerField(db_column="transmissao")
     nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmed")
-    umidmin = models.DecimalField(max_digits=10, decimal_places=2, db_column="umidmin")
-    tempmed = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmed")
-    tempmax = models.DecimalField(max_digits=10, decimal_places=2, db_column="tempmax")
+    umidmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmed"
+    )
+    umidmin = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="umidmin"
+    )
+    tempmed = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmed"
+    )
+    tempmax = models.DecimalField(
+        max_digits=10, decimal_places=2, db_column="tempmax"
+    )
     casprov = models.IntegerField(db_column="casprov")
     casprov_est = models.FloatField(db_column="casprov_est")
     casprov_est_min = models.IntegerField(db_column="casprov_est_min")

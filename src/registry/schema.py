@@ -43,8 +43,12 @@ class ModelFilterSchema(FilterSchema):
     id: Optional[int] = Field(q="id__exact")
     name: Optional[str] = Field(q="name__icontains")
     author_name: Optional[str] = Field(q="author__user__name__icontains")
-    author_username: Optional[str] = Field(q="author__user__username__icontains")
-    author_institution: Optional[str] = Field(q="author__institution__icontains")
+    author_username: Optional[str] = Field(
+        q="author__user__username__icontains"
+    )
+    author_institution: Optional[str] = Field(
+        q="author__institution__icontains"
+    )
     repository: Optional[str] = Field(q="repository__icontains")
     implementation_language: Optional[str] = Field(
         q="implementation_language__language__iexact"
@@ -72,12 +76,18 @@ class PredictionFilterSchema(FilterSchema):
     model_id: Optional[int] = Field(q="model__id__exact")
     model_name: Optional[str] = Field(q="model__name__icontains")
     model_ADM_level: Optional[int] = Field(q="model__ADM_level")
-    model_time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
-        q="model__time_resolution__iexact"
+    model_time_resolution: Optional[
+        Literal["day", "week", "month", "year"]
+    ] = Field(q="model__time_resolution__iexact")
+    author_name: Optional[str] = Field(
+        q="model__author__user__name__icontains"
     )
-    author_name: Optional[str] = Field(q="model__author__user__name__icontains")
-    author_username: Optional[str] = Field(q="model__author__user__username__icontains")
-    author_institution: Optional[str] = Field(q="model__author__institution__icontains")
+    author_username: Optional[str] = Field(
+        q="model__author__user__username__icontains"
+    )
+    author_institution: Optional[str] = Field(
+        q="model__author__institution__icontains"
+    )
     repository: Optional[str] = Field(q="model__repository__icontains")
     implementation_language: Optional[str] = Field(
         q="model__implementation_language__language__iexact"

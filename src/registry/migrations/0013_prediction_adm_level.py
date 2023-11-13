@@ -5,7 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("registry", "0012_alter_model_description_alter_prediction_description"),
+        (
+            "registry",
+            "0012_alter_model_description_alter_prediction_description",
+        ),
     ]
 
     operations = [
