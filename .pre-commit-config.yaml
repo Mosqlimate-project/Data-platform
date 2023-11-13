@@ -18,6 +18,7 @@ repos:
       id: black
       language: system
       name: black
+      args: ['--line-length=79']
       pass_filenames: true
       stages:
         - commit

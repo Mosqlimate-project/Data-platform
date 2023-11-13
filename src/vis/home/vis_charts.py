@@ -49,6 +49,39 @@ municipio_estado_mapping: Dict[str, str] = {
 }
 
 
+def historico_alerta_data_for(
+    disease: str,
+) -> Union[HistoricoAlerta, HistoricoAlertaChik, HistoricoAlertaZika]:
+    """
+    Gets the correct HistoricoAlerta model's data for the specific disease
+    """
+    if disease in ["chik", "chikungunya"]:
+        data = HistoricoAlertaChik.objects.using("infodengue").all()
+    elif disease in ["deng", "dengue"]:
+        data = HistoricoAlerta.objects.using("infodengue").all()
+    elif disease == "zika":
+        data = HistoricoAlertaZika.objects.using("infodengue").all()
+    else:
+        raise KeyError("Unknown disease. Options: dengue, zika, chik")
+    return data
+
+
+def get_total_cases(disease: str, uf: str, year: int):
+    ...
+
+
+def fetch_total_cases(disease: str, uf: str, year: int):
+    ...
+
+
+def get_total_cases_100k_hab(disease: str, uf: str, year: int):
+    ...
+
+
+def fetch_total_cases_100k_hab(disease: str, uf: str, year: int):
+    ...
+
+
 def get_data(disease: str) -> List[Dict[str, Union[str, int]]]:
     """
     Get total cases for a disease of all states in the current year.
