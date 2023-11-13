@@ -77,7 +77,7 @@ class TotalCases100kHab(models.Model):
     disease = models.CharField(
         choices=Diseases.choices, null=False, default="dengue"
     )
-    total_cases = models.PositiveIntegerField(null=False)
+    total_cases = models.FloatField(null=False)
 
     class Meta:
         constraints = [

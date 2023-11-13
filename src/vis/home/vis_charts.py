@@ -115,11 +115,62 @@ def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
 def get_total_cases_100k_hab(
     disease: str, uf: str, year: int
 ) -> TotalCases100kHab:
-    ...
+    """
+    Gets total cases for a disease, uf and year using a 100k hab scale.
+    Saves the result if it hasn't been called before
+    """
+    disease = disease.lower()
+    uf = uf.upper()
+    year = int(year)
+
+    if disease not in ["dengue", "chik", "chikungunya", "zika"]:
+        raise ValueError("Unknown disease. Options: dengue, zika, chik")
+
+    if uf not in UFs:
+        raise ValueError(f"Unknown UF. Options are {list(UFs)}")
+
+    if year < 1970 or year > dt.now().year:
+        raise ValueError("Incorrect year. Min year: 1970")
+
+    try:
+        total_cases = TotalCases100kHab.objects.get(
+            uf=uf, year=year, disease=disease
+        )
+    except TotalCases100kHab.DoesNotExist:
+        data = historico_alerta_data_for(disease)
+        uf_code = uf_ibge_mapping[uf]["code"]
+
+        historico_alerta_total_cases = (
+            data.filter(
+                municipio_geocodigo__startswith=uf_code,
+                data_iniSE__year=year,
+            ).aggregate(total_cases=Sum("casos"))
+        )["total_cases"]
+
+        historico_alerta_total_pop = (
+            data.filter(
+                municipio_geocodigo__startswith=uf_code,
+                data_iniSE__year=year,
+            ).aggregate(total_pop=Sum("pop"))
+        )["total_pop"]
+
+        cases_per_100k_hab = (
+            historico_alerta_total_cases / historico_alerta_total_pop * 100000
+        )
+
+        total_cases = TotalCases100kHab(
+            uf=uf,
+            year=year,
+            disease=disease,
+            total_cases=float(f"{cases_per_100k_hab:.2f}"),
+        )
+        total_cases.save()
+
+    return total_cases
 
 
 def national_total_cases_data(
-    disease: str, year: int
+    disease: str, year: int, per_100k_hab: bool = False
 ) -> Tuple[List[Dict[str, Union[str, int]]], int]:
     """
     Get total cases for a disease of all states in a year.
@@ -134,7 +185,10 @@ def national_total_cases_data(
 
     for uf_abbv in uf_ibge_mapping:
         state_name = uf_ibge_mapping[uf_abbv]["name"]
-        total_cases = get_total_cases(disease, uf_abbv, year)
+        if per_100k_hab:
+            total_cases = get_total_cases_100k_hab(disease, uf_abbv, year)
+        else:
+            total_cases = get_total_cases(disease, uf_abbv, year)
         results.append({"name": state_name, "value": total_cases.total_cases})
 
     return sorted(results, key=lambda x: x["value"]), year

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.cache import cache
 from datetime import datetime as dt
 from datastore.models import HistoricoAlerta
-from datastore.vis_charts import national_total_cases_data, uf_ibge_mapping
+from vis.vis_charts import national_total_cases_data, uf_ibge_mapping
 import unittest
 
 
