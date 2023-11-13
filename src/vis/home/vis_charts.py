@@ -4,7 +4,12 @@ from typing import Dict, Union, List
 from django.core.cache import cache
 from django.db.models import Max
 
-from datastore.models import HistoricoAlerta, HistoricoAlertaChik, HistoricoAlertaZika
+from datastore.models import (
+    HistoricoAlerta,
+    HistoricoAlertaChik,
+    HistoricoAlertaZika,
+)
+from vis.models import TotalCases, TotalCases100kHab
 
 
 # Mapping between state abbreviations and IBGE codes
@@ -66,19 +71,13 @@ def historico_alerta_data_for(
     return data
 
 
-def get_total_cases(disease: str, uf: str, year: int):
+def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
     ...
 
 
-def fetch_total_cases(disease: str, uf: str, year: int):
-    ...
-
-
-def get_total_cases_100k_hab(disease: str, uf: str, year: int):
-    ...
-
-
-def fetch_total_cases_100k_hab(disease: str, uf: str, year: int):
+def get_total_cases_100k_hab(
+    disease: str, uf: str, year: int
+) -> TotalCases100kHab:
     ...
 
 

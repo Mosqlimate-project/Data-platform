@@ -34,6 +34,12 @@ class UFs(models.TextChoices):
     DF = "DF", "Distrito Federal"
 
 
+class Diseases(models.TextChoices):
+    DENGUE = "dengue", "Dengue"
+    CHIK = "chik", "Chigungunya"
+    ZIKA = "zika", "Zika"
+
+
 class TotalCases(models.Model):
     uf = models.CharField(choices=UFs.choices, null=False)
     year = models.PositiveIntegerField(
@@ -43,17 +49,20 @@ class TotalCases(models.Model):
             MaxValueValidator(datetime.now().year),
         ],
     )
+    disease = models.CharField(
+        choices=Diseases.choices, null=False, default="dengue"
+    )
     total_cases = models.PositiveIntegerField(null=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["uf", "year"], name="total_cases_uf_year"
+                fields=["uf", "year", "disease"], name="unique_total_cases"
             )
         ]
 
     def __str__(self):
-        return f"{self.uf} - {self.year}: {self.total_cases}"
+        return f"{self.uf} - {self.year}: {self.total_cases} cases of {self.disease}"
 
 
 class TotalCases100kHab(models.Model):
@@ -65,14 +74,18 @@ class TotalCases100kHab(models.Model):
             MaxValueValidator(datetime.now().year),
         ],
     )
+    disease = models.CharField(
+        choices=Diseases.choices, null=False, default="dengue"
+    )
     total_cases = models.PositiveIntegerField(null=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["uf", "year"], name="total_cases_100k_hab_uf_year"
+                fields=["uf", "year", "disease"],
+                name="unique_total_cases_100k_hab",
             )
         ]
 
     def __str__(self):
-        return f"{self.uf} - {self.year}: {self.total_cases}"
+        return f"{self.uf} - {self.year}: {self.total_cases} cases of {self.disease}"
