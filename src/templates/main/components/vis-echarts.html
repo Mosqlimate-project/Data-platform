@@ -14,11 +14,11 @@
       </select>
     </div>
     <div class="col">
-      <label>{% translate "Select the incidence" %}:</label>
-      <select id="incidenceSelector" class="col" onchange="updateChart()">
-        <option value="total_cases">{% translate "Cumulative cases" %}</option>
-        <option value="total_cases_100k_hab">{% translate "Cases per 100k hab." %}</option>
-      </select>
+        <input type="radio" id="total_cases" name="incidenceType" value="total_cases" onchange="updateChart()" checked>
+        <label for="total_cases">{% translate "Total cases" %}</label>
+
+        <input type="radio" id="total_cases_100k_hab" name="incidenceType" value="total_cases_100k_hab" onchange="updateChart()">
+        <label for="total_cases_100k_hab">{% translate "Cases per 100k hab." %}</label>
     </div>
   </div>
 
@@ -26,6 +26,12 @@
     <div class="floating-window" id="floatingWindow" style="height: 650px; width: 100%;" div>
   </div>
 </div>
+
+<style>
+    input[type="radio"] {
+        margin-left: 15px;
+    }
+</style>
 
 <script type="text/javascript">
 /**
@@ -64,7 +70,7 @@ function initializeEChart(disease, incidenceType) {
 
       var br_data = incidenceType === 'total_cases_100k_hab' ? diseaseDataMapping[disease + '_100k'] : diseaseDataMapping[disease];
 
-      var total_cases_title = `Cumulative ${diseaseName[disease]} cases by UF in {{ current_year|safe }}`;
+      var total_cases_title = `Total ${diseaseName[disease]} cases by UF in {{ current_year|safe }}`;
       var total_cases_100k_title = `${diseaseName[disease]} cases per 100k hab. by UF in {{ current_year|safe }}`
 
       var map_title = (incidenceType === 'total_cases_100k_hab') ? total_cases_100k_title : total_cases_title;
@@ -203,7 +209,7 @@ function initializeEChart(disease, incidenceType) {
 
 function updateChart() {
   var disease = $('#diseaseDropdown').val();
-  var incidenceType = $('#incidenceSelector').val();
+  var incidenceType = $('input[name="incidenceType"]:checked').val();
 
   initializeEChart(disease, incidenceType);
 }
