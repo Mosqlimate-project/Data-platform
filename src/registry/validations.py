@@ -27,16 +27,6 @@ def validate_description(description):
         Please remove {len(description) - max_length} characters."""
 
 
-def validate_ADM_level(ADM_level):
-    # Check if ADM_level is within the valid range (0, 1, 2, 3)
-    valid_levels = [0, 1, 2, 3]
-    if ADM_level not in valid_levels:
-        return """
-            ADM_level must be 0, 1, 2, or 3 
-            (National, State, Municipality, or Sub Municipality).
-            """
-
-
 def validate_predict_date(predict_date):
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
@@ -116,7 +106,6 @@ def validate_prediction_obj(obj):
 def validate_prediction(payload):
     # model = validate_model(payload.model)
     description_error = validate_description(payload.description)
-    ADM_level_error = validate_ADM_level(payload.ADM_level)
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(payload.prediction)
@@ -125,8 +114,6 @@ def validate_prediction(payload):
         return 403, {"message": commit_error}
     if description_error:
         return 403, {"message": description_error}
-    if ADM_level_error:
-        return 403, {"message": ADM_level_error}
     if predict_date_error:
         return 403, {"message": predict_date_error}
     if predict_obj_error:

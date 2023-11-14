@@ -101,7 +101,6 @@ class TestCreatePrediction(TestCase):
         prediction = Prediction.objects.first()
         self.assertEqual(prediction.model, self.model)
         self.assertEqual(prediction.description, "Test description")
-        self.assertEqual(prediction.ADM_level, 1)
         self.assertEqual(prediction.commit, "76eb927067cf54ae52da53503a14519d78a37da8")
 
     def test_create_prediction_invalid_payload(self):
