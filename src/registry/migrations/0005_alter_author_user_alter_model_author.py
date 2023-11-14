@@ -16,14 +16,16 @@ class Migration(migrations.Migration):
             model_name="author",
             name="user",
             field=models.OneToOneField(
-                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
             ),
         ),
         migrations.AlterField(
             model_name="model",
             name="author",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="registry.author"
+                on_delete=django.db.models.deletion.CASCADE,
+                to="registry.author",
             ),
         ),
     ]

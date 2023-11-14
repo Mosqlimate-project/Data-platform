@@ -5,7 +5,10 @@ import os
 
 def send_discord_message(message: str) -> None:
     webhook = os.getenv("DISCORD_WEBHOOK")
-    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
 
     resp = requests.post(webhook, headers=headers, json=dict(content=message))
 

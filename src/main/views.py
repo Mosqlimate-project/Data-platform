@@ -100,12 +100,16 @@ class ModelsView(View):
         filters, pagination = get_filters()
 
         # API request
-        response = list_models(request, filters=filters, ninja_pagination=pagination)
+        response = list_models(
+            request, filters=filters, ninja_pagination=pagination
+        )
 
         context = {}
 
         # Build equivalent API url
-        api_url = request.build_absolute_uri(reverse("api-1:list_models")) + "?"
+        api_url = (
+            request.build_absolute_uri(reverse("api-1:list_models")) + "?"
+        )
         api_url += build_url_path(response["pagination"].items())
         api_url += "&" + build_url_path(filters.__dict__.items())
         context["api_url"] = api_url
@@ -183,10 +187,14 @@ class EditModelView(View):
                     "name": form.cleaned_data["model_name"],
                     "description": description,
                     "repository": repository,
-                    "implementation_language": form.cleaned_data["model_language"],
+                    "implementation_language": form.cleaned_data[
+                        "model_language"
+                    ],
                     "type": form.cleaned_data["model_type"],
                     "ADM_level": form.cleaned_data["model_adm_level"],
-                    "time_resolution": form.cleaned_data["model_time_resolution"],
+                    "time_resolution": form.cleaned_data[
+                        "model_time_resolution"
+                    ],
                 }
 
                 status_code, model = update_model(
@@ -252,7 +260,9 @@ class PredictionsView(View):
             "end": get("end", ""),
         }
 
-        def get_filters() -> tuple[PredictionFilterSchema, PagesPagination.Input]:
+        def get_filters() -> (
+            tuple[PredictionFilterSchema, PagesPagination.Input]
+        ):
             """Gets parameters from request"""
             filters = PredictionFilterSchema()
             pagination = PagesPagination.Input(
@@ -281,7 +291,9 @@ class PredictionsView(View):
         context = {}
 
         # Build equivalent API url
-        api_url = request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
+        api_url = (
+            request.build_absolute_uri(reverse("api-1:list_predictions")) + "?"
+        )
         api_url += build_url_path(response["pagination"].items())
         api_url += "&" + build_url_path(filters.__dict__.items())
         context["api_url"] = api_url
@@ -309,7 +321,9 @@ class EditPredictionView(View):
 
     def get(self, request, prediction_id: int):
         prediction = get_object_or_404(Prediction, pk=prediction_id)
-        models = Model.objects.filter(author__user=prediction.model.author.user)
+        models = Model.objects.filter(
+            author__user=prediction.model.author.user
+        )
 
         if request.user != prediction.model.author.user:
             return redirect("predictions")
@@ -335,7 +349,9 @@ class EditPredictionView(View):
                 except KeyError:
                     description = ""
 
-                model = Model.objects.get(pk=form.cleaned_data["prediction_model"])
+                model = Model.objects.get(
+                    pk=form.cleaned_data["prediction_model"]
+                )
 
                 payload = {
                     "model": model,
@@ -351,7 +367,9 @@ class EditPredictionView(View):
                 )
 
                 if status_code == 201:
-                    messages.success(request, _("Prediction updated successfully"))
+                    messages.success(
+                        request, _("Prediction updated successfully")
+                    )
                 elif status_code == 401:
                     messages.error(request, _("Unauthorized"))
                 else:

@@ -90,7 +90,8 @@ class Migration(migrations.Migration):
                 (
                     "model",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="registry.model"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registry.model",
                     ),
                 ),
             ],

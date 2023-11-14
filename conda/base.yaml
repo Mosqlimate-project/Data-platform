@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python 3.*
+  - python >= 3.11,<3.13
   - pip
   - poetry >= 1.6.1
   - postgresql

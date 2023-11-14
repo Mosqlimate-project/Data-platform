@@ -9,7 +9,7 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0.0"
+python = ">=3.11.0,<3.13"
 django-ninja = "^0.22.2"
 django-extensions = "^3.2.1"
 dr-scaffold = "^2.1.2"
@@ -27,6 +27,19 @@ pydantic = "<2.0"
 python-dotenv = "<0.22.0"
 msgspec = "^0.18.2"
 six = "^1.16.0"
+django-plotly-dash = "^2.2.2"
+pandas = "^2.1.2"
+dpd-static-support = "^0.0.5"
+channels = "^4.0.0"
+daphne = "^4.0.0"
+redis = "^5.0.1"
+django-redis = "^5.4.0"
+channels-redis = "^4.1.0"
+matplotlib = "^3.8.1"
+geopandas = "^0.14.0"
+pyproj = "^3.6.1"
+altair = "^5.1.2"
+celery = "^5.3.5"
 
 
 [tool.poetry.group.pre-commit.dependencies]

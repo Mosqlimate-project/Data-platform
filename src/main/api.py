@@ -1,3 +1,4 @@
+import os
 from ninja import NinjaAPI
 
 from registry.api import router as registry_router
@@ -6,6 +7,8 @@ from datastore.api import router as datastore_router
 from users.auth import InvalidUIDKey
 from django.urls import reverse
 
+
+os.environ["NINJA_SKIP_REGISTRY"] = "yes"
 
 api = NinjaAPI(
     csrf=True,

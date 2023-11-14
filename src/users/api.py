@@ -25,7 +25,9 @@ def update_user(request, username: str, payload: UserInPost):
         user = CustomUser.objects.get(username=username)
 
         if request.user != user:  # TODO: Enable admins here
-            return 403, {"message": "You are not authorized to update this user."}
+            return 403, {
+                "message": "You are not authorized to update this user."
+            }
 
         user.first_name = payload.first_name
         user.last_name = payload.last_name

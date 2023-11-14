@@ -4,7 +4,9 @@ from django.db import migrations, models
 
 
 def create_initial_objects(apps, schema_editor):
-    ImplementationLanguage = apps.get_model("registry", "ImplementationLanguage")
+    ImplementationLanguage = apps.get_model(
+        "registry", "ImplementationLanguage"
+    )
 
     languages_and_icons = [
         ("Python", "python.svg"),
@@ -27,7 +29,9 @@ def create_initial_objects(apps, schema_editor):
     ]
 
     for language, icon in languages_and_icons:
-        ImplementationLanguage.objects.get_or_create(language=language, svg_path=icon)
+        ImplementationLanguage.objects.get_or_create(
+            language=language, svg_path=icon
+        )
 
 
 class Migration(migrations.Migration):

@@ -9,7 +9,9 @@ load_dotenv()
 print("------ postgres.conf ------")
 
 project_dir = Path(__file__).parent.parent.parent
-templates = Environment(loader=FileSystemLoader(project_dir / "contrib" / "templates"))
+templates = Environment(
+    loader=FileSystemLoader(project_dir / "contrib" / "templates")
+)
 
 # Environment variables:
 allowed_hosts = os.environ.get("ALLOWED_HOSTS")

@@ -4,11 +4,16 @@
   font-family: 'Golos Text', sans-serif;
 }
 
+@font-face {
+  font-family: 'Golos Text', sans-serif;
+}
+
 html {
   overflow-y: scroll;
 }
 
 body {
+  font-family: 'Golos Text';
   min-height: 100%;
   display: flex;
   flex-direction: column;

@@ -25,7 +25,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "django",
+    "mosqlimate-django",
 ]
 
 DJANGO_APPS = [
@@ -47,9 +47,14 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    # Plotly Dash
+    "django_plotly_dash.apps.DjangoPlotlyDashConfig",
+    "dpd_static_support",
+    "channels",
+    "channels_redis",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users"]
+LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -62,11 +67,14 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
+    "django_plotly_dash.middleware.BaseMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# https://stackoverflow.com/a/32347324
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 TEMPLATES = [
     {
@@ -112,7 +120,9 @@ DATABASES = {
     },
     "infodengue": {
         "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {"options": '-c search_path="Municipio","Dengue_global",weather'},
+        "OPTIONS": {
+            "options": '-c search_path="Municipio","Dengue_global",weather'
+        },
         "NAME": INFODENGUE_URI.path.replace("/", ""),
         "USER": INFODENGUE_URI.username,
         "PASSWORD": INFODENGUE_URI.password,
@@ -221,11 +231,39 @@ STATICFILES_DIRS = [str(BASE_DIR / "static")]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    # Plotly Dash
+    "django_plotly_dash.finders.DashAssetFinder",
+    "django_plotly_dash.finders.DashComponentFinder",
+    "django_plotly_dash.finders.DashAppDirectoryFinder",
 ]
 
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
+
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
+PLOTLY_COMPONENTS = [
+    # django-plotly-dash components
+    "dpd_components",
+    # static support if serving local assets
+    "dpd_static_support",
+    "dash_bootstrap_components",
+]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                ("mosqlimate-redis", 6379),
+            ],
+        },
+    },
+}
+
+CELERY_BROKER_URL = "redis://mosqlimate-redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://mosqlimate-redis:6379/0"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

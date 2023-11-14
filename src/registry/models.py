@@ -9,8 +9,12 @@ def get_plangs_path() -> str:
 
 
 class ImplementationLanguage(models.Model):
-    language = models.CharField(max_length=100, null=False, blank=False, unique=True)
-    svg_path = models.FilePathField(path=get_plangs_path(), match=".svg$", null=True)
+    language = models.CharField(
+        max_length=100, null=False, blank=False, unique=True
+    )
+    svg_path = models.FilePathField(
+        path=get_plangs_path(), match=".svg$", null=True
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -24,7 +28,10 @@ class ImplementationLanguage(models.Model):
 
 class Author(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
     )
     institution = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -58,13 +65,18 @@ class Model(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
-        ImplementationLanguage, on_delete=models.PROTECT, null=False, blank=False
+        ImplementationLanguage,
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
     )
     type = models.CharField(max_length=100, null=False, blank=True)
     ADM_level = models.IntegerField(
         choices=ADM_levels.choices, null=True
     )  # TODO: Change to false
-    time_resolution = models.CharField(choices=Periodicities.choices, null=True)
+    time_resolution = models.CharField(
+        choices=Periodicities.choices, null=True
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

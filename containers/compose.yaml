@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   django:
-    hostname: django
+    hostname: mosqlimate-django
     restart: unless-stopped
     build:
       context: ..
@@ -28,8 +28,34 @@ services:
     command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
     networks:
       - mosqlimate
-      # - infodengue-prod_infodengue
-      - infodengue-dev_infodengue
+
+  worker:
+    hostname: mosqlimate-worker
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: containers/mosqlimate/Dockerfile
+      args:
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
+    env_file:
+      - ../.env
+    ports:
+      - ${WORKER_PORT}:${WORKER_PORT}
+    user: "mosqlimate:mosqlimate"
+    command: celery -A mosqlimate worker -l info
+    healthcheck:
+      test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mosqlimate
 
   postgres:
     hostname: mosqlimate-postgres
@@ -38,8 +64,6 @@ services:
       context: ..
       dockerfile: containers/postgres/Dockerfile
       args:
-        # note: if you want to use a specific UID and GID, ensure to add it to
-        #       the .env file
         - UID=${POSTGRES_HOST_UID}
         - GID=${POSTGRES_HOST_GID}
         - environment=${ENV}
@@ -65,7 +89,7 @@ services:
       - mosqlimate
 
   documentation:
-    hostname: docs
+    hostname: mosqlimate-docs
     restart: unless-stopped
     build:
       context: ..
@@ -86,12 +110,31 @@ services:
     networks:
       - mosqlimate
 
+  redis:
+    platform: linux/amd64
+    image: redis:alpine
+    hostname: mosqlimate-redis
+    restart: unless-stopped
+    # environment:
+      # DISABLE_COMMANDS: "FLUSHDB,FLUSHALL,CONFIG"
+      # ALLOW_EMPTY_PASSWORD: "no"
+      # REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    ports:
+      - ${REDIS_PORT}:6379
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - redis:/data
+    networks:
+      - mosqlimate
+
 networks:
   mosqlimate:
     driver: bridge
 
-  infodengue-prod_infodengue:
-    external: true
-
-  infodengue-dev_infodengue:
-    external: true
+volumes:
+  redis:

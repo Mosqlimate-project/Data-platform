@@ -15,8 +15,14 @@ class Migration(migrations.Migration):
                 ("data_iniSE", models.DateField(db_column="data_iniSE")),
                 ("SE", models.IntegerField(db_column="SE")),
                 ("casos_est", models.FloatField(db_column="casos_est")),
-                ("casos_est_min", models.IntegerField(db_column="casos_est_min")),
-                ("casos_est_max", models.IntegerField(db_column="casos_est_max")),
+                (
+                    "casos_est_min",
+                    models.IntegerField(db_column="casos_est_min"),
+                ),
+                (
+                    "casos_est_max",
+                    models.IntegerField(db_column="casos_est_max"),
+                ),
                 ("casos", models.IntegerField(db_column="casos")),
                 (
                     "municipio_geocodigo",
@@ -24,7 +30,10 @@ class Migration(migrations.Migration):
                 ),
                 ("p_rt1", models.FloatField(db_column="p_rt1")),
                 ("p_inc100k", models.FloatField(db_column="p_inc100k")),
-                ("Localidade_id", models.IntegerField(db_column="Localidade_id")),
+                (
+                    "Localidade_id",
+                    models.IntegerField(db_column="Localidade_id"),
+                ),
                 ("nivel", models.SmallIntegerField(db_column="nivel")),
                 (
                     "id",
@@ -38,7 +47,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "municipio_nome",
-                    models.CharField(db_column="municipio_nome", max_length=128),
+                    models.CharField(
+                        db_column="municipio_nome", max_length=128
+                    ),
                 ),
                 (
                     "tweet",
@@ -50,7 +61,10 @@ class Migration(migrations.Migration):
                         null=True,
                     ),
                 ),
-                ("Rt", models.FloatField(db_column="Rt", default=None, null=True)),
+                (
+                    "Rt",
+                    models.FloatField(db_column="Rt", default=None, null=True),
+                ),
                 (
                     "pop",
                     models.DecimalField(
@@ -70,7 +84,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("receptivo", models.SmallIntegerField(db_column="receptivo")),
-                ("transmissao", models.SmallIntegerField(db_column="transmissao")),
+                (
+                    "transmissao",
+                    models.SmallIntegerField(db_column="transmissao"),
+                ),
                 ("nivel_inc", models.SmallIntegerField(db_column="nivel_inc")),
                 (
                     "umidmed",
@@ -98,8 +115,14 @@ class Migration(migrations.Migration):
                 ),
                 ("casprov", models.IntegerField(db_column="casprov")),
                 ("casprov_est", models.FloatField(db_column="casprov_est")),
-                ("casprov_est_min", models.IntegerField(db_column="casprov_est_min")),
-                ("casprov_est_max", models.IntegerField(db_column="casprov_est_max")),
+                (
+                    "casprov_est_min",
+                    models.IntegerField(db_column="casprov_est_min"),
+                ),
+                (
+                    "casprov_est_max",
+                    models.IntegerField(db_column="casprov_est_max"),
+                ),
                 ("casconf", models.IntegerField(db_column="casconf")),
             ],
             options={
@@ -113,8 +136,14 @@ class Migration(migrations.Migration):
                 ("data_iniSE", models.DateField(db_column="data_iniSE")),
                 ("SE", models.IntegerField(db_column="SE")),
                 ("casos_est", models.FloatField(db_column="casos_est")),
-                ("casos_est_min", models.IntegerField(db_column="casos_est_min")),
-                ("casos_est_max", models.IntegerField(db_column="casos_est_max")),
+                (
+                    "casos_est_min",
+                    models.IntegerField(db_column="casos_est_min"),
+                ),
+                (
+                    "casos_est_max",
+                    models.IntegerField(db_column="casos_est_max"),
+                ),
                 ("casos", models.IntegerField(db_column="casos")),
                 (
                     "municipio_geocodigo",
@@ -122,7 +151,10 @@ class Migration(migrations.Migration):
                 ),
                 ("p_rt1", models.FloatField(db_column="p_rt1")),
                 ("p_inc100k", models.FloatField(db_column="p_inc100k")),
-                ("Localidade_id", models.IntegerField(db_column="Localidade_id")),
+                (
+                    "Localidade_id",
+                    models.IntegerField(db_column="Localidade_id"),
+                ),
                 ("nivel", models.SmallIntegerField(db_column="nivel")),
                 (
                     "id",
@@ -136,7 +168,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "municipio_nome",
-                    models.CharField(db_column="municipio_nome", max_length=128),
+                    models.CharField(
+                        db_column="municipio_nome", max_length=128
+                    ),
                 ),
                 (
                     "tweet",
@@ -148,7 +182,10 @@ class Migration(migrations.Migration):
                         null=True,
                     ),
                 ),
-                ("Rt", models.FloatField(db_column="Rt", default=None, null=True)),
+                (
+                    "Rt",
+                    models.FloatField(db_column="Rt", default=None, null=True),
+                ),
                 (
                     "pop",
                     models.DecimalField(
@@ -168,7 +205,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("receptivo", models.SmallIntegerField(db_column="receptivo")),
-                ("transmissao", models.SmallIntegerField(db_column="transmissao")),
+                (
+                    "transmissao",
+                    models.SmallIntegerField(db_column="transmissao"),
+                ),
                 ("nivel_inc", models.SmallIntegerField(db_column="nivel_inc")),
                 (
                     "umidmed",
@@ -196,8 +236,14 @@ class Migration(migrations.Migration):
                 ),
                 ("casprov", models.IntegerField(db_column="casprov")),
                 ("casprov_est", models.FloatField(db_column="casprov_est")),
-                ("casprov_est_min", models.IntegerField(db_column="casprov_est_min")),
-                ("casprov_est_max", models.IntegerField(db_column="casprov_est_max")),
+                (
+                    "casprov_est_min",
+                    models.IntegerField(db_column="casprov_est_min"),
+                ),
+                (
+                    "casprov_est_max",
+                    models.IntegerField(db_column="casprov_est_max"),
+                ),
                 ("casconf", models.IntegerField(db_column="casconf")),
             ],
             options={

@@ -37,7 +37,9 @@ class CustomUserTest(TestCase):
         self.assertEqual(user.name, expected_name)
 
     def test_github_authentication(self):
-        github_account = SocialAccount.objects.get(provider="github", user=self.user)
+        github_account = SocialAccount.objects.get(
+            provider="github", user=self.user
+        )
         self.assertEqual(github_account.uid, "123456")
 
     def test_github_login(self):

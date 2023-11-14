@@ -6,7 +6,10 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("registry", "0003_alter_author_institution_alter_model_description_and_more"),
+        (
+            "registry",
+            "0003_alter_author_institution_alter_model_description_and_more",
+        ),
     ]
 
     operations = [

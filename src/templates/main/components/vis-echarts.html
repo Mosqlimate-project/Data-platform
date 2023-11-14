@@ -1,16 +1,43 @@
 {% load static %}
+{% load i18n %}
 
 {% block vis_echarts %}
 
-<div class="floating-window-container" style="box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
-  <div class="floating-window" id="floatingWindow" style="height: 650px; width: 100%;" div>
+<div class="floating-window-container container" style="box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
+  <div class="row gx-5 pt-4 text-center">
+    <div class="col">
+      <label>{% translate "Select the disease" %}:</label>
+      <select id="diseaseDropdown" onchange="updateChart()">
+        <option value="dengue">Dengue</option>
+        <option value="chik">Chikungunya</option>
+        <option value="zika">Zika</option>
+      </select>
+    </div>
+    <div class="col">
+        <input type="radio" id="total_cases" name="incidenceType" value="total_cases" onchange="updateChart()" checked>
+        <label for="total_cases">{% translate "Total cases" %}</label>
+
+        <input type="radio" id="total_cases_100k_hab" name="incidenceType" value="total_cases_100k_hab" onchange="updateChart()">
+        <label for="total_cases_100k_hab">{% translate "Cases per 100k hab." %}</label>
+    </div>
+  </div>
+
+  <div class="row pt-3">
+    <div class="floating-window" id="floatingWindow" style="height: 650px; width: 100%;" div>
+  </div>
 </div>
+
+<style>
+    input[type="radio"] {
+        margin-left: 15px;
+    }
+</style>
 
 <script type="text/javascript">
 /**
  * Initialize and configure ECharts chart.
  */
-function initializeEChart() {
+function initializeEChart(disease, incidenceType) {
   var myChart = echarts.init(document.getElementById('floatingWindow'));
   const blueVioletPalette = [
     '#cddcf9',
@@ -22,29 +49,40 @@ function initializeEChart() {
   ];
 
   if (myChart) {
-    // Load the BR map data
     $.get("{% static 'data/geo/BR.json' %}", function (brJson) {
-      // Log the loaded geographic data
       myChart.hideLoading();
-      // echarts.registerMap('BR', brJson);
-      echarts.registerMap('BR', {geoJSON: brJson});
+      echarts.registerMap('BR', { geoJSON: brJson });
 
-      var br_data = {{ br_data|safe }};
-      
-      var map_title = "Cumulative dengue cases by State in {{ current_year|safe }}";
-      var chart_title = "Cumulative dengue cases by State in {{ current_year|safe }}";
-      var min_total_cases = {{ min_total_cases|safe }};
-      var max_total_cases = {{ max_total_cases|safe }};
+      var diseaseDataMapping = {
+        'dengue': {{ br_data_dengue|safe }},
+        'chik': {{ br_data_chik|safe }},
+        'zika': {{ br_data_zika|safe }},
+        'dengue_100k': {{ br_data_dengue_100k|safe }},
+        'chik_100k': {{ br_data_chik_100k|safe }},
+        'zika_100k': {{ br_data_zika_100k|safe }},
+      };
 
-      br_data.sort(function (a, b) {
-        return a.value - b.value;
-      });
+      var diseaseName = {
+          'dengue': 'Dengue',
+          'chik': 'Chikungunya',
+          'zika': 'Zika'
+      }
+
+      var br_data = incidenceType === 'total_cases_100k_hab' ? diseaseDataMapping[disease + '_100k'] : diseaseDataMapping[disease];
+
+      var total_cases_title = `Total ${diseaseName[disease]} cases by UF in {{ current_year|safe }}`;
+      var total_cases_100k_title = `${diseaseName[disease]} cases per 100k hab. by UF in {{ current_year|safe }}`
+
+      var map_title = (incidenceType === 'total_cases_100k_hab') ? total_cases_100k_title : total_cases_title;
+      var chart_title = (incidenceType === 'total_cases_100k_hab') ? total_cases_100k_title : total_cases_title;
+      var max_total_cases = br_data[0].value;
+      var min_total_cases = br_data[br_data.length - 1].value;
 
       const mapOption = {
         width: '512px',
         height: '529px',
         grid: {
-          top: '0%'
+          top: '5%'
         },
         title: {
           text: map_title,
@@ -55,8 +93,8 @@ function initializeEChart() {
           left: 'right',
           min: min_total_cases,
           max: max_total_cases,
+          type: 'continuous',
           inRange: {
-            type: 'continuous',
             color: blueVioletPalette,
             opacity: 0.8
           },
@@ -75,21 +113,38 @@ function initializeEChart() {
             animationDurationUpdate: 1000,
             universalTransition: true,
             data: br_data,
-          }
-        ],
-      };
+            }
+          ],
+        };
 
       const barOption = {
         width: '80%',
         height: '80%',
         grid: {
-          left: '10%'
+          left: '10%',
+          top: '10%'
         },
         title: {
           text: chart_title,
           left: 'center',
           padding: [20, 0, 0, 0],
           fontSize: 18,
+        },
+        visualMap: {
+          left: 'right',
+          type: 'piecewise',
+          <!-- Impossible to use data value instead of dataIndex? -->
+          min: 0,
+          max: 26,
+          inRange: {
+            color: blueVioletPalette,
+            opacity: 0.8
+          },
+          text: ['High', 'Low'],
+          calculable: true,
+          orient: 'vertical',
+          top: '25%',
+          left: '84%',
         },
         xAxis: {
           type: 'value',
@@ -120,36 +175,47 @@ function initializeEChart() {
             show: true,
             position: 'right',
             formatter: '{c}',
-            // fontWeight: 'bold',
             fontSize: 13,
           },
-          color: blueVioletPalette[6], // ['#83b861']
           universalTransition: true
+        },
+        tooltip: {
+          formatter: '{b}: {c} cases'
         },
         responsive: true,
         maintainAspectRatio: false
       };
 
-      let currentOption = mapOption;
+      let isMap = true;
 
       myChart.setOption(mapOption);
 
-      setInterval(function () {
-        currentOption = currentOption === mapOption ? barOption : mapOption;
-        myChart.setOption(currentOption, true);
-      }, 4000);
+      myChart.getZr().on('click', function (params) {
+        isMap = !isMap;
 
-      // Resize the chart when the window is resized
-      window.addEventListener('resize', function() {
+        if (isMap) {
+          myChart.setOption(mapOption);
+        } else {
+          myChart.setOption(barOption);
+        }
+      });
+
+      window.addEventListener('resize', function () {
         myChart.resize();
       });
     });
   }
 }
 
-// Call the initialize function when the document is ready
-$(document).ready(function() {
-  initializeEChart();
+function updateChart() {
+  var disease = $('#diseaseDropdown').val();
+  var incidenceType = $('input[name="incidenceType"]:checked').val();
+
+  initializeEChart(disease, incidenceType);
+}
+
+$(document).ready(function () {
+  initializeEChart("dengue", "total_cases");
 });
 </script>
 

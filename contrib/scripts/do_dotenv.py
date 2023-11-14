@@ -22,12 +22,16 @@ load_dotenv()
 print("------ .env ------")
 
 project_dir = Path(__file__).parent.parent.parent
-templates = Environment(loader=FileSystemLoader(project_dir / "contrib" / "templates"))
+templates = Environment(
+    loader=FileSystemLoader(project_dir / "contrib" / "templates")
+)
 def_data_dir = project_dir.parent / "storage"
 CI = os.environ.get("CI", default=False)
 
 
-def get_env_var_or_input(var_key: str, input_text, default_val=None, required=False):
+def get_env_var_or_input(
+    var_key: str, input_text, default_val=None, required=False
+):
     """
     var_key: Name of the environment variable as in template
     input_text: Text for the input with the default_val in [brackets]
@@ -60,10 +64,14 @@ def get_env_var_or_input(var_key: str, input_text, default_val=None, required=Fa
 
 var_in = get_env_var_or_input
 
-print("Mosqlimate environment configuration. Press [Enter] to leave the default value")
+print(
+    "Mosqlimate environment configuration. Press [Enter] to leave the default value"
+)
 
 print("\nDjango Core:")
-env = str(var_in("ENV", input_text="  Environment [dev]: ", default_val="dev")).lower()
+env = str(
+    var_in("ENV", input_text="  Environment [dev]: ", default_val="dev")
+).lower()
 secret_key = var_in(
     "SECRET_KEY",
     "  Django Secret Key [random]: ",
@@ -72,17 +80,25 @@ secret_key = var_in(
 allowed_hosts = var_in(
     "ALLOWED_HOSTS", input_text="  Allowed hosts ['*']: ", default_val="*"
 )
-dj_settings = "mosqlimate.settings.prod" if env == "prod" else "mosqlimate.settings.dev"
+dj_settings = (
+    "mosqlimate.settings.prod" if env == "prod" else "mosqlimate.settings.dev"
+)
 
 
 print("\nDjango Image:")
 uid = var_in(
-    "HOST_UID", input_text=f"  Host UID [{os.getuid()}]: ", default_val=os.getuid()
+    "HOST_UID",
+    input_text=f"  Host UID [{os.getuid()}]: ",
+    default_val=os.getuid(),
 )
 gid = var_in(
-    "HOST_GID", input_text=f"  Host GUI [{os.getgid()}]: ", default_val=os.getgid()
+    "HOST_GID",
+    input_text=f"  Host GUI [{os.getgid()}]: ",
+    default_val=os.getgid(),
 )
-dj_port = var_in("DJANGO_PORT", input_text="  Django port [8042]: ", default_val=8042)
+dj_port = var_in(
+    "DJANGO_PORT", input_text="  Django port [8042]: ", default_val=8042
+)
 
 def_dj_host_data = def_data_dir / "django"
 
@@ -99,6 +115,15 @@ dj_cont_data = var_in(
     default_val="/opt/services/storage/django",
 )
 
+print("\nRedis:")
+redis_port = var_in(
+    "REDIS_PORT", input_text="  Redis port [8044]: ", default_val=8044
+)
+
+print("\nDjango Image:")
+worker_port = var_in(
+    "WORKER_PORT", input_text="  Django Worker port [8044]: ", default_val=8045
+)
 
 print("\nDjango OAuth:")
 site_domain = var_in(
@@ -107,7 +132,9 @@ site_domain = var_in(
     default_val=f"0.0.0.0:{dj_port}",
 )
 site_name = var_in(
-    "SITE_NAME", input_text="  Django Sites name [localhost]: ", default_val="localhost"
+    "SITE_NAME",
+    input_text="  Django Sites name [localhost]: ",
+    default_val="localhost",
 )
 github_id = var_in(
     "GITHUB_CLIENT_ID",
@@ -140,7 +167,9 @@ psql_db = var_in(
     input_text="  Postgresql database [mosqlimate-dev]: ",
     default_val="mosqlimate-dev",
 )
-psql_uri = f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
+psql_uri = (
+    f"postgresql://{psql_user}:{psql_pass}@{psql_host}:{psql_port}/{psql_db}"
+)
 infodengue_uri = var_in(
     "INFODENGUE_POSTGRES_URI",
     input_text="  External psql connection with Infodengue: ",
@@ -167,7 +196,9 @@ psql_host_conf = var_in(
 )
 psql_host_data = var_in(
     "POSTGRES_DATA_DIR_HOST",
-    input_text=f"  Postgresql data directory on host: [{def_psql_dir}/pgdata/]: ",
+    input_text=(
+        f"  Postgresql data directory on host: [{def_psql_dir}/pgdata/]: "
+    ),
     default_val=(def_psql_dir / "pgdata").absolute(),
 )
 
@@ -191,13 +222,17 @@ dj_email_host = var_in(
     input_text="Email host [smtp.example.com]: ",
     default_val="smtp.example.com",
 )
-dj_email_port = var_in("EMAIL_PORT", input_text="Email port [587]: ", default_val=587)
+dj_email_port = var_in(
+    "EMAIL_PORT", input_text="Email port [587]: ", default_val=587
+)
 dj_email_host_user = var_in(
     "EMAIL_HOST_USER",
     input_text="Email host user [email@example.com]: ",
     default_val="email@example.com",
 )
-dj_email_host_pass = var_in("EMAIL_HOST_PASSWORD", input_text="Email host password: ")
+dj_email_host_pass = var_in(
+    "EMAIL_HOST_PASSWORD", input_text="Email host password: "
+)
 dj_email_use_tls = True
 
 
@@ -216,6 +251,8 @@ variables = {
     "DJANGO_PORT": dj_port,
     "DJANGO_HOST_DATA_PATH": str(dj_host_data),
     "DJANGO_CONTAINER_DATA_PATH": str(dj_cont_data),
+    # [Django Worker]
+    "WORKER_PORT": worker_port,
     # [Django Oauth]
     "SITE_DOMAIN": site_domain,
     "SITE_NAME": site_name,
@@ -244,6 +281,8 @@ variables = {
     "EMAIL_USE_TLS": dj_email_use_tls,
     # [Mkdocs]
     "MKDOCS_PORT": 8043,
+    # [Redis]
+    "REDIS_PORT": redis_port,
 }
 
 if dotenv_file.exists():

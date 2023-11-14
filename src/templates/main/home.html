@@ -1,5 +1,6 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
+{% load plotly_dash %}
 {% load vis_echarts_components %}
 
 {% block title %}{% translate "Home" %}{% endblock %}
@@ -14,7 +15,7 @@
     </p>
     <p>
       {% blocktrans %}
-      Currently, only data for dengue and chikungunya are available through this platform. More datasets will be made available in time. All the data made available are in the public domain and are official data made available by the Brazilian Ministry of Health.
+      Currently, only data for dengue, chikungunya and zika are available through this platform. More datasets will be made available in time. All the data made available are in the public domain and are official data made available by the Brazilian Ministry of Health.
       {% endblocktrans %}
     </p>
     <p>
@@ -25,11 +26,7 @@
   </div>
 
   <div class="container mt-5">
-    <div class="row">
-      <div class="col-lg-12">
-        {% vis_echarts %}
-      </div>
-    </div>
+    {% vis_echarts %}
   </div>
 
   <!-- footer -->
