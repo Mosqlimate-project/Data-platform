@@ -47,6 +47,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "django_celery_beat",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",

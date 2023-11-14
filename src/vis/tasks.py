@@ -1,13 +1,16 @@
-from celery.schedules import crontab
-
 from mosqlimate.celeryapp import app
 
-
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(crontab(hour="*", minute="*"), test("hi"))
+import subprocess
 
 
 @app.task
-def test(arg):
-    print(arg)
+def test():
+    subprocess.run(["curl", "http://mosqlimate-django:8042"])
+
+
+app.conf.beat_schedule = {
+    "add-every-30-seconds": {
+        "task": "vis.tasks.test",
+        "schedule": 30.0,
+    },
+}
