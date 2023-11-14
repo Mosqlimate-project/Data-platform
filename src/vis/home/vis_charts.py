@@ -85,7 +85,7 @@ def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
     if uf not in UFs:
         raise ValueError(f"Unknown UF. Options are {list(UFs)}")
 
-    if year < 1970 or year > dt.now().year:
+    if year < 1980 or year > dt.now().year:
         raise ValueError("Incorrect year. Min year: 1970")
 
     try:

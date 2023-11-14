@@ -108,7 +108,7 @@ def update_author(request, username: str, payload: AuthorInPost):
         author.institution = payload.institution
 
         if not calling_via_swagger(request):
-            # Not realy required, since include_in_schema=False
+            # Not really required, since include_in_schema=False
             author.save()
 
         return 201, author
@@ -137,7 +137,7 @@ def delete_author(request, username: str):
             }
 
         if not calling_via_swagger(request):
-            # Not realy required, since include_in_schema=False
+            # Not really required, since include_in_schema=False
             author.delete()
 
         return 200, {
@@ -311,14 +311,15 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
                 setattr(model, attr, value)
 
             if not calling_via_swagger(request):
-                # Not realy required, since include_in_schema=False
+                # Not really required, since include_in_schema=False
                 model.save()
 
             return 201, model
         except Author.DoesNotExist:
             return 404, {
                 "message": (
-                    f"Author '{payload.author}' not found, use username instead"
+                    f"Author '{payload.author}' not found, use username"
+                    "instead"
                 )
             }
     except Model.DoesNotExist:
@@ -342,7 +343,7 @@ def delete_model(request, model_id: int):
             }
 
         if not calling_via_swagger(request):
-            # Not realy required, since include_in_schema=False
+            # Not really required, since include_in_schema=False
             model.delete()
 
         return 204, {"message": f"Model {model.name} deleted successfully"}
@@ -452,7 +453,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
         # TODO: Add commit verification if commit has changed
 
         if not calling_via_swagger(request):
-            # Not realy required, since include_in_schema=False
+            # Not really required, since include_in_schema=False
             prediction.save()
 
         return 201, prediction
@@ -477,7 +478,7 @@ def delete_prediction(request, predict_id: int):
             }
 
         if not calling_via_swagger(request):
-            # Not realy required, since include_in_schema=False
+            # Not really required, since include_in_schema=False
             prediction.delete()
 
         return 204, {
