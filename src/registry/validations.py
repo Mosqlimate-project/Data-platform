@@ -5,7 +5,7 @@ from pathlib import Path
 
 app_dir = Path(__file__).parent
 
-validation_data_path = app_dir / "tests/data/validation_data.json"
+validation_data_path = app_dir / "data/IBGE_codes.json"
 
 # Load the validation Brazilian geocodes, Municipalities and State names
 with open(validation_data_path, "r") as validation_file:
@@ -111,10 +111,10 @@ def validate_prediction(payload):
     predict_obj_error = validate_prediction_obj(payload.prediction)
 
     if commit_error:
-        return 403, {"message": commit_error}
+        return 404, {"message": commit_error}
     if description_error:
-        return 403, {"message": description_error}
+        return 404, {"message": description_error}
     if predict_date_error:
-        return 403, {"message": predict_date_error}
+        return 404, {"message": predict_date_error}
     if predict_obj_error:
-        return 403, {"message": predict_obj_error}
+        return 404, {"message": predict_obj_error}

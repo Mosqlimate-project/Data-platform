@@ -20,9 +20,9 @@ router = Router()
 class TestCreatePrediction(TestCase):
     def setUp(self):
         # Load Brazilian Municipaities and State names for geocode validation
-        self.validation_data_path = app_dir / "tests/data/validation_data.json"
+        self.validation_IBGE_codes = app_dir / "data/IBGE_codes.json"
         # Load the validation Brazilian Municipalities and State names
-        with open(self.validation_data_path, "r") as validation_file:
+        with open(self.validation_IBGE_codes, "r") as validation_file:
             self.validation_data = json.load(validation_file)
 
         # Load prediction data
@@ -60,19 +60,20 @@ class TestCreatePrediction(TestCase):
         self.assertEqual(data["adm_0"], "BR")
 
         # Check string field lengths
-        self.assertLessEqual(len(data["dates"]), 10)  # Max length of 'YYYY-MM-DD'
-        self.assertLessEqual(len(data["adm_1"]), 2)  # UF code
-        self.assertLessEqual(len(data["adm_0"]), 2)  # Country code
+        self.assertLessEqual(len(data["dates"]), 10)
+        self.assertLessEqual(len(data["adm_1"]), 2)
+        self.assertLessEqual(len(data["adm_0"]), 2)
 
         # Check date format using a regular expression
         date_pattern = r"\d{4}-\d{2}-\d{2}"
         self.assertTrue(re.match(date_pattern, data["dates"]))
 
-        # Verify if the geocode is within the range for the Brazilian IBGE code
-        self.assertGreaterEqual(data["adm_2"], 1100015)  # Alta Floresta D'Oeste
-        self.assertLessEqual(data["adm_2"], 5300108)  # Brasília
+        # Verify if the geocode is within the range
+        # for the Brazilian IBGE code
+        self.assertGreaterEqual(data["adm_2"], 1100015)
+        self.assertLessEqual(data["adm_2"], 5300108)
 
-        # Check if "geocodigo" is in validation_data
+        # Check if "geocodigo" is in IBGE_code
         self.assertTrue(
             data["adm_2"] in [entry["geocodigo"] for entry in self.validation_data]
         )
@@ -121,7 +122,7 @@ class TestCreatePrediction(TestCase):
         # Call the create_prediction function and check the response
         response = create_prediction(request, payload)
 
-        self.assertEqual(response[0], 403)
+        self.assertEqual(response[0], 404)
         self.assertEqual(
             response[1],
             {
