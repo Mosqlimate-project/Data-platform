@@ -1,13 +1,13 @@
 import json
 import re
 from pathlib import Path
-from django.test import TestCase
-from django.http import HttpRequest
-from ninja import Router
 
-from registry.models import Author, Model, Prediction, ImplementationLanguage
-from users.models import CustomUser
+from django.http import HttpRequest
+from django.test import TestCase
+from ninja import Router
 from registry.api import PredictionIn, create_prediction
+from registry.models import Author, ImplementationLanguage, Model, Prediction
+from users.models import CustomUser
 
 app_dir = Path(__file__).parent.parent
 
@@ -15,7 +15,9 @@ router = Router()
 
 
 @router.post(
-    "/create-prediction/", response={int: str}, tags=["registry", "Predictions"]
+    "/create-prediction/",
+    response={int: str},
+    tags=["registry", "Predictions"],
 )
 class TestCreatePrediction(TestCase):
     def setUp(self):
@@ -75,7 +77,8 @@ class TestCreatePrediction(TestCase):
 
         # Check if "geocodigo" is in IBGE_code
         self.assertTrue(
-            data["adm_2"] in [entry["geocodigo"] for entry in self.validation_data]
+            data["adm_2"]
+            in [entry["geocodigo"] for entry in self.validation_data]
         )
 
     def test_create_prediction(self):
@@ -102,7 +105,9 @@ class TestCreatePrediction(TestCase):
         prediction = Prediction.objects.first()
         self.assertEqual(prediction.model, self.model)
         self.assertEqual(prediction.description, "Test description")
-        self.assertEqual(prediction.commit, "76eb927067cf54ae52da53503a14519d78a37da8")
+        self.assertEqual(
+            prediction.commit, "76eb927067cf54ae52da53503a14519d78a37da8"
+        )
 
     def test_create_prediction_invalid_payload(self):
         # Create an invalid payload for testing

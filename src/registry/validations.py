@@ -1,6 +1,6 @@
+import json
 import re
 from datetime import date
-import json
 from pathlib import Path
 
 app_dir = Path(__file__).parent
@@ -16,7 +16,8 @@ def validate_commit(commit):
     # Check the hash commit length
     hash_size = 40
     if len(commit) != hash_size:
-        return "Invalid commit: The commit hash should be a 40-character string."
+        return """Invalid commit: 
+            The commit hash should be a 40-character string."""
 
 
 def validate_description(description):
@@ -30,10 +31,12 @@ def validate_description(description):
 def validate_predict_date(predict_date):
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
-        predict_date.isoformat() if isinstance(predict_date, date) else predict_date
+        predict_date.isoformat()
+        if isinstance(predict_date, date)
+        else predict_date
     )
 
-    # Check if predict_date is a valid date object with the format 'YYYY-MM-DD'
+    # Check if predict_date is a valid date with the format 'YYYY-MM-DD'
     date_pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
 
     if not date_pattern.match(predict_date_str):
