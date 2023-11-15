@@ -3,14 +3,6 @@ import re
 from datetime import date
 from pathlib import Path
 
-app_dir = Path(__file__).parent
-
-validation_data_path = app_dir / "data/IBGE_codes.json"
-
-# Load the validation Brazilian geocodes, Municipalities and State names
-with open(validation_data_path, "r") as validation_file:
-    validation_data = json.load(validation_file)
-
 
 def validate_commit(commit):
     # Check the hash commit length
@@ -43,75 +35,79 @@ def validate_predict_date(predict_date):
         return "Invalid predict_date format. Use YYYY-MM-DD."
 
 
-def validate_prediction_obj(obj):
+def validate_prediction_obj(obj, validation_regions):
     """
     Validate prediction data according to specified criteria.
 
     Args:
-        obj (list[dict]):List of prediction data entries.
+        obj (list[dict]): List of prediction data entries.
+        validation_regions (list[dict]): List of valid regions for geocodes.
 
     Raises:
-        : If any validation check fails.
-
-    Note:
-        This function uses 'if not' to validate the data
-        and raises status code with an error message
-        if any validation fails.
+        ValueError: If any validation check fails.
     """
+    date_pattern = r"\d{4}-\d{2}-\d{2}"
+
     for entry in obj:
-        if not isinstance(entry.get("dates"), str):
-            return "Invalid data type for 'dates' field."
+        # "dates" validation
+        dates_value = entry.get("dates")
+        if (
+            not isinstance(dates_value, str)
+            or len(dates_value) != 10
+            or not re.match(date_pattern, dates_value)
+        ):
+            return "Invalid data type, length, or format for 'dates' field."
 
-        if not len(entry.get("dates")) == 10:
-            return "Invalid length for 'dates' field."
+        # "preds", "lower", "upper" validation
+        for field in ["preds", "lower", "upper"]:
+            if not isinstance(entry.get(field), float):
+                return f"Invalid data type for '{field}' field."
 
-        if not re.match(r"\d{4}-\d{2}-\d{2}", entry.get("dates")):
-            return "Invalid 'dates' format."
+        # "adm_2": geocode validation
+        adm_2_value = entry.get("adm_2")
+        if (
+            not isinstance(adm_2_value, int)
+            or len(str(adm_2_value)) != 7
+            or adm_2_value
+            not in [region["geocodigo"] for region in validation_regions]
+        ):
+            return "Invalid data type, length, or geocode for 'adm_2' field."
 
-        if not isinstance(entry.get("preds"), float):
-            return "Invalid data type for 'preds' field."
+        # "adm_1": UF abbv validation
+        adm_1_value = entry.get("adm_1")
+        if (
+            not isinstance(adm_1_value, str)
+            or len(str(adm_1_value)) != 2
+            or adm_1_value
+            not in [region["uf_abbv"] for region in validation_regions]
+        ):
+            return "Invalid data type, length, or UF abbv for 'adm_1' field."
 
-        if not isinstance(entry.get("lower"), float):
-            return "Invalid data type for 'lower' field."
+        # "adm_0": Country code ## TODO: Change to ISO code
+        adm_0_value = entry.get("adm_0")
+        if not isinstance(adm_0_value, str) or len(adm_0_value) != 2:
+            return "Invalid data type or length for 'adm_0' field."
 
-        if not isinstance(entry.get("upper"), float):
-            return "Invalid data type for 'upper' field."
-
-        if not isinstance(entry.get("adm_2"), int):
-            return "Invalid data type for 'adm_2' field."
-
-        if not isinstance(entry.get("adm_1"), str):
-            return "Invalid data type for 'adm_1' field."
-
-        if not isinstance(entry.get("adm_0"), str):
-            return "Invalid data type for 'adm_0' field."
-
-        if not len(entry.get("adm_1")) == 2:
-            return "Invalid length for 'adm_1' field."
-
-        if not len(entry.get("adm_0")) == 2:
-            return "Invalid length for 'adm_0' field."
-
-        # Geocode validations
-        date_pattern = r"\d{4}-\d{2}-\d{2}"
-        if not re.match(date_pattern, entry.get("dates")):
-            return "Invalid 'dates' format."
-
-        if not (1100015 <= entry.get("adm_2") <= 5300108):
-            return "Invalid value for 'adm_2' field."
-
-        # Check if "geocodigo" is in validation_data
-        geocodigo_values = [entry["geocodigo"] for entry in validation_data]
-        if entry.get("adm_2") not in geocodigo_values:
-            return "Invalid value for 'adm_2' field."
+    # Return None if all validations pass
+    return None
 
 
 def validate_prediction(payload):
+    app_dir = Path(__file__).parent
+
+    validation_regions_path = app_dir / "data/IBGE_codes.json"
+
+    # Load the validation Brazilian geocodes, Municipalities and State names
+    with open(validation_regions_path, "r") as f:
+        validation_regions = json.load(f)
+
     # model = validate_model(payload.model)
     description_error = validate_description(payload.description)
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
-    predict_obj_error = validate_prediction_obj(payload.prediction)
+    predict_obj_error = validate_prediction_obj(
+        payload.prediction, validation_regions
+    )
 
     if commit_error:
         return 404, {"message": commit_error}
