@@ -14,7 +14,6 @@ def validate_commit(commit):
 
 
 def validate_description(description):
-    # Check if the description meets your criteria (e.g., maximum length)
     max_length = 500
     if len(description) > max_length:
         return f"""Description too big, maximum allowed: {max_length}.
@@ -23,14 +22,20 @@ def validate_description(description):
 
 def validate_predict_date(predict_date):
     """
-    Validate predict_date according to specified criteria.
+    Validate the predict_date based on specified criteria.
 
     Args:
         predict_date (str or date): Predicted date or date object.
 
     Returns:
         str: Error message if any validation check fails, otherwise None.
+
+    Criteria:
+    - The predict_date must be a string in the format 'YYYY-MM-DD' or a date object.
+    - The parsed date should be at least one year ago.
+    - The parsed date should not be in the future.
     """
+
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
         predict_date.isoformat()
@@ -64,8 +69,8 @@ def validate_prediction_obj(obj, validation_regions):
     Args:
         obj (list[dict]): List of prediction data entries.
         validation_regions (list[dict]): List of regions used for additional
-            validation, containing information about valid 'geocodigo'
-            and 'uf_abbv' values and corresponding 'adm_levels'.
+          validation, containing information about valid 'geocodigo'
+          and 'uf_abbv' values and corresponding 'adm_levels'.
 
     Returns:
         str: Error message if any validation check fails, otherwise None.
@@ -78,7 +83,6 @@ def validate_prediction_obj(obj, validation_regions):
     - The "adm_0" field must be a str of length 2.
     - Additional validation based on the provided 'validation_regions' dict.
     """
-
 
     required_keys = [
         "dates",
@@ -155,9 +159,8 @@ def validate_prediction_obj(obj, validation_regions):
 def validate_prediction(payload):
     app_dir = Path(__file__).parent
 
-    validation_regions_path = app_dir / "data/IBGE_codes.json"
-
     # Load the validation Brazilian geocodes, Municipalities and State names
+    validation_regions_path = app_dir / "data/IBGE_codes.json"
     with open(validation_regions_path, "r") as f:
         validation_regions = json.load(f)
 
