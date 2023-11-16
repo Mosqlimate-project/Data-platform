@@ -8,8 +8,10 @@ def validate_commit(commit):
     # Check the hash commit length
     hash_size = 40
     if len(commit) != hash_size:
-        return """Invalid commit: 
-            The commit hash should be a 40-character string."""
+        return """Invalid commit: The provided commit hash has an incorrect length.
+            Please ensure you have captured the latest commit using:
+            'git show --format=%H -s'
+            """
 
 
 def validate_description(description):
@@ -23,9 +25,7 @@ def validate_description(description):
 def validate_predict_date(predict_date):
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
-        predict_date.isoformat()
-        if isinstance(predict_date, date)
-        else predict_date
+        predict_date.isoformat() if isinstance(predict_date, date) else predict_date
     )
 
     # Check if predict_date is a valid date with the format 'YYYY-MM-DD'
@@ -68,8 +68,7 @@ def validate_prediction_obj(obj, validation_regions):
         if (
             not isinstance(adm_2_value, int)
             or len(str(adm_2_value)) != 7
-            or adm_2_value
-            not in [region["geocodigo"] for region in validation_regions]
+            or adm_2_value not in [region["geocodigo"] for region in validation_regions]
         ):
             return "Invalid data type, length, or geocode for 'adm_2' field."
 
@@ -78,8 +77,7 @@ def validate_prediction_obj(obj, validation_regions):
         if (
             not isinstance(adm_1_value, str)
             or len(str(adm_1_value)) != 2
-            or adm_1_value
-            not in [region["uf_abbv"] for region in validation_regions]
+            or adm_1_value not in [region["uf_abbv"] for region in validation_regions]
         ):
             return "Invalid data type, length, or UF abbv for 'adm_1' field."
 
@@ -105,9 +103,7 @@ def validate_prediction(payload):
     description_error = validate_description(payload.description)
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
-    predict_obj_error = validate_prediction_obj(
-        payload.prediction, validation_regions
-    )
+    predict_obj_error = validate_prediction_obj(payload.prediction, validation_regions)
 
     if commit_error:
         return 404, {"message": commit_error}
