@@ -47,6 +47,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "django_celery_beat",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",
@@ -261,9 +262,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
-CELERY_BROKER_URL = "redis://mosqlimate-redis:6379/0"
-CELERY_RESULT_BACKEND = "redis://mosqlimate-redis:6379/0"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
