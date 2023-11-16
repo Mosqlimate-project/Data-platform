@@ -1,6 +1,6 @@
 import json
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from datetime import datetime, date, timedelta
 
 
 def validate_commit(commit):
@@ -33,7 +33,9 @@ def validate_predict_date(predict_date):
     """
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
-        predict_date.isoformat() if isinstance(predict_date, date) else predict_date
+        predict_date.isoformat()
+        if isinstance(predict_date, date)
+        else predict_date
     )
 
     try:
@@ -57,21 +59,36 @@ def validate_predict_date(predict_date):
 
 def validate_prediction_obj(obj, validation_regions):
     """
-    Validate prediction data according to specified criteria.
+    Validate prediction data based on specified criteria.
 
     Args:
         obj (list[dict]): List of prediction data entries.
-        validation_regions (list[dict]): List of valid regions for geocodes.
+        validation_regions (list[dict]): List of regions used for additional
+            validation, containing information about valid 'geocodigo'
+            and 'uf_abbv' values and corresponding 'adm_levels'.
 
-    Raises:
-        ValueError: If any validation check fails.
+    Returns:
+        str: Error message if any validation check fails, otherwise None.
 
-    Note:
-        This function uses 'if not' to validate the data
-        and raises status code with an error message
-        if any validation fails.
+    Criteria:
+    - The "dates" field must be a string in the format 'YYYY-MM-DD'.
+    - The "preds", "lower", "upper" fields must be of type float.
+    - The "adm_2" field must be an int of length 7 and a valid 'geocodigo'.
+    - The "adm_1" field must be a str of length 2 and a valid 'uf_abbv'.
+    - The "adm_0" field must be a str of length 2.
+    - Additional validation based on the provided 'validation_regions' dict.
     """
-    required_keys = ["dates", "preds", "lower", "upper", "adm_2", "adm_1", "adm_0"]
+
+
+    required_keys = [
+        "dates",
+        "preds",
+        "lower",
+        "upper",
+        "adm_2",
+        "adm_1",
+        "adm_0",
+    ]
 
     for entry in obj:
         if not all(key in entry for key in required_keys):
@@ -89,9 +106,10 @@ def validate_prediction_obj(obj, validation_regions):
             # Check if the year is within a valid range (2010 to current year)
             current_year = datetime.now().year
             if not 2010 <= parsed_date.year <= current_year:
-                return (
-                    "Invalid 'dates' year. Should be between 2010 and the current year."
-                )
+                return """\n
+                    Invalid 'dates' year. Should be between 2010 
+                    and the current year.
+                """
 
             # Check if the parsed date is not in the future
             if parsed_date.date() > date.today():
@@ -110,7 +128,8 @@ def validate_prediction_obj(obj, validation_regions):
         if (
             not isinstance(adm_2_value, int)
             or len(str(adm_2_value)) != 7
-            or adm_2_value not in [region["geocodigo"] for region in validation_regions]
+            or adm_2_value
+            not in [region["geocodigo"] for region in validation_regions]
         ):
             return "Invalid data type, length, or geocode for 'adm_2' field."
 
@@ -119,7 +138,8 @@ def validate_prediction_obj(obj, validation_regions):
         if (
             not isinstance(adm_1_value, str)
             or len(str(adm_1_value)) != 2
-            or adm_1_value not in [region["uf_abbv"] for region in validation_regions]
+            or adm_1_value
+            not in [region["uf_abbv"] for region in validation_regions]
         ):
             return "Invalid data type, length, or UF abbv for 'adm_1' field."
 
@@ -145,7 +165,9 @@ def validate_prediction(payload):
     description_error = validate_description(payload.description)
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
-    predict_obj_error = validate_prediction_obj(payload.prediction, validation_regions)
+    predict_obj_error = validate_prediction_obj(
+        payload.prediction, validation_regions
+    )
 
     if commit_error:
         return 404, {"message": commit_error}
