@@ -1,7 +1,6 @@
 import json
-import re
-from datetime import date
 from pathlib import Path
+from datetime import datetime, date, timedelta
 
 
 def validate_commit(commit):
@@ -23,16 +22,37 @@ def validate_description(description):
 
 
 def validate_predict_date(predict_date):
+    """
+    Validate predict_date according to specified criteria.
+
+    Args:
+        predict_date (str or date): Predicted date or date object.
+
+    Returns:
+        str: Error message if any validation check fails, otherwise None.
+    """
     # Convert datetime.date object to string if it's not already a string
     predict_date_str = (
         predict_date.isoformat() if isinstance(predict_date, date) else predict_date
     )
 
-    # Check if predict_date is a valid date with the format 'YYYY-MM-DD'
-    date_pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
+    try:
+        # Use datetime.fromisoformat to parse the date
+        parsed_date = datetime.fromisoformat(predict_date_str).date()
 
-    if not date_pattern.match(predict_date_str):
+        # Check if the parsed date is at least one year ago
+        one_year_ago = date.today() - timedelta(days=365)
+        if parsed_date < one_year_ago:
+            return "Invalid predict_date. Should be at least one year ago."
+
+        # Check if the parsed date is not in the future
+        if parsed_date > date.today():
+            return "Invalid predict_date. Cannot be in the future."
+
+    except ValueError:
         return "Invalid predict_date format. Use YYYY-MM-DD."
+
+    return None
 
 
 def validate_prediction_obj(obj, validation_regions):
@@ -46,17 +66,30 @@ def validate_prediction_obj(obj, validation_regions):
     Raises:
         ValueError: If any validation check fails.
     """
-    date_pattern = r"\d{4}-\d{2}-\d{2}"
 
     for entry in obj:
         # "dates" validation
         dates_value = entry.get("dates")
-        if (
-            not isinstance(dates_value, str)
-            or len(dates_value) != 10
-            or not re.match(date_pattern, dates_value)
-        ):
-            return "Invalid data type, length, or format for 'dates' field."
+        if not isinstance(dates_value, str) or len(dates_value) != 10:
+            return "Invalid data type or length for 'dates' field."
+
+        try:
+            # Use datetime.fromisoformat to parse the date
+            parsed_date = datetime.fromisoformat(dates_value)
+
+            # Check if the year is within a valid range (2010 to current year)
+            current_year = datetime.now().year
+            if not 2010 <= parsed_date.year <= current_year:
+                return (
+                    "Invalid 'dates' year. Should be between 2010 and the current year."
+                )
+
+            # Check if the parsed date is not in the future
+            if parsed_date.date() > date.today():
+                return "Invalid 'dates'. Cannot be in the future."
+
+        except ValueError:
+            return "Invalid 'dates' format. Use YYYY-MM-DD."
 
         # "preds", "lower", "upper" validation
         for field in ["preds", "lower", "upper"]:
