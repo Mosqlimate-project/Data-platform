@@ -65,9 +65,18 @@ def validate_prediction_obj(obj, validation_regions):
 
     Raises:
         ValueError: If any validation check fails.
+
+    Note:
+        This function uses 'if not' to validate the data
+        and raises status code with an error message
+        if any validation fails.
     """
+    required_keys = ["dates", "preds", "lower", "upper", "adm_2", "adm_1", "adm_0"]
 
     for entry in obj:
+        if not all(key in entry for key in required_keys):
+            return "Missing one or more required keys in the entry."
+
         # "dates" validation
         dates_value = entry.get("dates")
         if not isinstance(dates_value, str) or len(dates_value) != 10:
