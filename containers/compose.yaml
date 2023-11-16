@@ -44,7 +44,7 @@ services:
     ports:
       - ${WORKER_PORT}:${WORKER_PORT}
     user: "mosqlimate:mosqlimate"
-    command: celery -A mosqlimate worker -l INFO -E -B -s ${DJANGO_CONTAINER_DATA_PATH} --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A mosqlimate worker -l INFO -E -B --scheduler django_celery_beat.schedulers:DatabaseScheduler
     healthcheck:
       test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
       interval: 10s

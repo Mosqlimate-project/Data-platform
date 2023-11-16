@@ -5,9 +5,15 @@
 {% block title %}{% translate "About" %}{% endblock %}
 
 {% block content %}
-<h1>{% translate "About Mosqlimate" %}</h1>
+  <div class="container mt-5">
+    <h1>{% translate "About Mosqlimate" %}</h1>
+    <p class="lead">
+    The Mosqlimate data platform is an API developed by the <a href="https://mosqlimate.org">Mosqlimate Project</a>
+    </p>
+    <p>
+        The project is led by Flávio Codeço Coelho, Professor of Mathematical epidemiology at the <a href="https://emap.fgv.br">Applied Mathematics School</a> at Getulio Vargas Foundation.
 
-<div class="container">
-    {% plotly_app name="geocodes" ratio=1 %}
-</div>
+        You can find more about the Project and its team <a href="https://mosqlimate.org">here</a>.
+    </p>
+  </div>
 {% endblock %}

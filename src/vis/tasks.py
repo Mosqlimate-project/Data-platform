@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from celery.schedules import crontab
 from django.db.models import Sum
@@ -97,3 +98,4 @@ def update_total_cases(disease: str, uf: str, is_100k_hab: bool):
 
     obj.total_cases = cases
     obj.save()
+    logging.info(f"{obj} updated cases to {cases}")
