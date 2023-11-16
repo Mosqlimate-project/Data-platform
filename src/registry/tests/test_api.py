@@ -1,5 +1,5 @@
 import json
-import re
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from django.http import HttpRequest
@@ -21,7 +21,7 @@ router = Router()
 )
 class TestCreatePrediction(TestCase):
     def setUp(self):
-        # Load Brazilian Municipaities and State names for geocode validation
+        # Load Brazilian Municipalities and State names for geocode validation
         self.validation_IBGE_codes = app_dir / "data/IBGE_codes.json"
         # Load the validation Brazilian Municipalities and State names
         with open(self.validation_IBGE_codes, "r") as validation_file:
@@ -41,7 +41,7 @@ class TestCreatePrediction(TestCase):
             implementation_language=language,
         )
 
-    def test_validate_prediction(self):
+    def test_validate_prediction_data(self):
         data = self.data[0]
 
         # Check data types
@@ -66,9 +66,9 @@ class TestCreatePrediction(TestCase):
         self.assertLessEqual(len(data["adm_1"]), 2)
         self.assertLessEqual(len(data["adm_0"]), 2)
 
-        # Check date format using a regular expression
-        date_pattern = r"\d{4}-\d{2}-\d{2}"
-        self.assertTrue(re.match(date_pattern, data["dates"]))
+        # Check date format using datetime
+        parsed_date = datetime.strptime(data["dates"], "%Y-%m-%d").date()
+        self.assertIsInstance(parsed_date, date)
 
         # Verify if the geocode is within the range
         # for the Brazilian IBGE code
@@ -81,6 +81,10 @@ class TestCreatePrediction(TestCase):
             in [entry["geocodigo"] for entry in self.validation_data]
         )
 
+        # Check if predict_date is after 2010 and not in the future
+        self.assertGreaterEqual(parsed_date, date(2010, 1, 1))
+        self.assertLessEqual(parsed_date, date.today())
+
     def test_create_prediction(self):
         # Create a payload for testing
         payload = PredictionIn(
@@ -88,7 +92,7 @@ class TestCreatePrediction(TestCase):
             description="Test description",
             ADM_level=1,
             commit="76eb927067cf54ae52da53503a14519d78a37da8",
-            predict_date="2023-11-08",
+            predict_date="2023-11-16",  # Adjust the predict_date as needed
             prediction=self.data,
         )
 
@@ -108,6 +112,13 @@ class TestCreatePrediction(TestCase):
         self.assertEqual(
             prediction.commit, "76eb927067cf54ae52da53503a14519d78a37da8"
         )
+
+        # Check if predict_date is not in the future
+        self.assertLessEqual(prediction.predict_date, date.today())
+
+        # Check if predict_date is greater than one year
+        one_year_later = datetime(2022, 11, 16) + timedelta(days=365)
+        self.assertGreaterEqual(prediction.predict_date, one_year_later.date())
 
     def test_create_prediction_invalid_payload(self):
         # Create an invalid payload for testing
