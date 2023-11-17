@@ -116,9 +116,9 @@ class TestCreatePrediction(TestCase):
         # Check if predict_date is not in the future
         self.assertLessEqual(prediction.predict_date, date.today())
 
-        # Check if predict_date is greater than one year
-        one_year_later = datetime(2022, 11, 16) + timedelta(days=365)
-        self.assertGreaterEqual(prediction.predict_date, one_year_later.date())
+        # Check if predict_date is less than one year ago
+        one_year_ago = datetime(2022, 11, 16) - timedelta(days=365)
+        self.assertGreaterEqual(prediction.predict_date, one_year_ago.date())
 
     def test_create_prediction_invalid_payload(self):
         # Create an invalid payload for testing

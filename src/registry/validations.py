@@ -8,7 +8,7 @@ def validate_commit(commit):
     hash_size = 40
     if len(commit) != hash_size:
         return """Invalid commit: The provided commit hash has an incorrect length.
-            Please ensure you have captured the latest commit using:
+            Please ensure you have captured the correct commit using:
             'git show --format=%H -s'
             """
 
@@ -95,6 +95,7 @@ def validate_prediction_obj(obj, validation_regions):
     ]
 
     for entry in obj:
+        # Check if any key is missing
         if not all(key in entry for key in required_keys):
             return "Missing one or more required keys in the entry."
 
