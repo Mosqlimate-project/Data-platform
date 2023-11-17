@@ -118,8 +118,7 @@ mosqlimate_postgres_1   docker-entrypoint.sh -p 5432     Up (healthy)   0.0.0.0:
 ### Migrations
 After starting the containers up, you are able to run the migrations to create the objects on PostgreSQL:
 ```sh
-makim django.makemigrations
-makim django.migrate
+makim django.migrations
 ```
 
 ### Check Site ID

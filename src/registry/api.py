@@ -33,6 +33,7 @@ from .schema import (
 )
 from .pagination import PagesPagination
 from .utils import calling_via_swagger
+from .validations import validate_prediction
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -409,17 +410,13 @@ def create_prediction(request, payload: PredictionIn):
     except Model.DoesNotExist:
         return 404, {"message": f"Model '{payload.model}' not found"}
 
-    description = payload.description
-    if len(description) > 500:
-        return 403, {
-            "message": (
-                "Description too big, maximum allowed: 500. "
-                f"Please remove {len(description) - 500} characters."
-            )
-        }
-
     payload.model = model
-    # TODO: Add commit verification here #19
+
+    validation_result = validate_prediction(payload)
+
+    if validation_result is not None:
+        return validation_result
+
     prediction = Prediction(**payload.dict())
 
     if not calling_via_swagger(request):
@@ -434,6 +431,7 @@ def create_prediction(request, payload: PredictionIn):
         201: PredictionSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
+        422: UnprocessableContentSchema,
     },
     auth=django_auth,
     tags=["registry", "predictions"],

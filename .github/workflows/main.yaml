@@ -72,6 +72,10 @@ jobs:
       run: |
         makim django.test --app datastore
 
+    - name: Test registry
+      run: |
+        sugar run --service django --cmd "python manage.py test -v 2 registry.tests.test_api"
+
     # - name: Container wait
     #   run: |
     #      make container-wait-all

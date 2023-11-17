@@ -47,11 +47,13 @@ groups:
         run: |
           sugar run --service django --cmd "python manage.py changepassword {{ args.username }}"
 
-      migrate:
+      migrations:
         help: Run `migrate` inside container
         env-file: .env
         run: |
+          sugar run --service django --cmd "python manage.py makemigrations --no-input"
           sugar run --service django --cmd "python manage.py migrate --no-input"
+
 
       collectstatic:
         help: Run `collectstatic` inside container
@@ -76,10 +78,9 @@ groups:
             required: True
         help: Run django test on an app inside container
         run: |
-            sugar run --service django --cmd "python manage.py makemigrations datastore"
+            sugar run --service django --cmd "python manage.py makemigrations {{ args.app }}"
             sugar run --service django --cmd "python manage.py migrate --database=default"
             sugar run --service django --cmd "python manage.py test -v 2 {{ args.app }}.tests"
-
 
   dev:
     targets:
