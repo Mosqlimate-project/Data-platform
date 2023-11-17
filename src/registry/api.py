@@ -416,6 +416,8 @@ def create_prediction(request, payload: PredictionIn):
 
     validation_result = validate_prediction(payload)
 
+    # Returns the status code and the error message
+    # if the validation fails or None if it succeeds
     if validation_result is not None:
         return validation_result
 
@@ -433,7 +435,6 @@ def create_prediction(request, payload: PredictionIn):
         201: PredictionSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
-        422: UnprocessableContentSchema,
     },
     auth=django_auth,
     tags=["registry", "predictions"],
