@@ -174,10 +174,10 @@ def validate_prediction(payload):
     )
 
     if commit_error:
-        return 404, {"message": commit_error}
+        return 422, {"message": commit_error}
     if description_error:
-        return 404, {"message": description_error}
+        return 422, {"message": description_error}
     if predict_date_error:
-        return 404, {"message": predict_date_error}
+        return 422, {"message": predict_date_error}
     if predict_obj_error:
-        return 404, {"message": predict_obj_error}
+        return 422, {"message": predict_obj_error}
