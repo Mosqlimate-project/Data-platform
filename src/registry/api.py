@@ -431,6 +431,7 @@ def create_prediction(request, payload: PredictionIn):
         201: PredictionSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
+        422: UnprocessableContentSchema,
     },
     auth=django_auth,
     tags=["registry", "predictions"],
