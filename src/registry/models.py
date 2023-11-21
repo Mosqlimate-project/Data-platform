@@ -46,6 +46,11 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    class Diseases(models.TextChoices):
+        CHIKUNGUNYA = "chikungunya", _("Chikungunya")
+        DENGUE = "dengue", _("Dengue")
+        ZIKA = "zika", _("Zika")
+
     class Periodicities(models.TextChoices):
         DAY = "day", _("Day")
         WEEK = "week", _("Week")
@@ -71,12 +76,15 @@ class Model(models.Model):
         blank=False,
     )
     type = models.CharField(max_length=100, null=False, blank=True)
+    disease = models.CharField(
+        choices=Diseases.choices, null=True
+    )  # TODO: change to false
     ADM_level = models.IntegerField(
         choices=ADM_levels.choices, null=True
     )  # TODO: Change to false
     time_resolution = models.CharField(
         choices=Periodicities.choices, null=True
-    )
+    )  # TODO: change to false
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

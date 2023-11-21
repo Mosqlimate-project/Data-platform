@@ -15,7 +15,7 @@
   </div>
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
-    <iframe id="myIframe" src="{% url 'line_charts' %}?model01=610" width="100%" height="500" frameborder="0"></iframe>
+    <iframe id="lineChart" src="{% url 'line_charts' %}?model=610&model=612" width="100%" height="500" frameborder="0"></iframe>
   </div>
 </div>
 
@@ -34,10 +34,9 @@
 
 <script>
     function updateModel() {
-        var iframe = document.getElementById('myIframe');
+        var lineChart = document.getElementById('lineChart');
         var modelIdInput = document.getElementById('modelIdInput');
-
-        iframe.src = "{% url 'line_charts' %}?model01=" + modelIdInput.value;
+        // lineChart.src = "{% url 'line_charts' %}?model01=" + modelIdInput.value;
     }
 </script>
 {% endblock %}

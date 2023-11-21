@@ -29,8 +29,6 @@
                     <label for="model_repository">{% translate "Github Repository" %}:</label>
                     <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
                 </div>
-            </div>
-            <div class="row mb-3">
                 <div class="col">
                     <label for="model_type">{% translate "Type" %}:</label>
                     <input type="text" id="edit-model-type" name="model_type" value="{{ model.type }}" class="form-control" maxlength="100" placeholder="E.g: Nowcast" required>
@@ -41,6 +39,18 @@
                         {% for language in implementation_languages %}
                         <option value="{{ language }}" {% if language == model.implementation_language %}selected{% endif %}>
                         {{ language }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="model_time_resolution">{% translate "Time resolution" %}:</label>
+                    <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
+                        {% for value, label in time_resolutions %}
+                        <option value="{{ value }}" {% if value == model.time_resolution %}selected{% endif %}>
+                        {{ label }}
                         </option>
                         {% endfor %}
                     </select>
@@ -56,10 +66,10 @@
                     </select>
                 </div>
                 <div class="col">
-                    <label for="model_time_resolution">{% translate "Time resolution" %}:</label>
-                    <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
-                        {% for value, label in time_resolution %}
-                        <option value="{{ value }}" {% if value == model.time_resolution %}selected{% endif %}>
+                    <label for="model_disease">{% translate "Disease" %}:</label>
+                    <select id="edit-disease" name="model_disease" class="form-control" required>
+                        {% for disease, label in diseases %}
+                        <option value="{{ disease }}" {% if disease == model.disease %}selected{% endif %}>
                         {{ label }}
                         </option>
                         {% endfor %}

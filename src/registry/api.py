@@ -155,6 +155,7 @@ class ModelIn(Schema):
     repository: str  # TODO: Validate repository?
     implementation_language: str
     type: str
+    disease: Literal["dengue", "zika", "chikungunya"]
     ADM_level: Literal[0, 1, 2, 3]
     time_resolution: Literal["day", "week", "month", "year"]
 
