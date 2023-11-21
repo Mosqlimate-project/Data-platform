@@ -10,6 +10,38 @@ class VisualizationsView(View):
 
     def get(self, request):
         context = {}
+
+        line_charts_default_uri = "?"
+
+        model_ids = request.GET.getlist("model")
+        if model_ids:
+            line_charts_default_uri += "&".join(
+                list(f"model={id}" for id in model_ids)
+            )
+            models = []
+            for id in model_ids:
+                models.append(Model.objects.get(pk=id))
+            context["selected_models"] = models
+
+        prediction_ids = request.GET.getlist("predict")
+        if prediction_ids:
+            predictions_uri = "&".join(
+                list(f"predict={id}" for id in prediction_ids)
+            )
+            if not (line_charts_default_uri.endswith("&")) and not (
+                line_charts_default_uri.endswith("?")
+            ):
+                line_charts_default_uri += f"&{predictions_uri}"
+            else:
+                line_charts_default_uri += predictions_uri
+
+            predicts = []
+            for id in prediction_ids:
+                predicts.append(Prediction.objects.get(pk=id))
+            context["selected_predictions"] = predicts
+
+        context["line_charts_default_uri"] = line_charts_default_uri
+
         return render(request, self.template_name, context)
 
 

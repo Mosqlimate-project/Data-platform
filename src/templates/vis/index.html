@@ -5,17 +5,30 @@
 {% block title %}{% translate "Visualization" %}{% endblock %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/gh/habibmhamadi/multi-select-tag@2.0.1/dist/js/multi-select-tag.js"></script>
 <div style="display:flex;">
-  <div class="vis-sidebar d-flex flex-column flex-shrink-0 text-white bg-dark">
+  <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
-      <label for="modelIdInput">Enter Model ID:</label>
-      <input type="number" id="modelIdInput" placeholder="Enter Model ID" value="610">
-      <button class="btn btn-primary" onclick="updateModel()">Update</button>
+      <div class="p-3">
+        <label for="models" class="text-white">Select Models:</label>
+        <select name="models" id="models" class="text-dark" multiple>
+          {% for model in selected_models %}
+          <option value="{{model.id}}" selected>{{model.id}} - {{model.name}}</option>
+          {% endfor %}
+        </select>
+        <hr style="color:white;">
+        <label for="predictions" class="text-white">Select Predictions:</label>
+        <select name="predictions" id="predictions" class="text-dark hidden" multiple>
+          {% for prediction in selected_predictions %}
+          <option value="{{prediction.id}}">{{prediction.id}}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
-    <iframe id="lineChart" src="{% url 'line_charts' %}?model=610&model=612" width="100%" height="500" frameborder="0"></iframe>
+      <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
   </div>
 </div>
 
@@ -33,10 +46,35 @@
 </style>
 
 <script>
-    function updateModel() {
+    function updateCharts() {
         var lineChart = document.getElementById('lineChart');
-        var modelIdInput = document.getElementById('modelIdInput');
-        // lineChart.src = "{% url 'line_charts' %}?model01=" + modelIdInput.value;
     }
+
+    var models = new MultiSelectTag('models', {
+        rounded: true, 
+        shadow: false,
+        placeholder: 'Search',
+        tagColor: {
+            textColor: '#6e7772',
+            borderColor: '#383131',
+            bgColor: '#f9e0ff',
+        },
+        onChange: function(values) {
+            console.log(values)
+    }});
+
+    var predictions = new MultiSelectTag('predictions', {
+        rounded: true, 
+        shadow: false,
+        placeholder: 'Search',
+        tagColor: {
+            textColor: '#6e7772',
+            borderColor: '#383131',
+            bgColor: '#e3f8fc',
+        },
+        onChange: function(values) {
+            console.log(values)
+    }});
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/habibmhamadi/multi-select-tag@2.0.1/dist/css/multi-select-tag.css">
 {% endblock %}
