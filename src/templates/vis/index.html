@@ -1,0 +1,43 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{% load plotly_dash %}
+
+{% block title %}{% translate "Visualization" %}{% endblock %}
+
+{% block content %}
+<div style="display:flex;">
+  <div class="vis-sidebar d-flex flex-column flex-shrink-0 text-white bg-dark">
+    <div class="sidebar-menu">
+      <label for="modelIdInput">Enter Model ID:</label>
+      <input type="number" id="modelIdInput" placeholder="Enter Model ID" value="610">
+      <button class="btn btn-primary" onclick="updateModel()">Update</button>
+    </div>
+  </div>
+
+  <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
+    <iframe id="myIframe" src="{% url 'line_charts' %}?model01=610" width="100%" height="500" frameborder="0"></iframe>
+  </div>
+</div>
+
+
+<style>
+.vis-sidebar {
+  width: 280px;
+  min-height: calc(100vh - 211px);
+}
+
+.vis-content {
+  flex-grow: 1;
+  min-height: calc(100vh - 211px);
+}
+</style>
+
+<script>
+    function updateModel() {
+        var iframe = document.getElementById('myIframe');
+        var modelIdInput = document.getElementById('modelIdInput');
+
+        iframe.src = "{% url 'line_charts' %}?model01=" + modelIdInput.value;
+    }
+</script>
+{% endblock %}

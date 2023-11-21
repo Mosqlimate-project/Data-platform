@@ -1,7 +1,12 @@
-# from django.urls import path
+from django.urls import path
 
-# from . import views
+from .views import VisualizationsView, LineChartsVisualizationsView
 
-# urlpatterns = [
-#     path("", views.index, name="index"),
-# ]
+urlpatterns = [
+    path("home/", VisualizationsView.as_view(), name="vis"),
+    path(
+        "line-charts/",
+        LineChartsVisualizationsView.as_view(),
+        name="line_charts",
+    ),
+]
