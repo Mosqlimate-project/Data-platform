@@ -11,36 +11,64 @@ class VisualizationsView(View):
     def get(self, request):
         context = {}
 
-        line_charts_default_uri = "?"
+        line_charts_default_items = []
 
         model_ids = request.GET.getlist("model")
-        if model_ids:
-            line_charts_default_uri += "&".join(
-                list(f"model={id}" for id in model_ids)
-            )
-            models = []
-            for id in model_ids:
-                models.append(Model.objects.get(pk=id))
-            context["selected_models"] = models
-
         prediction_ids = request.GET.getlist("predict")
-        if prediction_ids:
-            predictions_uri = "&".join(
-                list(f"predict={id}" for id in prediction_ids)
-            )
-            if not (line_charts_default_uri.endswith("&")) and not (
-                line_charts_default_uri.endswith("?")
-            ):
-                line_charts_default_uri += f"&{predictions_uri}"
-            else:
-                line_charts_default_uri += predictions_uri
+        charts_info = {}
 
-            predicts = []
-            for id in prediction_ids:
-                predicts.append(Prediction.objects.get(pk=id))
-            context["selected_predictions"] = predicts
+        all_models = Model.objects.all()
+        for model in all_models:
+            charts = model.get_visualizables()
+            if charts:
+                for chart in charts:
+                    model_info = {}
+                    model_info["id"] = model.id
+                    model_info["model"] = model
 
-        context["line_charts_default_uri"] = line_charts_default_uri
+                    if str(model.id) in model_ids:
+                        model_info["selected"] = True
+                        line_charts_default_items.append(f"model={model.id}")
+                    else:
+                        model_info["selected"] = False
+
+                    model_info["predictions"] = []
+
+                    for prediction in charts[chart]:
+                        prediction_info = {}
+                        prediction_info["id"] = prediction.id
+                        prediction_info["model_id"] = model.id
+                        prediction_info["prediction"] = prediction
+
+                        if (
+                            str(prediction.id) in prediction_ids
+                            or str(model.id) in model_ids
+                        ):
+                            model_info["selected"] = True
+                            prediction_info["selected"] = True
+                            line_charts_default_items.append(
+                                f"predict={prediction.id}"
+                            )
+                        else:
+                            prediction_info["selected"] = False
+
+                        model_info["predictions"].append(prediction_info)
+
+                    try:
+                        charts_info[chart].append(model_info)
+                    except KeyError:
+                        charts_info[chart] = [model_info]
+
+        context["charts_info"] = charts_info
+        context["line_charts_default_uri"] = "?" + "&".join(
+            line_charts_default_items
+        )
+
+        models = []
+        for chart in charts_info:
+            models.extend(charts_info[chart])
+
+        context["models"] = models
 
         return render(request, self.template_name, context)
 

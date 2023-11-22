@@ -8,8 +8,7 @@ from pandas import json_normalize
 from registry.models import Prediction
 
 from vis.home.vis_charts import historico_alerta_data_for
-from .errors import NotFoundError, ComparisonError
-from .checks import compatible_predictions
+from .errors import NotFoundError
 
 
 def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
@@ -21,8 +20,8 @@ def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
         except Prediction.DoesNotExist:
             raise NotFoundError(f"Prediction with ID {id} was not found")
 
-    if not compatible_predictions(predicts):
-        raise ComparisonError(predicts)  # TODO
+    # if not compatible_predictions(predicts):
+    #     raise ComparisonError(predicts)  # TODO
 
     dfs = []
     for p in predicts:

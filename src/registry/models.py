@@ -1,7 +1,14 @@
 import os
+from io import StringIO
+from typing import List, Union, Literal
+
+import pandas as pd
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from vis.dash import checks
 
 
 def get_plangs_path() -> str:
@@ -91,6 +98,16 @@ class Model(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+    def get_visualizables(self) -> dict[str:list]:
+        visualizables = {}
+        predictions = Prediction.objects.filter(model=self)
+        line_charts = [
+            p for p in predictions if "LineChart" in p.visualizable()
+        ]
+        if line_charts:
+            visualizables["LineChart"] = line_charts
+        return visualizables
+
     class Meta:
         verbose_name = _("Model")
         verbose_name_plural = _("Models")
@@ -107,6 +124,27 @@ class Prediction(models.Model):
 
     def __str__(self):
         return f"{self.commit}"  # TODO: Change it
+
+    def visualizable(
+        self,
+    ) -> List[
+        Union[
+            Literal[
+                "LineChart",
+                # Add more compatible charts here
+            ]
+        ]
+    ]:
+        """
+        Returns a list of compatible charts the Prediction can be visualized on
+        """
+        df = pd.read_json(StringIO(self.prediction))
+        compatible_charts = []
+
+        if checks.line_chart(df):
+            compatible_charts.append("LineChart")
+
+        return compatible_charts
 
     class Meta:
         verbose_name = _("Prediction")
