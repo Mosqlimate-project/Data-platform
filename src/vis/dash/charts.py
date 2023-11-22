@@ -8,7 +8,7 @@ from pandas import json_normalize
 from registry.models import Prediction
 
 from vis.home.vis_charts import historico_alerta_data_for
-from .errors import NotFoundError
+from .errors import NotFoundError, VisualizationError
 
 
 def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
@@ -25,17 +25,23 @@ def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
 
     dfs = []
     for p in predicts:
-        json_struct = json.loads(p.prediction)
-        df_flat = json_normalize(json_struct)
-        df_flat.dates = pd.to_datetime(df_flat.dates)
-        df_flat = df_flat.loc[df_flat.adm_2 == geocode]
-        df_flat["model_id"] = p.model.id
-        df_flat["predict_id"] = p.id
-        dfs.append(df_flat)
+        if any(p.visualizable()):
+            json_struct = json.loads(p.prediction)
+            df_flat = json_normalize(json_struct)
+            df_flat.dates = pd.to_datetime(df_flat.dates)
+            df_flat = df_flat.loc[df_flat.adm_2 == geocode]
+            df_flat["model_id"] = p.model.id
+            df_flat["predict_id"] = p.id
+            dfs.append(df_flat)
 
-    df = pd.concat(dfs, axis=0)
+    try:
+        df = pd.concat(dfs, axis=0)
+    except ValueError:
+        # TODO: Improve error handling
+        raise VisualizationError(df)
 
     if df.empty:
+        # TODO: Improve error handling
         raise NotFoundError(f"No data for geocode {geocode}")
 
     return df

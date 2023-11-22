@@ -1,3 +1,15 @@
+class VisualizationError(Exception):
+    """
+    Visualization failed.
+    """
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
+
 class LineChartError(Exception):
     """
     Visualization for line chart failed.

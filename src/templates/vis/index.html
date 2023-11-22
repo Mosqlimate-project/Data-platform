@@ -1,6 +1,7 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
 {% load plotly_dash %}
+{% load filters %}
 
 {% block title %}{% translate "Visualization" %}{% endblock %}
 
@@ -9,7 +10,8 @@
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <div class="p-3">
-        <label for="models" class="text-white">Select Models:</label>
+
+        <label for="models" class="text-white">{% trans "Models" %}:</label>
         <select name="models" id="models" class="selectpicker" data-size="5" multiple>
             {% for model in models %}
                 <option value="{{ model.id }}" {% if model.selected %}selected{% endif %}>
@@ -20,7 +22,7 @@
 
         <hr style="color:white;">
 
-        <label for="predictions" class="text-white">Select Predictions:</label>
+        <label for="predictions" class="text-white">{% trans "Predictions" %}:</label>
         <select name="predictions" id="predictions" class="selectpicker" data-size="5" multiple>
           {% for model in models %}
             {% for prediction in model.predictions %}
@@ -28,6 +30,28 @@
             {% endfor %}
           {% endfor %}
         </select>
+
+        <hr style="color:white;">
+
+        <label for="disease" class="text-white">{% trans "Disease" %}:</label>
+        <select name="disease" id="disease" class="selectpicker" data-size="5">
+          {% for disease, ids in diseases.items %}
+            <option value="{{ disease }}" {% if ids|is_empty %}disabled{% endif %}>
+            {{ disease.capitalize }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <hr style="color:white;">
+
+        <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
+        <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
+          <option data-tokens="ketchup mustard">Hot Dog, Fries and a Soda</option>
+          <option data-tokens="mustard">Burger, Shake and a Smile</option>
+          <option data-tokens="frosting">Sugar, Spice and all things nice</option>
+        </select>
+
+
       </div>
     </div>
   </div>
@@ -51,8 +75,17 @@
 </style>
 
 <script>
-    function updateCharts() {
-        var lineChart = document.getElementById('lineChart');
-    }
+$(document).ready(function () {
+    $('#models').change(function () {
+        console.log($(this).val());
+        console.log({{ diseases|safe }});
+    });
+    $('#predictions').change(function () {
+        console.log($(this).val());
+    });
+    $('#geocode').change(function () {
+        console.log($(this).val());
+    });
+});
 </script>
 {% endblock %}

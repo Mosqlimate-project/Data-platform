@@ -19,3 +19,11 @@ def is_model_visualizable(model: Model):
         if any(prediction.visualizable()):
             return True
     return False
+
+
+@register.filter(name="is_empty")
+def is_empty(iter):
+    if not iter or iter is None:
+        return True
+    if iter:
+        return False
