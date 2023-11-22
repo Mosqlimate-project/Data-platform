@@ -138,11 +138,15 @@ class Prediction(models.Model):
         """
         Returns a list of compatible charts the Prediction can be visualized on
         """
-        df = pd.read_json(StringIO(self.prediction))
-        compatible_charts = []
+        compatible_charts = []  # Null if not visualizable
 
-        if checks.line_chart(df):
-            compatible_charts.append("LineChart")
+        try:
+            df = pd.read_json(StringIO(self.prediction))
+            if checks.line_chart(df):
+                compatible_charts.append("LineChart")
+        except TypeError:
+            # TODO: add a better error handling to not visualizable preds
+            pass
 
         return compatible_charts
 
