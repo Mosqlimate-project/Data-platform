@@ -6,7 +6,7 @@ from .dash.charts import line_charts_by_geocode
 
 
 class VisualizationsView(View):
-    template_name = "vis/index.html"
+    template_name = "vis/dashboard.html"
 
     def get(self, request):
         context = {}
@@ -31,13 +31,12 @@ class VisualizationsView(View):
                 for chart in charts:
                     model_info = {}
                     model_info["id"] = model.id
-                    model_info["model"] = model
 
                     if str(model.id) in model_ids:
-                        model_info["selected"] = True
+                        model_info["selected"] = "True"
                         line_charts_default_items.append(f"model={model.id}")
                     else:
-                        model_info["selected"] = False
+                        model_info["selected"] = "False"
 
                     model_info["predictions"] = []
 
@@ -45,19 +44,18 @@ class VisualizationsView(View):
                         prediction_info = {}
                         prediction_info["id"] = prediction.id
                         prediction_info["model_id"] = model.id
-                        prediction_info["prediction"] = prediction
 
                         if (
                             str(prediction.id) in prediction_ids
                             or str(model.id) in model_ids
                         ):
-                            model_info["selected"] = True
-                            prediction_info["selected"] = True
+                            model_info["selected"] = "True"
+                            prediction_info["selected"] = "True"
                             line_charts_default_items.append(
                                 f"predict={prediction.id}"
                             )
                         else:
-                            prediction_info["selected"] = False
+                            prediction_info["selected"] = "False"
 
                         model_info["predictions"].append(prediction_info)
 

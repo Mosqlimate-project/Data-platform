@@ -1,8 +1,15 @@
+from django.shortcuts import get_object_or_404
 from django import template
 
 from registry.models import Prediction, Model
 
 register = template.Library()
+
+
+@register.filter(name="model_name_by_id")
+def get_model_name_by_id(id: int) -> str:
+    model = get_object_or_404(Model, pk=id)
+    return model.name
 
 
 @register.filter(name="is_prediction_visualizable")
