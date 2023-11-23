@@ -13,8 +13,6 @@ class VisualizationsView(View):
 
         line_charts_default_items = []
 
-        diseases = {"dengue": [], "zika": [], "chikungunya": []}
-
         model_ids = request.GET.getlist("model")
         prediction_ids = request.GET.getlist("predict")
         charts_info = {}
@@ -23,11 +21,6 @@ class VisualizationsView(View):
         for model in all_models:
             charts = model.get_visualizables()
             if charts:
-                try:
-                    diseases[model.disease].append(model.id)
-                except KeyError:
-                    pass
-
                 for chart in charts:
                     model_info = {}
                     model_info["id"] = model.id
@@ -44,6 +37,8 @@ class VisualizationsView(View):
                         prediction_info = {}
                         prediction_info["id"] = prediction.id
                         prediction_info["model_id"] = model.id
+                        prediction_info["geocodes"] = prediction.get_geocodes()
+                        prediction_info["disease"] = model.disease
 
                         if (
                             str(prediction.id) in prediction_ids
@@ -64,7 +59,6 @@ class VisualizationsView(View):
                     except KeyError:
                         charts_info[chart] = [model_info]
 
-        context["diseases"] = diseases
         context["charts_info"] = charts_info
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items

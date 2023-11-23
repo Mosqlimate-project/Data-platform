@@ -46,9 +46,7 @@
 
         <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
         <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
-          <option data-tokens="ketchup mustard">Hot Dog, Fries and a Soda</option>
-          <option data-tokens="mustard">Burger, Shake and a Smile</option>
-          <option data-tokens="frosting">Sugar, Spice and all things nice</option>
+            <option value="geocode">geocode</option>
         </select>
 
 
@@ -58,6 +56,7 @@
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
       <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
+      <p>{{ charts_info|safe }}</p>
   </div>
 </div>
 
@@ -92,10 +91,35 @@ $(document).ready(function () {
     var defaultModels = $('#models').val(); // from views
     disablePredictionsButFor(defaultModels);
     
+    let toEnable = {};
 
     $('#models').change(function () {
         var selectedModelIds = $(this).val();
         disablePredictionsButFor(selectedModelIds);
+    });
+
+    $('#predictions').change(function () {
+        var selectedPredictIds = $(this).val();
+        var geocodes = [];
+
+        for (var i = 0; i < lineChart.length; i++) {
+            var model = lineChart[i];
+            for (var p = 0; p < model.predictions.length; p++) {
+                prediction = model.predictions[p];
+                if (selectedPredictIds.includes(prediction.id.toString())) {
+                    geocodes.push(prediction.geocodes);
+                }
+            }
+        }
+
+        $("#geocode").empty();
+        enableGeocodes(geocodes);
+        $("#geocode").selectpicker("refresh");
+    });
+
+    $('#geocode').change(function () {
+        var selectedGeocode = $(this).val();
+        console.log(selectedGeocode);
     });
 
     function disablePredictionsButFor(modelIds) {
@@ -110,6 +134,19 @@ $(document).ready(function () {
                     $('#predictions option[value="' + model.predictions[p].id + '"]').prop('disabled', true).prop('selected', false);
                     $('#predictions').selectpicker('refresh');
                 }
+            }
+        }
+    }
+
+    function enableGeocodes(geocodes) {
+        if (geocodes && geocodes.length > 0) {
+            res = geocodes.reduce((a, b) => a.filter(c => b.includes(c)));
+            for (var g = 0; g < res.length; g++) {
+                var geocode = res[g];
+                var opt = document.createElement('option');
+                opt.value = geocode;
+                opt.innerHTML = geocode;
+                $("#geocode").append(opt).selectpicker("refresh");
             }
         }
     }

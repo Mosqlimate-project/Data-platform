@@ -138,7 +138,7 @@ class Prediction(models.Model):
         """
         Returns a list of compatible charts the Prediction can be visualized on
         """
-        compatible_charts = []  # Null if not visualizable
+        compatible_charts = []  # None if not visualizable
 
         try:
             df = pd.read_json(StringIO(self.prediction))
@@ -149,6 +149,22 @@ class Prediction(models.Model):
             pass
 
         return compatible_charts
+
+    def get_geocodes(self) -> set[int]:
+        """
+        This methods can be used only if the Model.ADM_level is 2.
+        Extracts a set of geocodes from self.prediction
+        """
+        geocodes = []
+
+        try:
+            df = pd.read_json(StringIO(self.prediction))
+            geocodes = list(df["adm_2"].unique())
+        except TypeError:
+            # TODO: add a better error handling geocode errors
+            pass
+
+        return geocodes
 
     class Meta:
         verbose_name = _("Prediction")
