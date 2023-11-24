@@ -1,16 +1,16 @@
 import pandas as pd
 
 
-def line_chart(df: pd.DataFrame) -> bool:
+def line_chart_adm2(df: pd.DataFrame) -> bool:
     """
-    Returns True if a DataFrame can be visualized in a Line Chart
+    Returns True if a DataFrame can be visualized in a Line Chart by Municipality
     """
     checks = []
 
     if _line_chart_df_columns(df):
         checks.append(True)
 
-    if all(checks):
+    if all(checks) and checks:
         return True
     return False
 
@@ -32,12 +32,20 @@ def _line_chart_df_columns(df: pd.DataFrame) -> bool:
         "adm_0",
     ]
 
-    if not all(c in required_columns for c in df.columns):
+    if df.empty:
+        return False
+
+    if "target" in df.columns:
+        # Ignore target column
+        df = df.drop("target", axis=1)
+
+    if set(df.columns) != set(required_columns):
         # TODO: improve error handling
         # raise errors.LineChartError("Incorrect columns")
         return False
     else:
         return True
+
     return False
 
 

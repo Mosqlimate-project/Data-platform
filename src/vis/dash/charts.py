@@ -1,9 +1,7 @@
 from typing import Literal
 from datetime import date
-import json
 import pandas as pd
 import altair as alt
-from pandas import json_normalize
 
 from registry.models import Prediction
 
@@ -26,8 +24,7 @@ def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
     dfs = []
     for p in predicts:
         if any(p.visualizable()):
-            json_struct = json.loads(p.prediction)
-            df_flat = json_normalize(json_struct)
+            df_flat = p.prediction_df
             df_flat.dates = pd.to_datetime(df_flat.dates)
             df_flat = df_flat.loc[df_flat.adm_2 == geocode]
             df_flat["model_id"] = p.model.id

@@ -11,6 +11,17 @@
     <div class="sidebar-menu">
       <div class="p-3">
 
+        <label for="disease" class="text-white">{% trans "Disease" %}:</label>
+        <select name="disease" id="disease" class="selectpicker" data-size="5">
+          {% for dis in diseases %}
+            <option value="{{ dis }}" {% if dis != disease %}disabled{% endif %}>
+            {{ dis.capitalize }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <hr style="color:white;">
+
         <label for="models" class="text-white">{% trans "Models" %}:</label>
         <select name="models" id="models" class="selectpicker" data-size="5" multiple>
             {% for model in models %}
@@ -28,17 +39,6 @@
             {% for prediction in model.predictions %}
               <option value="{{prediction.id}}" {% if prediction.selected == "True" %}selected{% endif %}>{{prediction.model_id}} - Prediction {{prediction.id}}</option>
             {% endfor %}
-          {% endfor %}
-        </select>
-
-        <hr style="color:white;">
-
-        <label for="disease" class="text-white">{% trans "Disease" %}:</label>
-        <select name="disease" id="disease" class="selectpicker" data-size="5">
-          {% for disease, ids in diseases.items %}
-            <option value="{{ disease }}" {% if ids|is_empty %}disabled{% endif %}>
-            {{ disease.capitalize }}
-            </option>
           {% endfor %}
         </select>
 
@@ -76,7 +76,7 @@
 <script>
 $(document).ready(function () {
     var chartsInfo = {{ charts_info|safe }};
-    var lineChart = chartsInfo.LineChart;
+    var lineChart = chartsInfo.LineChartADM2;
     
     var allModels = [];
     for (var i = 0; i < lineChart.length; i++) {
@@ -90,9 +90,13 @@ $(document).ready(function () {
     // disable predictions for models not selected by default
     var defaultModels = $('#models').val(); // from views
     disablePredictionsButFor(defaultModels);
-    
-    let toEnable = {};
 
+    // enable geocodes for default predictions
+    var defaultPredictions = $('#predictions').val()
+    $("#geocode").empty();
+    enableGeocodes(getGeocodes(defaultPredictions));
+    $("#geocode").selectpicker("refresh");
+    
     $('#models').change(function () {
         var selectedModelIds = $(this).val();
         disablePredictionsButFor(selectedModelIds);
@@ -100,20 +104,9 @@ $(document).ready(function () {
 
     $('#predictions').change(function () {
         var selectedPredictIds = $(this).val();
-        var geocodes = [];
-
-        for (var i = 0; i < lineChart.length; i++) {
-            var model = lineChart[i];
-            for (var p = 0; p < model.predictions.length; p++) {
-                prediction = model.predictions[p];
-                if (selectedPredictIds.includes(prediction.id.toString())) {
-                    geocodes.push(prediction.geocodes);
-                }
-            }
-        }
 
         $("#geocode").empty();
-        enableGeocodes(geocodes);
+        enableGeocodes(getGeocodes(selectedPredictIds));
         $("#geocode").selectpicker("refresh");
     });
 
@@ -138,7 +131,25 @@ $(document).ready(function () {
         }
     }
 
+    function getGeocodes(predictionIds) {
+        // TODO: lineChart will change later on
+        var geocodes = [];
+
+        for (var i = 0; i < lineChart.length; i++) {
+            var model = lineChart[i];
+            for (var p = 0; p < model.predictions.length; p++) {
+                prediction = model.predictions[p];
+                if (predictionIds.includes(prediction.id.toString())) {
+                    geocodes.push(prediction.geocodes);
+                }
+            }
+        }
+        return geocodes
+    }
+
     function enableGeocodes(geocodes) {
+        // enable geocode options for intersection between lists of geocodes:
+        // geocodes: [[geocodes pred 1], [geocodes pred 2], [...]]
         if (geocodes && geocodes.length > 0) {
             res = geocodes.reduce((a, b) => a.filter(c => b.includes(c)));
             for (var g = 0; g < res.length; g++) {

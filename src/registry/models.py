@@ -1,6 +1,6 @@
 import os
 from io import StringIO
-from typing import List, Union, Literal
+from typing import List, Union, Literal, Self
 
 import pandas as pd
 
@@ -102,11 +102,37 @@ class Model(models.Model):
         visualizables = {}
         predictions = Prediction.objects.filter(model=self)
         line_charts = [
-            p for p in predictions if "LineChart" in p.visualizable()
+            p for p in predictions if "LineChartADM2" in p.visualizable()
         ]
         if line_charts:
-            visualizables["LineChart"] = line_charts
+            visualizables["LineChartADM2"] = line_charts
         return visualizables
+
+    def is_compatible(self, other: Self) -> bool:
+        """
+        Compare two Models to check if they have compatible specs
+        """
+
+        if self.type != other.type:
+            print(f"{self.id} - {other.id}: different Model.type")
+            return False
+
+        if self.disease != other.disease:
+            print(f"{self.id} - {other.id}: different Model.disease")
+            return False
+
+        if self.ADM_level != other.ADM_level:
+            print(f"{self.id} - {other.id}: different Model.ADM_level")
+            return False
+
+        if self.time_resolution != other.time_resolution:
+            print(f"{self.id} - {other.id}: different Model.time_resolution")
+            return False
+
+        return True
+
+    def get_compatible_predictions(self, other: Self) -> list:
+        ...
 
     class Meta:
         verbose_name = _("Model")
@@ -122,6 +148,16 @@ class Prediction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    prediction_df: pd.DataFrame = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.prediction_df = pd.read_json(StringIO(self.prediction))
+        except TypeError:
+            # TODO: add a better error handling geocode errors
+            self.prediction_df = pd.DataFrame()
+
     def __str__(self):
         return f"{self.commit}"  # TODO: Change it
 
@@ -130,7 +166,7 @@ class Prediction(models.Model):
     ) -> List[
         Union[
             Literal[
-                "LineChart",
+                "LineChartADM2",
                 # Add more compatible charts here
             ]
         ]
@@ -141,9 +177,9 @@ class Prediction(models.Model):
         compatible_charts = []  # None if not visualizable
 
         try:
-            df = pd.read_json(StringIO(self.prediction))
-            if checks.line_chart(df):
-                compatible_charts.append("LineChart")
+            df = self.prediction_df
+            if checks.line_chart_adm2(df):
+                compatible_charts.append("LineChartADM2")
         except TypeError:
             # TODO: add a better error handling to not visualizable preds
             pass
@@ -157,14 +193,43 @@ class Prediction(models.Model):
         """
         geocodes = []
 
-        try:
-            df = pd.read_json(StringIO(self.prediction))
+        if not self.prediction_df.empty:
+            df = self.prediction_df
             geocodes = list(df["adm_2"].unique())
-        except TypeError:
+        else:
             # TODO: add a better error handling geocode errors
             pass
 
         return geocodes
+
+    def is_compatible_line_chart_adm_2(self, other: Self) -> bool:
+        """
+        Compare two Predictions to check if they can be visualized together
+        """
+        if not self.model.is_compatible(other.model):
+            return False
+
+        df = self.prediction_df
+        other_df = other.prediction_df
+
+        # TODO: Handle this check with VisualizationError
+        if df.empty or other_df.empty:
+            return False
+
+        # Check if dataframes have same columns
+        if set(df.columns) != set(other_df.columns):
+            print(f"{self.id} - {other.id}: different prediction_df columns")
+            return False
+
+        geocodes = self.get_geocodes()
+        other_geocodes = other.get_geocodes()
+
+        # Check if there's any geocode correlated with other Prediction
+        if not any(g in other_geocodes for g in geocodes):
+            print(f"{self.id} - {other.id}: different geocodes")
+            return False
+
+        return True
 
     class Meta:
         verbose_name = _("Prediction")
