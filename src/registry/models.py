@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from vis.dash import checks
+from vis.dash import checks, errors
 
 
 def get_plangs_path() -> str:
@@ -58,6 +58,10 @@ class Model(models.Model):
         DENGUE = "dengue", _("Dengue")
         ZIKA = "zika", _("Zika")
 
+    class Types(models.TextChoices):
+        TIME_SERIES = "time", _("Time Series")
+        SPATIAL_SERIES = "spatial", _("Spatial Series")
+
     class Periodicities(models.TextChoices):
         DAY = "day", _("Day")
         WEEK = "week", _("Week")
@@ -82,7 +86,9 @@ class Model(models.Model):
         null=False,
         blank=False,
     )
-    type = models.CharField(max_length=100, null=False, blank=True)
+    type = models.CharField(
+        choices=Types.choices, null=True
+    )  # TODO: change to false
     disease = models.CharField(
         choices=Diseases.choices, null=True
     )  # TODO: change to false
@@ -131,8 +137,17 @@ class Model(models.Model):
 
         return True
 
-    def get_compatible_predictions(self, other: Self) -> list:
-        ...
+    def get_predictions_adm_2_geocodes(self) -> set[int]:
+        if self.ADM_level != self.ADM_levels.MUNICIPALITY:
+            return set()
+
+        geocodes = set()
+        predictions = Prediction.objects.filter(model=self)
+        for prediction in predictions:
+            if prediction.adm_2_geocode:
+                geocodes.add(prediction.adm_2_geocode)
+
+        return geocodes
 
     class Meta:
         verbose_name = _("Model")
@@ -148,6 +163,8 @@ class Prediction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    adm_2_geocode = models.IntegerField(null=True, default=None)
+
     prediction_df: pd.DataFrame = None
 
     def __init__(self, *args, **kwargs):
@@ -160,6 +177,30 @@ class Prediction(models.Model):
 
     def __str__(self):
         return f"{self.commit}"  # TODO: Change it
+
+    def save(self, *args, **kwargs):
+        if (
+            self.model.type == Model.Types.TIME_SERIES
+            and self.model.ADM_level == Model.ADM_levels.MUNICIPALITY
+        ):
+            if not self.prediction_df.empty:
+                try:
+                    geocode = self.prediction_df["adm_2"].unique()
+                except KeyError:
+                    # TODO: Improve error handling -> InsertionError
+                    # This error has to be raised by the API at insertion
+                    raise errors.VisualizationError("adm_2 column not found")
+
+                if len(geocode) != 1:
+                    # TODO: Improve error handling -> InsertionError
+                    # This error has to be raised by the API at insertion
+                    raise errors.VisualizationError(
+                        "adm_2 must have only one geocode"
+                    )
+
+                self.adm_2_geocode = geocode[0]
+
+        super().save(*args, **kwargs)
 
     def visualizable(
         self,
@@ -186,27 +227,14 @@ class Prediction(models.Model):
 
         return compatible_charts
 
-    def get_geocodes(self) -> set[int]:
-        """
-        This methods can be used only if the Model.ADM_level is 2.
-        Extracts a set of geocodes from self.prediction
-        """
-        geocodes = []
-
-        if not self.prediction_df.empty:
-            df = self.prediction_df
-            geocodes = list(df["adm_2"].unique())
-        else:
-            # TODO: add a better error handling geocode errors
-            pass
-
-        return geocodes
-
     def is_compatible_line_chart_adm_2(self, other: Self) -> bool:
         """
         Compare two Predictions to check if they can be visualized together
         """
         if not self.model.is_compatible(other.model):
+            return False
+
+        if self.adm_2_geocode != other.adm_2_geocode:
             return False
 
         df = self.prediction_df
@@ -219,14 +247,6 @@ class Prediction(models.Model):
         # Check if dataframes have same columns
         if set(df.columns) != set(other_df.columns):
             print(f"{self.id} - {other.id}: different prediction_df columns")
-            return False
-
-        geocodes = self.get_geocodes()
-        other_geocodes = other.get_geocodes()
-
-        # Check if there's any geocode correlated with other Prediction
-        if not any(g in other_geocodes for g in geocodes):
-            print(f"{self.id} - {other.id}: different geocodes")
             return False
 
         return True

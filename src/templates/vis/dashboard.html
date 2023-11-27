@@ -22,6 +22,13 @@
 
         <hr style="color:white;">
 
+        <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
+        <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
+            <option value="geocode">geocode</option>
+        </select>
+
+        <hr style="color:white;">
+
         <label for="models" class="text-white">{% trans "Models" %}:</label>
         <select name="models" id="models" class="selectpicker" data-size="5" multiple>
             {% for model in models %}
@@ -42,21 +49,13 @@
           {% endfor %}
         </select>
 
-        <hr style="color:white;">
-
-        <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
-        <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
-            <option value="geocode">geocode</option>
-        </select>
-
-
       </div>
     </div>
   </div>
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
       <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
-      <p>{{ charts_info|safe }}</p>
+      <p>{{ geocodes|safe }}</p>
   </div>
 </div>
 
@@ -75,6 +74,7 @@
 
 <script>
 $(document).ready(function () {
+    var compabilities = {{ compabilities|safe }};
     var chartsInfo = {{ charts_info|safe }};
     var lineChart = chartsInfo.LineChartADM2;
     

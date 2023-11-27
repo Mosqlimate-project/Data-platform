@@ -1,5 +1,7 @@
+import json
 from typing import Literal
-from itertools import combinations
+from itertools import combinations, combinations_with_replacement, chain
+from collections import defaultdict
 
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -24,6 +26,8 @@ class VisualizationsView(View):
         disease: Literal["dengue", "zika", "chikungunya"] = ""
 
         all_models = Model.objects.all()
+        geocodes = set()
+
         for model in all_models:
             charts = model.get_visualizables()
             if charts:
@@ -53,7 +57,12 @@ class VisualizationsView(View):
                         prediction_info = {}
                         prediction_info["id"] = prediction.id
                         prediction_info["model_id"] = model.id
-                        prediction_info["geocodes"] = prediction.get_geocodes()
+
+                        if chart == "LineChartADM2":
+                            geocodes.add(prediction.adm_2_geocode)
+                            prediction_info[
+                                "geocode"
+                            ] = prediction.adm_2_geocode
 
                         if (
                             str(prediction.id) in prediction_ids
@@ -74,8 +83,12 @@ class VisualizationsView(View):
                     except KeyError:
                         charts_info[chart] = [model_info]
 
+        context["compabilities"] = generate_chart_compatibility_info(
+            all_models, json_return=True
+        )
         context["charts_info"] = charts_info
         context["diseases"] = diseases
+        context["geocodes"] = geocodes
         context["disease"] = disease
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items
@@ -129,14 +142,41 @@ class LineChartsView(View):
 
 
 def generate_chart_compatibility_info(
-    models: list[Model],
+    models: list[Model], json_return: bool = False
 ) -> dict[
-    Literal["LineChartADM2",] : list[dict[str : list[dict[str : [list[str]]]]]]
+    Literal["LineChartADM2",] : dict[int : dict[int : dict[int : set[int]]]]
+    #                              m id      p id      m id      p ids
 ]:
-    # compabilities = {"LineChartADM2": []}
+    compabilities = {
+        "LineChartADM2": (
+            defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
+        )
+    }
 
-    combs = combinations(models, 2)
+    combs = combinations_with_replacement(models, 2)
 
     for model1, model2 in combs:
         if model1.is_compatible(model2):
-            ...
+            predictions1 = Prediction.objects.filter(model=model1)
+            predictions2 = Prediction.objects.filter(model=model2)
+            pcombs = combinations(set(chain(predictions1, predictions2)), 2)
+            for p1, p2 in pcombs:
+                if p1.is_compatible_line_chart_adm_2(p2):
+                    compabilities["LineChartADM2"][p1.model.id][p1.id][
+                        p2.model.id
+                    ].add(p2.id)
+                    compabilities["LineChartADM2"][p2.model.id][p2.id][
+                        p1.model.id
+                    ].add(p1.id)
+
+    if json_return:
+        return json.dumps(compabilities, cls=SetToListEncoder)
+
+    return compabilities
+
+
+class SetToListEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return super().default(obj)
