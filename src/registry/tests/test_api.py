@@ -138,7 +138,7 @@ class TestCreatePrediction(TestCase):
         # Call the create_prediction function and check the response
         response = create_prediction(request, payload)
 
-        self.assertEqual(response[0], 404)
+        self.assertEqual(response[0], 422)
         self.assertEqual(
             response[1],
             {

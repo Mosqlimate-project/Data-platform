@@ -2,27 +2,27 @@ import datetime
 from typing import List, Literal
 from urllib.parse import urlparse
 
-from django.forms import Form
 from django.contrib.auth import get_user_model
-from django.db.models import Count
-from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError
-from ninja import Query, Router
-from ninja.orm.fields import AnyObject
-from ninja.security import django_auth
-from ninja.pagination import paginate
-
+from django.db.models import Count
+from django.forms import Form
+from django.views.decorators.csrf import csrf_exempt
 from main.schema import (
     ForbiddenSchema,
+    InternalErrorSchema,
     NotFoundSchema,
     Schema,
     SuccessSchema,
-    InternalErrorSchema,
     UnprocessableContentSchema,
 )
+from ninja import Query, Router
+from ninja.orm.fields import AnyObject
+from ninja.pagination import paginate
+from ninja.security import django_auth
 from users.auth import UidKeyAuth
 
-from .models import Author, Model, Prediction, ImplementationLanguage
+from .models import Author, ImplementationLanguage, Model, Prediction
+from .pagination import PagesPagination
 from .schema import (
     AuthorFilterSchema,
     AuthorSchema,
@@ -31,9 +31,8 @@ from .schema import (
     PredictionFilterSchema,
     PredictionSchema,
 )
-from .pagination import PagesPagination
 from .utils import calling_via_swagger
-from .validations import validate_prediction
+from .validations import validate_create_model, validate_prediction
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -202,38 +201,17 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    repo_url = urlparse(payload.repository)
-    if repo_url.netloc != "github.com":  # TODO: add gitlab here?
-        return 403, {"message": "Model repository must be on Github"}
-    if not repo_url.path:
-        return 403, {"message": "Invalid repository"}
+    validation_result = validate_create_model(payload)
 
-    if payload.ADM_level not in [0, 1, 2, 3]:
-        return 422, {
-            "message": (
-                "ADM_level must be 0, 1, 2 or 3 "
-                "(National, State, Municipality or Sub Municipality)"
-            )
-        }
+    if validation_result is not None:
+        return validation_result
 
-    if payload.time_resolution not in ["day", "week", "month", "year"]:
-        return 422, {
-            "message": (
-                'Time resolution must be "day", "week", "month" or "year"'
-            )
-        }
-
-    description = payload.description
-    if len(description) > 500:
-        return 403, {
-            "message": (
-                "Description too big, maximum allowed: 500. "
-                f"Please remove {len(description) - 500} characters."
-            )
-        }
-
-    uid, _ = request.headers.get("X-UID-Key").split(":")
-    author = Author.objects.get(user__username=uid)
+    uid_key_header = request.headers.get("X-UID-Key")
+    if uid_key_header:
+        uid, _ = uid_key_header.split(":")
+        author = Author.objects.get(user__username=uid)
+    else:
+        return 403, {"message": "X-UID-Key header is missing"}
 
     try:
         lang = ImplementationLanguage.objects.get(

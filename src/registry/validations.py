@@ -1,6 +1,9 @@
 import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
+
+from .models import ImplementationLanguage
 
 
 def validate_commit(commit):
@@ -186,3 +189,69 @@ def validate_prediction(payload):
         return 422, {"message": predict_date_error}
     if predict_obj_error:
         return 422, {"message": predict_obj_error}
+
+
+#
+def validate_repository(repository):
+    # breakpoint()
+    repo_url = urlparse(repository)
+    if repo_url.netloc != "github.com":  # TODO: add gitlab here?
+        return "Model repository must be on Github"
+    if not repo_url.path:
+        return "Invalid repository"
+    return None
+
+
+def validate_ADM_level(ADM_level):
+    if ADM_level not in [0, 1, 2, 3]:
+        return "ADM_level must be 0, 1, 2 or 3 (National, State, Municipality, or Sub Municipality)"
+    return None
+
+
+def validate_time_resolution(time_resolution):
+    if time_resolution not in ["day", "week", "month", "year"]:
+        return 'Time resolution must be "day", "week", "month" or "year"'
+    return None
+
+
+def validate_implementation_language(implementation_language):
+    try:
+        lang = ImplementationLanguage.objects.get(
+            language__iexact=implementation_language
+        )
+    except ImplementationLanguage.DoesNotExist:
+        similar_lang = ImplementationLanguage.objects.filter(
+            language__icontains=implementation_language
+        )
+        if similar_lang:
+            return 404, {
+                "message": (
+                    f"Unknown language '{implementation_language}', "
+                    f"did you mean '{similar_lang.first()}'?"
+                )
+            }
+        return 404, {"message": f"Unknown language {implementation_language}"}
+    return None
+
+
+def validate_create_model(payload):
+    repository_error = validate_repository(payload.repository)
+    ADM_level_error = validate_ADM_level(payload.ADM_level)
+    time_resolution_error = validate_time_resolution(payload.time_resolution)
+    description_error = validate_description(payload.description)
+    lang_error = validate_implementation_language(
+        payload.implementation_language
+    )
+
+    if repository_error:
+        return 403, {"message": repository_error}
+    if ADM_level_error:
+        return 422, {"message": ADM_level_error}
+    if time_resolution_error:
+        return 422, {"message": time_resolution_error}
+    if description_error:
+        return 403, {"message": description_error}
+    if lang_error:
+        return 404, {"message": lang_error}
+
+    return None
