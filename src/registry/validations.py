@@ -1,8 +1,8 @@
 import json
 from datetime import date, datetime, timedelta
+from difflib import get_close_matches
 from pathlib import Path
 from urllib.parse import urlparse
-from difflib import get_close_matches
 
 from .models import ImplementationLanguage
 
@@ -194,7 +194,6 @@ def validate_prediction(payload):
 
 #
 def validate_repository(repository):
-    # breakpoint()
     repo_url = urlparse(repository)
     if repo_url.netloc != "github.com":  # TODO: add gitlab here?
         return "Model repository must be on Github"
@@ -205,7 +204,10 @@ def validate_repository(repository):
 
 def validate_ADM_level(ADM_level):
     if ADM_level not in [0, 1, 2, 3]:
-        return "ADM_level must be 0, 1, 2 or 3 (National, State, Municipality, or Sub Municipality)"
+        return (
+            "ADM_level must be 0, 1, 2 or 3 "
+            "(National, State, Municipality, or Sub Municipality)"
+        )
     return None
 
 
@@ -214,16 +216,15 @@ def validate_time_resolution(time_resolution):
         return 'Time resolution must be "day", "week", "month" or "year"'
     return None
 
-# validations.py
 
 def validate_implementation_language(implementation_language):
     try:
-        lang = ImplementationLanguage.objects.get(
+        ImplementationLanguage.objects.get(
             language__iexact=implementation_language
         )
     except ImplementationLanguage.DoesNotExist:
         similar_lang = ImplementationLanguage.objects.values_list(
-            'language', flat=True
+            "language", flat=True
         )
         matches = get_close_matches(implementation_language, similar_lang)
         if matches:
@@ -234,11 +235,12 @@ def validate_implementation_language(implementation_language):
                 )
             }
 
-        return 404, {"message": f"Unknown language '{implementation_language}'. "
-                        "Please select one of the following languages or open a "
-                        f"GitHub issue to suggest a new one: "
-                        f"{list(similar_lang)}"
-                }
+        return 404, {
+            "message": f"Unknown language '{implementation_language}'. "
+            "Please select one of the following languages or open a "
+            f"GitHub issue to suggest a new one: "
+            f"{list(similar_lang)}"
+        }
 
     return None
 
@@ -259,5 +261,3 @@ def validate_create_model(payload):
         return 403, {"message": description_error}
 
     return None
-
-

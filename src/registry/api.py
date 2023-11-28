@@ -31,7 +31,11 @@ from .schema import (
     PredictionSchema,
 )
 from .utils import calling_via_swagger
-from .validations import validate_create_model, validate_prediction, validate_implementation_language
+from .validations import (
+    validate_create_model,
+    validate_implementation_language,
+    validate_prediction,
+)
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -198,9 +202,6 @@ def get_model(request, model_id: int):
     auth=uidkey,
     tags=["registry", "models"],
 )
-
-# api.py
-
 @csrf_exempt
 def create_model(request, payload: ModelIn):
     validation_result = validate_create_model(payload)
@@ -215,13 +216,18 @@ def create_model(request, payload: ModelIn):
     else:
         return 403, {"message": "X-UID-Key header is missing"}
 
-    lang_validation_result = validate_implementation_language(payload.implementation_language)
+    lang_validation_result = validate_implementation_language(
+        payload.implementation_language
+    )
 
     if lang_validation_result is not None:
         return lang_validation_result
 
     data = payload.dict()
-    data["implementation_language"] = ImplementationLanguage.objects.get(language__iexact=payload.implementation_language)
+    data["implementation_language"] = ImplementationLanguage.objects.get(
+        language__iexact=payload.implementation_language
+    )
+
     model = Model(author=author, **data)
 
     if not calling_via_swagger(request):

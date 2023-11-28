@@ -35,7 +35,7 @@ class TestCreatePrediction(TestCase):
         user, _ = CustomUser.objects.get_or_create(username="usertest")
         language = ImplementationLanguage.objects.create(
             language="AnotherLang"
-            )
+        )
 
         self.model = Model.objects.create(
             author=Author.objects.get_or_create(user=user)[0],

@@ -6,18 +6,17 @@ from django.test import TestCase
 from ninja import Router
 from registry.api import ModelIn, create_model
 from registry.models import Author, ImplementationLanguage, Model
-from users.models import CustomUser
-
-app_dir = Path(__file__).parent.parent
-
-router = Router()
-
 from registry.validations import (
     validate_ADM_level,
     validate_implementation_language,
     validate_repository,
     validate_time_resolution,
 )
+from users.models import CustomUser
+
+app_dir = Path(__file__).parent.parent
+
+router = Router()
 
 
 class TestValidCreateModel(TestCase):
@@ -79,7 +78,8 @@ class TestValidCreateModel(TestCase):
         invalid_ADM_level = 4
         self.assertEqual(
             validate_ADM_level(invalid_ADM_level),
-            "ADM_level must be 0, 1, 2 or 3 (National, State, Municipality, or Sub Municipality)",
+            "ADM_level must be 0, 1, 2 or 3 "
+            "(National, State, Municipality, or Sub Municipality)",
         )
 
     def test_validate_time_resolution(self):
@@ -128,10 +128,10 @@ class TestValidCreateModel(TestCase):
                 invalid_implementation_language
             )
             expected_message = (
-                f"Unknown language '{invalid_implementation_language}'. " 
+                f"Unknown language '{invalid_implementation_language}'. "
                 "Please select one of the following languages or open a "
                 f"GitHub issue to suggest a new one: {list(similar_lang)}"
-            ).strip()  # Strip extra whitespace from the expected message
+            ).strip()
         else:
             result = validate_implementation_language(
                 self.payload.implementation_language
