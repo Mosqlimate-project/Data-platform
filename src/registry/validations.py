@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
+from difflib import get_close_matches
 
 from .models import ImplementationLanguage
 
@@ -213,6 +214,7 @@ def validate_time_resolution(time_resolution):
         return 'Time resolution must be "day", "week", "month" or "year"'
     return None
 
+# validations.py
 
 def validate_implementation_language(implementation_language):
     try:
@@ -220,17 +222,24 @@ def validate_implementation_language(implementation_language):
             language__iexact=implementation_language
         )
     except ImplementationLanguage.DoesNotExist:
-        similar_lang = ImplementationLanguage.objects.filter(
-            language__icontains=implementation_language
+        similar_lang = ImplementationLanguage.objects.values_list(
+            'language', flat=True
         )
-        if similar_lang:
+        matches = get_close_matches(implementation_language, similar_lang)
+        if matches:
             return 404, {
                 "message": (
                     f"Unknown language '{implementation_language}', "
-                    f"did you mean '{similar_lang.first()}'?"
+                    f"did you mean '{matches[0]}'?"
                 )
             }
-        return 404, {"message": f"Unknown language {implementation_language}"}
+
+        return 404, {"message": f"Unknown language '{implementation_language}'. "
+                        "Please select one of the following languages or open a "
+                        f"GitHub issue to suggest a new one: "
+                        f"{list(similar_lang)}"
+                }
+
     return None
 
 
@@ -239,9 +248,6 @@ def validate_create_model(payload):
     ADM_level_error = validate_ADM_level(payload.ADM_level)
     time_resolution_error = validate_time_resolution(payload.time_resolution)
     description_error = validate_description(payload.description)
-    lang_error = validate_implementation_language(
-        payload.implementation_language
-    )
 
     if repository_error:
         return 403, {"message": repository_error}
@@ -251,7 +257,7 @@ def validate_create_model(payload):
         return 422, {"message": time_resolution_error}
     if description_error:
         return 403, {"message": description_error}
-    if lang_error:
-        return 404, {"message": lang_error}
 
     return None
+
+

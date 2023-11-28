@@ -33,7 +33,9 @@ class TestCreatePrediction(TestCase):
 
         # Create a user and language for the model
         user, _ = CustomUser.objects.get_or_create(username="usertest")
-        language = ImplementationLanguage.objects.create(language="MosqLang")
+        language = ImplementationLanguage.objects.create(
+            language="AnotherLang"
+            )
 
         self.model = Model.objects.create(
             author=Author.objects.get_or_create(user=user)[0],
