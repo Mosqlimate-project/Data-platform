@@ -9,7 +9,7 @@ from vis.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
 
 
-def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
+def predictions_df_by_geocode(predictions_ids: list[int]):
     predicts = []
     for id in predictions_ids:
         try:
@@ -26,7 +26,6 @@ def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
         if any(p.visualizable()):
             df_flat = p.prediction_df
             df_flat.dates = pd.to_datetime(df_flat.dates)
-            df_flat = df_flat.loc[df_flat.adm_2 == geocode]
             df_flat["model_id"] = p.model.id
             df_flat["predict_id"] = p.id
             dfs.append(df_flat)
@@ -39,7 +38,7 @@ def predictions_df_by_geocode(predictions_ids: list[int], geocode: int):
 
     if df.empty:
         # TODO: Improve error handling
-        raise NotFoundError(f"No data for geocode {geocode}")
+        raise NotFoundError("empty dataframe")
 
     return df
 
@@ -87,14 +86,33 @@ def data_chart_by_geocode(
 def line_charts_by_geocode(
     title: str,
     predictions_ids: list[int],
-    geocode: int,
     width: int,
     disease: str = "dengue",
 ):
     x = "dates"
     y = "target"
 
-    predicts_df = predictions_df_by_geocode(predictions_ids, geocode)
+    geocode: int = None
+
+    for prediction_id in predictions_ids:
+        try:
+            prediction = Prediction.objects.get(pk=prediction_id)
+        except Prediction.DoesNotExist:
+            # TODO: Improve error handling
+            raise VisualizationError("Prediction not found")
+
+        if not geocode:
+            geocode = prediction.adm_2_geocode
+
+        if geocode != prediction.adm_2_geocode:
+            raise VisualizationError(
+                "Two different geocodes were added to be visualized"
+            )
+
+    if not geocode:
+        raise VisualizationError("No geocode was selected to be visualized")
+
+    predicts_df = predictions_df_by_geocode(predictions_ids)
 
     # here is loaded the element that allows the selection by the mouse
     highlight = alt.selection_point(

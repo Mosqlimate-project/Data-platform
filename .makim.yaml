@@ -63,7 +63,7 @@ groups:
       shell:
         help: Enters in Django Shell on container
         run: |
-          sugar run --service django --cmd "python manage.py shell"
+          sugar run --service django --cmd "python manage.py shell -i ipython"
 
       dbshell:
         help: Enters in Django Database shell on container

@@ -11,10 +11,26 @@
     <div class="sidebar-menu">
       <div class="p-3">
 
+        <label for="series" class="text-white">{% trans "Series" %}:</label>
+        <select name="series" id="series" class="selectpicker" data-size="5">
+            <option value="time" {% if selected_series == "time" %}selected{% endif %}>
+            Time Series
+            </option>
+            <option value="spatial" {% if selected_series == "spatial" %}selected{% endif %}>
+            Spatial Series
+            </option>
+        </select>
+
+        <hr style="color:white;">
+
         <label for="disease" class="text-white">{% trans "Disease" %}:</label>
         <select name="disease" id="disease" class="selectpicker" data-size="5">
           {% for dis in diseases %}
-            <option value="{{ dis }}" {% if dis != disease %}disabled{% endif %}>
+          <option 
+            value="{{ dis }}" 
+            {% if dis == disease %}selected{% endif %} 
+            {% if dis not in available_diseases %}disabled{% endif %}
+          >
             {{ dis.capitalize }}
             </option>
           {% endfor %}
@@ -22,12 +38,22 @@
 
         <hr style="color:white;">
 
-        <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
-        <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
-            <option value="geocode">geocode</option>
-        </select>
+        <!-- TODO: This has to be hidden if spatial series is selected -->
+        <div id="geocode-div">
+          <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
+          <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
+            {% for gc in available_geocodes %}
+              <option 
+                value="{{ gc }}" 
+                {% if gc == selected_geocodes.0 %}selected{% endif %}
+              >
+              {{ gc }}
+              </option>
+            {% endfor %}
+          </select>
 
-        <hr style="color:white;">
+          <hr style="color:white;">
+        </div>
 
         <label for="models" class="text-white">{% trans "Models" %}:</label>
         <select name="models" id="models" class="selectpicker" data-size="5" multiple>
@@ -44,10 +70,21 @@
         <select name="predictions" id="predictions" class="selectpicker" data-size="5" multiple>
           {% for model in models %}
             {% for prediction in model.predictions %}
-              <option value="{{prediction.id}}" {% if prediction.selected == "True" %}selected{% endif %}>{{prediction.model_id}} - Prediction {{prediction.id}}</option>
+              <option 
+                value="{{prediction.id}}" 
+                {% if prediction.selected == "True" %}selected{% endif %}
+              >
+              {{prediction.model_id}} - Prediction {{prediction.id}}
+              </option>
             {% endfor %}
           {% endfor %}
         </select>
+
+        <br></br>
+
+        <div class="buttons">
+          <button type="button" class="btn btn-light end">{% trans "Visualize" %}</button>
+        </div>
 
       </div>
     </div>
@@ -55,8 +92,10 @@
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
       <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
-      <p>{{ geocodes|safe }}</p>
+      <p>{{ available_geocodes|safe }}</p>
+      <div class="container">{{ compabilities|safe }}</div>
   </div>
+
 </div>
 
 
@@ -74,6 +113,11 @@
 
 <script>
 $(document).ready(function () {
+    var defaultSeries = $('#series').val()
+    
+    var defaultModels = $('#models').val();
+    var defaultPredictions = $('#predictions').val()
+
     var compabilities = {{ compabilities|safe }};
     var chartsInfo = {{ charts_info|safe }};
     var lineChart = chartsInfo.LineChartADM2;
@@ -88,14 +132,31 @@ $(document).ready(function () {
     };
 
     // disable predictions for models not selected by default
-    var defaultModels = $('#models').val(); // from views
     disablePredictionsButFor(defaultModels);
 
-    // enable geocodes for default predictions
-    var defaultPredictions = $('#predictions').val()
-    $("#geocode").empty();
-    enableGeocodes(getGeocodes(defaultPredictions));
-    $("#geocode").selectpicker("refresh");
+
+    $('#series').change(function () {
+      var selectedSeries = $(this).val();
+      
+      if (selectedSeries === "time") {
+        $('#geocode-div').show();
+      } else if (selectedSeries === "spatial") {
+        $('#geocode-div').hide();
+      } else {
+        $('#geocode-div').hide();
+      }
+
+    });
+    
+    $('#disease').change(function () {
+        var selectedDisease = $(this).val();
+        console.log(selectedDisease);
+    });
+
+    $('#geocode').change(function () {
+        var selectedGeocode = $(this).val();
+        console.log(selectedGeocode);
+    });
     
     $('#models').change(function () {
         var selectedModelIds = $(this).val();
@@ -106,14 +167,16 @@ $(document).ready(function () {
         var selectedPredictIds = $(this).val();
 
         $("#geocode").empty();
-        enableGeocodes(getGeocodes(selectedPredictIds));
+        // enableGeocodes(getGeocodes(selectedPredictIds));
         $("#geocode").selectpicker("refresh");
     });
 
-    $('#geocode').change(function () {
-        var selectedGeocode = $(this).val();
-        console.log(selectedGeocode);
-    });
+    function disableDefaultValues() {
+      // This function will disable all items that don't have any Prediction 
+      // related
+      var compabilities = {{ compabilities|safe }};
+    }
+
 
     function disablePredictionsButFor(modelIds) {
         // TODO: lineChart will have to change when more vis are available
@@ -147,20 +210,20 @@ $(document).ready(function () {
         return geocodes
     }
 
-    function enableGeocodes(geocodes) {
-        // enable geocode options for intersection between lists of geocodes:
-        // geocodes: [[geocodes pred 1], [geocodes pred 2], [...]]
-        if (geocodes && geocodes.length > 0) {
-            res = geocodes.reduce((a, b) => a.filter(c => b.includes(c)));
-            for (var g = 0; g < res.length; g++) {
-                var geocode = res[g];
-                var opt = document.createElement('option');
-                opt.value = geocode;
-                opt.innerHTML = geocode;
-                $("#geocode").append(opt).selectpicker("refresh");
-            }
-        }
-    }
+    // function enableGeocodes(geocodes) {
+    //     // enable geocode options for intersection between lists of geocodes:
+    //     // geocodes: [[geocodes pred 1], [geocodes pred 2], [...]]
+    //     if (geocodes && geocodes.length > 0) {
+    //         res = geocodes.reduce((a, b) => a.filter(c => b.includes(c)));
+    //         for (var g = 0; g < res.length; g++) {
+    //             var geocode = res[g];
+    //             var opt = document.createElement('option');
+    //             opt.value = geocode;
+    //             opt.innerHTML = geocode;
+    //             $("#geocode").append(opt).selectpicker("refresh");
+    //         }
+    //     }
+    // }
 });
 
 </script>

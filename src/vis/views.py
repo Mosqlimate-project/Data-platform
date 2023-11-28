@@ -1,6 +1,5 @@
 import json
 from typing import Literal
-from itertools import combinations, combinations_with_replacement, chain
 from collections import defaultdict
 
 from django.shortcuts import render, get_object_or_404
@@ -17,19 +16,42 @@ class VisualizationsView(View):
     def get(self, request):
         context = {}
 
-        line_charts_default_items = []
-
         model_ids = request.GET.getlist("model")
         prediction_ids = request.GET.getlist("predict")
-        charts_info = {}
-        diseases = ["dengue", "zika", "chikungunya"]
-        disease: Literal["dengue", "zika", "chikungunya"] = ""
 
         all_models = Model.objects.all()
-        geocodes = set()
+
+        disease: Literal["dengue", "zika", "chikungunya"] = ""
+        diseases = ["dengue", "zika", "chikungunya"]
+
+        available_diseases = set()
+        available_geocodes = set()
+
+        selected_series: Literal["spatial", "time"] = ""
+        selected_geocodes: set[int] = set()
+
+        series_info = {
+            "time": {
+                "dengue": [],
+                "zika": [],
+                "chikungunya": [],
+            },
+            "spatial": {
+                "dengue": [],
+                "zika": [],
+                "chikungunya": [],
+            },
+        }
+        charts_info = {}
+        line_charts_default_items = []
 
         for model in all_models:
+            if model.type in ["spatial", "time"]:
+                if model.disease in diseases:
+                    series_info[model.type][model.disease].append(model.id)
+
             charts = model.get_visualizables()
+            available_diseases.add(model.disease)
             if charts:
                 for chart in charts:
                     if not disease:
@@ -48,6 +70,14 @@ class VisualizationsView(View):
                     if str(model.id) in model_ids:
                         model_info["selected"] = "True"
                         line_charts_default_items.append(f"model={model.id}")
+                        if not selected_series:
+                            selected_series = model.type
+                        else:
+                            # TODO: Improve error handling
+                            raise VisualizationError(
+                                "Two different Model types have been added "
+                                "to be visualized"
+                            )
                     else:
                         model_info["selected"] = "False"
 
@@ -59,7 +89,7 @@ class VisualizationsView(View):
                         prediction_info["model_id"] = model.id
 
                         if chart == "LineChartADM2":
-                            geocodes.add(prediction.adm_2_geocode)
+                            available_geocodes.add(prediction.adm_2_geocode)
                             prediction_info[
                                 "geocode"
                             ] = prediction.adm_2_geocode
@@ -68,6 +98,16 @@ class VisualizationsView(View):
                             str(prediction.id) in prediction_ids
                             or str(model.id) in model_ids
                         ):
+                            if not selected_series:
+                                selected_series = prediction.model.type
+                            if selected_series != prediction.model.type:
+                                raise VisualizationError(
+                                    "Two different Model types have been added "
+                                    "to be visualized"
+                                )
+
+                            selected_geocodes.add(prediction.adm_2_geocode)
+
                             model_info["selected"] = "True"
                             prediction_info["selected"] = "True"
                             line_charts_default_items.append(
@@ -83,13 +123,22 @@ class VisualizationsView(View):
                     except KeyError:
                         charts_info[chart] = [model_info]
 
-        context["compabilities"] = generate_chart_compatibility_info(
+        context["compabilities"] = generate_models_compatibility_info(
             all_models, json_return=True
         )
         context["charts_info"] = charts_info
+        context["series_info"] = series_info
+
         context["diseases"] = diseases
-        context["geocodes"] = geocodes
+        context["geocodes"] = available_geocodes
         context["disease"] = disease
+
+        context["selected_series"] = selected_series
+        context["selected_geocodes"] = list(selected_geocodes)
+
+        context["available_geocodes"] = list(available_geocodes)
+        context["available_diseases"] = list(available_diseases)
+
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items
         )
@@ -99,6 +148,11 @@ class VisualizationsView(View):
             models.extend(charts_info[chart])
 
         context["models"] = models
+
+        from pprint import pprint
+
+        pprint(context["series_info"])
+        pprint(context["compabilities"])
 
         return render(request, self.template_name, context)
 
@@ -132,7 +186,6 @@ class LineChartsView(View):
         line_chart = line_charts_by_geocode(
             title="Forecast of dengue new cases",
             predictions_ids=ids,
-            geocode=request.GET.get("geocode", 2304400),
             disease="dengue",
             width=500,
         )
@@ -141,38 +194,39 @@ class LineChartsView(View):
         return render(request, self.template_name, context)
 
 
-def generate_chart_compatibility_info(
+def generate_models_compatibility_info(
     models: list[Model], json_return: bool = False
-) -> dict[
-    Literal["LineChartADM2",] : dict[int : dict[int : dict[int : set[int]]]]
-    #                              m id      p id      m id      p ids
-]:
-    compabilities = {
-        "LineChartADM2": (
-            defaultdict(lambda: defaultdict(lambda: defaultdict(set)))
-        )
-    }
+) -> dict:
+    info = defaultdict()
+    for _type in Model.Types:
+        info[str(_type)] = defaultdict()
 
-    combs = combinations_with_replacement(models, 2)
+    for disease in Model.Diseases:
+        for _type in info:
+            info[_type][str(disease)] = defaultdict()
 
-    for model1, model2 in combs:
-        if model1.is_compatible(model2):
-            predictions1 = Prediction.objects.filter(model=model1)
-            predictions2 = Prediction.objects.filter(model=model2)
-            pcombs = combinations(set(chain(predictions1, predictions2)), 2)
-            for p1, p2 in pcombs:
-                if p1.is_compatible_line_chart_adm_2(p2):
-                    compabilities["LineChartADM2"][p1.model.id][p1.id][
-                        p2.model.id
-                    ].add(p2.id)
-                    compabilities["LineChartADM2"][p2.model.id][p2.id][
-                        p1.model.id
-                    ].add(p1.id)
+    for adm_level in Model.ADM_levels:
+        for _type in info:
+            for disease in info[_type]:
+                info[_type][disease][adm_level.value] = defaultdict(
+                    lambda: defaultdict(list)
+                )
+
+    for model in models:
+        predictions = Prediction.objects.filter(model=model)
+        for prediction in predictions:
+            if model.type:
+                if model.disease:
+                    if model.ADM_level == model.ADM_levels.MUNICIPALITY:
+                        if prediction.adm_2_geocode:
+                            info[model.type][model.disease][model.ADM_level][
+                                prediction.adm_2_geocode
+                            ][model.id].append(prediction.id)
 
     if json_return:
-        return json.dumps(compabilities, cls=SetToListEncoder)
+        return json.dumps(info, cls=SetToListEncoder)
 
-    return compabilities
+    return info
 
 
 class SetToListEncoder(json.JSONEncoder):
