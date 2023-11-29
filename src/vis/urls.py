@@ -10,4 +10,9 @@ urlpatterns = [
         views.get_model_selector_item,
         name="get_model_selector_item",
     ),
+    path(
+        "get-prediction-item/<int:prediction_id>/",
+        views.get_prediction_selector_item,
+        name="get_prediction_selector_item",
+    ),
 ]

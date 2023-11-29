@@ -145,41 +145,52 @@
         allModels.push(model.id);
       }
     };
-    
-    var selectedSeries;
 
     $('#series').change(function () {
-      selectedSeries = $(this).val();
-      disableOnSeries(selectedSeries);
+      disableOnSeries($(this).val());
     });
 
-    console.log(selectedSeries);
-
     $('#disease').change(function () {
-      var selectedDisease = $(this).val();
+      disableOnDisease($('#series').val(), selectedDisease=$(this).val());
     });
 
     $('#adm-level').change(function () {
-      var selectedADMLevel = $(this).val();
-
-      if (selectedADMLevel === '2') {
-        $('#geocode-div').show();
-      } else {
-        $('#geocode-div').hide();
-      }
+      disableOnADMLevel(
+        $('#series').val(), 
+        selectedDisease=$('#disease').val(), 
+        selectedADMLevel=$(this).val()
+      );
     });
 
     $('#geocode').change(function () {
-      var selectedGeocode = $(this).val();
+      disableOnGeocode(
+        $('#series').val(), 
+        selectedDisease=$('#disease').val(), 
+        selectedADMLevel=$('#adm-level').val(),
+        selectedGeocode=$(this).val(),
+      );
     });
 
     $('#models').change(function () {
-      var selectedModelIds = $(this).val();
-      disablePredictionsButFor(selectedModelIds);
+      var selectedGeocode = $('#geocode').val()
+
+      if (selectedADMLevel.toString() !== '2') {
+        selectedGeocode = null;
+      }
+
+      enablePredictionsOnModelIds(
+        modelIds=$(this).val(),
+        series=$('#series').val(),
+        selectedDisease=$('#disease').val(),
+        selectedADMLevel=$('#adm-level').val(),
+        selectedGeocode=selectedGeocode,
+      );
+
     });
 
     $('#predictions').change(function () {
       var selectedPredictIds = $(this).val();
+      console.log(selectedPredictIds)
     });
 
     function disableDefaults() {
@@ -202,11 +213,6 @@
       geocode = null, 
       modelId = null
     ) {
-      // console.log(series);
-      // console.log(disease);
-      // console.log(admLevel);
-      // console.log(geocode);
-      // console.log(modelId);
       function filterEmptyDictionaries(obj) {
         for (let key in obj) {
           if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
@@ -253,7 +259,35 @@
     }
 
 
+    function capitalize(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+
+    function getADMLevel(level) {
+      switch (level) {
+        case "0":
+          return "National";
+        case "1":
+          return "State";
+        case "2":
+          return "Municipality";
+        case "3":
+          return "Sub Municipality";
+        default:
+          return "Unknown";
+      }
+    }
+
+
+
     function disableOnSeries(selectedSeries) {
+      $('#disease').empty();
+      $('#adm-level').empty();
+      $('#geocode').empty();
+      $('#models').empty();
+      $('#predictions').empty();
+
       let availableDiseases = {{ available_diseases|safe }}
       let diseases = getItems(series=selectedSeries);
 
@@ -261,22 +295,32 @@
       for (var d = 0; d < availableDiseases.length; d++) {
         let disease = availableDiseases[d];
         if (diseases.includes(disease)) {
-          $('#disease option[value="' + disease + '"]').prop('disabled', false);
-          $('#disease').selectpicker('refresh');
+          var opt = document.createElement('option');
+          opt.value = disease;   
+          opt.innerHTML = capitalize(disease);
+          $("#disease").append(opt).selectpicker('refresh');
           if (count === 0) {
-            $('#disease option[value="' + disease + '"]').prop('selected', true);
-            $('#disease').selectpicker('refresh');
             disableOnDisease(series=selectedSeries, selectedDisease=disease);
             count++;
           }
-        } else {
-          $('#disease option[value="' + disease + '"]').prop('disabled', true);
-          $('#disease').selectpicker('refresh');
         }
       }
+
+      $('#disease').selectpicker('refresh');
+      $('#adm-level').selectpicker('refresh');
+      $('#geocode').selectpicker('refresh');
+      $('#models').selectpicker('refresh');
+      $('#predictions').selectpicker('refresh');
     }
 
+
+
     function disableOnDisease(series, selectedDisease) {
+      $('#adm-level').empty();
+      $('#geocode').empty();
+      $('#models').empty();
+      $('#predictions').empty();
+
       let availableADMLevels = {{ available_adm_levels }};
       let admLevels = getItems(series=series, disease=selectedDisease)
 
@@ -284,11 +328,11 @@
       for (var a = 0; a < availableADMLevels.length; a++) {
         let admLevel = availableADMLevels[a].toString();
         if (admLevels.includes(admLevel)) {
-          $('#adm-level option[value="' + admLevel + '"]').prop('disabled', false);
-          $('#adm-level').selectpicker('refresh');
+          var opt = document.createElement('option');
+          opt.value = admLevel;   
+          opt.innerHTML = getADMLevel(admLevel.toString());
+          $("#adm-level").append(opt).selectpicker('refresh');
           if (count === 0) {
-            $('#adm-level option[value="' + admLevel + '"]').prop('selected', true);
-            $('#adm-level').selectpicker('refresh');
             disableOnADMLevel(
               series=series, 
               selectedDisease=disease, 
@@ -296,15 +340,22 @@
             );
             count++;
           }
-        } else {
-          $('#adm-level option[value="' + admLevel + '"]').prop('disabled', true);
-          $('#adm-level').selectpicker('refresh');
         }
       }
+
+      $('#adm-level').selectpicker('refresh');
+      $('#geocode').selectpicker('refresh');
+      $('#models').selectpicker('refresh');
+      $('#predictions').selectpicker('refresh');
     }
 
 
+
     function disableOnADMLevel(series, selectedDisease, selectedADMLevel) {
+      $('#geocode').empty();
+      $('#models').empty();
+      $('#predictions').empty();
+
       if (selectedADMLevel === '2') {
         $('#geocode-div').show();
         let availableGeocodes = {{ available_geocodes }};
@@ -318,11 +369,11 @@
         for (var g = 0; g < availableGeocodes.length; g++) {
           let geocode = availableGeocodes[g];
           if (geocodes.includes(geocode.toString())) {
-            $('#geocode option[value="' + geocode + '"]').prop('disabled', false);
-            $('#geocode').selectpicker('refresh');
+            var opt = document.createElement('option');
+            opt.value = geocode;   
+            opt.innerHTML = geocode;
+            $("#geocode").append(opt).selectpicker('refresh');
             if (count === 0) {
-              $('#geocode option[value="' + geocode + '"]').prop('selected', true);
-              $('#geocode').selectpicker('refresh');
               disableOnGeocode(
                 series=series,
                 selectedDisease=selectedDisease,
@@ -331,9 +382,6 @@
               );
               count++;
             }
-          } else {
-            $('#geocode option[value="' + geocode + '"]').prop('disabled', true);
-            $('#geocode').selectpicker('refresh');
           }
         }
       } else { // TODO: Handle '0', '1' and '3' cases individually
@@ -343,9 +391,30 @@
           disease=selectedDisease,
           admLevel=selectedADMLevel,
         );
-        console.log(modelIds);
+        for (var m = 0; m < modelIds.length; m++) {
+          modelId = modelIds[m];
+
+
+          getModelItemDesc(modelId)
+            .then(result => {
+              var opt = document.createElement('option');
+              opt.value = modelId;   
+              opt.innerHTML = modelId + " - " + result.name;
+              $("#models").append(opt).selectpicker('refresh');
+            })
+            .catch(error => {
+              console.error('Error:', error.message);
+            });
+        }
+
       }
+
+      $('#geocode').selectpicker('refresh');
+      $('#models').selectpicker('refresh');
+      $('#predictions').selectpicker('refresh');
     }
+
+
 
     function disableOnGeocode(
       series, 
@@ -364,7 +433,7 @@
       $("#predictions").empty();
 
       for (var m = 0; m < modelIds.length; m++) {
-        modelId = modelIds[m];
+        let modelId = modelIds[m];
 
         getModelItemDesc(modelId)
           .then(result => {
@@ -375,66 +444,69 @@
           })
           .catch(error => {
             console.error('Error:', error.message);
-        });
-
-        disableOnModelId(
-          series=series,
-          selectedDisease=selectedDisease,
-          selectedADMLevel=selectedADMLevel,
-          selectedModelId=modelId,
-          selectedGeocode=selectedGeocode,
-        );
+          });
       }
 
       $('#models').selectpicker('refresh');
       $('#predictions').selectpicker('refresh');
     }
 
-    function disableOnModelId(
+
+
+    function enablePredictionsOnModelIds(
+      modelIds,
       series, 
       selectedDisease, 
       selectedADMLevel, 
-      selectedModelId,
       selectedGeocode = null,
     ) {
-      if (selectedADMLevel.toString() === "2" && selectedGeocode !== null) {
-        let predictionIds = getItems(
-          series=series,
-          disease=selectedDisease,
-          admLevel=selectedADMLevel,
-          geocode=selectedGeocode,
-          modelId=selectedModelId
-        );
-        console.log(predictionIds);
-      } else if (selectedADMLevel.toString() === "0" && selectedGeocode === null) {
-        let predictionIds = getItems(
-          series=series,
-          disease=selectedDisease,
-          admLevel=selectedADMLevel,
-          modelId=selectedModelId
-        );
-        console.log(predictionIds);
-      } // TODO: Add more cases here to handle other adm levels
+      $("#predictions").empty();
 
-      // console.log(predictionIds);
-    }
+      for (var m = 0; m < modelIds.length; m++) {
+        let modelId = modelIds[m];
+
+        var predictionIds = null
+        if (selectedADMLevel.toString() === "2" && selectedGeocode !== null) {
+          predictionIds = getItems(
+            series=series,
+            disease=selectedDisease,
+            admLevel=selectedADMLevel,
+            geocode=selectedGeocode,
+            modelId=modelId
+          );
+
+        } else if (selectedADMLevel.toString() === "0" && selectedGeocode === null) {
+          predictionIds = getItems(
+            series=series,
+            disease=selectedDisease,
+            admLevel=selectedADMLevel,
+            geocode=null,
+            modelId=modelId
+          );
+        } // TODO: Add more cases here to handle other adm levels
 
 
-    function disablePredictionsButFor(modelIds) {
-      // TODO: lineChart will have to change when more vis are available
-      for (var i = 0; i < lineChart.length; i++) {
-        var model = lineChart[i];
-        for (var p = 0; p < model.predictions.length; p++) {
-          if (modelIds.includes(model.id.toString())) {
-            $('#predictions option[value="' + model.predictions[p].id + '"]').prop('disabled', false);
-            $('#predictions').selectpicker('refresh');
-          } else {
-            $('#predictions option[value="' + model.predictions[p].id + '"]').prop('disabled', true).prop('selected', false);
-            $('#predictions').selectpicker('refresh');
+        if (predictionIds !== null) {
+          for (var p = 0; p < predictionIds.length; p++) {
+            let predictionId = predictionIds[p];
+
+            getPredictionItemDesc(predictionId)
+              .then(result => {
+                var opt = document.createElement('option');
+                opt.value = predictionId;
+                opt.innerHTML = result.model_id + " - Prediction " + predictionId;
+                $("#predictions").append(opt).selectpicker('refresh');
+              })
+              .catch(error => {
+                console.error('Error:', error.message);
+              });
           }
         }
       }
+      $('#predictions').selectpicker('refresh');
     }
+
+
 
     function getModelItemDesc(modelId) {
       return fetch(`/vis/get-model-item/${modelId}/`)
@@ -451,20 +523,19 @@
     }
 
 
-    function getGeocodes(predictionIds) {
-      // TODO: lineChart will change later on
-      var geocodes = [];
 
-      for (var i = 0; i < lineChart.length; i++) {
-        var model = lineChart[i];
-        for (var p = 0; p < model.predictions.length; p++) {
-          prediction = model.predictions[p];
-          if (predictionIds.includes(prediction.id.toString())) {
-            geocodes.push(prediction.geocodes);
+    function getPredictionItemDesc(predictionId) {
+      return fetch(`/vis/get-prediction-item/${predictionId}/`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error fetching prediction: ${response.statusText}`);
           }
-        }
-      }
-      return geocodes
+          return response.json();
+        })
+        .then(data => data)
+        .catch(error => {
+          console.error('Error:', error.message);
+        });
     }
 
   });

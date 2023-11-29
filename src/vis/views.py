@@ -212,7 +212,8 @@ def get_available_types(models: list[Model]) -> list[str]:
     types = set()
     for model in models:
         if model.type:
-            types.add(model.type)
+            if any(model.get_visualizables()):
+                types.add(model.type)
     return list(types)
 
 
@@ -255,6 +256,18 @@ def get_model_selector_item(request, model_id):
         return JsonResponse(data)
     except Model.DoesNotExist:
         return JsonResponse({"error": "Model not found"}, status=404)
+
+
+def get_prediction_selector_item(request, prediction_id):
+    try:
+        prediction = Prediction.objects.get(pk=prediction_id)
+        data = {
+            "model_id": prediction.model.id,
+            "description": prediction.description,
+        }
+        return JsonResponse(data)
+    except Prediction.DoesNotExist:
+        return JsonResponse({"error": "Prediction not found"}, status=404)
 
 
 def generate_models_compatibility_info(
