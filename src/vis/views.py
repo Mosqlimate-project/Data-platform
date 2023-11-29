@@ -21,13 +21,11 @@ class VisualizationsView(View):
 
         all_models = Model.objects.all()
 
-        disease: Literal["dengue", "zika", "chikungunya"] = ""
         diseases = ["dengue", "zika", "chikungunya"]
 
-        available_diseases = set()
-        available_geocodes = set()
-
         selected_series: Literal["spatial", "time"] = ""
+        selected_adm_level: int = None
+        selected_disease: Literal["dengue", "zika", "chikungunya"] = ""
         selected_geocodes: set[int] = set()
 
         series_info = {
@@ -51,18 +49,8 @@ class VisualizationsView(View):
                     series_info[model.type][model.disease].append(model.id)
 
             charts = model.get_visualizables()
-            available_diseases.add(model.disease)
             if charts:
                 for chart in charts:
-                    if not disease:
-                        disease = model.disease
-                    if model.disease != disease:
-                        # TODO: Improve error handling
-                        raise VisualizationError(
-                            "Two different diseases have been added to be "
-                            "visualized"
-                        )
-
                     model_info = {}
                     model_info["id"] = model.id
                     model_info["disease"] = model.disease
@@ -78,6 +66,16 @@ class VisualizationsView(View):
                                 "Two different Model types have been added "
                                 "to be visualized"
                             )
+
+                            if not selected_disease:
+                                selected_disease = model.disease
+                            if model.disease != selected_disease:
+                                # TODO: Improve error handling
+                                raise VisualizationError(
+                                    "Two different diseases have been added "
+                                    "to be visualized"
+                                )
+
                     else:
                         model_info["selected"] = "False"
 
@@ -89,7 +87,6 @@ class VisualizationsView(View):
                         prediction_info["model_id"] = model.id
 
                         if chart == "LineChartADM2":
-                            available_geocodes.add(prediction.adm_2_geocode)
                             prediction_info[
                                 "geocode"
                             ] = prediction.adm_2_geocode
@@ -103,6 +100,25 @@ class VisualizationsView(View):
                             if selected_series != prediction.model.type:
                                 raise VisualizationError(
                                     "Two different Model types have been added "
+                                    "to be visualized"
+                                )
+
+                            if not selected_adm_level:
+                                selected_adm_level = model.ADM_level
+
+                            if selected_adm_level != model.ADM_level:
+                                # TODO: Improve error handling
+                                raise VisualizationError(
+                                    "Two different ADM_level were added to be "
+                                    "visualized"
+                                )
+
+                            if not selected_disease:
+                                selected_disease = model.disease
+                            if model.disease != selected_disease:
+                                # TODO: Improve error handling
+                                raise VisualizationError(
+                                    "Two different diseases have been added "
                                     "to be visualized"
                                 )
 
@@ -123,21 +139,23 @@ class VisualizationsView(View):
                     except KeyError:
                         charts_info[chart] = [model_info]
 
-        context["compabilities"] = generate_models_compatibility_info(
+        context["compatibilities"] = generate_models_compatibility_info(
             all_models, json_return=True
         )
         context["charts_info"] = charts_info
         context["series_info"] = series_info
 
-        context["diseases"] = diseases
-        context["geocodes"] = available_geocodes
-        context["disease"] = disease
-
         context["selected_series"] = selected_series
+        context["selected_adm_level"] = selected_adm_level
+        context["selected_disease"] = selected_disease
         context["selected_geocodes"] = list(selected_geocodes)
 
-        context["available_geocodes"] = list(available_geocodes)
-        context["available_diseases"] = list(available_diseases)
+        context["available_series"] = get_available_types(all_models)
+        context["available_adm_levels"] = get_available_adm_levels(all_models)
+        context["available_diseases"] = get_available_diseases(all_models)
+        context["available_geocodes"] = get_available_adm_2_geocodes(
+            all_models
+        )
 
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items
@@ -148,11 +166,6 @@ class VisualizationsView(View):
             models.extend(charts_info[chart])
 
         context["models"] = models
-
-        from pprint import pprint
-
-        pprint(context["series_info"])
-        pprint(context["compabilities"])
 
         return render(request, self.template_name, context)
 
@@ -194,6 +207,43 @@ class LineChartsView(View):
         return render(request, self.template_name, context)
 
 
+def get_available_types(models: list[Model]) -> list[str]:
+    types = set()
+    for model in models:
+        if model.type:
+            types.add(model.type)
+    return list(types)
+
+
+def get_available_diseases(models: list[Model]) -> list[str]:
+    diseases = set()
+    for model in models:
+        if model.disease:
+            diseases.add(model.disease)
+    return list(diseases)
+
+
+def get_available_adm_levels(models: list[Model]) -> list[int]:
+    levels = set()
+    for model in models:
+        if (
+            model.ADM_level >= 0 or model.ADM_level <= 4
+        ) and model.ADM_level is not None:
+            levels.add(model.ADM_level)
+    return list(levels)
+
+
+def get_available_adm_2_geocodes(models: list[Model]) -> list[int]:
+    geocodes = set()
+    for model in models:
+        if model.ADM_level == 2:
+            predictions = Prediction.objects.filter(model=model)
+            for prediction in predictions:
+                if prediction.adm_2_geocode:
+                    geocodes.add(prediction.adm_2_geocode)
+    return list(geocodes)
+
+
 def generate_models_compatibility_info(
     models: list[Model], json_return: bool = False
 ) -> dict:
@@ -208,9 +258,12 @@ def generate_models_compatibility_info(
     for adm_level in Model.ADM_levels:
         for _type in info:
             for disease in info[_type]:
-                info[_type][disease][adm_level.value] = defaultdict(
-                    lambda: defaultdict(list)
-                )
+                if adm_level == 2:
+                    info[_type][disease][adm_level.value] = defaultdict(
+                        lambda: defaultdict(list)
+                    )
+                else:
+                    info[_type][disease][adm_level.value] = defaultdict(list)
 
     for model in models:
         predictions = Prediction.objects.filter(model=model)
@@ -222,9 +275,15 @@ def generate_models_compatibility_info(
                             info[model.type][model.disease][model.ADM_level][
                                 prediction.adm_2_geocode
                             ][model.id].append(prediction.id)
+                    else:
+                        info[model.type][model.disease][model.ADM_level][
+                            model.id
+                        ].append(prediction.id)
 
-    if json_return:
-        return json.dumps(info, cls=SetToListEncoder)
+    info = json.dumps(info, cls=SetToListEncoder)
+
+    if not json_return:
+        return json.loads(info)
 
     return info
 
