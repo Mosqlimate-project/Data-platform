@@ -1,8 +1,13 @@
 from django.urls import path
 
-from .views import VisualizationsView, LineChartsView
+from . import views
 
 urlpatterns = [
-    path("home/", VisualizationsView.as_view(), name="vis"),
-    path("line-charts/", LineChartsView.as_view(), name="line_charts"),
+    path("home/", views.VisualizationsView.as_view(), name="vis"),
+    path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
+    path(
+        "get-model-item/<int:model_id>/",
+        views.get_model_selector_item,
+        name="get_model_selector_item",
+    ),
 ]

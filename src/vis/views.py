@@ -3,6 +3,7 @@ from typing import Literal
 from collections import defaultdict
 
 from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
 from django.views import View
 
 from registry.models import Model, Prediction
@@ -145,17 +146,17 @@ class VisualizationsView(View):
         context["charts_info"] = charts_info
         context["series_info"] = series_info
 
-        context["selected_series"] = selected_series
-        context["selected_adm_level"] = selected_adm_level
-        context["selected_disease"] = selected_disease
-        context["selected_geocodes"] = list(selected_geocodes)
-
         context["available_series"] = get_available_types(all_models)
         context["available_adm_levels"] = get_available_adm_levels(all_models)
         context["available_diseases"] = get_available_diseases(all_models)
         context["available_geocodes"] = get_available_adm_2_geocodes(
             all_models
         )
+
+        context["selected_series"] = selected_series
+        context["selected_adm_level"] = selected_adm_level
+        context["selected_disease"] = selected_disease
+        context["selected_geocodes"] = list(selected_geocodes)
 
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items
@@ -242,6 +243,18 @@ def get_available_adm_2_geocodes(models: list[Model]) -> list[int]:
                 if prediction.adm_2_geocode:
                     geocodes.add(prediction.adm_2_geocode)
     return list(geocodes)
+
+
+def get_model_selector_item(request, model_id):
+    try:
+        model = Model.objects.get(pk=model_id)
+        data = {
+            "name": model.name,
+            "description": model.description,
+        }
+        return JsonResponse(data)
+    except Model.DoesNotExist:
+        return JsonResponse({"error": "Model not found"}, status=404)
 
 
 def generate_models_compatibility_info(
