@@ -187,7 +187,7 @@ def line_charts_by_geocode(
 
 def base_model_chart(
     data: pd.DataFrame,
-    #title: str,
+    # title: str,
     x: str = "dates",
     x_title: str = "Dates",
     y: str = "preds",
