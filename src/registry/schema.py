@@ -32,6 +32,7 @@ class ModelSchema(Schema):
     author: AuthorSchema
     repository: str
     implementation_language: ImplementationLanguageSchema
+    disease: Literal["dengue", "chikungunya", "zika"] = None
     type: str
     ADM_level: int = None
     time_resolution: str = None
@@ -52,6 +53,9 @@ class ModelFilterSchema(FilterSchema):
     repository: Optional[str] = Field(q="repository__icontains")
     implementation_language: Optional[str] = Field(
         q="implementation_language__language__iexact"
+    )
+    disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
+        q="disease__iexact"
     )
     type: Optional[str] = Field(q="type__icontains")
     ADM_level: Optional[int] = Field(q="ADM_level")
@@ -79,6 +83,9 @@ class PredictionFilterSchema(FilterSchema):
     model_time_resolution: Optional[
         Literal["day", "week", "month", "year"]
     ] = Field(q="model__time_resolution__iexact")
+    model_disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
+        q="model__disease__iexact"
+    )
     author_name: Optional[str] = Field(
         q="model__author__user__name__icontains"
     )

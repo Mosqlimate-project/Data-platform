@@ -146,6 +146,11 @@ class EditModelView(View):
         context = {
             "model": model,
             "implementation_languages": languages,
+            "diseases": [
+                ("dengue", "Dengue"),
+                ("zika", "Zika"),
+                ("chikungunya", "Chikungunya"),
+            ],
             "adm_levels": [
                 (0, _("National")),
                 (1, _("State")),
@@ -192,6 +197,7 @@ class EditModelView(View):
                     ],
                     "type": form.cleaned_data["model_type"],
                     "ADM_level": form.cleaned_data["model_adm_level"],
+                    "disease": form.cleaned_data["model_disease"],
                     "time_resolution": form.cleaned_data[
                         "model_time_resolution"
                     ],
