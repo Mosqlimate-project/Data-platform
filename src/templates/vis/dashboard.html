@@ -65,12 +65,6 @@
         </select>
         </center>
 
-        <br>
-
-        <div class="buttons">
-          <center><button type="button" id="visualize" class="btn btn-primary end">{% trans "Visualize" %}</button></center>
-        </div>
-
       </div>
     </div>
   </div>
@@ -83,6 +77,7 @@
 
 
 <style>
+
 .vis-sidebar {
   width: 280px;
   min-height: calc(100vh - 211px);
@@ -90,6 +85,10 @@
 
 .vis-content {
   flex-grow: 1;
+  min-height: calc(100vh - 211px);
+}
+
+.vis-content iframe {
   min-height: calc(100vh - 211px);
 }
 
@@ -135,14 +134,21 @@
     });
 
     $('#models').change(function () {
-      var selectedGeocode = $('#geocode').val()
+      var selectedModelIds = $(this).val();
+      var selectedGeocode = $('#geocode').val();
 
       if (selectedADMLevel.toString() !== '2') {
         selectedGeocode = null;
       }
 
+      if (selectedModelIds.length === 0) {
+        $('#predictions').empty();
+        $('#predictions').selectpicker('refresh');
+        updateLineChart([]);
+      }
+
       enablePredictionsOnModelIds(
-        modelIds=$(this).val(),
+        modelIds=selectedModelIds,
         series=$('#series').val(),
         selectedDisease=$('#disease').val(),
         selectedADMLevel=$('#adm-level').val(),
@@ -153,20 +159,11 @@
     $('#predictions').change(function () {
       var selectedPredictIds = $(this).val();
       var visualizeButton = $('#visualize');
-
-      if (selectedPredictIds && selectedPredictIds.length > 0) {
-        visualizeButton.prop('disabled', false);
-      } else {
-        visualizeButton.prop('disabled', true);
-      }
+      updateLineChart(selectedPredictIds);
     });
 
-    $('#visualize').click(function () {
-      updateLineChart();
-    });
 
-    function updateLineChart() {
-      var selectedPredictIds = $('#predictions').val();
+    function updateLineChart(selectedPredictIds) {
       var lineChartIframe = $('#lineChart');
       var lineChartUrl = '{% url "line_charts" %}?';
 
@@ -181,35 +178,21 @@
       lineChartIframe.attr('src', lineChartUrl);
     }
 
+
     function disableDefaults() {
       // This function will disable all items that should be disabled by
       // default
       var defaultSeries = "{{ selected_series|safe }}"
       var defaultDisease = "{{ selected_disease|safe }}"
       var defaultADMLevel = "{{ selected_adm_level|safe }}"
-      var defaultGeocode = "{{ selected_geocode|safe }}"
-      var defaultModel = "{{ selected_model|safe }}"
+      var defaultGeocode = "{{ selected_geocode|default:'None'|safe }}" === "None" ? null : "{{ selected_geocode|safe }}";
+      var defaultModel = "{{ selected_model|default:'None'|safe }}" === "None" ? null : "{{ selected_model|safe }}";
+      var defaultPrediction = "{{ selected_prediction|default:'None'|safe }}" === "None" ? null : "{{ selected_prediction|safe }}";
 
       if (defaultSeries !== null) {
         disableOnSeries(defaultSeries);
       }
-      // if (defaultDisease !== null) {
-      //   disableOnDisease(defaultSeries);
-      // }
-      // if (defaultADMLevel !== null) {
-      //   if (defaultADMLevel.toString() === "2") {
-      //     defaultGeocode = null;
-      //   }
-      //   disableOnADMLevel(defaultSeries, defaultDisease, defaultADMLevel);
-      // }
-      // if (defaultGeocode !== null) {
-      //   disableOnGeocode(
-      //     defaultSeries,
-      //     defaultDisease,
-      //     defaultADMLevel,
-      //     defaultGeocode,
-      //   );
-      // }
+
       if (defaultModel !== null) {
         enablePredictionsOnModelIds(
           modelIds=[defaultModel],
@@ -218,6 +201,7 @@
           selectedADMLevel=$('#adm-level').val(),
           selectedGeocode=defaultGeocode,
         );
+        updateLineChart([defaultPrediction]);
       }
     }
 
@@ -302,7 +286,7 @@
       $('#adm-level').empty();
       $('#geocode').empty();
       $('#models').empty();
-      $('#predictions').empty();
+      $("#predictions").empty();
 
       let availableDiseases = {{ available_diseases|safe }};
       let viewDisease = "{{ selected_disease|safe }}";
@@ -344,7 +328,7 @@
       $('#adm-level').empty();
       $('#geocode').empty();
       $('#models').empty();
-      $('#predictions').empty();
+      $("#predictions").empty();
 
       let selectedDisease = $('#disease').val();
       let availableADMLevels = {{ available_adm_levels }};
@@ -389,7 +373,7 @@
     function disableOnADMLevel(series, selectedDisease, selectedADMLevel) {
       $('#geocode').empty();
       $('#models').empty();
-      $('#predictions').empty();
+      $("#predictions").empty();
 
       if (selectedADMLevel.toString() === '2') {
         $('#geocode-div').show();
@@ -484,16 +468,17 @@
       let modelIds = getItems(
         series=series,
         disease=selectedDisease,
-        admLevel=selectedADMLevel,
+        admLevel=$('#adm-level').val(),
         geocode=$('#geocode').val(),
       );
 
-      $("#models").empty();
       $("#predictions").empty();
+      updateLineChart([]);
+      $("#models").empty();
 
       for (var m = 0; m < modelIds.length; m++) {
         let modelId = modelIds[m];
-        let viewModel = "{{ selected_model|safe }}"
+        let viewModel = "{{ selected_model|safe }}";
 
         getModelItemDesc(modelId)
           .then(result => {
@@ -502,9 +487,17 @@
             opt.innerHTML = modelId + " - " + result.name;
             if (modelId.toString() === viewModel.toString()) {
               opt.selected = true;
+              enablePredictionsOnModelIds(
+                modelIds=[modelId.toString()],
+                series=$('#series').val(),
+                selectedDisease=$('#disease').val(),
+                selectedADMLevel=$('#adm-level').val(),
+                selectedGeocode=$('#geocodes').val(),
+              );
             }
             $("#models").append(opt)
             $("#models").selectpicker('refresh');
+
           })
           .catch(error => {
             console.error('Error:', error.message);
@@ -524,8 +517,6 @@
       selectedADMLevel, 
       selectedGeocode = null,
     ) {
-      $("#predictions").empty();
-      var visualizeButton = $('#visualize');
       let viewPrediction = "{{ selected_prediction|safe }}"
 
       for (var m = 0; m < modelIds.length; m++) {
@@ -563,7 +554,7 @@
                 opt.innerHTML = result.model_id + " - Prediction " + predictionId;
                 if(predictionId.toString() === viewPrediction) {
                   opt.selected = true;
-                  visualizeButton.prop('disabled', false);
+                  updateLineChart([predictionId]);
                 }
                 $("#predictions").append(opt)
                 $("#predictions").selectpicker('refresh');
@@ -575,11 +566,6 @@
         }
       }
 
-      if ($('#predictions').val() && $('#predictions').val().length > 0) {
-        visualizeButton.prop('disabled', false);
-      } else {
-        visualizeButton.prop('disabled', true);
-      }
       $('#predictions').selectpicker('refresh');
     }
 
