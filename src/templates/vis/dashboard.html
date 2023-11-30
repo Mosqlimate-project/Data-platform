@@ -10,54 +10,65 @@
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <div class="p-3">
-
-        <label for="series" class="text-white">{% trans "Series" %}:</label>
-        <select name="series" id="series" class="selectpicker" data-size="5">
-          {% for series in available_series %}
-          <option value="{{ series }}" {% if selected_series == series %}selected{% endif %}>
-          {{ series.capitalize }} Series
-          </option>
-          {% endfor %}
-        </select>
-
-        <hr style="color:white;">
-
-        <label for="disease" class="text-white">{% trans "Disease" %}:</label>
-        <select name="disease" id="disease" class="selectpicker" data-size="5">
-        </select>
+        <center>
+          <label for="series" class="text-white">{% trans "Series" %}</label>
+          <select name="series" id="series" class="selectpicker" data-size="5">
+            {% for series in available_series %}
+            <option value="{{ series }}" {% if selected_series == series %}selected{% endif %}>
+            {{ series.capitalize }} Series
+            </option>
+            {% endfor %}
+          </select>
+        </center>
 
         <hr style="color:white;">
 
+        <center>
+          <label for="disease" class="text-white">{% trans "Disease" %}</label>
+          <select name="disease" id="disease" class="selectpicker" data-size="5">
+          </select>
+        </center>
+
+        <hr style="color:white;">
+        
+        <center>
         <div id="adm-level-div">
-          <label for="adm-level" class="text-white">{% trans "Administrative level" %}:</label>
+          <label for="adm-level" class="text-white">{% trans "Administrative level" %}</label>
           <select name="adm-level" id="adm-level" class="selectpicker" data-size="5">
           </select>
 
           <hr style="color:white;">
         </div>
+        </center>
 
+        <center>
         <div id="geocode-div">
-          <label for="geocode" class="text-white">{% trans "Geocode" %}:</label>
+          <label for="geocode" class="text-white">{% trans "Geocode" %}</label>
           <select name="geocode" id="geocode" class="selectpicker" data-size="5" data-live-search="true">
           </select>
 
           <hr style="color:white;">
         </div>
+        </center>
 
-        <label for="models" class="text-white">{% trans "Models" %}:</label>
-        <select name="models" id="models" class="selectpicker" data-size="5" multiple>
-        </select>
+        <center>
+          <label for="models" class="text-white">{% trans "Models" %}:</label>
+          <select name="models" id="models" class="selectpicker" data-size="5" multiple>
+          </select>
+        </center>
 
         <hr style="color:white;">
 
+        <center>
         <label for="predictions" class="text-white">{% trans "Predictions" %}:</label>
         <select name="predictions" id="predictions" class="selectpicker" data-size="5" multiple>
         </select>
+        </center>
 
-        <br></br>
+        <br>
 
         <div class="buttons">
-          <button type="button" class="btn btn-light end">{% trans "Visualize" %}</button>
+          <center><button type="button" id="visualize" class="btn btn-primary end">{% trans "Visualize" %}</button></center>
         </div>
 
       </div>
@@ -80,6 +91,16 @@
 .vis-content {
   flex-grow: 1;
   min-height: calc(100vh - 211px);
+}
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:visited,
+.btn-primary:focus {
+  background-color: #6875F7 !important; 
+  color: white !important;
+  border-color: #111111 !important;
 }
 </style>
 
@@ -131,6 +152,13 @@
 
     $('#predictions').change(function () {
       var selectedPredictIds = $(this).val();
+      var visualizeButton = $('#visualize');
+
+      if (selectedPredictIds && selectedPredictIds.length > 0) {
+        visualizeButton.prop('disabled', false);
+      } else {
+        visualizeButton.prop('disabled', true);
+      }
       console.log(selectedPredictIds)
     });
 
@@ -478,6 +506,7 @@
       selectedGeocode = null,
     ) {
       $("#predictions").empty();
+      var visualizeButton = $('#visualize');
       let viewPrediction = "{{ selected_prediction|safe }}"
 
       for (var m = 0; m < modelIds.length; m++) {
@@ -515,6 +544,7 @@
                 opt.innerHTML = result.model_id + " - Prediction " + predictionId;
                 if(predictionId.toString() === viewPrediction) {
                   opt.selected = true;
+                  visualizeButton.prop('disabled', false);
                 }
                 $("#predictions").append(opt)
                 $("#predictions").selectpicker('refresh');
@@ -524,6 +554,12 @@
               });
           }
         }
+      }
+
+      if ($('#predictions').val() && $('#predictions').val().length > 0) {
+        visualizeButton.prop('disabled', false);
+      } else {
+        visualizeButton.prop('disabled', true);
       }
       $('#predictions').selectpicker('refresh');
     }
