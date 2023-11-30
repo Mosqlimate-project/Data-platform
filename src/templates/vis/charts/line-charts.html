@@ -1,1 +1,7 @@
-{{ line_chart|safe }}
+{% if line_chart%}
+    {{ line_chart|safe }}
+{% else %}
+    <center>
+        <p class="font-golos">Please select the Prediction(s) to be visualized</p>
+    </center>
+{% endif %}

@@ -159,8 +159,27 @@
       } else {
         visualizeButton.prop('disabled', true);
       }
-      console.log(selectedPredictIds)
     });
+
+    $('#visualize').click(function () {
+      updateLineChart();
+    });
+
+    function updateLineChart() {
+      var selectedPredictIds = $('#predictions').val();
+      var lineChartIframe = $('#lineChart');
+      var lineChartUrl = '{% url "line_charts" %}?';
+
+      selectedPredictIds.forEach(function(predictId) {
+        lineChartUrl += 'predict=' + predictId + '&';
+      });
+
+      if (selectedPredictIds.length > 0) {
+        lineChartUrl = lineChartUrl.slice(0, -1);
+      }
+
+      lineChartIframe.attr('src', lineChartUrl);
+    }
 
     function disableDefaults() {
       // This function will disable all items that should be disabled by

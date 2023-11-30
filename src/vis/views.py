@@ -116,10 +116,9 @@ class LineChartsView(View):
         predictions: set[Prediction] = set()
 
         if model_ids:
-            for id in model_ids:
-                model = get_object_or_404(Model, pk=id)
-                predicts = Prediction.objects.filter(model=model)
-                predictions |= set(predicts)
+            if not prediction_ids:
+                # Show "Please select Predictions"
+                context["line_chart"] = []
 
         if prediction_ids:
             for id in prediction_ids:
@@ -139,6 +138,7 @@ class LineChartsView(View):
             )
             context["line_chart"] = line_chart.to_html()
         except Exception as e:
+            # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
             print(e)
 
         return render(request, self.template_name, context)
