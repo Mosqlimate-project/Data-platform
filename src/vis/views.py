@@ -17,57 +17,45 @@ class VisualizationsView(View):
     def get(self, request):
         context = {}
 
-        model_ids = request.GET.getlist("model")
-        prediction_ids = request.GET.getlist("predict")
+        model_id = request.GET.get("model")
+        prediction_id = request.GET.get("predict")
 
         all_models = Model.objects.all()
 
-        diseases = ["dengue", "zika", "chikungunya"]
-
         selected_series: Literal["spatial", "time"] = ""
-        selected_adm_level: int = None
+        selected_adm_level: Literal[0, 1, 2, 3] = None
         selected_disease: Literal["dengue", "zika", "chikungunya"] = ""
-        selected_geocodes: set[int] = set()
+        selected_geocode: int = None
+        selected_model: int = None
+        selected_prediction: int = None
 
-        series_info = {
-            "time": {
-                "dengue": [],
-                "zika": [],
-                "chikungunya": [],
-            },
-            "spatial": {
-                "dengue": [],
-                "zika": [],
-                "chikungunya": [],
-            },
-        }
-        charts_info = {}
         line_charts_default_items = []
 
         for model in all_models:
-            if model.type in ["spatial", "time"]:
-                if model.disease in diseases:
-                    series_info[model.type][model.disease].append(model.id)
-
             charts = model.get_visualizables()
             if charts:
                 for chart in charts:
-                    model_info = {}
-                    model_info["id"] = model.id
-                    model_info["disease"] = model.disease
-
-                    if str(model.id) in model_ids:
-                        model_info["selected"] = "True"
+                    if str(model.id) == model_id:
+                        selected_series = model.type
+                        selected_adm_level = model.ADM_level
+                        selected_disease = model.disease
+                        if chart == "LineChartADM2":
+                            predictions = Prediction.objects.filter(
+                                model=model
+                            )
+                            geocodes = list(
+                                set(
+                                    p.adm_2_geocode
+                                    for p in predictions
+                                    if p.adm_2_geocode
+                                )
+                            )
+                            print(geocodes)
+                            selected_geocode = geocodes[0]
+                        selected_model = model.id
                         line_charts_default_items.append(f"model={model.id}")
                         if not selected_series:
                             selected_series = model.type
-                        else:
-                            # TODO: Improve error handling
-                            raise VisualizationError(
-                                "Two different Model types have been added "
-                                "to be visualized"
-                            )
-
                             if not selected_disease:
                                 selected_disease = model.disease
                             if model.disease != selected_disease:
@@ -76,75 +64,24 @@ class VisualizationsView(View):
                                     "Two different diseases have been added "
                                     "to be visualized"
                                 )
-
-                    else:
-                        model_info["selected"] = "False"
-
-                    model_info["predictions"] = []
 
                     for prediction in charts[chart]:
-                        prediction_info = {}
-                        prediction_info["id"] = prediction.id
-                        prediction_info["model_id"] = model.id
+                        if str(prediction.id) == prediction_id:
+                            selected_series = prediction.model.type
+                            selected_adm_level = model.ADM_level
+                            selected_disease = model.disease
+                            if chart == "LineChartADM2":
+                                selected_geocode = prediction.adm_2_geocode
+                            selected_model = model.id
+                            selected_prediction = prediction.id
 
-                        if chart == "LineChartADM2":
-                            prediction_info[
-                                "geocode"
-                            ] = prediction.adm_2_geocode
-
-                        if (
-                            str(prediction.id) in prediction_ids
-                            or str(model.id) in model_ids
-                        ):
-                            if not selected_series:
-                                selected_series = prediction.model.type
-                            if selected_series != prediction.model.type:
-                                raise VisualizationError(
-                                    "Two different Model types have been added "
-                                    "to be visualized"
-                                )
-
-                            if not selected_adm_level:
-                                selected_adm_level = model.ADM_level
-
-                            if selected_adm_level != model.ADM_level:
-                                # TODO: Improve error handling
-                                raise VisualizationError(
-                                    "Two different ADM_level were added to be "
-                                    "visualized"
-                                )
-
-                            if not selected_disease:
-                                selected_disease = model.disease
-                            if model.disease != selected_disease:
-                                # TODO: Improve error handling
-                                raise VisualizationError(
-                                    "Two different diseases have been added "
-                                    "to be visualized"
-                                )
-
-                            selected_geocodes.add(prediction.adm_2_geocode)
-
-                            model_info["selected"] = "True"
-                            prediction_info["selected"] = "True"
                             line_charts_default_items.append(
                                 f"predict={prediction.id}"
                             )
-                        else:
-                            prediction_info["selected"] = "False"
-
-                        model_info["predictions"].append(prediction_info)
-
-                    try:
-                        charts_info[chart].append(model_info)
-                    except KeyError:
-                        charts_info[chart] = [model_info]
 
         context["compatibilities"] = generate_models_compatibility_info(
             all_models, json_return=True
         )
-        context["charts_info"] = charts_info
-        context["series_info"] = series_info
 
         context["available_series"] = get_available_types(all_models)
         context["available_adm_levels"] = get_available_adm_levels(all_models)
@@ -156,17 +93,13 @@ class VisualizationsView(View):
         context["selected_series"] = selected_series
         context["selected_adm_level"] = selected_adm_level
         context["selected_disease"] = selected_disease
-        context["selected_geocodes"] = list(selected_geocodes)
+        context["selected_geocode"] = selected_geocode
+        context["selected_model"] = selected_model
+        context["selected_prediction"] = selected_prediction
 
         context["line_charts_default_uri"] = "?" + "&".join(
             line_charts_default_items
         )
-
-        models = []
-        for chart in charts_info:
-            models.extend(charts_info[chart])
-
-        context["models"] = models
 
         return render(request, self.template_name, context)
 
@@ -197,13 +130,16 @@ class LineChartsView(View):
         for prediction in predictions:
             ids.append(prediction.id)
 
-        line_chart = line_charts_by_geocode(
-            title="Forecast of dengue new cases",
-            predictions_ids=ids,
-            disease="dengue",
-            width=500,
-        )
-        context["line_chart"] = line_chart.to_html()
+        try:
+            line_chart = line_charts_by_geocode(
+                title="Forecast of dengue new cases",
+                predictions_ids=ids,
+                disease="dengue",
+                width=500,
+            )
+            context["line_chart"] = line_chart.to_html()
+        except Exception as e:
+            print(e)
 
         return render(request, self.template_name, context)
 
