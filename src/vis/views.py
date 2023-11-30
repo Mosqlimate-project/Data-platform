@@ -22,9 +22,9 @@ class VisualizationsView(View):
 
         all_models = Model.objects.all()
 
-        selected_series: Literal["spatial", "time"] = ""
-        selected_adm_level: Literal[0, 1, 2, 3] = None
-        selected_disease: Literal["dengue", "zika", "chikungunya"] = ""
+        selected_series: Literal["spatial", "time"] = "time"
+        selected_adm_level: Literal[0, 1, 2, 3] = 2
+        selected_disease: Literal["dengue", "zika", "chikungunya"] = "dengue"
         selected_geocode: int = None
         selected_model: int = None
         selected_prediction: int = None
@@ -50,7 +50,6 @@ class VisualizationsView(View):
                                     if p.adm_2_geocode
                                 )
                             )
-                            print(geocodes)
                             selected_geocode = geocodes[0]
                         selected_model = model.id
                         line_charts_default_items.append(f"model={model.id}")

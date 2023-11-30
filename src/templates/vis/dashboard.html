@@ -65,12 +65,6 @@
         </select>
         </center>
 
-        <br>
-
-        <div class="buttons">
-          <center><button type="button" id="visualize" class="btn btn-primary end">{% trans "Visualize" %}</button></center>
-        </div>
-
       </div>
     </div>
   </div>
@@ -153,20 +147,11 @@
     $('#predictions').change(function () {
       var selectedPredictIds = $(this).val();
       var visualizeButton = $('#visualize');
-
-      if (selectedPredictIds && selectedPredictIds.length > 0) {
-        visualizeButton.prop('disabled', false);
-      } else {
-        visualizeButton.prop('disabled', true);
-      }
+      updateLineChart(selectedPredictIds);
     });
 
-    $('#visualize').click(function () {
-      updateLineChart();
-    });
 
-    function updateLineChart() {
-      var selectedPredictIds = $('#predictions').val();
+    function updateLineChart(selectedPredictIds) {
       var lineChartIframe = $('#lineChart');
       var lineChartUrl = '{% url "line_charts" %}?';
 
@@ -181,14 +166,16 @@
       lineChartIframe.attr('src', lineChartUrl);
     }
 
+
     function disableDefaults() {
       // This function will disable all items that should be disabled by
       // default
       var defaultSeries = "{{ selected_series|safe }}"
       var defaultDisease = "{{ selected_disease|safe }}"
       var defaultADMLevel = "{{ selected_adm_level|safe }}"
-      var defaultGeocode = "{{ selected_geocode|safe }}"
-      var defaultModel = "{{ selected_model|safe }}"
+      var defaultGeocode = "{{ selected_geocode|default:'None'|safe }}" === "None" ? null : "{{ selected_geocode|safe }}";
+      var defaultModel = "{{ selected_model|default:'None'|safe }}" === "None" ? null : "{{ selected_model|safe }}";
+      var defaultPrediction = "{{ selected_prediction|default:'None'|safe }}" === "None" ? null : "{{ selected_prediction|safe }}";
 
       if (defaultSeries !== null) {
         disableOnSeries(defaultSeries);
@@ -218,6 +205,7 @@
           selectedADMLevel=$('#adm-level').val(),
           selectedGeocode=defaultGeocode,
         );
+        updateLineChart([defaultPrediction]);
       }
     }
 
@@ -575,11 +563,6 @@
         }
       }
 
-      if ($('#predictions').val() && $('#predictions').val().length > 0) {
-        visualizeButton.prop('disabled', false);
-      } else {
-        visualizeButton.prop('disabled', true);
-      }
       $('#predictions').selectpicker('refresh');
     }
 
