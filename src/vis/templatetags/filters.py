@@ -12,6 +12,12 @@ def get_model_name_by_id(id: int) -> str:
     return model.name
 
 
+@register.filter(name="prediction_description_by_id")
+def get_prediction_description_by_id(id: int) -> str:
+    prediction = get_object_or_404(Prediction, pk=id)
+    return prediction.description
+
+
 @register.filter(name="is_prediction_visualizable")
 def is_prediction_visualizable(prediction: Prediction):
     if any(prediction.visualizable()):

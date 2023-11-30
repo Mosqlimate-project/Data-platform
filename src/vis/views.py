@@ -109,15 +109,13 @@ class LineChartsView(View):
     def get(self, request):
         context = {}
 
-        model_ids = request.GET.getlist("model")
         prediction_ids = request.GET.getlist("predict")
 
         predictions: set[Prediction] = set()
 
-        if model_ids:
-            if not prediction_ids:
-                # Show "Please select Predictions"
-                context["line_chart"] = []
+        if not prediction_ids:
+            # Show "Please select Predictions"
+            return render(request, "vis/errors/no-prediction.html", context)
 
         if prediction_ids:
             for id in prediction_ids:
@@ -127,6 +125,8 @@ class LineChartsView(View):
         ids = []
         for prediction in predictions:
             ids.append(prediction.id)
+
+        context["prediction_ids"] = ids
 
         try:
             line_chart = line_charts_by_geocode(
@@ -138,7 +138,7 @@ class LineChartsView(View):
             context["line_chart"] = line_chart.to_html()
         except Exception as e:
             # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
-            print(e)
+            context["error"] = e
 
         return render(request, self.template_name, context)
 
