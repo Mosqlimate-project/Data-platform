@@ -1,29 +1,31 @@
 {% load i18n %}
 {% load filters %}
 
-{% if line_chart %}
-<div class="line-chart">
-    {{ line_chart|safe }}
-</div>
-
-<div class="container">
-    <div class="row">
-        {% for id in prediction_ids %}
-        <div class="column">
-            <b>{% trans "Prediction" %} {{ id }}:</b>
-            <br>
-            {{ id|prediction_description_by_id }}
-        </div>
-        {% endfor %}
+<div class="chart">
+    {% if line_chart %}
+    <div class="line-chart">
+        {{ line_chart|safe }}
     </div>
-</div>
-{% else %}
-<center>
-    {% if error %}
-    {{ error }}
+
+    <div class="container">
+        <div class="row">
+            {% for id in prediction_ids %}
+            <div class="column">
+                <b>{% trans "Prediction" %} {{ id }}:</b>
+                <br>
+                {{ id|prediction_description_by_id }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <center>
+        {% if error %}
+        {{ error }}
+        {% endif %}
+    </center>
     {% endif %}
-</center>
-{% endif %}
+</div>
 
 <style>
 .container {

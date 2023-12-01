@@ -48,7 +48,7 @@ def data_chart_by_geocode(
     start: date,
     end: date,
     geocode: int,
-    width: int,
+    width="container",
     x: str = "dates",
     y: str = "target",
     legend: str = "Data",
@@ -86,7 +86,7 @@ def data_chart_by_geocode(
 def line_charts_by_geocode(
     title: str,
     predictions_ids: list[int],
-    width: int,
+    width="container",
     disease: str = "dengue",
 ):
     x = "dates"
