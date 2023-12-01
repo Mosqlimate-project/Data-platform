@@ -187,14 +187,14 @@ def line_charts_by_geocode(
 
 def base_model_chart(
     data: pd.DataFrame,
-    title: str,
+    # title: str,
     x: str = "dates",
     x_title: str = "Dates",
     y: str = "preds",
     y_title="New cases",
 ) -> alt.Chart:
-    return alt.Chart(data, title=title).encode(
-        x=alt.X(f"{x}:T").title(x_title),
+    return alt.Chart(data).encode(
+        x=alt.X(f"{x}:T", axis=alt.Axis(format="%b/%Y")).title(x_title),
         y=alt.Y(f"{y}:Q").title(y_title),
         color="predict_id:N",
     )
