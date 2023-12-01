@@ -144,7 +144,7 @@
       if (selectedModelIds.length === 0) {
         $('#predictions').empty();
         $('#predictions').selectpicker('refresh');
-        updateLineChart([]);
+        updateLineChart();
       }
 
       enablePredictionsOnModelIds(
@@ -163,16 +163,18 @@
     });
 
 
-    function updateLineChart(selectedPredictIds) {
+    function updateLineChart(selectedPredictIds=null) {
       var lineChartIframe = $('#lineChart');
       var lineChartUrl = '{% url "line_charts" %}?';
 
-      selectedPredictIds.forEach(function(predictId) {
-        lineChartUrl += 'predict=' + predictId + '&';
-      });
+      if (selectedPredictIds !== null) {
+        selectedPredictIds.forEach(function(predictId) {
+          lineChartUrl += 'predict=' + predictId + '&';
+        });
 
-      if (selectedPredictIds.length > 0) {
-        lineChartUrl = lineChartUrl.slice(0, -1);
+        if (selectedPredictIds.length > 0) {
+          lineChartUrl = lineChartUrl.slice(0, -1);
+        }
       }
 
       lineChartIframe.attr('src', lineChartUrl);
@@ -201,7 +203,11 @@
           selectedADMLevel=$('#adm-level').val(),
           selectedGeocode=defaultGeocode,
         );
-        updateLineChart([defaultPrediction]);
+        if (defaultPrediction !== null) {
+          updateLineChart([defaultPrediction]);
+        } else {
+          updateLineChart();
+        }
       }
     }
 
@@ -473,7 +479,7 @@
       );
 
       $("#predictions").empty();
-      updateLineChart([]);
+      updateLineChart();
       $("#models").empty();
 
       for (var m = 0; m < modelIds.length; m++) {
@@ -517,6 +523,8 @@
       selectedADMLevel, 
       selectedGeocode = null,
     ) {
+      $("#predictions").empty();
+      updateLineChart();
       let viewPrediction = "{{ selected_prediction|safe }}"
 
       for (var m = 0; m < modelIds.length; m++) {
