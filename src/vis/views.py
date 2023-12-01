@@ -133,9 +133,13 @@ class LineChartsView(View):
                 title="Forecast of dengue new cases",
                 predictions_ids=ids,
                 disease="dengue",
-                width=500,
+                width=400,
             )
-            context["line_chart"] = line_chart.to_html()
+            line_chart = line_chart.to_html().replace(
+                "</head>",
+                "<style>#vis.vega-embed {width: 100%;}</style></head>",
+            )
+            context["line_chart"] = line_chart
         except Exception as e:
             # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
             context["error"] = e

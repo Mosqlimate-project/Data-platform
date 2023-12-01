@@ -48,7 +48,7 @@ def data_chart_by_geocode(
     start: date,
     end: date,
     geocode: int,
-    width: int,
+    width="container",
     x: str = "dates",
     y: str = "target",
     legend: str = "Data",
@@ -86,7 +86,7 @@ def data_chart_by_geocode(
 def line_charts_by_geocode(
     title: str,
     predictions_ids: list[int],
-    width: int,
+    width="container",
     disease: str = "dengue",
 ):
     x = "dates"
@@ -138,7 +138,6 @@ def line_charts_by_geocode(
     base = (
         base_model_chart(
             data=predicts_df,
-            title=title,
         )
         .add_params(highlight)
         .properties(width=width)
@@ -187,7 +186,6 @@ def line_charts_by_geocode(
 
 def base_model_chart(
     data: pd.DataFrame,
-    # title: str,
     x: str = "dates",
     x_title: str = "Dates",
     y: str = "preds",
