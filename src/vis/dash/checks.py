@@ -1,6 +1,22 @@
 import pandas as pd
 
 
+def contains_correlated_dates(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+) -> bool:
+    dates1 = set()
+    dates2 = set()
+
+    try:
+        dates1 = set(df1.dates)
+        dates2 = set(df2.dates)
+    except AttributeError:
+        return False
+
+    return bool(dates1.intersection(dates2))
+
+
 def line_chart_adm2(df: pd.DataFrame) -> bool:
     """
     Returns True if a DataFrame can be visualized in a Line Chart by Municipality
@@ -73,8 +89,3 @@ def _line_chart_adm_2_geocodigo(df: pd.DataFrame) -> bool:
 
     # TODO: check if geocode exists here
     return True
-
-
-def compatible_predictions(a, b) -> bool:
-    """Compares two predictions to see if they can be visualized together"""
-    return False

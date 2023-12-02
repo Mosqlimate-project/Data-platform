@@ -93,7 +93,6 @@ def line_charts_by_geocode(
     y = "target"
 
     geocode: int = None
-    print(predictions_ids)
 
     for prediction_id in predictions_ids:
         try:
