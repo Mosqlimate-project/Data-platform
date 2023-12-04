@@ -6,6 +6,7 @@ import pandas as pd
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from vis.dash import checks, errors
@@ -160,25 +161,35 @@ class Prediction(models.Model):
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
+    compatible_predictions = models.JSONField(default=dict)
+    adm_2_geocode = models.IntegerField(null=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    adm_2_geocode = models.IntegerField(null=True, default=None)
-
-    prediction_df: pd.DataFrame = None
+    prediction_df: pd.DataFrame = pd.DataFrame()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         try:
             self.prediction_df = pd.read_json(StringIO(self.prediction))
-        except TypeError:
-            # TODO: add a better error handling geocode errors
+        except (TypeError, AttributeError):
             self.prediction_df = pd.DataFrame()
+        except Exception as e:
+            raise errors.VisualizationError(e)
 
     def __str__(self):
-        return f"{self.commit}"  # TODO: Change it
+        return f"{self.id}"
 
     def save(self, *args, **kwargs):
+        self.add_adm_2_geocode()
+
+        if not bool(self.compatible_predictions):
+            self.update_compatible_predictions()
+
+        super().save(*args, **kwargs)
+
+    def add_adm_2_geocode(self):
         if (
             self.model.type == Model.Types.TIME_SERIES
             and self.model.ADM_level == Model.ADM_levels.MUNICIPALITY
@@ -200,7 +211,60 @@ class Prediction(models.Model):
 
                 self.adm_2_geocode = geocode[0]
 
-        super().save(*args, **kwargs)
+    def update_compatible_predictions(self):
+        predictions = Prediction.objects.filter(~Q(id=self.id))
+
+        for prediction in predictions:
+            if self.model.type != prediction.model.type:
+                continue
+
+            if self.model.disease != prediction.model.disease:
+                continue
+
+            if self.model.ADM_level != prediction.model.ADM_level:
+                continue
+
+            if self.model.time_resolution != prediction.model.time_resolution:
+                continue
+
+            if self.adm_2_geocode != prediction.adm_2_geocode:
+                continue
+
+            if self.prediction_df.empty or prediction.prediction_df.empty:
+                continue
+
+            if set(self.prediction_df.columns) != set(
+                prediction.prediction_df.columns
+            ):
+                continue
+
+            if not (
+                checks.contains_correlated_dates(
+                    self.prediction_df, prediction.prediction_df
+                )
+            ):
+                continue
+
+            # save
+            if prediction.model.id in self.compatible_predictions:
+                self.compatible_predictions[prediction.model.id].append(
+                    prediction.id
+                )
+                self.save()
+            else:
+                self.compatible_predictions[prediction.model.id] = [
+                    prediction.id
+                ]
+                self.save()
+
+            if self.model.id in prediction.compatible_predictions:
+                prediction.compatible_predictions[self.model.id].append(
+                    self.id
+                )
+                prediction.save()
+            else:
+                prediction.compatible_predictions[self.model.id] = [self.id]
+                prediction.save()
 
     def visualizable(
         self,
