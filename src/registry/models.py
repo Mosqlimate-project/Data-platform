@@ -162,11 +162,11 @@ class Prediction(models.Model):
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
     compatible_predictions = models.JSONField(default=dict)
+    adm_2_geocode = models.IntegerField(null=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     prediction_df: pd.DataFrame = pd.DataFrame()
-    adm_2_geocode = models.IntegerField(null=True, default=None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
