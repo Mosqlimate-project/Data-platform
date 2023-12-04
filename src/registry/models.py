@@ -165,31 +165,29 @@ class Prediction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    prediction_df: pd.DataFrame = None
+    prediction_df: pd.DataFrame = pd.DataFrame()
     adm_2_geocode = models.IntegerField(null=True, default=None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        try:
+            self.prediction_df = pd.read_json(StringIO(self.prediction))
+        except (TypeError, AttributeError):
+            self.prediction_df = pd.DataFrame()
+        except Exception as e:
+            raise errors.VisualizationError(e)
+
     def __str__(self):
         return f"{self.id}"
 
     def save(self, *args, **kwargs):
-        self.add_prediction_df()
         self.add_adm_2_geocode()
 
         if not bool(self.compatible_predictions):
             self.update_compatible_predictions()
 
         super().save(*args, **kwargs)
-
-    def add_prediction_df(self):
-        try:
-            self.prediction_df = pd.read_json(StringIO(self.prediction))
-        except TypeError:
-            self.prediction_df = pd.DataFrame()
-        except Exception as e:
-            raise errors.VisualizationError(e)
 
     def add_adm_2_geocode(self):
         if (
@@ -232,16 +230,22 @@ class Prediction(models.Model):
             if self.adm_2_geocode != prediction.adm_2_geocode:
                 continue
 
-            if self.prediction_df.columns != prediction.prediction_df.columns:
+            if self.prediction_df.empty or prediction.prediction_df.empty:
+                continue
+
+            if set(self.prediction_df.columns) != set(
+                prediction.prediction_df.columns
+            ):
                 continue
 
             if not (
-                checks.contain_correlated_dates(
+                checks.contains_correlated_dates(
                     self.prediction_df, prediction.prediction_df
                 )
             ):
                 continue
 
+            # save
             if prediction.model.id in self.compatible_predictions:
                 self.compatible_predictions[prediction.model.id].append(
                     prediction.id
