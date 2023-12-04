@@ -96,8 +96,11 @@ def validate_prediction_obj(obj, validation_regions):
 
     for entry in obj:
         # Check if any key is missing
-        if not all(key in entry for key in required_keys):
-            return "Missing one or more required keys in the entry."
+        if set(required_keys) != set(entry):
+            return (
+                "Missing required keys in the entry: "
+                f"{set(required_keys).difference(set(entry))}"
+            )
 
         # "dates" validation
         dates_value = entry.get("dates")
@@ -151,7 +154,9 @@ def validate_prediction_obj(obj, validation_regions):
         # "adm_0": Country code ## TODO: Change to ISO code
         adm_0_value = entry.get("adm_0")
         if not isinstance(adm_0_value, str) or len(adm_0_value) != 2:
-            return "Invalid data type or length for 'adm_0' field."
+            return (
+                "Invalid data type or length for 'adm_0' field. Format: 'BR'"
+            )
 
     # Return None if all validations pass
     return None
@@ -170,7 +175,7 @@ def validate_prediction(payload):
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(
-        payload.prediction, validation_regions
+        json.loads(str(payload.prediction)), validation_regions
     )
 
     if commit_error:
