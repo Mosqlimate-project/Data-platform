@@ -123,6 +123,7 @@
                 selectedADMLevel=$('#adm-level').val(),
                 selectedGeocode=$(this).val(),
             );
+            updateLineChart($("#predictions").val());
         });
 
         $('#predictions').change(function () {
@@ -141,16 +142,20 @@
         });
 
 
-        function updateLineChart(selectedPredictIds=null) {
+        function updateLineChart(selectedPredictIds = null) {
             var lineChartIframe = $('#lineChart');
             var lineChartUrl = '{% url "line_charts" %}?';
 
             if (selectedPredictIds !== null) {
-                selectedPredictIds.forEach(function(predictId) {
-                    lineChartUrl += 'predict=' + predictId + '&';
+                selectedPredictIds = selectedPredictIds.filter(function(predictId) {
+                    return predictId !== null;
                 });
 
                 if (selectedPredictIds.length > 0) {
+                    selectedPredictIds.forEach(function(predictId) {
+                        lineChartUrl += 'predict=' + predictId + '&';
+                    });
+
                     lineChartUrl = lineChartUrl.slice(0, -1);
                 }
             }
@@ -428,6 +433,7 @@
 
                             if(predictionId.toString() === viewPrediction) {
                                 opt.selected = true;
+                                updateLineChart([viewPrediction]);
                             }
 
                             optGroup.appendChild(opt);

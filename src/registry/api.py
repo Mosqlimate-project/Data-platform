@@ -399,6 +399,7 @@ def get_prediction(request, predict_id: int):
         201: PredictionSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
+        422: UnprocessableContentSchema,
         500: InternalErrorSchema,
     },
     auth=uidkey,
