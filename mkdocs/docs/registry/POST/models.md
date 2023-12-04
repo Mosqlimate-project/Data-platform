@@ -8,6 +8,7 @@
 | description | str or None | Model description |
 | repository | str | Github repository URL |
 | implementation_language | str | Implementation language |
+| disease | str _(iexact)_ | Model disease. Options: Dengue, Zika and Chikungunya |
 | type | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 | ADM_level | str _(iexact)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | str _(iexact)_ | Options are: day, week, month or year |
@@ -41,6 +42,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         description: str, 
         repository: str, 
         implementation_language: str, 
+        disease: Literal["dengue", "chikungunya", "zika"],
         mtype: str,
         adm_level: Literal[0, 1, 2, 3],
         time_resolution: Literal["day", "week", "month", "year"],
@@ -52,6 +54,7 @@ POST requests require [User API Token](uid-key.md) to be called.
             "description": description,
             "repository": repository,
             "implementation_language": implementation_language,
+            "disease": disease,
             "type": mtype,
             "ADM_level": adm_level,
             "time_resolution": time_resolution,
@@ -67,6 +70,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = "My Model description",
         repository = "https://github.com/Mosqlimate-project/Data-platform",
         implementation_language = "Python",
+        disease = "dengue",
         mtype = types[0],
         adm_level = 0, # National
         time_resolution = "week",
@@ -84,6 +88,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       description,
       repository,
       implementation_language,
+      disease,
       mtype,
       adm_level,
       time_resolution
@@ -95,6 +100,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = description,
         repository = repository,
         implementation_language = implementation_language,
+        disease = disease,
         type = mtype,
         ADM_level = adm_level,
         time_resolution = time_resolution
@@ -111,6 +117,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       description = "My Model description",
       repository = "https://github.com/Mosqlimate-project/Data-platform",
       implementation_language = "R",
+      disease = "dengue",
       mtype = types[1],
       adm_level = 0,
       time_resolution = "week"
@@ -129,6 +136,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         "description": "My Model description",
         "repository": "https://github.com/Mosqlimate-project/Data-platform",
         "implementation_language": "Python",
+        "disease": "dengue",
         "type": "nowcast",
         "ADM_level": 0,
         "time_resolution": "week"
