@@ -175,6 +175,37 @@
 
             if (defaultSeries !== null) {
                 disableOnSeries(defaultSeries);
+            } else {
+                $('#disease').selectpicker('deselectAll');
+                $('#adm-level').selectpicker('deselectAll');
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultDisease !== null) {
+                disableOnDisease(defaultSeries, defaultDisease);
+            } else {
+                $('#adm-level').selectpicker('deselectAll');
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultADMLevel !== null) {
+                disableOnADMLevel(defaultSeries, defaultDisease, defaultADMLevel);
+            } else {
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultGeocode !== null) {
+                disableOnGeocode(
+                    defaultSeries, 
+                    defaultDisease, 
+                    defaultADMLevel,
+                    defaultGeocode
+                );
+            } else {
+                $("#predictions").selectpicker('deselectAll');
             }
 
             updateLineChart([defaultPrediction]);
@@ -373,11 +404,6 @@
                                     );
                                     count++;
                                 }
-
-                                if (count === 0) {
-                                    $('#geocode option[value="' + geocode + '"]').prop('selected', true);
-                                    count++;
-                                }
                             })
                             .catch(error => {
                                 console.error('Error:', error.message);
@@ -385,7 +411,6 @@
                         }
                     })(geocode);
                 }
-
 
             } else { // TODO: Handle '0', '1' and '3' cases individually
                 $('#geocode-div').hide();
@@ -410,7 +435,8 @@
             selectedADMLevel, 
             selectedGeocode
         ) {
-            $("#predictions").empty();
+            console.log($('#geocode').val())
+
             let modelsInfo = getItems(
                 series=series,
                 disease=selectedDisease,
@@ -418,7 +444,6 @@
                 geocode=$('#geocode').val(),
             );
             createModelsPredictionsSelector(modelsInfo);
-            $('#predictions').selectpicker('refresh');
         }
 
 
