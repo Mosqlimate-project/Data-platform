@@ -182,32 +182,6 @@
                 $("#predictions").selectpicker('deselectAll');
             }
 
-            if (defaultDisease !== null) {
-                disableOnDisease(defaultSeries, defaultDisease);
-            } else {
-                $('#adm-level').selectpicker('deselectAll');
-                $('#geocode').selectpicker('deselectAll');
-                $("#predictions").selectpicker('deselectAll');
-            }
-
-            if (defaultADMLevel !== null) {
-                disableOnADMLevel(defaultSeries, defaultDisease, defaultADMLevel);
-            } else {
-                $('#geocode').selectpicker('deselectAll');
-                $("#predictions").selectpicker('deselectAll');
-            }
-
-            if (defaultGeocode !== null) {
-                disableOnGeocode(
-                    defaultSeries, 
-                    defaultDisease, 
-                    defaultADMLevel,
-                    defaultGeocode
-                );
-            } else {
-                $("#predictions").selectpicker('deselectAll');
-            }
-
             updateLineChart([defaultPrediction]);
         }
 
@@ -435,13 +409,11 @@
             selectedADMLevel, 
             selectedGeocode
         ) {
-            console.log($('#geocode').val())
-
             let modelsInfo = getItems(
                 series=series,
                 disease=selectedDisease,
-                admLevel=$('#adm-level').val(),
-                geocode=$('#geocode').val(),
+                admLevel=selectedADMLevel,
+                geocode=selectedGeocode,
             );
             createModelsPredictionsSelector(modelsInfo);
         }
