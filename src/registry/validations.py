@@ -36,7 +36,7 @@ def validate_predict_date(predict_date: str) -> str:
     """
     try:
         # Use date.fromisoformat to parse the date
-        parsed_date = date.fromisoformat(predict_date)
+        parsed_date = date.fromisoformat(str(predict_date))
     except ValueError:
         return "Invalid predict_date format. Use YYYY-MM-DD."
 
@@ -86,7 +86,7 @@ def validate_prediction_obj(obj, validation_regions) -> str:
         date_value = entry.get("dates")
         try:
             # Use date.fromisoformat to parse the date
-            parsed_date = date.fromisoformat(date_value)
+            parsed_date = date.fromisoformat(str(date_value))
         except ValueError:
             return "Invalid date format on column 'dates'. Use 'YYYY-MM-DD'."
 
@@ -155,7 +155,7 @@ def validate_prediction(payload: dict) -> tuple:
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(
-        json.loads(str(payload.prediction)), validation_regions
+        payload.prediction, validation_regions
     )
 
     if commit_error:

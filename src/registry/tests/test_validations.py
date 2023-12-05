@@ -166,6 +166,7 @@ class TestValidCreateModel(TestCase):
             description="Test description",
             repository="https://github.com/testuser/test-repo",
             implementation_language="Python",
+            disease="dengue",
             type="valid_data",
             ADM_level=3,
             time_resolution="month",
