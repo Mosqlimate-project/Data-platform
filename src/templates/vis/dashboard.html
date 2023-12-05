@@ -453,33 +453,30 @@
         }
 
 
-        function getModelItemDesc(modelId) {
-            return fetch(`/vis/get-model-item/${modelId}/`)
+        function getItemDesc(endpoint, itemId) {
+            return fetch(`/vis/${endpoint}/${itemId}/`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`Error fetching model: ${response.statusText}`);
+                        throw new Error(`Error fetching ${endpoint}: ${response.statusText}`);
                     }
                     return response.json();
                 })
                 .then(data => data)
                 .catch(error => {
-                    console.error('Error:', error.message);
+                    console.error(`Error fetching ${endpoint}:`, error.message);
                 });
         }
 
+        function getModelItemDesc(modelId) {
+            return getItemDesc('get-model-item', modelId);
+        }
 
         function getPredictionItemDesc(predictionId) {
-            return fetch(`/vis/get-prediction-item/${predictionId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error fetching prediction: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => data)
-                .catch(error => {
-                    console.error('Error:', error.message);
-                });
+            return getItemDesc('get-prediction-item', predictionId);
+        }
+
+        function getGeocodeItemDesc(geocode) {
+            return getItemDesc('get-geocode-info', geocode);
         }
 
     });
