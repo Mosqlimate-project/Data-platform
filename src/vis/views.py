@@ -125,17 +125,32 @@ class LineChartsView(View):
                 predictions.add(predict)
 
         ids = []
+        infos = []
         for prediction in predictions:
+            info = {}
             ids.append(prediction.id)
+            info["model_id"] = prediction.model.id
+            info["disease"] = prediction.model.disease.capitalize()
+            if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
+                geocode = prediction.adm_2_geocode
+                geocode_info = json.loads(
+                    get_geocode_info(request, geocode).content
+                )
+                info["locality"] = geocode_info["municipio"]
+            else:
+                info["locality"] = "BR"  # TODO
+            info["prediction_id"] = prediction.id
+            infos.append(info)
 
         context["prediction_ids"] = ids
+        context["prediction_infos"] = infos
 
         try:
             line_chart = line_charts_by_geocode(
                 title="Forecast of dengue new cases",
                 predictions_ids=ids,
                 disease="dengue",
-                width=400,
+                width=450,
             )
             line_chart = line_chart.to_html().replace(
                 "</head>",
