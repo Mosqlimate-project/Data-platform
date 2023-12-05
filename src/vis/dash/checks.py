@@ -1,3 +1,4 @@
+from datetime import date
 import pandas as pd
 
 
@@ -15,6 +16,13 @@ def contains_correlated_dates(
         return False
 
     return bool(dates1.intersection(dates2))
+
+
+def validate_start_end_dates_adm2(
+    df: pd.DataFrame, start: date, end: date
+) -> bool:
+    if not _line_chart_adm_2_df_columns(df):
+        return False
 
 
 def line_chart_adm2(df: pd.DataFrame) -> bool:

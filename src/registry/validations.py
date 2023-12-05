@@ -25,32 +25,31 @@ def validate_description(description: str) -> str:
         Please remove {len(description) - max_length} characters."""
 
 
-def validate_predict_date(predict_date) -> str:
+def validate_predict_date(predict_date: str) -> str:
     """Validate the predict_date based on specified criteria.
 
     Args:
-        predict_date (str or date): Predicted date or date object.
+        predict_date (str): Predicted date or date object. Format: YYYY-mm-dd
 
     Returns:
         str: Error message if any validation check fails, otherwise None.
     """
-    if isinstance(predict_date, date):
-        predict_date_str = predict_date.isoformat()
-    else:
-        predict_date_str = predict_date
-
     try:
-        parsed_date = datetime.fromisoformat(predict_date_str).date()
-
-        one_year_ago = date.today() - timedelta(days=365)
-        if parsed_date < one_year_ago:
-            return "Invalid predict_date. Should be at least one year ago."
-
-        if parsed_date > date.today():
-            return "Invalid predict_date. Cannot be in the future."
-
+        # Use date.fromisoformat to parse the date
+        parsed_date = date.fromisoformat(predict_date)
     except ValueError:
         return "Invalid predict_date format. Use YYYY-MM-DD."
+
+    # Check if the parsed date is at least one year ago
+    one_year_ago = date.today() - timedelta(days=365)
+    if parsed_date < one_year_ago:
+        return "Invalid predict_date. Should be at least one year ago."
+
+    # Check if the parsed date is not in the future
+    if parsed_date > date.today():
+        return "Invalid predict_date. Cannot be in the future."
+
+    return None
 
 
 def validate_prediction_obj(obj, validation_regions) -> str:
@@ -83,23 +82,25 @@ def validate_prediction_obj(obj, validation_regions) -> str:
                 f"{set(required_keys).difference(set(entry))}"
             )
 
-        dates_value = entry.get("dates")
-        if not isinstance(dates_value, str) or len(dates_value) != 10:
-            return "Invalid data type or length for 'dates' field."
-
+        # "dates" validation
+        date_value = entry.get("dates")
         try:
-            parsed_date = datetime.fromisoformat(dates_value)
-            current_year = datetime.now().year
-            if not 2010 <= parsed_date.year <= current_year:
-                return """\n
-                    Invalid 'dates' year. Should be between 2010 
-                    and the current year.
-                """
-            if parsed_date.date() > date.today():
-                return "Invalid 'dates'. Cannot be in the future."
-
+            # Use date.fromisoformat to parse the date
+            parsed_date = date.fromisoformat(date_value)
         except ValueError:
-            return "Invalid 'dates' format. Use YYYY-MM-DD."
+            return "Invalid date format on column 'dates'. Use 'YYYY-MM-DD'."
+
+        # Check if the year is within a valid range (2010 to current year)
+        current_year = datetime.now().year
+        if not 2010 <= parsed_date.year <= current_year:
+            return """\n
+                Invalid 'dates' year. Should be between 2010 
+                and the current year.
+            """
+
+        # Check if the parsed date is not in the future
+        if parsed_date > date.today():
+            return "Invalid 'dates'. Cannot be in the future."
 
         for field in ["preds", "lower", "upper"]:
             if not isinstance(entry.get(field), float):

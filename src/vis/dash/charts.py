@@ -9,7 +9,16 @@ from vis.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
 
 
-def predictions_df_by_geocode(predictions_ids: list[int]):
+def predictions_df_by_geocode(
+    predictions_ids: list[int], start: str = None, end: str = None
+):
+    """
+    Get concatenated predictions' DataFrames.
+    @attr:
+        predictions_ids: list[int] = list of Predictions IDs.
+        start: str(datetime.date) = start date
+        end: str(datetime.date) = end date
+    """
     predicts = []
     for id in predictions_ids:
         try:
@@ -17,9 +26,6 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
             predicts.append(p)
         except Prediction.DoesNotExist:
             raise NotFoundError(f"Prediction with ID {id} was not found")
-
-    # if not compatible_predictions(predicts):
-    #     raise ComparisonError(predicts)  # TODO
 
     dfs = []
     for p in predicts:
@@ -38,7 +44,7 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
 
     if df.empty:
         # TODO: Improve error handling
-        raise NotFoundError("empty dataframe")
+        raise NotFoundError("No data found. Dataframe is empty")
 
     return df
 
