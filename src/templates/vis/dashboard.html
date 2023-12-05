@@ -53,7 +53,7 @@
 
                 <center>
                     <label for="predictions" class="text-white">{% trans "Predictions" %}:</label>
-                    <select name="predictions" id="predictions" class="selectpicker" data-size="10" multiple>
+                    <select name="predictions" id="predictions" class="selectpicker" data-size="7" multiple>
                     </select>
                 </center>
 
@@ -175,6 +175,37 @@
 
             if (defaultSeries !== null) {
                 disableOnSeries(defaultSeries);
+            } else {
+                $('#disease').selectpicker('deselectAll');
+                $('#adm-level').selectpicker('deselectAll');
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultDisease !== null) {
+                disableOnDisease(defaultSeries, defaultDisease);
+            } else {
+                $('#adm-level').selectpicker('deselectAll');
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultADMLevel !== null) {
+                disableOnADMLevel(defaultSeries, defaultDisease, defaultADMLevel);
+            } else {
+                $('#geocode').selectpicker('deselectAll');
+                $("#predictions").selectpicker('deselectAll');
+            }
+
+            if (defaultGeocode !== null) {
+                disableOnGeocode(
+                    defaultSeries, 
+                    defaultDisease, 
+                    defaultADMLevel,
+                    defaultGeocode
+                );
+            } else {
+                $("#predictions").selectpicker('deselectAll');
             }
 
             updateLineChart([defaultPrediction]);
@@ -353,30 +384,34 @@
                 let count = 0;
                 for (var g = 0; g < availableGeocodes.length; g++) {
                     let geocode = availableGeocodes[g];
-                    if (geocodes.includes(geocode.toString())) {
-                        var opt = document.createElement('option');
-                        opt.value = geocode;   
-                        opt.innerHTML = geocode;
-                        $("#geocode").append(opt).selectpicker('refresh');
 
-                        if (geocode.toString() === viewGeocode) {
-                            $('#geocode option[value="' + geocode + '"]').prop('selected', true);
-                            count++;
-                        }
+                    (function(geocode) {
+                        if (geocodes.includes(geocode.toString())) {
+                            getGeocodeItemDesc(geocode)
+                                .then(result => {
+                                var opt = document.createElement('option');
+                                opt.value = geocode;   
+                                opt.innerHTML = `${result.uf} - ${result.municipio} (${geocode})`;
+                                $("#geocode").append(opt).selectpicker('refresh');
 
-                        if (count === 0) {
-                            $('#geocode option[value="' + geocode + '"]').prop('selected', true);
-                            count++;
+                                if (geocode.toString() === viewGeocode) {
+                                    $('#geocode option[value="' + geocode + '"]').prop('selected', true);
+                                    disableOnGeocode(
+                                        series=series,
+                                        selectedDisease=selectedDisease,
+                                        selectedADMLevel=selectedADMLevel,
+                                        selectedGeocode=geocode,
+                                    );
+                                    count++;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error.message);
+                            });
                         }
-                    }
+                    })(geocode);
                 }
 
-                disableOnGeocode(
-                    series=series,
-                    selectedDisease=selectedDisease,
-                    selectedADMLevel=selectedADMLevel,
-                    selectedGeocode=$('#geocode').val(),
-                );
             } else { // TODO: Handle '0', '1' and '3' cases individually
                 $('#geocode-div').hide();
 
@@ -400,6 +435,8 @@
             selectedADMLevel, 
             selectedGeocode
         ) {
+            console.log($('#geocode').val())
+
             let modelsInfo = getItems(
                 series=series,
                 disease=selectedDisease,
@@ -411,73 +448,72 @@
 
 
         function createModelsPredictionsSelector(info) {
-            // info: {model_id: [prediction_id]}
+            // info: {model_id: [prediction_ids]}
             $("#predictions").empty();
 
             for (var modelId in info) {
-                let predictionIds = info[modelId];
-                let viewPrediction = "{{ selected_prediction|safe }}"
+                (function(modelId) {
+                    let predictionIds = info[modelId];
+                    let viewPrediction = "{{ selected_prediction|safe }}"
 
-                getModelItemDesc(modelId)
-                    .then(result => {
+                    getModelItemDesc(modelId)
+                        .then(result => {
 
-                        var optGroup = document.createElement('optgroup');
-                        optGroup.value = modelId;
-                        optGroup.label = modelId + " - " + result.name;
+                            var optGroup = document.createElement('optgroup');
+                            optGroup.value = modelId;
+                            optGroup.label = modelId + " - " + result.name;
 
-                        for (var prediction in predictionIds) {
-                            var predictionId = predictionIds[prediction];
-                            var opt = document.createElement('option');
-                            opt.value = predictionId;
-                            opt.innerHTML = "Prediction " + predictionId;
+                            for (var prediction in predictionIds) {
+                                var predictionId = predictionIds[prediction];
+                                var opt = document.createElement('option');
+                                opt.value = predictionId;
+                                opt.innerHTML = "Prediction " + predictionId;
 
-                            if(predictionId.toString() === viewPrediction) {
-                                opt.selected = true;
-                                updateLineChart([viewPrediction]);
+                                if(predictionId.toString() === viewPrediction) {
+                                    opt.selected = true;
+                                    updateLineChart([viewPrediction]);
+                                }
+
+                                optGroup.appendChild(opt);
                             }
 
-                            optGroup.appendChild(opt);
-                        }
-
-                        $("#predictions").append(optGroup);
-                        $("#predictions").selectpicker('refresh');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error.message);
-                    });
+                            $("#predictions").append(optGroup);
+                            $("#predictions").selectpicker('refresh');
+                        })
+                        .catch(error => {
+                            console.error('Error:', error.message);
+                        });
+                    })(modelId);
             }
 
             $('#predictions').selectpicker('refresh');
         }
 
 
-        function getModelItemDesc(modelId) {
-            return fetch(`/vis/get-model-item/${modelId}/`)
+        function getItemDesc(endpoint, itemId) {
+            return fetch(`/vis/${endpoint}/${itemId}/`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`Error fetching model: ${response.statusText}`);
+                        throw new Error(`Error fetching ${endpoint}: ${response.statusText}`);
                     }
                     return response.json();
                 })
                 .then(data => data)
                 .catch(error => {
-                    console.error('Error:', error.message);
+                    console.error(`Error fetching ${endpoint}:`, error.message);
                 });
         }
 
+        function getModelItemDesc(modelId) {
+            return getItemDesc('get-model-item', modelId);
+        }
 
         function getPredictionItemDesc(predictionId) {
-            return fetch(`/vis/get-prediction-item/${predictionId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error fetching prediction: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => data)
-                .catch(error => {
-                    console.error('Error:', error.message);
-                });
+            return getItemDesc('get-prediction-item', predictionId);
+        }
+
+        function getGeocodeItemDesc(geocode) {
+            return getItemDesc('get-geocode-info', geocode);
         }
 
     });

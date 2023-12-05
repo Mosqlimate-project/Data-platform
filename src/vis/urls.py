@@ -15,4 +15,9 @@ urlpatterns = [
         views.get_prediction_selector_item,
         name="get_prediction_selector_item",
     ),
+    path(
+        "get-geocode-info/<int:geocode>/",
+        views.get_geocode_info,
+        name="get_geocode_info",
+    ),
 ]

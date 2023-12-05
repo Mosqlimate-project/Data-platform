@@ -1,5 +1,6 @@
+import os
 import json
-from typing import Literal
+from typing import Literal, Union
 from collections import defaultdict
 
 from django.shortcuts import render, get_object_or_404
@@ -9,6 +10,7 @@ from django.views import View
 from registry.models import Model, Prediction
 from .dash.errors import VisualizationError
 from .dash.charts import line_charts_by_geocode
+from .home.vis_charts import uf_ibge_mapping
 
 
 class VisualizationsView(View):
@@ -123,17 +125,32 @@ class LineChartsView(View):
                 predictions.add(predict)
 
         ids = []
+        infos = []
         for prediction in predictions:
+            info = {}
             ids.append(prediction.id)
+            info["model_id"] = prediction.model.id
+            info["disease"] = prediction.model.disease.capitalize()
+            if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
+                geocode = prediction.adm_2_geocode
+                geocode_info = json.loads(
+                    get_geocode_info(request, geocode).content
+                )
+                info["locality"] = geocode_info["municipio"]
+            else:
+                info["locality"] = "BR"  # TODO
+            info["prediction_id"] = prediction.id
+            infos.append(info)
 
         context["prediction_ids"] = ids
+        context["prediction_infos"] = infos
 
         try:
             line_chart = line_charts_by_geocode(
                 title="Forecast of dengue new cases",
                 predictions_ids=ids,
                 disease="dengue",
-                width=400,
+                width=450,
             )
             line_chart = line_chart.to_html().replace(
                 "</head>",
@@ -207,6 +224,26 @@ def get_prediction_selector_item(request, prediction_id):
         return JsonResponse(data)
     except Prediction.DoesNotExist:
         return JsonResponse({"error": "Prediction not found"}, status=404)
+
+
+def get_geocode_info(request, geocode: Union[str, int]):
+    geocode = str(geocode)
+    municipios_file = os.path.join("static", "data/geo/BR/municipios.json")
+
+    if os.path.isfile(municipios_file):
+        with open(municipios_file, "r") as f:
+            geocodes = json.load(f)
+
+        data = geocodes[geocode]
+        uf_code = data["codigo_uf"]
+
+        for uf, info in uf_ibge_mapping.items():
+            if str(info["code"]) == str(uf_code):
+                data["uf"] = uf
+
+        return JsonResponse(data)
+    else:
+        return JsonResponse({"error": "Geocode not found"}, status=404)
 
 
 def generate_models_compatibility_info(
