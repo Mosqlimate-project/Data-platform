@@ -411,40 +411,42 @@
 
 
         function createModelsPredictionsSelector(info) {
-            // info: {model_id: [prediction_id]}
+            // info: {model_id: [prediction_ids]}
             $("#predictions").empty();
 
             for (var modelId in info) {
-                let predictionIds = info[modelId];
-                let viewPrediction = "{{ selected_prediction|safe }}"
+                (function(modelId) {
+                    let predictionIds = info[modelId];
+                    let viewPrediction = "{{ selected_prediction|safe }}"
 
-                getModelItemDesc(modelId)
-                    .then(result => {
+                    getModelItemDesc(modelId)
+                        .then(result => {
 
-                        var optGroup = document.createElement('optgroup');
-                        optGroup.value = modelId;
-                        optGroup.label = modelId + " - " + result.name;
+                            var optGroup = document.createElement('optgroup');
+                            optGroup.value = modelId;
+                            optGroup.label = modelId + " - " + result.name;
 
-                        for (var prediction in predictionIds) {
-                            var predictionId = predictionIds[prediction];
-                            var opt = document.createElement('option');
-                            opt.value = predictionId;
-                            opt.innerHTML = "Prediction " + predictionId;
+                            for (var prediction in predictionIds) {
+                                var predictionId = predictionIds[prediction];
+                                var opt = document.createElement('option');
+                                opt.value = predictionId;
+                                opt.innerHTML = "Prediction " + predictionId;
 
-                            if(predictionId.toString() === viewPrediction) {
-                                opt.selected = true;
-                                updateLineChart([viewPrediction]);
+                                if(predictionId.toString() === viewPrediction) {
+                                    opt.selected = true;
+                                    updateLineChart([viewPrediction]);
+                                }
+
+                                optGroup.appendChild(opt);
                             }
 
-                            optGroup.appendChild(opt);
-                        }
-
-                        $("#predictions").append(optGroup);
-                        $("#predictions").selectpicker('refresh');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error.message);
-                    });
+                            $("#predictions").append(optGroup);
+                            $("#predictions").selectpicker('refresh');
+                        })
+                        .catch(error => {
+                            console.error('Error:', error.message);
+                        });
+                    })(modelId);
             }
 
             $('#predictions').selectpicker('refresh');
