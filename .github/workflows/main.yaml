@@ -75,6 +75,7 @@ jobs:
     - name: Test registry
       run: |
         sugar run --service django --cmd "python manage.py test -v 2 registry.tests.test_api"
+        sugar run --service django --cmd "python manage.py test -v 2 registry.tests.test_validations"
 
     # - name: Container wait
     #   run: |
