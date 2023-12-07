@@ -8,7 +8,6 @@ from django.http import JsonResponse
 from django.views import View
 
 from registry.models import Model, Prediction
-from .dash.errors import VisualizationError
 from .dash.charts import line_charts_by_geocode
 from .home.vis_charts import uf_ibge_mapping
 
@@ -28,57 +27,31 @@ class VisualizationsView(View):
         selected_adm_level: Literal[0, 1, 2, 3] = 2
         selected_disease: Literal["dengue", "zika", "chikungunya"] = "dengue"
         selected_geocode: int = None
-        selected_model: int = None
         selected_prediction: int = None
 
         line_charts_default_items = []
 
-        for model in all_models:
-            charts = model.get_visualizables()
-            if charts:
-                for chart in charts:
-                    if str(model.id) == model_id:
-                        selected_series = model.type
-                        selected_adm_level = model.ADM_level
-                        selected_disease = model.disease
-                        if chart == "LineChartADM2":
-                            predictions = Prediction.objects.filter(
-                                model=model
-                            )
-                            geocodes = list(
-                                set(
-                                    p.adm_2_geocode
-                                    for p in predictions
-                                    if p.adm_2_geocode
-                                )
-                            )
-                            selected_geocode = geocodes[0]
-                        selected_model = model.id
-                        line_charts_default_items.append(f"model={model.id}")
-                        if not selected_series:
-                            selected_series = model.type
-                            if not selected_disease:
-                                selected_disease = model.disease
-                            if model.disease != selected_disease:
-                                # TODO: Improve error handling
-                                raise VisualizationError(
-                                    "Two different diseases have been added "
-                                    "to be visualized"
-                                )
+        if model_id:
+            model = get_object_or_404(Model, pk=int(model_id))
+            selected_series = model.type
+            selected_adm_level = model.ADM_level
+            selected_disease = model.disease
+            predictions = Prediction.objects.filter(model=model)
+            geocodes = list(
+                set(p.adm_2_geocode for p in predictions if p.adm_2_geocode)
+            )
+            selected_geocode = geocodes[0]
 
-                    for prediction in charts[chart]:
-                        if str(prediction.id) == prediction_id:
-                            selected_series = prediction.model.type
-                            selected_adm_level = model.ADM_level
-                            selected_disease = model.disease
-                            if chart == "LineChartADM2":
-                                selected_geocode = prediction.adm_2_geocode
-                            selected_model = model.id
-                            selected_prediction = prediction.id
+        if prediction_id:
+            prediction = get_object_or_404(Prediction, pk=int(prediction_id))
+            selected_series = prediction.model.type
+            selected_adm_level = model.ADM_level
+            selected_disease = model.disease
+            if prediction.adm_2_geocode:
+                selected_geocode = prediction.adm_2_geocode
+            selected_prediction = prediction.id
 
-                            line_charts_default_items.append(
-                                f"predict={prediction.id}"
-                            )
+            line_charts_default_items.append(f"predict={prediction.id}")
 
         context["compatibilities"] = generate_models_compatibility_info(
             all_models, json_return=True
@@ -95,7 +68,6 @@ class VisualizationsView(View):
         context["selected_adm_level"] = selected_adm_level
         context["selected_disease"] = selected_disease
         context["selected_geocode"] = selected_geocode
-        context["selected_model"] = selected_model
         context["selected_prediction"] = selected_prediction
 
         context["line_charts_default_uri"] = "?" + "&".join(

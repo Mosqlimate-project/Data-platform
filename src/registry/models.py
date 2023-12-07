@@ -161,7 +161,9 @@ class Prediction(models.Model):
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
-    compatible_predictions = models.JSONField(default=dict)
+    compatible_predictions = models.JSONField(
+        default=dict, blank=True, null=True
+    )
     adm_2_geocode = models.IntegerField(null=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
