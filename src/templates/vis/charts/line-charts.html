@@ -16,19 +16,21 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th scope="col">Model</th>
-                    <th scope="col">Disease</th>
-                    <th scope="col">Locality</th>
-                    <th scope="col">Prediction</th>
+                    <th scope="col">{% trans "Model" %}</th>
+                    <th scope="col">{% trans "Disease" %}</th>
+                    <th scope="col">{% trans "Locality" %}</th>
+                    <th scope="col">{% trans "Prediction" %}</th>
+                    <th scope="col">{% trans "Prediction Date" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for info in prediction_infos %}
                 <tr>
-                    <th scope="row">{{info.model_id}}</th>
+                    <td>{{info.model_id}}</td>
                     <td>{{info.disease}}</td>
                     <td>{{info.locality}}</td>
                     <td>{{info.prediction_id}}</td>
+                    <td>{{info.prediction_date}}</td>
                 </tr>
                 {% endfor %}
             </tbody>

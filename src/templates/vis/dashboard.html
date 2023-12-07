@@ -98,8 +98,6 @@
 <script>
     $(document).ready(function () {
 
-        disableDefaults();
-
         $('#series').change(function () {
             disableOnSeries($(this).val());
         });
@@ -176,13 +174,31 @@
             if (defaultSeries !== null) {
                 disableOnSeries(defaultSeries);
             } else {
-                $('#disease').selectpicker('deselectAll');
-                $('#adm-level').selectpicker('deselectAll');
-                $('#geocode').selectpicker('deselectAll');
-                $("#predictions").selectpicker('deselectAll');
+                $('#series').selectpicker('deselectAll');
+                $('#series').selectpicker('refresh');
             }
 
-            updateLineChart([defaultPrediction]);
+            if (defaultDisease === null) {
+                $('#disease').selectpicker('deselectAll');
+                $('#disease').selectpicker('refresh');
+            }
+
+            if (defaultADMLevel === null) {
+                $('#adm-level').selectpicker('deselectAll');
+                $('#adm-level').selectpicker('refresh');
+            }
+
+            if (defaultGeocode === null) {
+                $('#geocode').selectpicker('deselectAll');
+                $('#geocode').selectpicker('refresh');
+            }
+
+            if (defaultPrediction === null) {
+                $("#predictions").selectpicker('deselectAll');
+                $("#predictions").selectpicker('refresh');
+            } else {
+                updateLineChart([defaultPrediction]);
+            }
         }
 
 
@@ -366,6 +382,7 @@
                                 var opt = document.createElement('option');
                                 opt.value = geocode;   
                                 opt.innerHTML = `${result.uf} - ${result.municipio} (${geocode})`;
+                                opt.selected = false; // not working
                                 $("#geocode").append(opt).selectpicker('refresh');
 
                                 if (geocode.toString() === viewGeocode) {
@@ -377,7 +394,7 @@
                                         selectedGeocode=geocode,
                                     );
                                     count++;
-                                }
+                                } 
                             })
                             .catch(error => {
                                 console.error('Error:', error.message);
@@ -487,6 +504,8 @@
         function getGeocodeItemDesc(geocode) {
             return getItemDesc('get-geocode-info', geocode);
         }
+
+        disableDefaults();
 
     });
 

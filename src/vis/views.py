@@ -130,6 +130,7 @@ class LineChartsView(View):
             info = {}
             ids.append(prediction.id)
             info["model_id"] = prediction.model.id
+            info["prediction_id"] = prediction.id
             info["disease"] = prediction.model.disease.capitalize()
             if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
                 geocode = prediction.adm_2_geocode
@@ -139,7 +140,7 @@ class LineChartsView(View):
                 info["locality"] = geocode_info["municipio"]
             else:
                 info["locality"] = "BR"  # TODO
-            info["prediction_id"] = prediction.id
+            info["prediction_date"] = prediction.predict_date
             infos.append(info)
 
         context["prediction_ids"] = ids
