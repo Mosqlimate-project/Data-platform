@@ -16,6 +16,9 @@ jobs:
       issues: write
       pull-requests: write
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     defaults:
       run:
         shell: bash -l {0}
@@ -48,14 +51,10 @@ jobs:
 
       - name: Run semantic release (for tests)
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           makim release.dry
 
       - name: Release command
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           makim release.ci
