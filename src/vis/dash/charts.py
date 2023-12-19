@@ -4,9 +4,60 @@ import pandas as pd
 import altair as alt
 
 from registry.models import Prediction
-
 from vis.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
+from itertools import product
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import mean_squared_log_error as msle
+from sklearn.metrics import mean_absolute_error as mae
+from sklearn.metrics import mean_absolute_percentage_error as mape
+
+
+def create_error_df(
+    data: pd.DataFrame,
+    preds: pd.DataFrame,
+) -> pd.DataFrame:
+    models = preds.model.unique()
+
+    metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
+
+    df_error = pd.DataFrame(columns=["model", "metric", "error"])
+
+    for model, metric in product(models, metrics):
+        if metric == "MAE":
+            erro = mae(
+                data.target, preds.loc[preds.model == model].predictions
+            )
+
+        if metric == "MSE":
+            erro = mse(
+                data.target, preds.loc[preds.model == model].predictions
+            )
+
+        if metric == "RMSE":
+            erro = mse(
+                data.target,
+                preds.loc[preds.model == model].predictions,
+                squared=False,
+            )
+
+        if metric == "MSLE":
+            erro = msle(
+                data.target, preds.loc[preds.model == model].predictions
+            )
+
+        if metric == "MAPE":
+            erro = mape(
+                data.target, preds.loc[preds.model == model].predictions
+            )
+
+        df_e = {"model": [model], "metric": [metric], "error": [erro]}
+
+        df_error = pd.concat([df_error, pd.DataFrame(df_e)])
+
+    df_error = df_error.reset_index(drop=True)
+
+    return df_error
 
 
 def predictions_df_by_geocode(predictions_ids: list[int]):
@@ -81,6 +132,31 @@ def data_chart_by_geocode(
     )
 
     return chart
+
+
+def get_cases_by_geocode(
+    disease: Literal["dengue", "chikungunya", "zika"],
+    start: date,
+    end: date,
+    geocode: int,
+    x: str = "dates",
+    y: str = "target",
+) -> pd.DataFrame:
+    hist_alerta = historico_alerta_data_for(disease)
+    data = hist_alerta.filter(
+        data_iniSE__gt=start, data_iniSE__lt=end, municipio_geocodigo=geocode
+    )
+
+    res = {x: [], y: []}
+    for obj in data:
+        res[x].append(obj.data_iniSE)
+        res[y].append(obj.casos)
+
+    df = pd.DataFrame(res)
+    df["legend"] = "Data"
+    df.dates = pd.to_datetime(df.dates)
+
+    return df
 
 
 def line_charts_by_geocode(
@@ -181,6 +257,72 @@ def line_charts_by_geocode(
     )
 
     return final
+
+
+def error_bar_charts_by_geocode(
+    title: str,
+    predictions_ids: list[int],
+    width="container",
+    disease: str = "dengue",
+):
+    geocode: int = None
+
+    for prediction_id in predictions_ids:
+        try:
+            prediction = Prediction.objects.get(pk=prediction_id)
+        except Prediction.DoesNotExist:
+            # TODO: Improve error handling
+            raise VisualizationError("Prediction not found")
+
+        if not geocode:
+            geocode = prediction.adm_2_geocode
+
+        if geocode != prediction.adm_2_geocode:
+            raise VisualizationError(
+                "Two different geocodes were added to be visualized"
+            )
+
+    if not geocode:
+        raise VisualizationError("No geocode was selected to be visualized")
+
+    predicts_df = predictions_df_by_geocode(predictions_ids)
+
+    data = get_cases_by_geocode(
+        disease=disease,
+        geocode=geocode,
+        start=min(predicts_df.dates),
+        end=max(predicts_df.dates),
+        x="dates",
+        y="target",
+    )
+
+    df_error = create_error_df(
+        data=data,
+        preds=predicts_df,
+    )
+
+    metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
+
+    input_dropdown = alt.binding_select(options=metrics, name="Metrics")
+    selection = alt.selection_single(fields=["metric"], bind=input_dropdown)
+
+    bars = (
+        alt.Chart(df_error)
+        .mark_bar()
+        .encode(
+            x="error",
+            y=alt.Y("model:N").sort("x"),
+            color="model:N",
+            tooltip=["error"],
+        )
+        .add_selection(selection)
+        .transform_filter(selection)
+        .properties(
+            width=width,
+        )
+    )
+
+    return bars
 
 
 def base_model_chart(
