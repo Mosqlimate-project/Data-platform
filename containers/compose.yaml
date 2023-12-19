@@ -77,14 +77,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     user: "${POSTGRES_HOST_UID}:${POSTGRES_HOST_GID}"
     volumes:
-      - ${POSTGRES_CONF_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ${POSTGRES_CONF_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf
       - ${POSTGRES_DATA_DIR_HOST}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER}"]
       interval: 60s
       timeout: 5s
       retries: 10
-    command: -p ${POSTGRES_PORT}
+    command: ["-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     networks:
       - mosqlimate
 
