@@ -17,41 +17,41 @@ def create_error_df(
     data: pd.DataFrame,
     preds: pd.DataFrame,
 ) -> pd.DataFrame:
-    models = preds.model.unique()
+    predict_ids = preds.predict_id.unique()
 
     metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
 
-    df_error = pd.DataFrame(columns=["model", "metric", "error"])
+    df_error = pd.DataFrame(columns=["predict_id", "metric", "error"])
 
-    for model, metric in product(models, metrics):
+    for pred_id, metric in product(predict_ids, metrics):
         if metric == "MAE":
             erro = mae(
-                data.target, preds.loc[preds.model == model].predictions
+                data.target, preds.loc[preds.predict_id == pred_id].preds
             )
 
         if metric == "MSE":
             erro = mse(
-                data.target, preds.loc[preds.model == model].predictions
+                data.target, preds.loc[preds.predict_id == pred_id].preds
             )
 
         if metric == "RMSE":
             erro = mse(
                 data.target,
-                preds.loc[preds.model == model].predictions,
+                preds.loc[preds.predict_id == pred_id].preds,
                 squared=False,
             )
 
         if metric == "MSLE":
             erro = msle(
-                data.target, preds.loc[preds.model == model].predictions
+                data.target, preds.loc[preds.predict_id == pred_id].preds
             )
 
         if metric == "MAPE":
             erro = mape(
-                data.target, preds.loc[preds.model == model].predictions
+                data.target, preds.loc[preds.predict_id == pred_id].preds
             )
 
-        df_e = {"model": [model], "metric": [metric], "error": [erro]}
+        df_e = {"predict_id": [pred_id], "metric": [metric], "error": [erro]}
 
         df_error = pd.concat([df_error, pd.DataFrame(df_e)])
 
@@ -311,14 +311,14 @@ def error_bar_charts_by_geocode(
         .mark_bar()
         .encode(
             x="error",
-            y=alt.Y("model:N").sort("x"),
-            color="model:N",
+            y=alt.Y("predict_id:N").sort("x"),
+            color="predict_id:N",
             tooltip=["error"],
         )
-        .add_selection(selection)
+        .add_params(selection)
         .transform_filter(selection)
         .properties(
-            width=width,
+            width=350,
         )
     )
 
