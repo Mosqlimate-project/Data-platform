@@ -13,11 +13,6 @@
                 <center>
                     <label for="series" class="text-white">{% trans "Series" %}</label>
                     <select name="series" id="series" class="selectpicker" data-size="5">
-                        {% for series in available_series %}
-                        <option value="{{ series }}" {% if selected_series == series %}selected{% endif %}>
-                        {{ series.capitalize }} Series
-                        </option>
-                        {% endfor %}
                     </select>
                 </center>
 

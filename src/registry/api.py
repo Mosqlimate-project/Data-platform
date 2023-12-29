@@ -156,8 +156,10 @@ class ModelIn(Schema):
     description: str = None
     repository: str  # TODO: Validate repository?
     implementation_language: str
-    type: str
     disease: Literal["dengue", "zika", "chikungunya"]
+    temporal: bool
+    spatial: bool
+    categorical: bool
     ADM_level: Literal[0, 1, 2, 3]
     time_resolution: Literal["day", "week", "month", "year"]
 
@@ -396,6 +398,7 @@ def create_prediction(request, payload: PredictionIn):
     prediction = Prediction(**payload.dict())
 
     if not calling_via_swagger(request):
+        prediction.parse_metadata()
         prediction.save()
 
     return 201, prediction

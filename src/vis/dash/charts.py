@@ -23,7 +23,7 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
 
     dfs = []
     for p in predicts:
-        if any(p.visualizable()):
+        if p.visualizable:
             df_flat = p.prediction_df
             df_flat.dates = pd.to_datetime(df_flat.dates)
             df_flat["model_id"] = p.model.id

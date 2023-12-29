@@ -57,7 +57,6 @@ class VisualizationsView(View):
             all_models, json_return=True
         )
 
-        context["available_series"] = get_available_types(all_models)
         context["available_adm_levels"] = get_available_adm_levels(all_models)
         context["available_diseases"] = get_available_diseases(all_models)
         context["available_geocodes"] = get_available_adm_2_geocodes(
@@ -135,15 +134,6 @@ class LineChartsView(View):
             context["error"] = e
 
         return render(request, self.template_name, context)
-
-
-def get_available_types(models: list[Model]) -> list[str]:
-    types = set()
-    for model in models:
-        if model.type:
-            if any(model.get_visualizables()):
-                types.add(model.type)
-    return list(types)
 
 
 def get_available_diseases(models: list[Model]) -> list[str]:

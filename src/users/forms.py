@@ -18,26 +18,32 @@ class UpdateModelForm(forms.Form):
     # TODO: Should the user be able of changing the Model's Author?
     # model_author = forms.ModelChoiceField(queryset=Author.objects.all())
     model_id = forms.IntegerField()
-    model_name = forms.CharField(max_length=100)
-    model_description = forms.CharField(max_length=500)
-    model_repository = forms.CharField(max_length=200)
-    model_language = forms.CharField(max_length=100)
-    model_type = forms.CharField(max_length=100)
-    model_adm_level = forms.IntegerField(max_value=3, min_value=0)
+    model_name = forms.CharField(max_length=100, required=True)
+    model_description = forms.CharField(max_length=500, required=True)
+    model_repository = forms.CharField(max_length=200, required=True)
+    model_language = forms.CharField(max_length=100, required=True)
+    model_adm_level = forms.IntegerField(
+        max_value=3, min_value=0, required=True
+    )
     model_disease = forms.ChoiceField(
+        required=True,
         choices=[
             ("dengue", "Dengue"),
             ("zika", "Zika"),
             ("chikungunya", "Chikungunya"),
-        ]
+        ],
     )
+    model_spatial = forms.BooleanField(required=True)
+    model_temporal = forms.BooleanField(required=True)
+    model_categorical = forms.BooleanField(required=True)
     model_time_resolution = forms.ChoiceField(
+        required=True,
         choices=[
             ("day", _("Day")),
             ("week", _("Week")),
             ("month", _("Month")),
             ("year", _("Year")),
-        ]
+        ],
     )
 
     # def clean_model_author(self):

@@ -82,11 +82,11 @@ class Model(models.Model):
         null=False,
         blank=False,
     )
-    spatial = models.BooleanField(null=False, default=False)
-    # Spatial: Spatial Series if True, Temporal Series if False
-    categorical = models.BooleanField(null=False, default=False)
+    categorical = models.BooleanField(null=True, default=None)
     # Categorical: [S/T]-Categorical Series if True, [S/T]-Quantitative Series
     # if False ([Spatial/Temporal])
+    spatial = models.BooleanField(null=True, default=None)
+    temporal = models.BooleanField(null=True, default=None)
     disease = models.CharField(
         choices=Diseases.choices, null=True
     )  # TODO: change to false
@@ -114,6 +114,7 @@ class Prediction(models.Model):
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
     # Metadata
+    visualizable = models.BooleanField(default=False)
     metadata = models.BooleanField(null=False, default=False)
     adm_2_geocode = models.IntegerField(null=True, default=None)
     date_ini_prediction = models.DateTimeField(null=True, default=None)
@@ -141,6 +142,7 @@ class Prediction(models.Model):
         if not self.prediction_df.empty:
             self._add_adm_2_geocode()
             self._add_ini_end_prediction_dates()
+            self.visualizable = True
             self.metadata = True
             self.save()
 

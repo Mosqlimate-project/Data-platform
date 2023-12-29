@@ -26,26 +26,6 @@
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="model_repository">{% translate "Github Repository" %}:</label>
-                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
-                </div>
-                <div class="col">
-                    <label for="model_type">{% translate "Type" %}:</label>
-                    <input type="text" id="edit-model-type" name="model_type" value="{{ model.type }}" class="form-control" maxlength="100" placeholder="E.g: Nowcast" required>
-                </div>
-                <div class="col">
-                    <label for="model_language">{% translate "Implementation language" %}:</label>
-                    <select id="edit-model-lang" name="model_language" class="form-control" required>
-                        {% for language in implementation_languages %}
-                        <option value="{{ language }}" {% if language == model.implementation_language %}selected{% endif %}>
-                        {{ language }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col">
                     <label for="model_time_resolution">{% translate "Time resolution" %}:</label>
                     <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
                         {% for value, label in time_resolutions %}
@@ -71,6 +51,37 @@
                         {% for disease, label in diseases %}
                         <option value="{{ disease }}" {% if disease == model.disease %}selected{% endif %}>
                         {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="edit-model-spatial">{% translate "Output format" %}:</label>
+                    <div class="form-check edit-model-spatial">
+                      <input class="form-check-input" type="radio" name="modelQuantitativeCategorical" id="modelQuantitative">
+                      <label class="form-check-label" for="modelQuantitative">
+                        Quantitative
+                      </label>
+                    </div>
+                    <div class="form-check edit-model-spatial">
+                      <input class="form-check-input" type="radio" name="modelQuantitativeCategorical" id="modelCategorical" checked>
+                      <label class="form-check-label" for="modelCategorical">
+                        Categorical
+                      </label>
+                    </div>
+                </div>
+                <div class="col">
+                    <label for="model_repository">{% translate "Github Repository" %}:</label>
+                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
+                </div>
+                <div class="col">
+                    <label for="model_language">{% translate "Implementation language" %}:</label>
+                    <select id="edit-model-lang" name="model_language" class="form-control" required>
+                        {% for language in implementation_languages %}
+                        <option value="{{ language }}" {% if language == model.implementation_language %}selected{% endif %}>
+                        {{ language }}
                         </option>
                         {% endfor %}
                     </select>
