@@ -1,15 +1,14 @@
 import os
+from datetime import datetime
 from io import StringIO
-from typing import List, Union, Literal, Self
 
 import pandas as pd
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from vis.dash import checks, errors
+from vis.dash import errors
 
 
 def get_plangs_path() -> str:
@@ -59,10 +58,6 @@ class Model(models.Model):
         DENGUE = "dengue", _("Dengue")
         ZIKA = "zika", _("Zika")
 
-    class Types(models.TextChoices):
-        TIME_SERIES = "time", _("Time Series")
-        SPATIAL_SERIES = "spatial", _("Spatial Series")
-
     class Periodicities(models.TextChoices):
         DAY = "day", _("Day")
         WEEK = "week", _("Week")
@@ -87,9 +82,11 @@ class Model(models.Model):
         null=False,
         blank=False,
     )
-    type = models.CharField(
-        choices=Types.choices, null=True
-    )  # TODO: change to false
+    spatial = models.BooleanField(null=False, default=False)
+    # Spatial: Spatial Series if True, Temporal Series if False
+    categorical = models.BooleanField(null=False, default=False)
+    # Categorical: [S/T]-Categorical Series if True, [S/T]-Quantitative Series
+    # if False ([Spatial/Temporal])
     disease = models.CharField(
         choices=Diseases.choices, null=True
     )  # TODO: change to false
@@ -105,51 +102,6 @@ class Model(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    def get_visualizables(self) -> dict[str:list]:
-        visualizables = {}
-        predictions = Prediction.objects.filter(model=self)
-        line_charts = [
-            p for p in predictions if "LineChartADM2" in p.visualizable()
-        ]
-        if line_charts:
-            visualizables["LineChartADM2"] = line_charts
-        return visualizables
-
-    def is_compatible(self, other: Self) -> bool:
-        """
-        Compare two Models to check if they have compatible specs
-        """
-
-        if self.type != other.type:
-            print(f"{self.id} - {other.id}: different Model.type")
-            return False
-
-        if self.disease != other.disease:
-            print(f"{self.id} - {other.id}: different Model.disease")
-            return False
-
-        if self.ADM_level != other.ADM_level:
-            print(f"{self.id} - {other.id}: different Model.ADM_level")
-            return False
-
-        if self.time_resolution != other.time_resolution:
-            print(f"{self.id} - {other.id}: different Model.time_resolution")
-            return False
-
-        return True
-
-    def get_predictions_adm_2_geocodes(self) -> set[int]:
-        if self.ADM_level != self.ADM_levels.MUNICIPALITY:
-            return set()
-
-        geocodes = set()
-        predictions = Prediction.objects.filter(model=self)
-        for prediction in predictions:
-            if prediction.adm_2_geocode:
-                geocodes.add(prediction.adm_2_geocode)
-
-        return geocodes
-
     class Meta:
         verbose_name = _("Model")
         verbose_name_plural = _("Models")
@@ -161,10 +113,12 @@ class Prediction(models.Model):
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     prediction = models.JSONField(null=False, blank=True)
-    compatible_predictions = models.JSONField(
-        default=dict, blank=True, null=True
-    )
+    # Metadata
+    metadata = models.BooleanField(null=False, default=False)
     adm_2_geocode = models.IntegerField(null=True, default=None)
+    date_ini_prediction = models.DateTimeField(null=True, default=None)
+    date_end_prediction = models.DateTimeField(null=True, default=None)
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -183,139 +137,48 @@ class Prediction(models.Model):
     def __str__(self):
         return f"{self.id}"
 
-    def save(self, *args, **kwargs):
-        self.add_adm_2_geocode()
+    def parse_metadata(self):
+        if not self.prediction_df.empty:
+            self._add_adm_2_geocode()
+            self._add_ini_end_prediction_dates()
+            self.metadata = True
+            self.save()
 
-        if not bool(self.compatible_predictions):
-            self.update_compatible_predictions()
-
-        super().save(*args, **kwargs)
-
-    def add_adm_2_geocode(self):
+    def _add_adm_2_geocode(self):
         if (
             self.model.type == Model.Types.TIME_SERIES
             and self.model.ADM_level == Model.ADM_levels.MUNICIPALITY
         ):
-            if not self.prediction_df.empty:
-                try:
-                    geocode = self.prediction_df["adm_2"].unique()
-                except KeyError:
-                    # TODO: Improve error handling -> InsertionError
-                    # This error has to be raised by the API at insertion
-                    raise errors.VisualizationError("adm_2 column not found")
+            try:
+                geocode = self.prediction_df["adm_2"].unique()
+            except KeyError:
+                # TODO: Improve error handling -> InsertionError
+                raise errors.VisualizationError("adm_2 column not found")
 
-                if len(geocode) != 1:
-                    # TODO: Improve error handling -> InsertionError
-                    # This error has to be raised by the API at insertion
-                    raise errors.VisualizationError(
-                        "adm_2 must have only one geocode"
-                    )
-
-                self.adm_2_geocode = geocode[0]
-
-    def update_compatible_predictions(self):
-        predictions = Prediction.objects.filter(~Q(id=self.id))
-
-        for prediction in predictions:
-            if self.model.type != prediction.model.type:
-                continue
-
-            if self.model.disease != prediction.model.disease:
-                continue
-
-            if self.model.ADM_level != prediction.model.ADM_level:
-                continue
-
-            if self.model.time_resolution != prediction.model.time_resolution:
-                continue
-
-            if self.adm_2_geocode != prediction.adm_2_geocode:
-                continue
-
-            if self.prediction_df.empty or prediction.prediction_df.empty:
-                continue
-
-            if set(self.prediction_df.columns) != set(
-                prediction.prediction_df.columns
-            ):
-                continue
-
-            if not (
-                checks.contains_correlated_dates(
-                    self.prediction_df, prediction.prediction_df
+            if len(geocode) != 1:
+                # TODO: Improve error handling -> InsertionError
+                raise errors.VisualizationError(
+                    "adm_2 must have only one geocode"
                 )
-            ):
-                continue
 
-            # save
-            if prediction.model.id in self.compatible_predictions:
-                self.compatible_predictions[prediction.model.id].append(
-                    prediction.id
-                )
-                self.save()
-            else:
-                self.compatible_predictions[prediction.model.id] = [
-                    prediction.id
-                ]
-                self.save()
+            self.adm_2_geocode = geocode[0]
 
-            if self.model.id in prediction.compatible_predictions:
-                prediction.compatible_predictions[self.model.id].append(
-                    self.id
-                )
-                prediction.save()
-            else:
-                prediction.compatible_predictions[self.model.id] = [self.id]
-                prediction.save()
-
-    def visualizable(
-        self,
-    ) -> List[
-        Union[
-            Literal[
-                "LineChartADM2",
-                # Add more compatible charts here
-            ]
-        ]
-    ]:
-        """
-        Returns a list of compatible charts the Prediction can be visualized on
-        """
-        compatible_charts = []  # None if not visualizable
+    def _add_ini_end_prediction_dates(self):
+        try:
+            ini_date = min(self.prediction_df["dates"])
+            end_date = max(self.prediction_df["dates"])
+        except KeyError:
+            # TODO: Improve error handling -> InsertionError
+            raise errors.VisualizationError("dates column not found")
 
         try:
-            df = self.prediction_df
-            if checks.line_chart_adm2(df):
-                compatible_charts.append("LineChartADM2")
-        except TypeError:
-            # TODO: add a better error handling to not visualizable preds
-            pass
-
-        return compatible_charts
-
-    def is_compatible_line_chart_adm_2(self, other: Self) -> bool:
-        """
-        Compare two Predictions to check if they can be visualized together
-        """
-        if not self.model.is_compatible(other.model):
-            return False
-
-        if self.adm_2_geocode != other.adm_2_geocode:
-            return False
-
-        df = self.prediction_df
-        other_df = other.prediction_df
-
-        # TODO: Handle this check with VisualizationError
-        if df.empty or other_df.empty:
-            return False
-
-        # Check if dataframes have same columns
-        if set(df.columns) != set(other_df.columns):
-            print(f"{self.id} - {other.id}: different prediction_df columns")
-            return False
-
-        return True
+            self.date_ini_prediction = datetime.fromisoformat(ini_date)
+            self.date_end_prediction = datetime.fromisoformat(end_date)
+        except ValueError:
+            # TODO: Improve error handling -> InsertionError
+            raise errors.VisualizationError(
+                "Incorrect date format on column dates"
+            )
 
     class Meta:
         verbose_name = _("Prediction")

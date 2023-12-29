@@ -243,17 +243,21 @@ def generate_models_compatibility_info(
     for model in models:
         predictions = Prediction.objects.filter(model=model)
         for prediction in predictions:
-            if model.type:
-                if model.disease:
-                    if model.ADM_level == model.ADM_levels.MUNICIPALITY:
-                        if prediction.adm_2_geocode:
-                            info[model.type][model.disease][model.ADM_level][
-                                prediction.adm_2_geocode
-                            ][model.id].append(prediction.id)
-                    else:
-                        info[model.type][model.disease][model.ADM_level][
-                            model.id
-                        ].append(prediction.id)
+            if not model.type:
+                continue
+
+            if not model.disease:
+                continue
+
+            if model.ADM_level == model.ADM_levels.MUNICIPALITY:
+                if prediction.adm_2_geocode:
+                    info[model.type][model.disease][model.ADM_level][
+                        prediction.adm_2_geocode
+                    ][model.id].append(prediction.id)
+            else:
+                info[model.type][model.disease][model.ADM_level][
+                    model.id
+                ].append(prediction.id)
 
     info = json.dumps(info, cls=SetToListEncoder)
 
