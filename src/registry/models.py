@@ -145,10 +145,7 @@ class Prediction(models.Model):
             self.save()
 
     def _add_adm_2_geocode(self):
-        if (
-            self.model.type == Model.Types.TIME_SERIES
-            and self.model.ADM_level == Model.ADM_levels.MUNICIPALITY
-        ):
+        if self.model.ADM_level == Model.ADM_levels.MUNICIPALITY:
             try:
                 geocode = self.prediction_df["adm_2"].unique()
             except KeyError:
