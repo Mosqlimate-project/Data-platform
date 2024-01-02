@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="model",
             name="temporal",
-            field=models.BooleanField(default=None),
+            field=models.BooleanField(default=None, null=True),
         ),
     ]
