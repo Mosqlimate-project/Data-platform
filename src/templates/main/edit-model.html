@@ -80,46 +80,38 @@
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="edit-model-axis"><b>{% translate "Classification axis" %}:</b></label>
+                    <label for="model_temporal"><b>{% translate "Classification axis" %}:</b></label>
+                    <input type="hidden" name="model_temporal" id="edit-model-temporal">
                     <div class="form-check edit-model-axis">
-                      <input class="form-check-input" type="checkbox" value="" id="modelTemporal" {% if model.temporal %}checked{% endif %}>
-                      <label class="form-check-label" for="modelTemporal">
+                      <input class="form-check-input" type="checkbox" name="model-temporal-box" id="model-temporal" {% if model.temporal %}checked{% endif %}>
+                      <label class="form-check-label" for="model-temporal-box">
                         Time
                       </label>
                     </div>
+                    <input type="hidden" name="model_spatial" id="edit-model-spatial">
                     <div class="form-check edit-model-axis">
-                      <input class="form-check-input" type="checkbox" value="" id="modelSpatial" {% if model.spatial %}checked{% endif %}>
-                      <label class="form-check-label" for="modelSpatial">
+                      <input class="form-check-input" type="checkbox" name="model-spatial-box" id="model-spatial" {% if model.spatial %}checked{% endif %}>
+                      <label class="form-check-label" for="model-spatial-box">
                         Space
                       </label>
                     </div>
                 </div>
                 <div class="col">
-                    <input type="hidden" name="model_categorical" id="edit-model-categorical" value="{% if model.categorical %}True{% else %}False{% endif %}">
-                    <label for="edit-model-spatial"><b>{% translate "Output format" %}:</b></label>
-                    <div class="form-check edit-model-spatial">
-                      <input 
-                        class="form-check-input" 
-                        type="radio"
-                        name="modelQuantitativeCategorical" 
-                        id="modelQuantitative" 
-                        {% if model.categorical == True %}checked{% endif %}
-                      >
-                      <label class="form-check-label" for="modelQuantitative">
-                        Quantitative
-                      </label>
+                    <input type="hidden" name="model_categorical" id="edit-model-categorical">
+                    <label for="model_quantitative_categorical"><b>{% translate "Output format" %}:</b></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                        name="model_quantitative_categorical" id="model-quantitative" {% if model.categorical == False %}checked{% endif %}>
+                        <label class="form-check-label" for="model-quantitative-box">
+                            Quantitative
+                        </label>
                     </div>
-                    <div class="form-check edit-model-spatial">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        name="modelQuantitativeCategorical" 
-                        id="modelCategorical"
-                        {% if model.categorical == False %}checked{% endif %}
-                      >
-                      <label class="form-check-label" for="modelCategorical">
-                        Categorical
-                      </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                        name="model_quantitative_categorical" id="model-categorical" {% if model.categorical == True %}checked{% endif %}>
+                        <label class="form-check-label" for="model-categorical-box">
+                            Categorical
+                        </label>
                     </div>
                 </div>
             </div>
@@ -160,12 +152,23 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var form = document.getElementById('updateModelForm');
-        var quantitativeRadio = document.getElementById('modelQuantitative');
-        var categoricalRadio = document.getElementById('modelCategorical');
+
+        var spatialRadio = document.getElementById('model-spatial');
+        var spatialField = document.getElementById('edit-model-spatial');
+
+        var temporalRadio = document.getElementById('model-temporal');
+        var temporalField = document.getElementById('edit-model-temporal');
+
+        var quantitativeRadio = document.getElementById('model-quantitative');
+        var categoricalRadio = document.getElementById('model-categorical');
         var categoricalField = document.getElementById('edit-model-categorical');
 
         updateModelCategoricalField();
+        updateSpatialField();
+        updateTemporalField();
 
+        spatialRadio.addEventListener('change', updateSpatialField);
+        temporalRadio.addEventListener('change', updateTemporalField);
         quantitativeRadio.addEventListener('change', updateModelCategoricalField);
         categoricalRadio.addEventListener('change', updateModelCategoricalField);
 
@@ -175,6 +178,14 @@
             } else if (categoricalRadio.checked) {
                 categoricalField.value = 'True';
             }
+        }
+
+        function updateSpatialField() {
+            spatialField.value = spatialRadio.checked ? 'True' : 'False';
+        }
+
+        function updateTemporalField() {
+            temporalField.value = temporalRadio.checked ? 'True' : 'False';
         }
     });
 </script>
