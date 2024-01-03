@@ -12,7 +12,7 @@ from .dash.charts import line_charts_by_geocode
 from .home.vis_charts import uf_ibge_mapping
 
 
-class VisualizationsView(View):
+class DashboardView(View):
     template_name = "vis/dashboard.html"
 
     def get(self, request):

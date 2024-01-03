@@ -115,8 +115,11 @@ class Prediction(models.Model):
     prediction = models.JSONField(null=False, blank=True)
     # Metadata
     visualizable = models.BooleanField(default=False)
-    metadata = models.BooleanField(null=False, default=False)
+    metadata = models.CharField(null=True, default=None)
+    adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
+    adm_1_geocode = models.IntegerField(null=True, default=None)  # TODO
     adm_2_geocode = models.IntegerField(null=True, default=None)
+    adm_3_geocode = models.IntegerField(null=True, default=None)  # TODO
     date_ini_prediction = models.DateTimeField(null=True, default=None)
     date_end_prediction = models.DateTimeField(null=True, default=None)
 
@@ -140,27 +143,37 @@ class Prediction(models.Model):
 
     def parse_metadata(self):
         if not self.prediction_df.empty:
-            self._add_adm_2_geocode()
+            self._add_adm_geocode()
             self._add_ini_end_prediction_dates()
             self.visualizable = True
-            self.metadata = True
+            self.metadata = compose_prediction_hash(self)
             self.save()
 
-    def _add_adm_2_geocode(self):
-        if self.model.ADM_level == Model.ADM_levels.MUNICIPALITY:
-            try:
-                geocode = self.prediction_df["adm_2"].unique()
-            except KeyError:
-                # TODO: Improve error handling -> InsertionError
-                raise errors.VisualizationError("adm_2 column not found")
+    def _add_adm_geocode(self):
+        level = self.model.ADM_level
+        column = f"adm_{level}"
 
-            if len(geocode) != 1:
-                # TODO: Improve error handling -> InsertionError
-                raise errors.VisualizationError(
-                    "adm_2 must have only one geocode"
-                )
+        try:
+            code = self.prediction_df[column].unique()
+        except KeyError:
+            # TODO: Improve error handling -> InsertionError
+            raise errors.VisualizationError(f"{column} column not found")
 
-            self.adm_2_geocode = geocode[0]
+        if len(code) != 1:
+            # TODO: Improve error handling -> InsertionError
+            raise errors.VisualizationError(
+                f"{column} values must contain only one code"
+            )
+
+        match level:
+            case 0:
+                self.adm_0_geocode = code[0]
+            case 1:
+                self.adm_1_geocode = code[0]
+            case 2:
+                self.adm_2_geocode = code[0]
+            case 3:
+                self.adm_3_geocode = code[0]
 
     def _add_ini_end_prediction_dates(self):
         try:
@@ -182,3 +195,68 @@ class Prediction(models.Model):
     class Meta:
         verbose_name = _("Prediction")
         verbose_name_plural = _("Predictions")
+
+
+def compose_prediction_hash(p: Prediction) -> str:
+    """
+    Convert the Prediction specifications into a ID to be used to extract
+    its information across the platform. ID example:
+
+    01DMU-11Q-3304557-1388775707-1704301311
+    - Dengue / Daily / ADM Level 2
+    - Spatio-Temporal Quantitative
+    - Rio de Janeiro - RJ
+    - Jan 03 2014 until Jan 03 2024
+
+    """
+    diseases = {"dengue": "01", "zika": "02", "chikungunya": "03"}
+
+    time_resolutions = {
+        "day": "D",
+        "week": "W",
+        "month": "M",
+        "year": "Y",
+    }
+
+    adm_levels = {
+        0: "NA",
+        1: "ST",
+        2: "MU",
+        3: "SM",
+    }
+
+    disease = diseases[p.model.disease.lower()]
+    time_res = time_resolutions[p.model.time_resolution.lower()]
+    adm_level = adm_levels[p.model.ADM_level]
+
+    spatial = "1" if p.model.spatial else "0"
+    temporal = "1" if p.model.temporal else "0"
+    categorical_quantitative = "C" if p.model.categorical else "Q"
+
+    match p.model.ADM_level:
+        case 0:
+            code = p.adm_0_geocode
+        case 1:
+            code = p.adm_1_geocode
+        case 2:
+            code = p.adm_2_geocode
+        case 3:
+            code = p.adm_3_geocode
+
+    if not code:
+        raise ValueError(
+            f"Invalid geolocation code for ADM Level {p.model.ADM_level}"
+        )
+
+    ini_timestamp = int(p.date_ini_prediction.timestamp())
+    end_timestamp = int(p.date_end_prediction.timestamp())
+
+    return "-".join(
+        [
+            "".join((disease, time_res, adm_level)),
+            "".join((spatial, temporal, categorical_quantitative)),
+            str(code),
+            str(ini_timestamp),
+            str(end_timestamp),
+        ]
+    )

@@ -78,6 +78,11 @@
                     </select>
                 </div>
             </div>
+
+            <br>
+            <center><h4>{% translate "Visualization" %}</h4></center>
+            <center><hr></center>
+
             <div class="row mb-3">
                 <div class="col">
                     <label for="model_temporal"><b>{% translate "Classification axis" %}:</b></label>
@@ -85,14 +90,14 @@
                     <div class="form-check edit-model-axis">
                       <input class="form-check-input" type="checkbox" name="model-temporal-box" id="model-temporal" {% if model.temporal %}checked{% endif %}>
                       <label class="form-check-label" for="model-temporal-box">
-                        Time
+                      {% translate "Time" %}
                       </label>
                     </div>
                     <input type="hidden" name="model_spatial" id="edit-model-spatial">
                     <div class="form-check edit-model-axis">
                       <input class="form-check-input" type="checkbox" name="model-spatial-box" id="model-spatial" {% if model.spatial %}checked{% endif %}>
                       <label class="form-check-label" for="model-spatial-box">
-                        Space
+                      {% translate "Space" %}
                       </label>
                     </div>
                 </div>
@@ -103,14 +108,14 @@
                         <input class="form-check-input" type="radio"
                         name="model_quantitative_categorical" id="model-quantitative" {% if model.categorical == False %}checked{% endif %}>
                         <label class="form-check-label" for="model-quantitative-box">
-                            Quantitative
+                            {% translate "Quantitative" %}
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio"
                         name="model_quantitative_categorical" id="model-categorical" {% if model.categorical == True %}checked{% endif %}>
                         <label class="form-check-label" for="model-categorical-box">
-                            Categorical
+                            {% translate "Categorical" %}
                         </label>
                     </div>
                 </div>
