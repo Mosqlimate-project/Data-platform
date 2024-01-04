@@ -207,14 +207,11 @@ class EditModelView(View):
                     ],
                 }
 
-                print(payload)
-
                 status_code, model = update_model(
                     request=request,
                     model_id=model_id,
                     payload=payload,
                 )
-                print(model.__dict__)
 
                 if status_code == 201:
                     messages.success(request, _("Model updated successfully"))

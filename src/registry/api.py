@@ -287,8 +287,11 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
                 setattr(model, attr, value)
 
             if not calling_via_swagger(request):
-                # Not really required, since include_in_schema=False
                 model.save()
+
+                predictions = Prediction.objects.filter(model=model)
+                for prediction in predictions:
+                    prediction.parse_metadata()
 
             return 201, model
         except Author.DoesNotExist:
@@ -430,6 +433,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         if not calling_via_swagger(request):
             # Not really required, since include_in_schema=False
+            prediction.parse_metadata()
             prediction.save()
 
         return 201, prediction

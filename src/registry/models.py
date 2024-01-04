@@ -9,6 +9,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from vis.dash import errors
+from vis.metadata import compose_prediction_metadata
 
 
 def get_plangs_path() -> str:
@@ -146,7 +147,7 @@ class Prediction(models.Model):
             self._add_adm_geocode()
             self._add_ini_end_prediction_dates()
             self.visualizable = True
-            self.metadata = compose_prediction_hash(self)
+            self.metadata = compose_prediction_metadata(self)
             self.save()
 
     def _add_adm_geocode(self):
@@ -195,68 +196,3 @@ class Prediction(models.Model):
     class Meta:
         verbose_name = _("Prediction")
         verbose_name_plural = _("Predictions")
-
-
-def compose_prediction_hash(p: Prediction) -> str:
-    """
-    Convert the Prediction specifications into a ID to be used to extract
-    its information across the platform. ID example:
-
-    01DMU-11Q-3304557-1388775707-1704301311
-    - Dengue / Daily / ADM Level 2
-    - Spatio-Temporal Quantitative
-    - Rio de Janeiro - RJ
-    - Jan 03 2014 until Jan 03 2024
-
-    """
-    diseases = {"dengue": "01", "zika": "02", "chikungunya": "03"}
-
-    time_resolutions = {
-        "day": "D",
-        "week": "W",
-        "month": "M",
-        "year": "Y",
-    }
-
-    adm_levels = {
-        0: "NA",
-        1: "ST",
-        2: "MU",
-        3: "SM",
-    }
-
-    disease = diseases[p.model.disease.lower()]
-    time_res = time_resolutions[p.model.time_resolution.lower()]
-    adm_level = adm_levels[p.model.ADM_level]
-
-    spatial = "1" if p.model.spatial else "0"
-    temporal = "1" if p.model.temporal else "0"
-    categorical_quantitative = "C" if p.model.categorical else "Q"
-
-    match p.model.ADM_level:
-        case 0:
-            code = p.adm_0_geocode
-        case 1:
-            code = p.adm_1_geocode
-        case 2:
-            code = p.adm_2_geocode
-        case 3:
-            code = p.adm_3_geocode
-
-    if not code:
-        raise ValueError(
-            f"Invalid geolocation code for ADM Level {p.model.ADM_level}"
-        )
-
-    ini_timestamp = int(p.date_ini_prediction.timestamp())
-    end_timestamp = int(p.date_end_prediction.timestamp())
-
-    return "-".join(
-        [
-            "".join((disease, time_res, adm_level)),
-            "".join((spatial, temporal, categorical_quantitative)),
-            str(code),
-            str(ini_timestamp),
-            str(end_timestamp),
-        ]
-    )
