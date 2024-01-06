@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Literal, Union
+from typing import Union
 from collections import defaultdict
 
 from django.shortcuts import render, get_object_or_404
@@ -18,59 +18,85 @@ class DashboardView(View):
     def get(self, request):
         context = {}
 
-        model_id = request.GET.get("model")
-        prediction_id = request.GET.get("predict")
+        # model_id = request.GET.get("model")
+        # prediction_id = request.GET.get("predict")
 
-        all_models = Model.objects.all()
+        # all_models = Model.objects.all()
 
-        selected_series: Literal["spatial", "time"] = "time"
-        selected_adm_level: Literal[0, 1, 2, 3] = 2
-        selected_disease: Literal["dengue", "zika", "chikungunya"] = "dengue"
-        selected_geocode: int = None
-        selected_prediction: int = None
+        # selected_series: Literal["spatial", "time"] = "time"
+        # selected_adm_level: Literal[0, 1, 2, 3] = 2
+        # selected_disease: Literal["dengue", "zika", "chikungunya"] = "dengue"
+        # selected_geocode: int = None
+        # selected_prediction: int = None
 
-        line_charts_default_items = []
+        # line_charts_default_items = []
 
-        if model_id:
-            model = get_object_or_404(Model, pk=int(model_id))
-            selected_series = model.type
-            selected_adm_level = model.ADM_level
-            selected_disease = model.disease
-            predictions = Prediction.objects.filter(model=model)
-            geocodes = list(
-                set(p.adm_2_geocode for p in predictions if p.adm_2_geocode)
+        # if model_id:
+        #     model = get_object_or_404(Model, pk=int(model_id))
+        #     selected_series = model.type
+        #     selected_adm_level = model.ADM_level
+        #     selected_disease = model.disease
+        #     predictions = Prediction.objects.filter(model=model)
+        #     geocodes = list(
+        #         set(p.adm_2_geocode for p in predictions if p.adm_2_geocode)
+        #     )
+        #     selected_geocode = geocodes[0]
+
+        # if prediction_id:
+        #     prediction = get_object_or_404(Prediction, pk=int(prediction_id))
+        #     selected_series = prediction.model.type
+        #     selected_adm_level = model.ADM_level
+        #     selected_disease = model.disease
+        #     if prediction.adm_2_geocode:
+        #         selected_geocode = prediction.adm_2_geocode
+        #     selected_prediction = prediction.id
+
+        #     line_charts_default_items.append(f"predict={prediction.id}")
+
+        # context["compatibilities"] = generate_models_compatibility_info(
+        #     all_models, json_return=True
+        # )
+
+        # context["available_adm_levels"] = get_available_adm_levels(all_models)
+        # context["available_diseases"] = get_available_diseases(all_models)
+        # context["available_geocodes"] = get_available_adm_2_geocodes(
+        #     all_models
+        # )
+
+        # context["selected_series"] = selected_series
+        # context["selected_adm_level"] = selected_adm_level
+        # context["selected_disease"] = selected_disease
+        # context["selected_geocode"] = selected_geocode
+        # context["selected_prediction"] = selected_prediction
+
+        # context["line_charts_default_uri"] = "?" + "&".join(
+        #     line_charts_default_items
+        # )
+
+        models = Model.objects.all()
+        predictions = Prediction.objects.filter(visualizable=True)
+
+        context["predictions"] = dict(
+            zip(
+                list(predictions.values_list("id", flat=True)),
+                list(predictions.values_list("metadata", flat=True)),
             )
-            selected_geocode = geocodes[0]
-
-        if prediction_id:
-            prediction = get_object_or_404(Prediction, pk=int(prediction_id))
-            selected_series = prediction.model.type
-            selected_adm_level = model.ADM_level
-            selected_disease = model.disease
-            if prediction.adm_2_geocode:
-                selected_geocode = prediction.adm_2_geocode
-            selected_prediction = prediction.id
-
-            line_charts_default_items.append(f"predict={prediction.id}")
-
-        context["compatibilities"] = generate_models_compatibility_info(
-            all_models, json_return=True
         )
 
-        context["available_adm_levels"] = get_available_adm_levels(all_models)
-        context["available_diseases"] = get_available_diseases(all_models)
-        context["available_geocodes"] = get_available_adm_2_geocodes(
-            all_models
+        context["diseases"] = list(
+            set(models.values_list("disease", flat=True))
         )
 
-        context["selected_series"] = selected_series
-        context["selected_adm_level"] = selected_adm_level
-        context["selected_disease"] = selected_disease
-        context["selected_geocode"] = selected_geocode
-        context["selected_prediction"] = selected_prediction
+        context["adm_levels"] = list(
+            map(str, set(models.values_list("ADM_level", flat=True)))
+        )
 
-        context["line_charts_default_uri"] = "?" + "&".join(
-            line_charts_default_items
+        context["time_resolutions"] = list(
+            set(models.values_list("time_resolution", flat=True))
+        )
+
+        context["adm_2_geocodes"] = list(
+            set(predictions.values_list("adm_2_geocode", flat=True))
         )
 
         return render(request, self.template_name, context)
@@ -134,35 +160,6 @@ class LineChartsView(View):
             context["error"] = e
 
         return render(request, self.template_name, context)
-
-
-def get_available_diseases(models: list[Model]) -> list[str]:
-    diseases = set()
-    for model in models:
-        if model.disease:
-            diseases.add(model.disease)
-    return list(diseases)
-
-
-def get_available_adm_levels(models: list[Model]) -> list[int]:
-    levels = set()
-    for model in models:
-        if (
-            model.ADM_level >= 0 or model.ADM_level <= 4
-        ) and model.ADM_level is not None:
-            levels.add(model.ADM_level)
-    return list(levels)
-
-
-def get_available_adm_2_geocodes(models: list[Model]) -> list[int]:
-    geocodes = set()
-    for model in models:
-        if model.ADM_level == 2:
-            predictions = Prediction.objects.filter(model=model)
-            for prediction in predictions:
-                if prediction.adm_2_geocode:
-                    geocodes.add(prediction.adm_2_geocode)
-    return list(geocodes)
 
 
 def get_model_selector_item(request, model_id):
