@@ -11,7 +11,7 @@
         <div class="sidebar-menu">
             <div class="p-3">
                 <center><b>
-                    <label for="disease" class="text-white">{% trans "Disease" %}</label>
+                    <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
                 </b></center>
                 <div class="form-check">
                   <input 
@@ -47,7 +47,7 @@
                 <hr style="color:white;">
 
                 <center><b>
-                    <label for="disease" class="text-white">{% trans "Temporal Resolution" %}</label>
+                    <label for="timeResRadio" class="text-white">{% trans "Temporal Resolution" %}</label>
                 </b></center>
                 <div class="form-check">
                   <input 
@@ -93,7 +93,7 @@
                 <hr style="color:white;">
 
                 <center><b>
-                    <label for="disease" class="text-white">{% trans "Administrative Level" %}</label>
+                    <label for="admLevelRadio" class="text-white">{% trans "Administrative Level" %}</label>
                 </b></center>
                 <div class="form-check">
                   <input 
@@ -101,7 +101,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="national"
-                  {% if "0" not in time_resolutions %}disabled{% endif %}
+                  {% if 0 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="national">National</label>
                 </div>
@@ -111,7 +111,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="state"
-                  {% if "1" not in time_resolutions %}disabled{% endif %}
+                  {% if 1 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="state">State</label>
                 </div>
@@ -121,22 +121,82 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="municipal"
-                  {% if "2" not in time_resolutions %}disabled{% endif %}
+                  {% if 2 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="municipal">Municipal</label>
+                </div>
+                <div class="form-check">
+                  <input 
+                  class="form-check-input" 
+                  type="radio" 
+                  name="admLevelRadio" 
+                  id="submunicipal"
+                  {% if 3 not in adm_levels %}disabled{% endif %}
+                  >
+                  <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
                 </div>
 
                 <hr style="color:white;">
 
-                <center>
-                    <div id="adm-level-div">
-                        <label for="adm-level" class="text-white">{% trans "Administrative level" %}</label>
-                        <select name="adm-level" id="adm-level" class="selectpicker" data-size="5">
-                        </select>
+                <center><b>
+                    <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
+                </b></center>
+                <div class="form-check">
+                  <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  value="" 
+                  id="spatialType" 
+                  {% if "spatial" not in model_types %}disabled{% endif %}
+                  >
+                  <label class="form-check-label text-white" for="spatialType">
+                    Spatial
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                  class="form-check-input" 
+                  type="checkbox" 
+                  value="" 
+                  id="temporalType" 
+                  {% if "temporal" not in model_types %}disabled{% endif %}
+                  >
+                  <label class="form-check-label text-white" for="temporalType">
+                    Temporal
+                  </label>
+                </div>
 
-                        <hr style="color:white;">
-                    </div>
-                </center>
+                <hr style="color:white;">
+
+                <center><b>
+                    <label for="outputFormat" class="text-white">{% trans "Output Format" %}</label>
+                </b></center>
+                <div class="form-check">
+                  <input
+                  class="form-check-input" 
+                  type="radio" 
+                  name="outputFormat" 
+                  id="categorical" 
+                  {% if "C" not in output_formats %}disabled{% endif %}
+                  >
+                  <label class="form-check-label text-white" for="categorical">
+                    Categorical
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input 
+                  class="form-check-input" 
+                  type="radio" 
+                  name="outputFormat" 
+                  id="quantitative" 
+                  {% if "Q" not in output_formats %}disabled{% endif %}
+                  >
+                  <label class="form-check-label text-white" for="quantitative">
+                    Quantitative
+                  </label>
+                </div>
+
+                <hr style="color:white;">
 
                 <center>
                     <div id="geocode-div">
@@ -160,10 +220,7 @@
 
     <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
         <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
-        {% for v in adm_levels %}
-            {{v}}
-            <br>
-        {% endfor %}
+        {{adm_2_geocodes}}
         {% for k, v in predictions.items %}
             {{v}}
             <br>

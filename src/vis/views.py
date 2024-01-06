@@ -83,21 +83,61 @@ class DashboardView(View):
             )
         )
 
+        model_types = set()
+        output_formats = set()
+        for model in models:
+            if model.categorical:
+                output_formats.add("C")
+            else:
+                output_formats.add("Q")
+
+            if model.spatial:
+                model_types.add("spatial")
+
+            if model.temporal:
+                model_types.add("temporal")
+
+        context["model_types"] = list(model_types)
+        context["output_formats"] = list(output_formats)
+
         context["diseases"] = list(
             set(models.values_list("disease", flat=True))
         )
 
         context["adm_levels"] = list(
-            map(str, set(models.values_list("ADM_level", flat=True)))
+            set(models.values_list("ADM_level", flat=True))
         )
 
         context["time_resolutions"] = list(
             set(models.values_list("time_resolution", flat=True))
         )
 
-        context["adm_2_geocodes"] = list(
-            set(predictions.values_list("adm_2_geocode", flat=True))
+        adm_2_geocodes = set(
+            predictions.values_list("adm_2_geocode", flat=True)
         )
+
+        geocode_cities = set()
+        municipios_file = os.path.join("static", "data/geo/BR/municipios.json")
+        if os.path.isfile(municipios_file):
+            uf_codes = dict()
+            for uf, info in uf_ibge_mapping.items():
+                uf_codes[int(info["code"])] = uf
+
+            with open(municipios_file, "r") as f:
+                geocodes = json.load(f)
+
+            for geocode in geocodes:
+                if int(geocode) in adm_2_geocodes:
+                    data = geocodes[geocode]
+                    geocode_cities.add(
+                        (
+                            geocode,
+                            data["municipio"],
+                            uf_codes[int(data["codigo_uf"])],
+                        )
+                    )
+
+        context["adm_2_geocodes"] = list(geocode_cities)
 
         return render(request, self.template_name, context)
 
