@@ -101,6 +101,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="national"
+                  value=0
                   {% if 0 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="national">National</label>
@@ -111,6 +112,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="state"
+                  value=1
                   {% if 1 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="state">State</label>
@@ -121,6 +123,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="municipal"
+                  value=2
                   {% if 2 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="municipal">Municipal</label>
@@ -131,6 +134,7 @@
                   type="radio" 
                   name="admLevelRadio" 
                   id="submunicipal"
+                  value=3
                   {% if 3 not in adm_levels %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
@@ -177,6 +181,7 @@
                   type="radio" 
                   name="outputFormat" 
                   id="categorical" 
+                  value="C" 
                   {% if "C" not in output_formats %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="categorical">
@@ -189,6 +194,7 @@
                   type="radio" 
                   name="outputFormat" 
                   id="quantitative" 
+                  value="Q" 
                   {% if "Q" not in output_formats %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="quantitative">
@@ -219,8 +225,16 @@
     </div>
 
     <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
+        <label for="hashSearch">Search: </label>
+        <input type="text" id="predictionSearch" placeholder="Search for Predictions">
+
+        <select id="hashList">
+          {% for key, value in predictions.items %}
+            <option value="{{ key }}">{{ value }}</option>
+          {% endfor %}
+        </select>
+
         <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
-        {{adm_2_geocodes}}
         {% for k, v in predictions.items %}
             {{v}}
             <br>
@@ -257,17 +271,144 @@
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
 <script>
     $(document).ready(function () {
-        var radioButtons = document.querySelectorAll('input[name="diseaseRadio"]');
+        const initialList = [
+            {% for key, value in predictions.items %}
+                { name: "{{ value }}", value: "{{ key }}" },
+            {% endfor %}
+        ];
 
-        // Add a change event listener to each radio button
-        radioButtons.forEach(function (radioButton) {
-            radioButton.addEventListener("change", function () {
-                // Log the value of the selected radio button to the console
-                console.log(this.id);
+        const hashList = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            local: initialList
+        });
+
+        $('#hashSearch').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 1
+        },
+        {
+            name: 'hashList',
+            display: 'name',
+            source: hashList
+        });
+
+        $('#hashSearch').on('typeahead:select', function(event, suggestion) {
+            $('#hashSelect').val(suggestion.value);
+        });
+
+        const DISEASES = {
+            "dengue": "01",
+            "zika": "02",
+            "chik": "03"
+        };
+
+        const TIME_RESOLUTIONS = {
+            "day": "D",
+            "week": "W",
+            "month": "M",
+            "year": "Y",
+        };
+
+        const ADM_LEVELS = {
+            0: "NA",
+            1: "ST",
+            2: "MU",
+            3: "SM",
+        };
+
+        var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
+        var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
+        var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
+        var spatial = document.getElementById("spatialType");
+        var temporal = document.getElementById("temporalType");
+        var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
+        let selectedDisease = null;
+        let selectedTimeResolution = null;
+        let selectedAdmLevel = null;
+        let selectedSpatial = null;
+        let selectedTemporal = null;
+        let selectedOutputFormat = null;
+
+        diseases.forEach(function (disease) {
+            disease.addEventListener("change", function () {
+                selectedDisease = this.id;
+                console.log(selectedDisease);
             });
         });
+
+        timeRes.forEach(function (time) {
+            time.addEventListener("change", function () {
+                selectedTimeResolution = this.id;
+                console.log(selectedTimeResolution);
+            });
+        });
+
+        admLevel.forEach(function (level) {
+            level.addEventListener("change", function () {
+                console.log(this.value);
+            });
+        });
+
+        spatial.addEventListener("change", function() {
+            console.log(spatial.checked);
+        });
+
+        temporal.addEventListener("change", function() {
+            console.log(temporal.checked);
+        });
+
+        outputFormat.forEach(function (format) {
+            format.addEventListener("change", function () {
+                console.log(this.value);
+            });
+        });
+
+        function filterPredictions(predictions, disease, timeResolution, admLevel, spatial, temporal, quantitative) {
+            return predictions.filter(hash => {
+                if (disease && !hash.startsWith(DISEASES[disease])) {
+                    return false;
+                }
+
+                if (timeResolution && hash.charAt(2) !== TIME_RESOLUTIONS[timeResolution]) {
+                    return false;
+                }
+
+                if (admLevel && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
+                    return false;
+                }
+
+                if (spatial !== undefined) {
+                    if (spatial && hash.charAt(6) === "0") {
+                        return false;
+                    } else if (!spatial && hash.charAt(6) === "1") {
+                        return false;
+                    }
+                }
+
+                if (temporal !== undefined) {
+                    if (temporal && hash.charAt(7) === "0") {
+                        return false;
+                    } else if (!temporal && hash.charAt(7) === "1") {
+                        return false;
+                    }
+                }
+
+                if (quantitative !== undefined) {
+                    if (quantitative && hash.charAt(8) === "C") {
+                        return false;
+                    } else if (!quantitative && hash.charAt(8) === "Q") {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+        }
     });
 
 </script>
