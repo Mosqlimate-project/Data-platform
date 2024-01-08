@@ -4,9 +4,67 @@ import pandas as pd
 import altair as alt
 
 from registry.models import Prediction
-
 from vis.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
+from itertools import product
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import mean_squared_log_error as msle
+from sklearn.metrics import mean_absolute_error as mae
+from sklearn.metrics import mean_absolute_percentage_error as mape
+
+
+def create_error_df(
+    data: pd.DataFrame,
+    preds: pd.DataFrame,
+) -> pd.DataFrame:
+    min_date = max(min(data.dates), min(preds.dates))
+    max_date = min(max(data.dates), max(preds.dates))
+
+    preds = preds.loc[(preds.dates >= min_date) & (preds.dates <= max_date)]
+
+    data = data.loc[(data.dates >= min_date) & (data.dates <= max_date)]
+
+    predict_ids = preds.predict_id.unique()
+
+    metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
+
+    df_error = pd.DataFrame(columns=["predict_id", "metric", "error"])
+
+    for pred_id, metric in product(predict_ids, metrics):
+        if metric == "MAE":
+            erro = mae(
+                data.target, preds.loc[preds.predict_id == pred_id].preds
+            )
+
+        if metric == "MSE":
+            erro = mse(
+                data.target, preds.loc[preds.predict_id == pred_id].preds
+            )
+
+        if metric == "RMSE":
+            erro = mse(
+                data.target,
+                preds.loc[preds.predict_id == pred_id].preds,
+                squared=False,
+            )
+
+        if metric == "MSLE":
+            erro = msle(
+                data.target, preds.loc[preds.predict_id == pred_id].preds
+            )
+
+        if metric == "MAPE":
+            erro = mape(
+                data.target, preds.loc[preds.predict_id == pred_id].preds
+            )
+
+        df_e = {"predict_id": [pred_id], "metric": [metric], "error": [erro]}
+
+        df_error = pd.concat([df_error, pd.DataFrame(df_e)])
+
+    df_error = df_error.reset_index(drop=True)
+
+    return df_error
 
 
 def predictions_df_by_geocode(predictions_ids: list[int]):
@@ -81,6 +139,31 @@ def data_chart_by_geocode(
     )
 
     return chart
+
+
+def get_cases_by_geocode(
+    disease: Literal["dengue", "chikungunya", "zika"],
+    start: date,
+    end: date,
+    geocode: int,
+    x: str = "dates",
+    y: str = "target",
+) -> pd.DataFrame:
+    hist_alerta = historico_alerta_data_for(disease)
+    data = hist_alerta.filter(
+        data_iniSE__gt=start, data_iniSE__lt=end, municipio_geocodigo=geocode
+    )
+
+    res = {x: [], y: []}
+    for obj in data:
+        res[x].append(obj.data_iniSE)
+        res[y].append(obj.casos)
+
+    df = pd.DataFrame(res)
+    df["legend"] = "Data"
+    df.dates = pd.to_datetime(df.dates)
+
+    return df
 
 
 def line_charts_by_geocode(
@@ -181,6 +264,72 @@ def line_charts_by_geocode(
     )
 
     return final
+
+
+def error_bar_charts_by_geocode(
+    title: str,
+    predictions_ids: list[int],
+    width="container",
+    disease: str = "dengue",
+):
+    geocode: int = None
+
+    for prediction_id in predictions_ids:
+        try:
+            prediction = Prediction.objects.get(pk=prediction_id)
+        except Prediction.DoesNotExist:
+            # TODO: Improve error handling
+            raise VisualizationError("Prediction not found")
+
+        if not geocode:
+            geocode = prediction.adm_2_geocode
+
+        if geocode != prediction.adm_2_geocode:
+            raise VisualizationError(
+                "Two different geocodes were added to be visualized"
+            )
+
+    if not geocode:
+        raise VisualizationError("No geocode was selected to be visualized")
+
+    predicts_df = predictions_df_by_geocode(predictions_ids)
+
+    data = get_cases_by_geocode(
+        disease=disease,
+        geocode=geocode,
+        start=min(predicts_df.dates),
+        end=max(predicts_df.dates),
+        x="dates",
+        y="target",
+    )
+
+    df_error = create_error_df(
+        data=data,
+        preds=predicts_df,
+    )
+
+    metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
+
+    input_dropdown = alt.binding_select(options=metrics, name="Metrics")
+    selection = alt.selection_single(fields=["metric"], bind=input_dropdown)
+
+    bars = (
+        alt.Chart(df_error)
+        .mark_bar()
+        .encode(
+            x="error",
+            y=alt.Y("predict_id:N").sort("x"),
+            color="predict_id:N",
+            tooltip=["error"],
+        )
+        .add_params(selection)
+        .transform_filter(selection)
+        .properties(
+            width=350,
+        )
+    )
+
+    return bars
 
 
 def base_model_chart(
