@@ -17,6 +17,13 @@ def create_error_df(
     data: pd.DataFrame,
     preds: pd.DataFrame,
 ) -> pd.DataFrame:
+    min_date = max(min(data.dates), min(preds.dates))
+    max_date = min(max(data.dates), max(preds.dates))
+
+    preds = preds.loc[(preds.dates >= min_date) & (preds.dates <= max_date)]
+
+    data = data.loc[(data.dates >= min_date) & (data.dates <= max_date)]
+
     predict_ids = preds.predict_id.unique()
 
     metrics = ["MAE", "MSE", "RMSE", "MSLE", "MAPE"]
