@@ -5,6 +5,7 @@ UFs = {
     "AM": "Amazonas",
     "BA": "Bahia",
     "CE": "Ceará",
+    "DF": "Distrito Federal",
     "ES": "Espírito Santo",
     "GO": "Goiás",
     "MA": "Maranhão",
@@ -25,7 +26,6 @@ UFs = {
     "SP": "São Paulo",
     "SE": "Sergipe",
     "TO": "Tocantins",
-    "DF": "Distrito Federal",
 }
 
 UF_CODES = {
