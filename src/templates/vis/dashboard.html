@@ -557,7 +557,7 @@
         }
       })
 
-      // updateLineChart(selectedPredictions);
+      updateLineChart(selectedPredictions);
     });
 
     function updateGeocodes(predictions = []) {
@@ -653,10 +653,6 @@
 
         return true;
       });
-
-      // if (String(admLevel) === "2") {
-      //   updateGeocodes(filteredPredictions);
-      // }
 
       updatePredictions(filteredPredictions);
     }
