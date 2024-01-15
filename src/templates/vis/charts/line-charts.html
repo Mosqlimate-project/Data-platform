@@ -17,9 +17,9 @@
             <thead>
                 <tr>
                     <th scope="col">{% trans "Model" %}</th>
+                    <th scope="col">{% trans "Prediction" %}</th>
                     <th scope="col">{% trans "Disease" %}</th>
                     <th scope="col">{% trans "Locality" %}</th>
-                    <th scope="col">{% trans "Prediction" %}</th>
                     <th scope="col">{% trans "Prediction Date" %}</th>
                 </tr>
             </thead>
@@ -27,9 +27,9 @@
                 {% for info in prediction_infos %}
                 <tr>
                     <td>{{info.model_id}}</td>
+                    <td>{{info.prediction_id}}</td>
                     <td>{{info.disease}}</td>
                     <td>{{info.locality}}</td>
-                    <td>{{info.prediction_id}}</td>
                     <td>{{info.prediction_date}}</td>
                 </tr>
                 {% endfor %}
