@@ -13,40 +13,26 @@
         <div class="container shadow p-5 mb-3 bg-body rounded">
             <div class="row mb-3">
                 <div class="col">
-                    <label for="model_name">{% translate "Model Name" %}:</label>
+                    <label for="model_name"><b>{% translate "Model name" %}:</b></label>
                     <input type="text" id="edit-model-name" name="model_name" value="{{ model.name }}" class="form-control" maxlength="100" required>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="model_description">{% translate "Description" %}:</label>
-                    <textarea rows="4" id="edit-model-desc" name="model_description"
-                        class="form-control" maxlength="500" placeholder="{% translate 'Model description' %}">{{ model.description }}</textarea>
+                    <label for="model_description"><b>{% translate "Description" %}:</b></label>
+                    <textarea 
+                        rows="4" 
+                        id="edit-model-desc" 
+                        name="model_description"
+                        class="form-control" 
+                        maxlength="500" 
+                        placeholder="{% translate 'Model description' %}">{{ model.description }}
+                    </textarea>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="model_repository">{% translate "Github Repository" %}:</label>
-                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
-                </div>
-                <div class="col">
-                    <label for="model_type">{% translate "Type" %}:</label>
-                    <input type="text" id="edit-model-type" name="model_type" value="{{ model.type }}" class="form-control" maxlength="100" placeholder="E.g: Nowcast" required>
-                </div>
-                <div class="col">
-                    <label for="model_language">{% translate "Implementation language" %}:</label>
-                    <select id="edit-model-lang" name="model_language" class="form-control" required>
-                        {% for language in implementation_languages %}
-                        <option value="{{ language }}" {% if language == model.implementation_language %}selected{% endif %}>
-                        {{ language }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col">
-                    <label for="model_time_resolution">{% translate "Time resolution" %}:</label>
+                    <label for="model_time_resolution"><b>{% translate "Time resolution" %}:</b></label>
                     <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
                         {% for value, label in time_resolutions %}
                         <option value="{{ value }}" {% if value == model.time_resolution %}selected{% endif %}>
@@ -56,7 +42,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <label for="model_adm_level">{% translate "ADM Level" %}:</label>
+                    <label for="model_adm_level"><b>{% translate "ADM Level" %}:</b></label>
                     <select id="edit-adm-level" name="model_adm_level" class="form-control" required>
                         {% for level, label in adm_levels %}
                         <option value="{{ level }}" {% if level == model.ADM_level %}selected{% endif %}>
@@ -66,7 +52,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <label for="model_disease">{% translate "Disease" %}:</label>
+                    <label for="model_disease"><b>{% translate "Disease" %}:</b></label>
                     <select id="edit-disease" name="model_disease" class="form-control" required>
                         {% for disease, label in diseases %}
                         <option value="{{ disease }}" {% if disease == model.disease %}selected{% endif %}>
@@ -74,6 +60,64 @@
                         </option>
                         {% endfor %}
                     </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="model_repository"><b>{% translate "Github repository" %}:</b></label>
+                    <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
+                </div>
+                <div class="col">
+                    <label for="model_language"><b>{% translate "Implementation language" %}:</b></label>
+                    <select id="edit-model-lang" name="model_language" class="form-control" required>
+                        {% for language in implementation_languages %}
+                        <option value="{{ language }}" {% if language == model.implementation_language %}selected{% endif %}>
+                        {{ language }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <br>
+            <center><h4>{% translate "Visualization" %}</h4></center>
+            <center><hr></center>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="model_temporal"><b>{% translate "Classification axis" %}:</b></label>
+                    <input type="hidden" name="model_temporal" id="edit-model-temporal">
+                    <div class="form-check edit-model-axis">
+                      <input class="form-check-input" type="checkbox" name="model-temporal-box" id="model-temporal" {% if model.temporal %}checked{% endif %}>
+                      <label class="form-check-label" for="model-temporal-box">
+                      {% translate "Time" %}
+                      </label>
+                    </div>
+                    <input type="hidden" name="model_spatial" id="edit-model-spatial">
+                    <div class="form-check edit-model-axis">
+                      <input class="form-check-input" type="checkbox" name="model-spatial-box" id="model-spatial" {% if model.spatial %}checked{% endif %}>
+                      <label class="form-check-label" for="model-spatial-box">
+                      {% translate "Space" %}
+                      </label>
+                    </div>
+                </div>
+                <div class="col">
+                    <input type="hidden" name="model_categorical" id="edit-model-categorical">
+                    <label for="model_quantitative_categorical"><b>{% translate "Output format" %}:</b></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                        name="model_quantitative_categorical" id="model-quantitative" {% if model.categorical == False %}checked{% endif %}>
+                        <label class="form-check-label" for="model-quantitative-box">
+                            {% translate "Quantitative" %}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                        name="model_quantitative_categorical" id="model-categorical" {% if model.categorical == True %}checked{% endif %}>
+                        <label class="form-check-label" for="model-categorical-box">
+                            {% translate "Categorical" %}
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,4 +154,44 @@
 </div>
 {% endif %}
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var form = document.getElementById('updateModelForm');
+
+        var spatialRadio = document.getElementById('model-spatial');
+        var spatialField = document.getElementById('edit-model-spatial');
+
+        var temporalRadio = document.getElementById('model-temporal');
+        var temporalField = document.getElementById('edit-model-temporal');
+
+        var quantitativeRadio = document.getElementById('model-quantitative');
+        var categoricalRadio = document.getElementById('model-categorical');
+        var categoricalField = document.getElementById('edit-model-categorical');
+
+        updateModelCategoricalField();
+        updateSpatialField();
+        updateTemporalField();
+
+        spatialRadio.addEventListener('change', updateSpatialField);
+        temporalRadio.addEventListener('change', updateTemporalField);
+        quantitativeRadio.addEventListener('change', updateModelCategoricalField);
+        categoricalRadio.addEventListener('change', updateModelCategoricalField);
+
+        function updateModelCategoricalField() {
+            if (quantitativeRadio.checked) {
+                categoricalField.value = 'False';
+            } else if (categoricalRadio.checked) {
+                categoricalField.value = 'True';
+            }
+        }
+
+        function updateSpatialField() {
+            spatialField.value = spatialRadio.checked ? 'True' : 'False';
+        }
+
+        function updateTemporalField() {
+            temporalField.value = temporalRadio.checked ? 'True' : 'False';
+        }
+    });
+</script>
 {% endblock %}

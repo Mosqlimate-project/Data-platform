@@ -20,7 +20,7 @@ def get_prediction_description_by_id(id: int) -> str:
 
 @register.filter(name="is_prediction_visualizable")
 def is_prediction_visualizable(prediction: Prediction):
-    if any(prediction.visualizable()):
+    if prediction.visualizable:
         return True
     return False
 
@@ -29,7 +29,7 @@ def is_prediction_visualizable(prediction: Prediction):
 def is_model_visualizable(model: Model):
     predictions = Prediction.objects.filter(model=model)
     for prediction in predictions:
-        if any(prediction.visualizable()):
+        if prediction.visualizable:
             return True
     return False
 

@@ -39,7 +39,8 @@ class ModelAdmin(admin.ModelAdmin):
         "created",
     )
     list_filter = (
-        "type",
+        "spatial",
+        "categorical",
         "implementation_language",
     )
     date_hierarchy = "updated"

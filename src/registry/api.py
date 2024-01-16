@@ -156,8 +156,10 @@ class ModelIn(Schema):
     description: str = None
     repository: str  # TODO: Validate repository?
     implementation_language: str
-    type: str
     disease: Literal["dengue", "zika", "chikungunya"]
+    temporal: bool
+    spatial: bool
+    categorical: bool
     ADM_level: Literal[0, 1, 2, 3]
     time_resolution: Literal["day", "week", "month", "year"]
 
@@ -285,8 +287,11 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
                 setattr(model, attr, value)
 
             if not calling_via_swagger(request):
-                # Not really required, since include_in_schema=False
                 model.save()
+
+                predictions = Prediction.objects.filter(model=model)
+                for prediction in predictions:
+                    prediction.parse_metadata()
 
             return 201, model
         except Author.DoesNotExist:
@@ -396,6 +401,7 @@ def create_prediction(request, payload: PredictionIn):
     prediction = Prediction(**payload.dict())
 
     if not calling_via_swagger(request):
+        prediction.parse_metadata()
         prediction.save()
 
     return 201, prediction
@@ -427,6 +433,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         if not calling_via_swagger(request):
             # Not really required, since include_in_schema=False
+            prediction.parse_metadata()
             prediction.save()
 
         return 201, prediction

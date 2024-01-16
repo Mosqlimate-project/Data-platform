@@ -1,10 +1,12 @@
+from typing import Optional
+
 from ninja import Schema
 
 
 class SuccessSchema(Schema):
     """200"""
 
-    message: str
+    message: Optional[str]
 
 
 class ForbiddenSchema(Schema):

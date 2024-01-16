@@ -67,7 +67,7 @@
     </div>
     <div class="icons">
       {% if prediction|is_prediction_visualizable %}
-      <a href="{% url 'vis' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
+      <a href="{% url 'dashboard' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
       {% endif %}
       {{user.authenticated}}
       {% if user == prediction.model.author.user %}

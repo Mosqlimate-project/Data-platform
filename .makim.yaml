@@ -51,7 +51,7 @@ groups:
         help: Run `migrate` inside container
         env-file: .env
         run: |
-          sugar run --service django --cmd "python manage.py makemigrations --no-input"
+          # sugar run --service django --cmd "python manage.py makemigrations --no-input"
           sugar run --service django --cmd "python manage.py migrate --no-input"
 
 

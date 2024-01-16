@@ -195,7 +195,11 @@ class EditModelView(View):
                     "implementation_language": form.cleaned_data[
                         "model_language"
                     ],
-                    "type": form.cleaned_data["model_type"],
+                    "categorical": (
+                        form.data.get("model_categorical") == "True"
+                    ),
+                    "spatial": form.data.get("model_spatial") == "True",
+                    "temporal": form.data.get("model_temporal") == "True",
                     "ADM_level": form.cleaned_data["model_adm_level"],
                     "disease": form.cleaned_data["model_disease"],
                     "time_resolution": form.cleaned_data[
