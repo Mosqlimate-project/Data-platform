@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from registry.models import Model, Prediction
+from main.api import get_municipality_info
 from .dash.charts import line_charts_by_geocode
 from .home.vis_charts import uf_ibge_mapping
 
@@ -20,17 +21,18 @@ class DashboardView(View):
         models = Model.objects.all()
         predictions = Prediction.objects.filter(visualizable=True)
 
+        city_names_w_uf = []
+        for geocode in predictions.values_list("adm_2_geocode", flat=True):
+            if geocode:
+                _, info = get_municipality_info(request, geocode)
+                city_names_w_uf.append(f"{info['municipio']} - {info['uf']}")
+
         predictions_data = list(
             zip(
                 list(predictions.values_list("id", flat=True)),
                 list(predictions.values_list("model__name", flat=True)),
                 list(predictions.values_list("metadata", flat=True)),
-                [
-                    g if g else ""
-                    for g in predictions.values_list(
-                        "adm_2_geocode", flat=True
-                    )
-                ],
+                city_names_w_uf,
             )
         )
 

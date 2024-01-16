@@ -224,11 +224,11 @@
                       <label for="predictionSearch">{% trans "Select Predictions" %}</label>
                   </center>
                   <select id="predictionSearch" multiple>
-                      {% for id, model_name, metadata, geocode in predictions %}
+                      {% for id, model_name, metadata, city in predictions %}
                           <option 
                           value="{{ id }}" 
                           data-metadata="{{ metadata }}">
-                          {{model_name}} - Prediction {{id}} {% if geocode %} - {{geocode}} {% endif %}
+                          {{model_name}} - Prediction {{id}} {% if city %} - {{city}} {% endif %}
                           </option>
                       {% endfor %}
                   </select>
@@ -273,7 +273,7 @@
 }
 
 #geocode-div {
-  width: 15%;
+  width: 14%;
 }
 
 .absolute-geocode {
@@ -289,7 +289,7 @@
 }
 
 #predictionSearch {
-  width: 60%;
+  width: 62%;
 }
 </style>
 
@@ -396,14 +396,14 @@
     }
 
     const initialPredictions = [
-      {% for key, value in predictions.items %}
-      "{{ value }}",
+      {% for id, model_name, metadata, city in predictions %}
+      "{{ metadata }}",
       {% endfor %}
     ];
 
     const initialPredictionsMap = {
-      {% for key, value in predictions.items %}
-      "{{ key }}": "{{ value }}",
+      {% for id, model_name, metadata, city in predictions %}
+      "{{ id }}": "{{ metadata }}",
       {% endfor %}
     };
 
@@ -423,8 +423,15 @@
     geocodes.forEach(geocode => {
       var opt = document.createElement('option');
       opt.value = geocode;
-      opt.innerHTML = geocode;
-      $("#geocode").append(opt).selectpicker('refresh');
+
+      getCityName(geocode)
+        .then(cityString => {
+          opt.innerHTML = cityString;
+          $("#geocode").append(opt).selectpicker('refresh');
+        })
+        .catch(error => {
+          console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
+        });
     });
 
     $("#geocode").prop("selectedIndex", -1);
@@ -587,9 +594,6 @@
       updateLineChart(selectedPredictions);
     });
 
-    function updateGeocodes(predictions = []) {
-    };
-
     function updatePredictions(predictions, selectedPredict = []) {
       let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];
       $("#predictionSearch option").each(function () {
@@ -682,6 +686,26 @@
       });
 
       updatePredictions(filteredPredictions);
+    }
+
+    function getCityName(geocode) {
+      return fetch(`/api/city_info/?geocode=${geocode}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data && data.municipio && data.uf) {
+            return `${data.municipio} - ${data.uf}`;
+          } else {
+            throw new Error('Invalid data format or missing information');
+          }
+        })
+        .catch(error => {
+          console.error(error, error.message);
+        });
     }
   });
 
