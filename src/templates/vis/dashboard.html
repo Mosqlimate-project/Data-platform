@@ -224,8 +224,12 @@
                       <label for="predictionSearch">{% trans "Select Predictions" %}</label>
                   </center>
                   <select id="predictionSearch" multiple>
-                      {% for key, value in predictions.items %}
-                      <option value="{{ key }}" data-metadata={{value}}>{{ value }}</option>
+                      {% for id, model_name, metadata, geocode in predictions %}
+                          <option 
+                          value="{{ id }}" 
+                          data-metadata="{{ metadata }}">
+                          {{model_name}} - Prediction {{id}} {% if geocode %} - {{geocode}} {% endif %}
+                          </option>
                       {% endfor %}
                   </select>
               </center>
@@ -273,15 +277,19 @@
 }
 
 .absolute-geocode {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .prediction-search-div {
   width: 70%;
   margin: 0 auto;
+}
+
+#predictionSearch {
+  width: 60%;
 }
 </style>
 
