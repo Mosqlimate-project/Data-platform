@@ -1,28 +1,39 @@
-from datetime import datetime
-
 from django import template
-from vis.home.vis_charts import national_total_cases_data
+from vis.home.vis_charts import (
+    national_total_cases_data,
+    get_last_available_year,
+)
+
 
 register = template.Library()
 
 
 @register.inclusion_tag("main/components/vis-echarts.html", takes_context=True)
 def vis_echarts(context):
-    current_year = datetime.now().year
-    dengue, _ = national_total_cases_data("dengue", current_year)
-    chik, _ = national_total_cases_data("chik", current_year)
-    zika, _ = national_total_cases_data("zika", current_year)
-    dengue_100k, _ = national_total_cases_data("dengue", current_year, True)
-    chik_100k, _ = national_total_cases_data("chik", current_year, True)
-    zika_100k, _ = national_total_cases_data("zika", current_year, True)
+    default_uf = "RJ"
+    default_disease = "dengue"
 
-    context["br_data_dengue"] = dengue
-    context["br_data_chik"] = chik
-    context["br_data_zika"] = zika
-    context["br_data_dengue_100k"] = dengue_100k
-    context["br_data_chik_100k"] = chik_100k
-    context["br_data_zika_100k"] = zika_100k
+    disease_name = ["dengue", "chik", "zika"]
 
-    context["current_year"] = f"{current_year}"
+    br_info_data = {}
+
+    for disease in disease_name:
+        if disease == default_disease:
+            last_available_year = get_last_available_year(default_uf, disease)
+        br_info_data[f"br_data_{disease}"], _ = national_total_cases_data(
+            disease, last_available_year
+        )
+        br_info_data[f"br_data_{disease}_100k"], _ = national_total_cases_data(
+            disease, last_available_year, True
+        )
+
+    br_info_data.update(
+        {
+            "last_available_year": f"{last_available_year}",
+            "disease_name": disease_name,
+        }
+    )
+
+    context.update(br_info_data)
 
     return context
