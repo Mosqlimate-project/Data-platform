@@ -19,7 +19,7 @@ def vis_echarts(context):
 
     for disease in disease_name:
         if disease == default_disease:
-            last_available_year = get_last_available_year(default_uf, disease)
+            last_available_year = get_last_available_year(default_uf, default_disease)
         br_info_data[f"br_data_{disease}"], _ = national_total_cases_data(
             disease, last_available_year
         )
