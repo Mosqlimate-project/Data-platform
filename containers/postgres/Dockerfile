@@ -8,6 +8,8 @@ RUN usermod -u ${UID} postgres \
     && groupmod -g ${GID} postgres \
     && echo "postgres:x:${UID}:${GID}:PostgreSQL,,,:/var/lib/postgresql:/bin/bash" >> /etc/passwd 
 
+RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
