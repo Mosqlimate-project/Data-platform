@@ -1,6 +1,8 @@
 import logging
+from typing import Optional
 from datetime import datetime
 from celery.schedules import crontab
+from celery.signals import worker_ready
 from django.db.models import Sum
 
 from mosqlimate.celeryapp import app
@@ -24,6 +26,22 @@ app.conf.beat_schedule = {
         "schedule": crontab(hour=1, minute=15),
     },
 }
+
+
+@worker_ready.connect
+def at_start(sender, **k):
+    with sender.app.connection() as conn:
+        sender.app.send_task(
+            "vis.tasks.populate_total_cases_task",
+            kwargs={"t100k_hab": False},
+            connection=conn,
+        )
+        sender.app.send_task(
+            "vis.tasks.populate_total_cases_task",
+            kwargs={"t100k_hab": True},
+            connection=conn,
+        )
+        logging.warning("EXECUTING vis.tasks.populate_total_cases_task")
 
 
 @app.task
@@ -50,12 +68,35 @@ def update_total_cases_100k_hab_task():
             update_total_cases(disease, uf, True)
 
 
-def update_total_cases(disease: str, uf: str, is_100k_hab: bool):
+@app.task
+def populate_total_cases_task(
+    t100k_hab: bool, year: int = datetime.now().year
+):
+    """
+    Populates TotalCases and TotalCases100kHab retroactive
+    """
+    if year < 2010:
+        raise ValueError("populate_total_cases_task reached its year limit")
+
+    diseases = ["dengue", "chik", "zika"]
+
+    for disease in diseases:
+        for uf in uf_ibge_mapping:
+            try:
+                update_total_cases(disease, uf, t100k_hab, year)
+            except ValueError:
+                update_total_cases(disease, uf, t100k_hab, year - 1)
+
+
+def update_total_cases(
+    disease: str, uf: str, is_100k_hab: bool, year: Optional[int] = None
+):
     """
     Recalculate HistoricoAlerta total cases and total cases by 100k hab,
     updating the values for the current year
     """
-    year = datetime.now().year
+    if not year:
+        year = datetime.now().year
 
     if is_100k_hab:
         total_cases = TotalCases100kHab

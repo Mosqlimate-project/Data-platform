@@ -101,6 +101,9 @@ def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
             ).aggregate(total_cases=Sum("casos"))
         )["total_cases"]
 
+        if not historico_alerta_total_cases:
+            raise ValueError(f"No cases found for year {year}")
+
         total_cases = TotalCases(
             uf=uf,
             year=year,
@@ -153,6 +156,9 @@ def get_total_cases_100k_hab(
                 data_iniSE__year=year,
             ).aggregate(total_pop=Sum("pop"))
         )["total_pop"]
+
+        if not historico_alerta_total_cases:
+            raise ValueError(f"No cases found for year {year}")
 
         cases_per_100k_hab = (
             historico_alerta_total_cases / historico_alerta_total_pop * 100000
