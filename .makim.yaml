@@ -95,6 +95,7 @@ groups:
       dotenv:
         help: Configure .env file
         run: |
+          touch .env
           python contrib/scripts/do_dotenv.py
 
       psql-conf:
