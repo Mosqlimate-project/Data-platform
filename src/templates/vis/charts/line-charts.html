@@ -25,7 +25,7 @@
             </thead>
             <tbody>
                 {% for info in prediction_infos %}
-                <tr>
+                <tr class="{{ info.color }}">
                     <td>{{info.model_id}}</td>
                     <td>{{info.prediction_id}}</td>
                     <td>{{info.disease}}</td>
@@ -46,6 +46,16 @@
 </div>
 
 <style>
+.\#A6BCD4 { background-color: rgba(166, 188, 212, 0.5); }
+.\#FAC28C { background-color: rgba(250, 194, 140, 0.5); }
+.\#F2ABAB { background-color: rgba(242, 171, 171, 0.5); }
+.\#B9DBD9 { background-color: rgba(185, 219, 217, 0.5); }
+.\#AAD1A5 { background-color: rgba(170, 209, 165, 0.5); }
+.\#F7E59D { background-color: rgba(247, 229, 157, 0.5); }
+.\#D9BCD1 { background-color: rgba(217, 188, 209, 0.5); }
+.\#FFCED3 { background-color: rgba(255, 206, 211, 0.5); }
+.\#CEBAAE { background-color: rgba(206, 186, 174, 0.5); }
+
 .container {
     display: flex;
     flex-wrap: wrap;

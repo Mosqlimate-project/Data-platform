@@ -1,6 +1,7 @@
 import os
 import json
 from typing import Union
+from itertools import cycle
 
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -106,6 +107,19 @@ class LineChartsView(View):
         prediction_ids = request.GET.getlist("predict")
 
         predictions: set[Prediction] = set()
+        colors = cycle(
+            [
+                "#A6BCD4",
+                "#FAC28C",
+                "#F2ABAB",
+                "#B9DBD9",
+                "#AAD1A5",
+                "#F7E59D",
+                "#D9BCD1",
+                "#FFCED3",
+                "#CEBAAE",
+            ]
+        )
 
         if not prediction_ids:
             # Show "Please select Predictions"
@@ -133,6 +147,7 @@ class LineChartsView(View):
             else:
                 info["locality"] = "BR"  # TODO
             info["prediction_date"] = prediction.predict_date
+            info["color"] = next(colors)
             infos.append(info)
 
         context["prediction_ids"] = ids
