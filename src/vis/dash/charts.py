@@ -113,6 +113,23 @@ def line_charts_by_geocode(
         raise VisualizationError("No geocode was selected to be visualized")
 
     predicts_df = predictions_df_by_geocode(predictions_ids)
+    predict_id_values = predicts_df["predict_id"].unique()
+
+    colors = [
+        "#A6BCD4",
+        "#FAC28C",
+        "#F2ABAB",
+        "#B9DBD9",
+        "#AAD1A5",
+        "#F7E59D",
+        "#D9BCD1",
+        "#FFCED3",
+        "#CEBAAE",
+    ]
+
+    custom_color_scale = alt.Scale(
+        domain=list(predict_id_values), range=colors
+    )
 
     # here is loaded the element that allows the selection by the mouse
     highlight = alt.selection_point(
@@ -151,7 +168,9 @@ def line_charts_by_geocode(
     lines = base.mark_line().encode(
         # size=alt.condition(~highlight, alt.value(1), alt.value(3))
         color=alt.condition(
-            highlight, alt.Color("predict_id:N"), alt.value("lightgray")
+            highlight,
+            alt.Color("predict_id:N", scale=custom_color_scale),
+            alt.value("lightgray"),
         ),
         tooltip=["predict_id:N", "preds"],
     )
@@ -159,7 +178,7 @@ def line_charts_by_geocode(
     # here we define the plot of the right figure
     timeseries = (
         base.mark_line()
-        .encode(color=alt.Color("predict_id:N"))
+        .encode(color=alt.Color("predict_id:N", scale=custom_color_scale))
         .transform_filter(
             highlight  # this function transform filter will just filter the element
             # in highlight from the column model N of the df_for
