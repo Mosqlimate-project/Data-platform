@@ -191,12 +191,33 @@ def line_charts_by_geocode(
         base.mark_area(opacity=0.5)
         .encode(x="dates:T", y="lower:Q", y2="upper:Q")
         .transform_filter(highlight)
+    ).properties(
+        title=alt.TitleParams(
+            "https://mosqlimate.org/",
+            color="gray",
+            baseline="bottom",
+            orient="bottom",
+            anchor="end",
+        )
+    )
+
+    watermark = (
+        alt.Chart({"values": [{"url": "https://i.imgur.com/fgaisVU.png"}]})
+        .mark_image(opacity=0.25)
+        .encode(
+            x=alt.value(150),
+            x2=alt.value(300),  # from left
+            y=alt.value(60),
+            y2=alt.value(230),  # from top
+            url="url:N",
+        )
     )
 
     # here we concatenate the layers, the + put one layer above the other
     # the | put them syde by syde (as columns), and & put them side by side as lines
     final = (
-        points + lines + data_chart | timeseries + timeseries_conf + data_chart
+        points + lines + data_chart + watermark
+        | timeseries + timeseries_conf + data_chart + watermark
     )
 
     return final
