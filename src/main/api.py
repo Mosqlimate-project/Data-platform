@@ -5,6 +5,7 @@ from django.urls import reverse
 from ninja import NinjaAPI, Router, Schema
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.http import HttpResponse
 
 from registry.api import router as registry_router
 from datastore.api import router as datastore_router
@@ -77,3 +78,14 @@ def get_municipality_info(request, geocode):
     mun_info["uf_nome"] = UFs[codes_uf[int(uf_code)]]
 
     return 200, mun_info
+
+
+@router.get(
+    "/mosqlimate-logo/",
+    include_in_schema=False,
+)
+@csrf_exempt
+def get_mosqlimate_logo(request):
+    logo_path = os.path.join(settings.STATIC_ROOT, "img/logo-mosqlimate.png")
+    with open(logo_path, "rb") as f:
+        return HttpResponse(f.read(), content_type="image/jpeg")
