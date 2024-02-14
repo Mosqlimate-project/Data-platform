@@ -165,14 +165,26 @@ def line_charts_by_geocode(
 
     # here we create the multiline plot and use the alt.condition
     # to highlight only one curve
-    lines = base.mark_line().encode(
-        # size=alt.condition(~highlight, alt.value(1), alt.value(3))
-        color=alt.condition(
-            highlight,
-            alt.Color("predict_id:N", scale=custom_color_scale),
-            alt.value("lightgray"),
-        ),
-        tooltip=["predict_id:N", "preds"],
+    lines = (
+        base.mark_line()
+        .encode(
+            # size=alt.condition(~highlight, alt.value(1), alt.value(3))
+            color=alt.condition(
+                highlight,
+                alt.Color("predict_id:N", scale=custom_color_scale),
+                alt.value("lightgray"),
+            ),
+            tooltip=["predict_id:N", "preds"],
+        )
+        .properties(
+            title=alt.TitleParams(
+                "https://mosqlimate.org/",
+                color="lightgray",
+                baseline="bottom",
+                orient="bottom",
+                anchor="end",
+            )
+        )
     )
 
     # here we define the plot of the right figure
@@ -194,7 +206,7 @@ def line_charts_by_geocode(
     ).properties(
         title=alt.TitleParams(
             "https://mosqlimate.org/",
-            color="gray",
+            color="lightgray",
             baseline="bottom",
             orient="bottom",
             anchor="end",

@@ -26,7 +26,7 @@
             <tbody>
                 {% for info in prediction_infos %}
                 <tr class="{{ info.color }}">
-                    <td>{{info.model_id}}</td>
+                    <td class="model-name">{{info.model}}</td>
                     <td>{{info.prediction_id}}</td>
                     <td>{{info.disease}}</td>
                     <td>{{info.locality}}</td>
@@ -65,6 +65,13 @@
     width: 50%;
     box-sizing: border-box;
     padding: 10px;
+}
+
+.model-name {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .vega-embed.has-actions {
