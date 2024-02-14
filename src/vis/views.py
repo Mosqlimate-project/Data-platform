@@ -135,7 +135,7 @@ class LineChartsView(View):
         for prediction in predictions:
             info = {}
             ids.append(prediction.id)
-            info["model_id"] = prediction.model.id
+            info["model"] = f"{prediction.model.id} - {prediction.model.name}"
             info["prediction_id"] = prediction.id
             info["disease"] = prediction.model.disease.capitalize()
             if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
