@@ -202,7 +202,13 @@ def line_charts_by_geocode(
     )
 
     watermark = (
-        alt.Chart({"values": [{"url": "https://i.imgur.com/WElFOgo.png"}]})
+        alt.Chart(
+            {
+                "values": [
+                    {"url": "https://api.mosqlimate.org/api/mosqlimate-logo/"}
+                ]
+            }
+        )
         .mark_image(opacity=0.25)
         .encode(
             x=alt.value(150),
