@@ -332,38 +332,6 @@
       3: "SM",
     };
 
-    function clearSelectors() {
-      selectedDisease = null;
-      selectedPredictions = [];
-      selectedTimeResolution = null;
-      selectedAdmLevel = null;
-      selectedSpatial = null;
-      selectedTemporal = null;
-      selectedOutputFormat = null;
-      selectedGeocode = null;
-
-      document.getElementById("geocode-div").style.display = "none";
-
-      $("#dengue, #zika, #chik").prop("checked", false);
-
-      $("#day, #week, #month, #year").prop("checked", false);
-
-      admLevel.forEach(level => {
-        level.checked = false;
-      });
-
-      spatial.indeterminate = true;
-
-      temporal.indeterminate = true;
-
-      outputFormat.forEach(format => {
-        format.checked = false;
-      });
-
-      $('#predictionSearch').val([]).trigger('change');
-      filterPredictions();
-    }
-
     $('#predictionSearch').on('select2:unselect', function (e) {
       selectedPredictions = $(this).val()
       if (selectedPredictions.length === 0) {
@@ -377,13 +345,17 @@
     var spatial = document.getElementById("spatialType");
     var temporal = document.getElementById("temporalType");
     var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
-    let selectedDisease = null;
+    let selectedDisease = "chik";
     let selectedTimeResolution = null;
     let selectedAdmLevel = null;
     let selectedSpatial = null;
     let selectedTemporal = null;
     let selectedOutputFormat = null;
     let selectedGeocode = null;
+
+    console.log(selectedDisease);
+
+    $(diseases).trigger("change");
 
     var selectedPredictions = [];
 
@@ -443,6 +415,11 @@
         $('#predictionSearch').val([]).trigger('change');
         filterPredictions();
       });
+
+      if (disease.id === selectedDisease) {
+        disease.checked = true;
+        disease.dispatchEvent(new Event('change'));
+      }
     });
 
     timeRes.forEach(function (time) {
@@ -593,6 +570,38 @@
 
       updateLineChart(selectedPredictions);
     });
+
+    function clearSelectors() {
+      selectedDisease = null;
+      selectedPredictions = [];
+      selectedTimeResolution = null;
+      selectedAdmLevel = null;
+      selectedSpatial = null;
+      selectedTemporal = null;
+      selectedOutputFormat = null;
+      selectedGeocode = null;
+
+      document.getElementById("geocode-div").style.display = "none";
+
+      $("#dengue, #zika, #chik").prop("checked", false);
+
+      $("#day, #week, #month, #year").prop("checked", false);
+
+      admLevel.forEach(level => {
+        level.checked = false;
+      });
+
+      spatial.indeterminate = true;
+
+      temporal.indeterminate = true;
+
+      outputFormat.forEach(format => {
+        format.checked = false;
+      });
+
+      $('#predictionSearch').val([]).trigger('change');
+      filterPredictions();
+    }
 
     function updatePredictions(predictions, selectedPredict = []) {
       let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];

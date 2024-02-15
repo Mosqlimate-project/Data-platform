@@ -19,6 +19,32 @@ class DashboardView(View):
     def get(self, request):
         context = {}
 
+        selected_model = request.GET.get("model", None)
+        selected_prediction = request.GET.get("predict", None)
+
+        if selected_model:
+            model = Model.objects.get(pk=selected_model)
+            context["selectedDisease"] = model.disease
+            context["selectedTimeResolution"] = model.time_resolution
+            context["selectedADMLevel"] = model.ADM_level
+            context["selectedSpatial"] = model.spatial
+            context["selectedTemporal"] = model.temporal
+            context["selectedOutputFormat"] = model.categorical
+
+        if selected_prediction:
+            prediction = Prediction.objects.get(pk=selected_prediction)
+            context["selectedDisease"] = prediction.model.disease
+            context[
+                "selectedTimeResolution"
+            ] = prediction.model.time_resolution
+            context["selectedADMLevel"] = prediction.model.ADM_level
+            context["selectedSpatial"] = prediction.model.spatial
+            context["selectedTemporal"] = prediction.model.temporal
+            context["selectedOutputFormat"] = prediction.model.categorical
+            context["selectedGeocode"] = prediction.adm_2_geocode or None
+
+        print(context)
+
         models = Model.objects.all()
         predictions = Prediction.objects.filter(visualizable=True)
 
@@ -79,7 +105,7 @@ class DashboardView(View):
             for uf, info in uf_ibge_mapping.items():
                 uf_codes[int(info["code"])] = uf
 
-            with open(municipios_file, "r") as f:
+            with open(municipios_file, "rb") as f:
                 geocodes = json.load(f)
 
             for geocode in geocodes:
