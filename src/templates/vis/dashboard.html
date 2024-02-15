@@ -345,26 +345,28 @@
     var spatial = document.getElementById("spatialType");
     var temporal = document.getElementById("temporalType");
     var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
-    let selectedDisease = "chik";
-    let selectedTimeResolution = null;
-    let selectedAdmLevel = null;
-    let selectedSpatial = null;
-    let selectedTemporal = null;
-    let selectedOutputFormat = null;
-    let selectedGeocode = null;
+    let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
+    let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
+    let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
+    let selectedSpatial = {{ selectedSpatial|default_if_none:'null'|lower }};
+    let selectedTemporal = {{ selectedTemporal|default_if_none:'null'|lower }};
+    let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
+    let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
 
-    console.log(selectedDisease);
-
-    $(diseases).trigger("change");
+    console.log(selectedGeocode);
 
     var selectedPredictions = [];
 
     if (!selectedSpatial) {
       spatial.indeterminate = true;
+    } else {
+      spatial.checked = selectedSpatial;
     }
 
     if (!selectedTemporal) {
       temporal.indeterminate = true;
+    } else {
+      temporal.checked = selectedTemporal;
     }
 
     const initialPredictions = [
@@ -406,9 +408,6 @@
         });
     });
 
-    $("#geocode").prop("selectedIndex", -1);
-    $('#geocode').selectpicker('refresh');
-
     diseases.forEach(function (disease) {
       disease.addEventListener("change", function () {
         selectedDisease = this.id;
@@ -416,7 +415,7 @@
         filterPredictions();
       });
 
-      if (disease.id === selectedDisease) {
+      if (disease === selectedDisease) {
         disease.checked = true;
         disease.dispatchEvent(new Event('change'));
       }
@@ -428,6 +427,11 @@
         $('#predictionSearch').val([]).trigger('change');
         filterPredictions();
       });
+
+      if (time === selectedTimeResolution) {
+        time.checked = true;
+        time.dispatchEvent(new Event('change'));
+      }
     });
 
     admLevel.forEach(function (level) {
@@ -442,6 +446,11 @@
         $('#predictionSearch').val([]).trigger('change');
         filterPredictions();
       });
+
+      if (String(level.value) === String(selectedAdmLevel)) {
+        level.checked = true;
+        level.dispatchEvent(new Event('change'));
+      }
     });
 
     spatial.addEventListener("change", function() {
@@ -462,6 +471,11 @@
         $('#predictionSearch').val([]).trigger('change');
         filterPredictions();
       });
+
+      if (format.value === selectedOutputFormat) {
+        format.checked = true;
+        format.dispatchEvent(new Event('change'));
+      }
     });
 
     $('#geocode').on("change", function () {
@@ -472,6 +486,16 @@
       selectedGeocode = geocode;
       filterPredictions();
     });
+
+    if (!selectedGeocode) {
+      console.log("NOT")
+      $("#geocode").prop("selectedIndex", -1);
+      $('#geocode').selectpicker('refresh');
+    } else {
+      console.log("YES")
+      $("#geocode").val(selectedGeocode).trigger("change");
+      $('#geocode').selectpicker('refresh');
+    }
 
     $('#predictionSearch').on("change", function () {
       selectedPredictions = $(this).val();
