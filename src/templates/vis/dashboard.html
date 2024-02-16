@@ -478,26 +478,28 @@
       }
     });
 
-    $('#geocode').on("change", function () {
-      let geocode = $(this).val();
-      if (geocode !== selectedGeocode) {
-        $('#predictionSearch').val([]).trigger('change');
-      }
-      selectedGeocode = geocode;
-      filterPredictions();
-    });
+  if (!selectedGeocode) {
+    $("#geocode").val([]);
+    $("#geocode").prop("selectedIndex", -1);
+    $('#geocode').selectpicker('refresh');
+  } else {
+    console.log(String(selectedGeocode));
+    $("#geocode").val(String(selectedGeocode));
+    $('#geocode').selectpicker('refresh')
+    $('#geocode').trigger('change');
+  }
 
-    if (!selectedGeocode) {
-      console.log("NOT")
-      $("#geocode").prop("selectedIndex", -1);
-      $('#geocode').selectpicker('refresh');
-    } else {
-      console.log("YES")
-      $("#geocode").val(selectedGeocode).trigger("change");
-      $('#geocode').selectpicker('refresh');
+  $('#geocode').on("change", function () {
+    let geocode = $(this).val();
+    console.log(geocode);
+    if (geocode !== selectedGeocode) {
+      $('#predictionSearch').val([]).trigger('change');
     }
+    selectedGeocode = geocode;
+    filterPredictions();
+  });
 
-    $('#predictionSearch').on("change", function () {
+  $('#predictionSearch').on("change", function () {
       selectedPredictions = $(this).val();
 
       selectedPredictions.forEach(predictionId => {
