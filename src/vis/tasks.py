@@ -1,9 +1,8 @@
 import logging
 from typing import Optional
-from datetime import datetime
 from celery.schedules import crontab
 from celery.signals import worker_ready
-from django.db.models import Sum
+from django.db.models import Sum, Max
 
 from mosqlimate.celeryapp import app
 
@@ -14,7 +13,6 @@ from .home.vis_charts import (
     get_total_cases,
     get_total_cases_100k_hab,
 )
-
 
 app.conf.beat_schedule = {
     "update-total-cases-daily": {
@@ -69,23 +67,21 @@ def update_total_cases_100k_hab_task():
 
 
 @app.task
-def populate_total_cases_task(
-    t100k_hab: bool, year: int = datetime.now().year
-):
+def populate_total_cases_task(t100k_hab: bool, year: Optional[int] = None):
     """
     Populates TotalCases and TotalCases100kHab retroactive
     """
-    if year < 2010:
-        raise ValueError("populate_total_cases_task reached its year limit")
+    if year:
+        if year < 2010:
+            raise ValueError(
+                "populate_total_cases_task reached its year limit"
+            )
 
     diseases = ["dengue", "chik", "zika"]
 
     for disease in diseases:
         for uf in uf_ibge_mapping:
-            try:
-                update_total_cases(disease, uf, t100k_hab, year)
-            except ValueError:
-                update_total_cases(disease, uf, t100k_hab, year - 1)
+            update_total_cases(disease, uf, t100k_hab, year)
 
 
 def update_total_cases(
@@ -95,8 +91,13 @@ def update_total_cases(
     Recalculate HistoricoAlerta total cases and total cases by 100k hab,
     updating the values for the current year
     """
+    data = historico_alerta_data_for(disease)
+
     if not year:
-        year = datetime.now().year
+        last_available_year = data.aggregate(max_year=Max("data_iniSE__year"))[
+            "max_year"
+        ]
+        year = last_available_year
 
     if is_100k_hab:
         total_cases = TotalCases100kHab
@@ -111,7 +112,6 @@ def update_total_cases(
         get_cases(disease, uf, year)
         update_total_cases(disease, uf, is_100k_hab)
 
-    data = historico_alerta_data_for(disease)
     uf_code = uf_ibge_mapping[uf]["code"]
 
     historico_alerta_total_cases = (
