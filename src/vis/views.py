@@ -50,6 +50,7 @@ class DashboardView(View):
             context["selectedTemporal"] = prediction.model.temporal
             context["selectedOutputFormat"] = prediction.model.categorical
             context["selectedGeocode"] = prediction.adm_2_geocode or None
+            context["selectedPredictions"] = prediction.id or None
 
         if context["selectedDisease"] == "chikungunya":
             context["selectedDisease"] = "chik"

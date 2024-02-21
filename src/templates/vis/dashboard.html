@@ -353,7 +353,7 @@
             let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
             let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
 
-            var selectedPredictions = [];
+            var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};;
 
             if (!selectedSpatial) {
                 spatial.indeterminate = true;
@@ -478,7 +478,7 @@
 
             $('#geocode').on("change", function () {
                 let geocode = $(this).val();
-                if (geocode !== selectedGeocode) {
+                if (String(geocode) !== String(selectedGeocode)) {
                     $('#predictionSearch').val([]).trigger('change');
                 }
                 selectedGeocode = geocode;
@@ -587,9 +587,14 @@
                 updateLineChart(selectedPredictions);
             });
 
+            setTimeout(function() {
+                $("#predictionSearch").val(selectedPredictions).trigger("change");
+            }, 100);
+
             function clearSelectors() {
                 selectedDisease = null;
                 selectedPredictions = [];
+                console.log("cleared");
                 selectedTimeResolution = null;
                 selectedAdmLevel = null;
                 selectedSpatial = null;
