@@ -7,255 +7,255 @@
 
 {% block content %}
 <div style="display:flex;">
-  <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
-    <div class="sidebar-menu">
-      <div class="p-3">
-        <center><b>
-            <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
-          </b></center>
-          <div class="form-check">
-            <input 
-            class="form-check-input" 
-            type="radio" 
-            name="diseaseRadio" 
-            id="dengue"
-            {% if "dengue" not in diseases %}disabled{% endif %}
-            >
-            <label class="form-check-label text-white" for="dengue">Dengue</label>
-          </div>
-          <div class="form-check">
-            <input 
-            class="form-check-input" 
-            type="radio" 
-            name="diseaseRadio" 
-            id="zika"
-            {% if "zika" not in diseases %}disabled{% endif %}
-            >
-            <label class="form-check-label text-white" for="zika">Zika</label>
-          </div>
-          <div class="form-check">
-            <input 
-            class="form-check-input" 
-            type="radio" 
-            name="diseaseRadio" 
-            id="chik"
-            {% if "chikungunya" not in diseases %}disabled{% endif %}
-            >
-            <label class="form-check-label text-white" for="chik">Chikungunya</label>
-          </div>
-
-          <hr style="color:white;">
-
-          <center><b>
-              <label for="timeResRadio" class="text-white">{% trans "Temporal Resolution" %}</label>
-            </b></center>
-            <div class="form-check">
-              <input 
-              class="form-check-input" 
-              type="radio" 
-              name="timeResRadio" 
-              id="day"
-              {% if "day" not in time_resolutions %}disabled{% endif %}
-              >
-              <label class="form-check-label text-white" for="day">Daily</label>
-            </div>
-            <div class="form-check">
-              <input 
-              class="form-check-input" 
-              type="radio" 
-              name="timeResRadio" 
-              id="week"
-              {% if "week" not in time_resolutions %}disabled{% endif %}
-              >
-              <label class="form-check-label text-white" for="week">Weekly</label>
-            </div>
-            <div class="form-check">
-              <input 
-              class="form-check-input" 
-              type="radio" 
-              name="timeResRadio" 
-              id="month"
-              {% if "month" not in time_resolutions %}disabled{% endif %}
-              >
-              <label class="form-check-label text-white" for="month">Monthly</label>
-            </div>
-            <div class="form-check">
-              <input 
-              class="form-check-input" 
-              type="radio" 
-              name="timeResRadio" 
-              id="year"
-              {% if "year" not in time_resolutions %}disabled{% endif %}
-              >
-              <label class="form-check-label text-white" for="year">Yearly</label>
-            </div>
-
-            <hr style="color:white;">
-
-            <center><b>
-                <label for="admLevelRadio" class="text-white">{% trans "Administrative Level" %}</label>
-              </b></center>
-              <div class="form-check">
-                <input 
-                class="form-check-input" 
-                type="radio" 
-                name="admLevelRadio" 
-                id="national"
-                value=0
-                {% if 0 not in adm_levels %}disabled{% endif %}
-                >
-                <label class="form-check-label text-white" for="national">National</label>
-              </div>
-              <div class="form-check">
-                <input 
-                class="form-check-input" 
-                type="radio" 
-                name="admLevelRadio" 
-                id="state"
-                value=1
-                {% if 1 not in adm_levels %}disabled{% endif %}
-                >
-                <label class="form-check-label text-white" for="state">State</label>
-              </div>
-              <div class="form-check">
-                <input 
-                class="form-check-input" 
-                type="radio" 
-                name="admLevelRadio" 
-                id="municipal"
-                value=2
-                {% if 2 not in adm_levels %}disabled{% endif %}
-                >
-                <label class="form-check-label text-white" for="municipal">Municipal</label>
-              </div>
-              <div class="form-check">
-                <input 
-                class="form-check-input" 
-                type="radio" 
-                name="admLevelRadio" 
-                id="submunicipal"
-                value=3
-                {% if 3 not in adm_levels %}disabled{% endif %}
-                >
-                <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
-              </div>
-
-              <hr style="color:white;">
-
-              <center><b>
-                  <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
-                </b></center>
-                <div class="form-check">
-                  <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  value="" 
-                  id="spatialType" 
-                  {% if "spatial" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="spatialType">
-                    Spatial
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                  class="form-check-input" 
-                  type="checkbox" 
-                  value="" 
-                  id="temporalType" 
-                  {% if "temporal" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="temporalType">
-                    Temporal
-                  </label>
-                </div>
-
-                <hr style="color:white;">
-
+    <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
+        <div class="sidebar-menu">
+            <div class="p-3">
                 <center><b>
-                    <label for="outputFormat" class="text-white">{% trans "Output Format" %}</label>
-                  </b></center>
-                  <div class="form-check">
-                    <input
-                    class="form-check-input" 
-                    type="radio" 
-                    name="outputFormat" 
-                    id="categorical" 
-                    value="C" 
-                    {% if "C" not in output_formats %}disabled{% endif %}
-                    >
-                    <label class="form-check-label text-white" for="categorical">
-                      Categorical
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input 
-                    class="form-check-input" 
-                    type="radio" 
-                    name="outputFormat" 
-                    id="quantitative" 
-                    value="Q" 
-                    {% if "Q" not in output_formats %}disabled{% endif %}
-                    >
-                    <label class="form-check-label text-white" for="quantitative">
-                      Quantitative
-                    </label>
-                  </div>
+                        <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
+                    </b></center>
+                    <div class="form-check">
+                        <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="diseaseRadio" 
+                        id="dengue"
+                        {% if "dengue" not in diseases %}disabled{% endif %}
+                        >
+                        <label class="form-check-label text-white" for="dengue">Dengue</label>
+                    </div>
+                    <div class="form-check">
+                        <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="diseaseRadio" 
+                        id="zika"
+                        {% if "zika" not in diseases %}disabled{% endif %}
+                        >
+                        <label class="form-check-label text-white" for="zika">Zika</label>
+                    </div>
+                    <div class="form-check">
+                        <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="diseaseRadio" 
+                        id="chik"
+                        {% if "chikungunya" not in diseases %}disabled{% endif %}
+                        >
+                        <label class="form-check-label text-white" for="chik">Chikungunya</label>
+                    </div>
 
-                  <hr style="color:white;">
+                    <hr style="color:white;">
 
-                  <center>
-                  </center>
-      </div>
+                    <center><b>
+                            <label for="timeResRadio" class="text-white">{% trans "Temporal Resolution" %}</label>
+                        </b></center>
+                        <div class="form-check">
+                            <input 
+                            class="form-check-input" 
+                            type="radio" 
+                            name="timeResRadio" 
+                            id="day"
+                            {% if "day" not in time_resolutions %}disabled{% endif %}
+                            >
+                            <label class="form-check-label text-white" for="day">Daily</label>
+                        </div>
+                        <div class="form-check">
+                            <input 
+                            class="form-check-input" 
+                            type="radio" 
+                            name="timeResRadio" 
+                            id="week"
+                            {% if "week" not in time_resolutions %}disabled{% endif %}
+                            >
+                            <label class="form-check-label text-white" for="week">Weekly</label>
+                        </div>
+                        <div class="form-check">
+                            <input 
+                            class="form-check-input" 
+                            type="radio" 
+                            name="timeResRadio" 
+                            id="month"
+                            {% if "month" not in time_resolutions %}disabled{% endif %}
+                            >
+                            <label class="form-check-label text-white" for="month">Monthly</label>
+                        </div>
+                        <div class="form-check">
+                            <input 
+                            class="form-check-input" 
+                            type="radio" 
+                            name="timeResRadio" 
+                            id="year"
+                            {% if "year" not in time_resolutions %}disabled{% endif %}
+                            >
+                            <label class="form-check-label text-white" for="year">Yearly</label>
+                        </div>
+
+                        <hr style="color:white;">
+
+                        <center><b>
+                                <label for="admLevelRadio" class="text-white">{% trans "Administrative Level" %}</label>
+                            </b></center>
+                            <div class="form-check">
+                                <input 
+                                class="form-check-input" 
+                                type="radio" 
+                                name="admLevelRadio" 
+                                id="national"
+                                value=0
+                                {% if 0 not in adm_levels %}disabled{% endif %}
+                                >
+                                <label class="form-check-label text-white" for="national">National</label>
+                            </div>
+                            <div class="form-check">
+                                <input 
+                                class="form-check-input" 
+                                type="radio" 
+                                name="admLevelRadio" 
+                                id="state"
+                                value=1
+                                {% if 1 not in adm_levels %}disabled{% endif %}
+                                >
+                                <label class="form-check-label text-white" for="state">State</label>
+                            </div>
+                            <div class="form-check">
+                                <input 
+                                class="form-check-input" 
+                                type="radio" 
+                                name="admLevelRadio" 
+                                id="municipal"
+                                value=2
+                                {% if 2 not in adm_levels %}disabled{% endif %}
+                                >
+                                <label class="form-check-label text-white" for="municipal">Municipal</label>
+                            </div>
+                            <div class="form-check">
+                                <input 
+                                class="form-check-input" 
+                                type="radio" 
+                                name="admLevelRadio" 
+                                id="submunicipal"
+                                value=3
+                                {% if 3 not in adm_levels %}disabled{% endif %}
+                                >
+                                <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
+                            </div>
+
+                            <hr style="color:white;">
+
+                            <center><b>
+                                    <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
+                                </b></center>
+                                <div class="form-check">
+                                    <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    value="" 
+                                    id="spatialType" 
+                                    {% if "spatial" not in model_types %}disabled{% endif %}
+                                    >
+                                    <label class="form-check-label text-white" for="spatialType">
+                                        Spatial
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    value="" 
+                                    id="temporalType" 
+                                    {% if "temporal" not in model_types %}disabled{% endif %}
+                                    >
+                                    <label class="form-check-label text-white" for="temporalType">
+                                        Temporal
+                                    </label>
+                                </div>
+
+                                <hr style="color:white;">
+
+                                <center><b>
+                                        <label for="outputFormat" class="text-white">{% trans "Output Format" %}</label>
+                                    </b></center>
+                                    <div class="form-check">
+                                        <input
+                                        class="form-check-input" 
+                                        type="radio" 
+                                        name="outputFormat" 
+                                        id="categorical" 
+                                        value="C" 
+                                        {% if "C" not in output_formats %}disabled{% endif %}
+                                        >
+                                        <label class="form-check-label text-white" for="categorical">
+                                            Categorical
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input 
+                                        class="form-check-input" 
+                                        type="radio" 
+                                        name="outputFormat" 
+                                        id="quantitative" 
+                                        value="Q" 
+                                        {% if "Q" not in output_formats %}disabled{% endif %}
+                                        >
+                                        <label class="form-check-label text-white" for="quantitative">
+                                            Quantitative
+                                        </label>
+                                    </div>
+
+                                    <hr style="color:white;">
+
+                                    <center>
+                                    </center>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
-      <div id="search-container" class="d-flex relative-container">
-          <div id="geocode-div" class="absolute-geocode">
-              <label for="geocode" style="padding-bottom: 5px;">{% trans "Select a city:" %}</label>
-              <br>
-              <select name="geocode" style="width: 100%;" id="geocode"></select>
-          </div>
+    <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
+        <div id="search-container" class="d-flex relative-container">
+            <div id="geocode-div" class="absolute-geocode">
+                <label for="geocode" style="padding-bottom: 5px;">{% trans "Select a city:" %}</label>
+                <br>
+                <select name="geocode" style="width: 100%;" id="geocode"></select>
+            </div>
 
-          <div class="prediction-search-div">
-              <center>
-                  <center>
-                      <label for="predictionSearch">{% trans "Select Predictions" %}</label>
-                  </center>
-                  <select id="predictionSearch" multiple>
-                      {% for id, model_name, metadata, city in predictions %}
-                          <option 
-                          value="{{ id }}" 
-                          data-metadata="{{ metadata }}">
-                          {{model_name}} - Prediction {{id}} {% if city %} - {{city}} {% endif %}
-                          </option>
-                      {% endfor %}
-                  </select>
-              </center>
-          </div>
-      </div>
+            <div class="prediction-search-div">
+                <center>
+                    <center>
+                        <label for="predictionSearch">{% trans "Select Predictions" %}</label>
+                    </center>
+                    <select id="predictionSearch" multiple>
+                        {% for id, model_name, metadata, city in predictions %}
+                        <option 
+                        value="{{ id }}" 
+                        data-metadata="{{ metadata }}">
+                        {{model_name}} - Prediction {{id}} {% if city %} - {{city}} {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </center>
+            </div>
+        </div>
 
-      <br>
+        <br>
 
-      <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
-  </div>
+        <iframe id="lineChart" src="{% url 'line_charts' %}{{line_charts_default_uri}}" width="100%" height="500" frameborder="0"></iframe>
+    </div>
 
 
-<style>
+    <style>
 
 .vis-sidebar {
-  width: 280px;
-  min-height: calc(100vh - 211px);
+    width: 280px;
+    min-height: calc(100vh - 211px);
 }
 
 .vis-content {
-  flex-grow: 1;
-  min-height: calc(100vh - 211px);
+    flex-grow: 1;
+    min-height: calc(100vh - 211px);
 }
 
 .vis-content iframe {
-  min-height: calc(100vh - 211px);
+    min-height: calc(100vh - 211px);
 }
 
 .btn-primary,
@@ -263,9 +263,9 @@
 .btn-primary:active,
 .btn-primary:visited,
 .btn-primary:focus {
-  background-color: #6875F7 !important; 
-  color: white !important;
-  border-color: #111111 !important;
+    background-color: #6875F7 !important; 
+    color: white !important;
+    border-color: #111111 !important;
 }
 
 .relative-container {
@@ -273,441 +273,471 @@
 }
 
 #geocode-div {
-  width: 14%;
+    width: 14%;
 }
 
 .absolute-geocode {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
 .prediction-search-div {
-  width: 70%;
-  margin: 0 auto;
+    width: 70%;
+    margin: 0 auto;
 }
 
 #predictionSearch {
-  width: 62%;
+    width: 62%;
 }
-</style>
+    </style>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
-<script>
-  $(document).ready(function () {
-    $('#predictionSearch').select2({
-      placeholder: 'Search',
-      allowClear: true,
-      closeOnSelect: true,
-    });
-
-    $('#geocode').select2({
-      placeholder: 'Nothing Selected',
-      allowClear: true,
-      closeOnSelect: true,
-    });
-
-    $('#predictionSearch').val([]).trigger('change');
-
-    const DISEASES = {
-      "dengue": "01",
-      "zika": "02",
-      "chik": "03"
-    };
-
-    const TIME_RESOLUTIONS = {
-      "day": "D",
-      "week": "W",
-      "month": "M",
-      "year": "Y",
-    };
-
-    const ADM_LEVELS = {
-      0: "NA",
-      1: "ST",
-      2: "MU",
-      3: "SM",
-    };
-
-    function clearSelectors() {
-      selectedDisease = null;
-      selectedPredictions = [];
-      selectedTimeResolution = null;
-      selectedAdmLevel = null;
-      selectedSpatial = null;
-      selectedTemporal = null;
-      selectedOutputFormat = null;
-      selectedGeocode = null;
-
-      document.getElementById("geocode-div").style.display = "none";
-
-      $("#dengue, #zika, #chik").prop("checked", false);
-
-      $("#day, #week, #month, #year").prop("checked", false);
-
-      admLevel.forEach(level => {
-        level.checked = false;
-      });
-
-      spatial.indeterminate = true;
-
-      temporal.indeterminate = true;
-
-      outputFormat.forEach(format => {
-        format.checked = false;
-      });
-
-      $('#predictionSearch').val([]).trigger('change');
-      filterPredictions();
-    }
-
-    $('#predictionSearch').on('select2:unselect', function (e) {
-      selectedPredictions = $(this).val()
-      if (selectedPredictions.length === 0) {
-        clearSelectors()
-      }
-    });
-
-    var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
-    var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
-    var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
-    var spatial = document.getElementById("spatialType");
-    var temporal = document.getElementById("temporalType");
-    var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
-    let selectedDisease = null;
-    let selectedTimeResolution = null;
-    let selectedAdmLevel = null;
-    let selectedSpatial = null;
-    let selectedTemporal = null;
-    let selectedOutputFormat = null;
-    let selectedGeocode = null;
-
-    var selectedPredictions = [];
-
-    if (!selectedSpatial) {
-      spatial.indeterminate = true;
-    }
-
-    if (!selectedTemporal) {
-      temporal.indeterminate = true;
-    }
-
-    const initialPredictions = [
-      {% for id, model_name, metadata, city in predictions %}
-      "{{ metadata }}",
-      {% endfor %}
-    ];
-
-    const initialPredictionsMap = {
-      {% for id, model_name, metadata, city in predictions %}
-      "{{ id }}": "{{ metadata }}",
-      {% endfor %}
-    };
-
-    if (String(selectedAdmLevel) === "2") {
-      document.getElementById("geocode-div").style.display = "block";
-    } else {
-      document.getElementById("geocode-div").style.display = "none";
-    }
-
-    const extractedGeocodes = initialPredictions.map(prediction => {
-      const parts = prediction.split('-');
-      return parts[2];
-    });
-
-    const geocodes = [...new Set(extractedGeocodes)];
-
-    geocodes.forEach(geocode => {
-      var opt = document.createElement('option');
-      opt.value = geocode;
-
-      getCityName(geocode)
-        .then(cityString => {
-          opt.innerHTML = cityString;
-          $("#geocode").append(opt).selectpicker('refresh');
-        })
-        .catch(error => {
-          console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
-        });
-    });
-
-    $("#geocode").prop("selectedIndex", -1);
-    $('#geocode').selectpicker('refresh');
-
-    diseases.forEach(function (disease) {
-      disease.addEventListener("change", function () {
-        selectedDisease = this.id;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-    });
-
-    timeRes.forEach(function (time) {
-      time.addEventListener("change", function () {
-        selectedTimeResolution = this.id;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-    });
-
-    admLevel.forEach(function (level) {
-      level.addEventListener("change", function () {
-        selectedAdmLevel = this.value;
-        if (String(selectedAdmLevel) === "2") {
-          document.getElementById("geocode-div").style.display = "block";
-        } else {
-          selectedGeocode = null;
-          document.getElementById("geocode-div").style.display = "none";
-        }
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-    });
-
-    spatial.addEventListener("change", function() {
-      selectedSpatial = this.checked;
-      $('#predictionSearch').val([]).trigger('change');
-      filterPredictions();
-    });
-
-    temporal.addEventListener("change", function() {
-      selectedTemporal = this.checked;
-      $('#predictionSearch').val([]).trigger('change');
-      filterPredictions();
-    });
-
-    outputFormat.forEach(function (format) {
-      format.addEventListener("change", function () {
-        selectedOutputFormat = this.value;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-    });
-
-    $('#geocode').on("change", function () {
-      let geocode = $(this).val();
-      if (geocode !== selectedGeocode) {
-        $('#predictionSearch').val([]).trigger('change');
-      }
-      selectedGeocode = geocode;
-      filterPredictions();
-    });
-
-    $('#predictionSearch').on("change", function () {
-      selectedPredictions = $(this).val();
-
-      selectedPredictions.forEach(predictionId => {
-        if (predictionId) {
-          prediction = initialPredictionsMap[predictionId];
-
-          if (prediction.startsWith("01")) {
-            selectedDisease = "dengue";
-            $("#dengue").prop("checked", true);
-          } else if (prediction.startsWith("02")) {
-            selectedDisease = "zika";
-            $("#zika").prop("checked", true);
-          } else if (prediction.startsWith("03")) {
-            selectedDisease = "chik";
-            $("#chik").prop("checked", true);
-          };
-
-          if (prediction.charAt(2) === "D") {
-            selectedTimeResolution = "day";
-            $("#day").prop("checked", true);
-          } else if (prediction.charAt(2) === "W") {
-            selectedTimeResolution = "week";
-            $("#week").prop("checked", true);
-          } else if (prediction.charAt(2) === "M") {
-            selectedTimeResolution = "month";
-            $("#month").prop("checked", true);
-          } else if (prediction.charAt(2) === "Y") {
-            selectedTimeResolution = "year";
-            $("#year").prop("checked", true);
-          };
-
-          if (prediction.substr(3, 2) === "NA") {
-            selectedAdmLevel = 0;
-            selectedGeocode = null;
-            document.getElementById("geocode-div").style.display = "none";
-            $("#national").prop("checked", true);
-          } else if (prediction.substr(3, 2) === "ST") {
-            selectedAdmLevel = 1;
-            selectedGeocode = null;
-            document.getElementById("geocode-div").style.display = "none";
-            $("#state").prop("checked", true);
-          } else if (prediction.substr(3, 2) === "MU") {
-            document.getElementById("geocode-div").style.display = "block";
-            selectedAdmLevel = 2;
-            selectedGeocode = prediction.substr(10, 7);
-            $("#municipal").prop("checked", true);
-            $("#geocode").val(selectedGeocode).trigger("change");
-          } else if (prediction.substr(3, 2) === "SM") {
-            selectedAdmLevel = 3;
-            selectedGeocode = null;
-            document.getElementById("geocode-div").style.display = "none";
-            $("#submunicipal").prop("checked", true);
-          };
-
-          if (prediction.charAt(6) === "0") {
-            selectedSpatial = false;
-            spatial.indeterminate = false;
-            spatial.checked = false;
-          } else if (prediction.charAt(6) === "1") {
-            selectedSpatial = true;
-            spatial.indeterminate = false;
-            spatial.checked = true;
-          };
-
-          if (prediction.charAt(7) === "0") {
-            selectedTemporal = false;
-            temporal.indeterminate = false;
-            temporal.checked = false;
-          } else if (prediction.charAt(7) === "1") {
-            selectedTemporal = true;
-            temporal.indeterminate = false;
-            temporal.checked = true;
-          };
-
-          if (prediction.charAt(8) === "C") {
-            selectedOutputFormat = "C";
-            outputFormat.forEach(function (radio) {
-              if (radio.value === "C") {
-                radio.checked = true;
-              }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#predictionSearch').select2({
+                placeholder: 'Search',
+                allowClear: true,
+                closeOnSelect: true,
             });
-          } else if (prediction.charAt(8) === "Q") {
-            selectedOutputFormat = "Q";
-            outputFormat.forEach(function (radio) {
-              if (radio.value === "Q") {
-              radio.checked = true;
-              }
+
+            $('#geocode').select2({
+                placeholder: 'Nothing Selected',
+                allowClear: true,
+                closeOnSelect: true,
             });
-          };
 
-          filterPredictions();
-        }
-      })
+            $('#predictionSearch').val([]).trigger('change');
 
-      updateLineChart(selectedPredictions);
-    });
+            const DISEASES = {
+                "dengue": "01",
+                "zika": "02",
+                "chik": "03"
+            };
 
-    function updatePredictions(predictions, selectedPredict = []) {
-      let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];
-      $("#predictionSearch option").each(function () {
-        const metadata = $(this).data("metadata");
-        if (!selectedPredictMetadata.includes(metadata)) {
-          if (predictions.includes(metadata)) {
-            $(this).prop("disabled", false);
-          } else {
-            $(this).prop("disabled", true);
-            $(this).detach().appendTo("#predictionSearch");
-          }
-        }
-      });
-    };
+            const TIME_RESOLUTIONS = {
+                "day": "D",
+                "week": "W",
+                "month": "M",
+                "year": "Y",
+            };
 
-    function updateLineChart(selectedPredictIds = null) {
-      var lineChartIframe = $('#lineChart');
-      var lineChartUrl = '{% url "line_charts" %}?';
+            const ADM_LEVELS = {
+                0: "NA",
+                1: "ST",
+                2: "MU",
+                3: "SM",
+            };
 
-      if (selectedPredictIds !== null) {
-        selectedPredictIds = selectedPredictIds.filter(function(predictId) {
-          return predictId !== null;
-        });
+            $('#predictionSearch').on('select2:unselect', function (e) {
+                selectedPredictions = $(this).val()
+                if (selectedPredictions.length === 0) {
+                    clearSelectors()
+                }
+            });
 
-        if (selectedPredictIds.length > 0) {
-          selectedPredictIds.forEach(function(predictId) {
-            if (predictId != false) {
-              lineChartUrl += 'predict=' + predictId + '&';
+            var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
+            var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
+            var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
+            var spatial = document.getElementById("spatialType");
+            var temporal = document.getElementById("temporalType");
+            var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
+            let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
+            let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
+            let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
+            let selectedSpatial = {{ selectedSpatial|default_if_none:'null'|lower }};
+            let selectedTemporal = {{ selectedTemporal|default_if_none:'null'|lower }};
+            let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
+            let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
+
+            var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
+
+            if (!selectedSpatial) {
+                spatial.indeterminate = true;
+            } else {
+                spatial.checked = selectedSpatial;
             }
-          });
 
-          lineChartUrl = lineChartUrl.slice(0, -1);
-        }
-      }
+            if (!selectedTemporal) {
+                temporal.indeterminate = true;
+            } else {
+                temporal.checked = selectedTemporal;
+            }
 
-      lineChartIframe.attr('src', lineChartUrl);
-    }
+            const initialPredictions = [
+                {% for id, model_name, metadata, city in predictions %}
+                "{{ metadata }}",
+                {% endfor %}
+            ];
 
-    function filterPredictions() {
-      var predictions = initialPredictions;
-      var disease = selectedDisease;
-      var timeResolution = selectedTimeResolution;
-      var admLevel = selectedAdmLevel;
-      var spatial = selectedSpatial;
-      var temporal = selectedTemporal;
-      var outputFormat = selectedOutputFormat;
-      var geocode = selectedGeocode;
+            const initialPredictionsMap = {
+                {% for id, model_name, metadata, city in predictions %}
+                "{{ id }}": "{{ metadata }}",
+                {% endfor %}
+            };
 
-      var filteredPredictions = predictions.filter(hash => {
-        if (disease != null && !hash.startsWith(DISEASES[disease])) {
-          return false;
-        }
+            if (String(selectedAdmLevel) === "2") {
+                document.getElementById("geocode-div").style.display = "block";
+            } else {
+                document.getElementById("geocode-div").style.display = "none";
+            }
 
-        if (timeResolution != null && hash.charAt(2) !== TIME_RESOLUTIONS[timeResolution]) {
-          return false;
-        }
+            const extractedGeocodes = initialPredictions.map(prediction => {
+                const parts = prediction.split('-');
+                return parts[2];
+            });
 
-        if (admLevel != null && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
-          return false;
-        }
+            const geocodes = [...new Set(extractedGeocodes)];
 
-        if (spatial != null) {
-          if ((spatial && hash.charAt(6) === "0") || (!spatial && hash.charAt(6) === "1")) {
-            return false;
-          }
-        }
+            geocodes.forEach(geocode => {
+                var opt = document.createElement('option');
+                opt.value = geocode;
 
-        if (temporal != null) {
-          if ((temporal && hash.charAt(7) === "0") || (!temporal && hash.charAt(7) === "1")) {
-            return false;
-          }
-        }
+                getCityName(geocode)
+                    .then(cityString => {
+                        opt.innerHTML = cityString;
+                        $("#geocode").append(opt).selectpicker('refresh');
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
+                    });
+            });
 
-        if (outputFormat != null) {
-          if (
-            (outputFormat === "C" && hash.charAt(8) !== "C") || 
-            (outputFormat === "Q" && hash.charAt(8) !== "Q")
-          ) {
-            return false;
-          }
-        }
+            diseases.forEach(function (disease) {
+                disease.addEventListener("change", function () {
+                    selectedDisease = this.id;
+                    $('#predictionSearch').val([]).trigger('change');
+                    filterPredictions();
+                });
 
-        if (geocode != null) {
-          if (hash.substr(10, 7) !== geocode) {
-            return false;
-          }
-        }
+                if (disease === selectedDisease) {
+                    disease.checked = true;
+                    disease.dispatchEvent(new Event('change'));
+                }
+            });
 
-        return true;
-      });
+            timeRes.forEach(function (time) {
+                time.addEventListener("change", function () {
+                    selectedTimeResolution = this.id;
+                    $('#predictionSearch').val([]).trigger('change');
+                    filterPredictions();
+                });
 
-      updatePredictions(filteredPredictions);
-    }
+                if (time === selectedTimeResolution) {
+                    time.checked = true;
+                    time.dispatchEvent(new Event('change'));
+                }
+            });
 
-    function getCityName(geocode) {
-      return fetch(`/api/city_info/?geocode=${geocode}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data && data.municipio && data.uf) {
-            return `${data.municipio} - ${data.uf}`;
-          } else {
-            throw new Error('Invalid data format or missing information');
-          }
-        })
-        .catch(error => {
-          console.error(error, error.message);
+            admLevel.forEach(function (level) {
+                level.addEventListener("change", function () {
+                    selectedAdmLevel = this.value;
+                    if (String(selectedAdmLevel) === "2") {
+                        document.getElementById("geocode-div").style.display = "block";
+                    } else {
+                        selectedGeocode = null;
+                        document.getElementById("geocode-div").style.display = "none";
+                    }
+                    $('#predictionSearch').val([]).trigger('change');
+                    filterPredictions();
+                });
+
+                if (String(level.value) === String(selectedAdmLevel)) {
+                    level.checked = true;
+                    level.dispatchEvent(new Event('change'));
+                }
+            });
+
+            spatial.addEventListener("change", function() {
+                selectedSpatial = this.checked;
+                $('#predictionSearch').val([]).trigger('change');
+                filterPredictions();
+            });
+
+            temporal.addEventListener("change", function() {
+                selectedTemporal = this.checked;
+                $('#predictionSearch').val([]).trigger('change');
+                filterPredictions();
+            });
+
+            outputFormat.forEach(function (format) {
+                format.addEventListener("change", function () {
+                    selectedOutputFormat = this.value;
+                    $('#predictionSearch').val([]).trigger('change');
+                    filterPredictions();
+                });
+
+                if (format.value === selectedOutputFormat) {
+                    format.checked = true;
+                    format.dispatchEvent(new Event('change'));
+                }
+            });
+
+            $('#geocode').on("change", function () {
+                let geocode = $(this).val();
+                if (String(geocode) !== String(selectedGeocode)) {
+                    $('#predictionSearch').val([]).trigger('change');
+                }
+                selectedGeocode = geocode;
+                filterPredictions();
+            });
+
+            setTimeout(function() {
+                $("#geocode").val(selectedGeocode).trigger("change");
+            }, 50);
+
+            $('#predictionSearch').on("change", function () {
+                selectedPredictions = $(this).val();
+
+                selectedPredictions.forEach(predictionId => {
+                    if (predictionId) {
+                        prediction = initialPredictionsMap[predictionId];
+
+                        if (prediction.startsWith("01")) {
+                            selectedDisease = "dengue";
+                            $("#dengue").prop("checked", true);
+                        } else if (prediction.startsWith("02")) {
+                            selectedDisease = "zika";
+                            $("#zika").prop("checked", true);
+                        } else if (prediction.startsWith("03")) {
+                            selectedDisease = "chik";
+                            $("#chik").prop("checked", true);
+                        };
+
+                        if (prediction.charAt(2) === "D") {
+                            selectedTimeResolution = "day";
+                            $("#day").prop("checked", true);
+                        } else if (prediction.charAt(2) === "W") {
+                            selectedTimeResolution = "week";
+                            $("#week").prop("checked", true);
+                        } else if (prediction.charAt(2) === "M") {
+                            selectedTimeResolution = "month";
+                            $("#month").prop("checked", true);
+                        } else if (prediction.charAt(2) === "Y") {
+                            selectedTimeResolution = "year";
+                            $("#year").prop("checked", true);
+                        };
+
+                        if (prediction.substr(3, 2) === "NA") {
+                            selectedAdmLevel = 0;
+                            selectedGeocode = null;
+                            document.getElementById("geocode-div").style.display = "none";
+                            $("#national").prop("checked", true);
+                        } else if (prediction.substr(3, 2) === "ST") {
+                            selectedAdmLevel = 1;
+                            selectedGeocode = null;
+                            document.getElementById("geocode-div").style.display = "none";
+                            $("#state").prop("checked", true);
+                        } else if (prediction.substr(3, 2) === "MU") {
+                            document.getElementById("geocode-div").style.display = "block";
+                            selectedAdmLevel = 2;
+                            selectedGeocode = prediction.substr(10, 7);
+                            $("#municipal").prop("checked", true);
+                            $("#geocode").val(selectedGeocode).trigger("change"); // this one works
+                        } else if (prediction.substr(3, 2) === "SM") {
+                            selectedAdmLevel = 3;
+                            selectedGeocode = null;
+                            document.getElementById("geocode-div").style.display = "none";
+                            $("#submunicipal").prop("checked", true);
+                        };
+
+                        if (prediction.charAt(6) === "0") {
+                            selectedSpatial = false;
+                            spatial.indeterminate = false;
+                            spatial.checked = false;
+                        } else if (prediction.charAt(6) === "1") {
+                            selectedSpatial = true;
+                            spatial.indeterminate = false;
+                            spatial.checked = true;
+                        };
+
+                        if (prediction.charAt(7) === "0") {
+                            selectedTemporal = false;
+                            temporal.indeterminate = false;
+                            temporal.checked = false;
+                        } else if (prediction.charAt(7) === "1") {
+                            selectedTemporal = true;
+                            temporal.indeterminate = false;
+                            temporal.checked = true;
+                        };
+
+                        if (prediction.charAt(8) === "C") {
+                            selectedOutputFormat = "C";
+                            outputFormat.forEach(function (radio) {
+                                if (radio.value === "C") {
+                                    radio.checked = true;
+                                }
+                            });
+                        } else if (prediction.charAt(8) === "Q") {
+                            selectedOutputFormat = "Q";
+                            outputFormat.forEach(function (radio) {
+                                if (radio.value === "Q") {
+                                    radio.checked = true;
+                                }
+                            });
+                        };
+
+                        filterPredictions();
+                    }
+                })
+
+                updateLineChart(selectedPredictions);
+            });
+
+            setTimeout(function() {
+                $("#predictionSearch").val(selectedPredictions).trigger("change");
+            }, 100);
+
+            function clearSelectors() {
+                selectedDisease = null;
+                selectedPredictions = [];
+                console.log("cleared");
+                selectedTimeResolution = null;
+                selectedAdmLevel = null;
+                selectedSpatial = null;
+                selectedTemporal = null;
+                selectedOutputFormat = null;
+                selectedGeocode = null;
+
+                document.getElementById("geocode-div").style.display = "none";
+
+                $("#dengue, #zika, #chik").prop("checked", false);
+
+                $("#day, #week, #month, #year").prop("checked", false);
+
+                admLevel.forEach(level => {
+                    level.checked = false;
+                });
+
+                spatial.indeterminate = true;
+
+                temporal.indeterminate = true;
+
+                outputFormat.forEach(format => {
+                    format.checked = false;
+                });
+
+                $('#predictionSearch').val([]).trigger('change');
+                filterPredictions();
+            }
+
+            function updatePredictions(predictions, selectedPredict = []) {
+                let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];
+                $("#predictionSearch option").each(function () {
+                    const metadata = $(this).data("metadata");
+                    if (!selectedPredictMetadata.includes(metadata)) {
+                        if (predictions.includes(metadata)) {
+                            $(this).prop("disabled", false);
+                        } else {
+                            $(this).prop("disabled", true);
+                            $(this).detach().appendTo("#predictionSearch");
+                        }
+                    }
+                });
+            };
+
+            function updateLineChart(selectedPredictIds = null) {
+                var lineChartIframe = $('#lineChart');
+                var lineChartUrl = '{% url "line_charts" %}?';
+
+                if (selectedPredictIds !== null) {
+                    selectedPredictIds = selectedPredictIds.filter(function(predictId) {
+                        return predictId !== null;
+                    });
+
+                    if (selectedPredictIds.length > 0) {
+                        selectedPredictIds.forEach(function(predictId) {
+                            if (predictId != false) {
+                                lineChartUrl += 'predict=' + predictId + '&';
+                            }
+                        });
+
+                        lineChartUrl = lineChartUrl.slice(0, -1);
+                    }
+                }
+
+                lineChartIframe.attr('src', lineChartUrl);
+            }
+
+            function filterPredictions() {
+                var predictions = initialPredictions;
+                var disease = selectedDisease;
+                var timeResolution = selectedTimeResolution;
+                var admLevel = selectedAdmLevel;
+                var spatial = selectedSpatial;
+                var temporal = selectedTemporal;
+                var outputFormat = selectedOutputFormat;
+                var geocode = selectedGeocode;
+
+                var filteredPredictions = predictions.filter(hash => {
+                    if (disease != null && !hash.startsWith(DISEASES[disease])) {
+                        return false;
+                    }
+
+                    if (timeResolution != null && hash.charAt(2) !== TIME_RESOLUTIONS[timeResolution]) {
+                        return false;
+                    }
+
+                    if (admLevel != null && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
+                        return false;
+                    }
+
+                    if (spatial != null) {
+                        if ((spatial && hash.charAt(6) === "0") || (!spatial && hash.charAt(6) === "1")) {
+                            return false;
+                        }
+                    }
+
+                    if (temporal != null) {
+                        if ((temporal && hash.charAt(7) === "0") || (!temporal && hash.charAt(7) === "1")) {
+                            return false;
+                        }
+                    }
+
+                    if (outputFormat != null) {
+                        if (
+                            (outputFormat === "C" && hash.charAt(8) !== "C") || 
+                            (outputFormat === "Q" && hash.charAt(8) !== "Q")
+                        ) {
+                            return false;
+                        }
+                    }
+
+                    if (geocode != null) {
+                        if (hash.substr(10, 7) !== geocode) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
+
+                updatePredictions(filteredPredictions);
+            }
+
+            function getCityName(geocode) {
+                return fetch(`/api/city_info/?geocode=${geocode}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.municipio && data.uf) {
+                            return `${data.municipio} - ${data.uf}`;
+                        } else {
+                            throw new Error('Invalid data format or missing information');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error, error.message);
+                    });
+            }
         });
-    }
-  });
 
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

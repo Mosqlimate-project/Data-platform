@@ -43,6 +43,7 @@ THIRD_PARTY_APPS = [
     "django_extensions",
     "dr_scaffold",
     "fontawesomefree",
+    "corsheaders",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"

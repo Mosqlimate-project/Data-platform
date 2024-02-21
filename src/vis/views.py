@@ -19,6 +19,45 @@ class DashboardView(View):
     def get(self, request):
         context = {}
 
+        context["selectedDisease"] = None
+        context["selectedTimeResolution"] = None
+        context["selectedADMLevel"] = None
+        context["selectedSpatial"] = None
+        context["selectedTemporal"] = None
+        context["selectedOutputFormat"] = None
+        context["selectedGeocode"] = None
+
+        selected_model = request.GET.get("model", None)
+        selected_prediction = request.GET.get("predict", None)
+
+        if selected_model:
+            model = Model.objects.get(pk=selected_model)
+            context["selectedDisease"] = model.disease or None
+            context["selectedTimeResolution"] = model.time_resolution or None
+            context["selectedADMLevel"] = model.ADM_level
+            context["selectedSpatial"] = model.spatial
+            context["selectedTemporal"] = model.temporal
+            context["selectedOutputFormat"] = model.categorical
+            context["selectedPredictions"] = None
+
+        if selected_prediction:
+            prediction = Prediction.objects.get(pk=selected_prediction)
+            context["selectedDisease"] = prediction.model.disease or None
+            context["selectedTimeResolution"] = (
+                prediction.model.time_resolution or None
+            )
+            context["selectedADMLevel"] = prediction.model.ADM_level
+            context["selectedSpatial"] = prediction.model.spatial
+            context["selectedTemporal"] = prediction.model.temporal
+            context["selectedOutputFormat"] = prediction.model.categorical
+            context["selectedGeocode"] = prediction.adm_2_geocode or None
+            context["selectedPredictions"] = prediction.id or None
+
+        if context["selectedDisease"] == "chikungunya":
+            context["selectedDisease"] = "chik"
+
+        print(context)
+
         models = Model.objects.all()
         predictions = Prediction.objects.filter(visualizable=True)
 
@@ -79,7 +118,7 @@ class DashboardView(View):
             for uf, info in uf_ibge_mapping.items():
                 uf_codes[int(info["code"])] = uf
 
-            with open(municipios_file, "r") as f:
+            with open(municipios_file, "rb") as f:
                 geocodes = json.load(f)
 
             for geocode in geocodes:
@@ -159,6 +198,7 @@ class LineChartsView(View):
                 predictions_ids=ids,
                 disease="dengue",
                 width=450,
+                request=request,
             )
             line_chart = line_chart.to_html().replace(
                 "</head>",

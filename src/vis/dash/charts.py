@@ -3,6 +3,8 @@ from datetime import date
 import pandas as pd
 import altair as alt
 
+from django.urls import reverse
+
 from registry.models import Prediction
 
 from vis.home.vis_charts import historico_alerta_data_for
@@ -34,7 +36,7 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
         df = pd.concat(dfs, axis=0)
     except ValueError:
         # TODO: Improve error handling
-        raise VisualizationError(df)
+        raise VisualizationError("DataFrame error")
 
     if df.empty:
         # TODO: Improve error handling
@@ -88,6 +90,7 @@ def line_charts_by_geocode(
     predictions_ids: list[int],
     width="container",
     disease: str = "dengue",
+    request=None,
 ):
     x = "dates"
     y = "target"
@@ -217,7 +220,11 @@ def line_charts_by_geocode(
         alt.Chart(
             {
                 "values": [
-                    {"url": "https://api.mosqlimate.org/api/mosqlimate-logo/"}
+                    {
+                        "url": request.build_absolute_uri(
+                            reverse("api-1:get_mosqlimate_logo")
+                        )
+                    }
                 ]
             }
         )
