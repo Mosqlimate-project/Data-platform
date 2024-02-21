@@ -38,6 +38,7 @@ class DashboardView(View):
             context["selectedSpatial"] = model.spatial
             context["selectedTemporal"] = model.temporal
             context["selectedOutputFormat"] = model.categorical
+            context["selectedPredictions"] = None
 
         if selected_prediction:
             prediction = Prediction.objects.get(pk=selected_prediction)
@@ -197,6 +198,7 @@ class LineChartsView(View):
                 predictions_ids=ids,
                 disease="dengue",
                 width=450,
+                request=request,
             )
             line_chart = line_chart.to_html().replace(
                 "</head>",

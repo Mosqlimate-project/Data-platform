@@ -353,7 +353,7 @@
             let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
             let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
 
-            var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};;
+            var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
 
             if (!selectedSpatial) {
                 spatial.indeterminate = true;
