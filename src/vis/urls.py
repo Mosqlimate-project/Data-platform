@@ -4,6 +4,9 @@ from . import views
 
 urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path(
+        "geopackage/", views.GeoPackageView.as_view(), name="geopackage_plot"
+    ),
     path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
     path(
         "get-model-item/<int:model_id>/",

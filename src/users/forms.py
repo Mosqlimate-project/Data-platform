@@ -66,3 +66,7 @@ class UpdatePredictionForm(forms.Form):
 
 class DeletePredictionForm(forms.Form):
     prediction_id = forms.IntegerField()
+
+
+class UploadGeopackageFileForm(forms.Form):
+    file = forms.FileField(widget=forms.FileInput(attrs={"accept": ".gpkg"}))

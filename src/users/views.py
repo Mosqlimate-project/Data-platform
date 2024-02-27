@@ -1,14 +1,76 @@
+import os
+from pathlib import Path
+
 from allauth.account.decorators import verified_email_required
-from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views import View
+from django.contrib import messages
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBadRequest
 
 from registry.models import Author, Model, Prediction
-from .forms import UpdateAuthorForm
+from .forms import UpdateAuthorForm, UploadGeopackageFileForm
 
 User = get_user_model()
+
+
+class UploadGeopackageToPostGISView(View):
+    template_name = "users/upload_geopackage.html"
+
+    def get(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return redirect("home")
+
+        form = UploadGeopackageFileForm()
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return redirect("home")
+
+        form = UploadGeopackageFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            # form.save()
+            messages.success(request, "File uploaded successfully")
+            return redirect("upload_geopackage")
+        else:
+            messages.error(request, "Failed to upload file")
+            self.get(request)
+
+
+class UploadTempFileView(View):
+    def get(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return HttpResponseBadRequest("Unauthorized")
+
+    def post(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return HttpResponseBadRequest("Unauthorized")
+
+        file = request.FILES.get("file")
+
+        if file:
+            file_path = Path(
+                os.path.join(settings.MEDIA_ROOT, "tmp", file.name)
+            )
+
+            if not file_path.parent.exists():
+                file_path.parent.mkdir(parents=True)
+
+            if file_path.exists():
+                file_path.unlink()
+
+            file_path.touch()
+
+            with open(file_path, "wb") as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+
+            return HttpResponse(file_path.absolute())
+        else:
+            return HttpResponseBadRequest("No file provided")
 
 
 class ProfileView(View):

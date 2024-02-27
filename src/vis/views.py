@@ -1,11 +1,13 @@
 import os
 import json
+import geopandas as gpd
 from typing import Union
 from itertools import cycle
 
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.views import View
+from django.contrib import messages
 
 from registry.models import Model, Prediction
 from main.api import get_municipality_info
@@ -210,6 +212,38 @@ class LineChartsView(View):
             context["error"] = e
 
         return render(request, self.template_name, context)
+
+
+class GeoPackageView(View):
+    template_name = "vis/charts/geopackage.html"
+
+    def post(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return redirect("home")
+
+        try:
+            data = json.loads(request.body)
+            file_path = data.get("file_path")
+            context = {}
+            if file_path:
+                try:
+                    df = gpd.read_file(file_path)
+                    context["df"] = df.to_html()
+                    print(context["df"])
+                    return render(request, self.template_name, context)
+                except Exception:
+                    messages.error(request, "Error reading gpkg file")
+                    return HttpResponseBadRequest("Error reading gpkg file")
+
+        except json.JSONDecodeError:
+            messages.error(request, "Error decoding JSON data")
+            return HttpResponseBadRequest()
+
+        return render(request, self.template_name, context)
+
+    def get(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return redirect("home")
 
 
 def get_model_selector_item(request, model_id):

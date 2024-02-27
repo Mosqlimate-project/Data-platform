@@ -1,0 +1,108 @@
+{% extends 'main/base.html' %}
+{% block title %}Title{% endblock %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div id="drop_zone" class="font-golos">Upload GeoPackage files</div>
+<form action="{% url 'upload_geopackage' %}" method="post" enctype="multipart/form-data" id="upload_form">
+    {% csrf_token %}
+    <input type="file" name="file" id="file_input" style="display: none;" accept=".gpkg">
+    <button class="btn btn-primary me-auto" type="submit" id="upload_button" disabled>Upload</button>
+</form>
+
+<script>
+    var dropZone = document.getElementById('drop_zone');
+    var fileInput = document.getElementById('file_input');
+    var uploadButton = document.getElementById('upload_button');
+
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#f0f0f0';
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#ffffff';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#ffffff';
+        fileInput.files = e.dataTransfer.files;
+        var file = fileInput.files[0];
+        loadFile(file);
+    });
+
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        dropZone.innerHTML = fileInput.files[0].name;
+        var file = fileInput.files[0];
+        loadFile(file);
+    });
+
+    function loadFile(file) {
+        if (file.type === "application/geopackage+sqlite3") {
+            if (file.size <= 50 * 1024 * 1024) {
+                uploadButton.disabled = false;
+                plotFile(file);
+            } else {
+              dropZone.innerHTML = "File size exceeds 50MB limit";
+              uploadButton.disabled = true;
+            }
+        } else {
+          dropZone.innerHTML = "Can load only '.gpkg' files"
+          uploadButton.disabled = true;
+        }
+    }
+
+
+    function plotFile(file) {
+        if (file) {
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload/file/', true);
+            xhr.setRequestHeader('X-CSRFToken', "{{ csrf_token }}");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var filePath = xhr.responseText;
+                    processFile(filePath);
+                }
+            };
+            xhr.send(formData);
+        }
+    }
+
+    function processFile(filePath) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/vis/geopackage/', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', "{{ csrf_token }}");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log('File processed successfully!');
+            }
+        };
+        xhr.send(JSON.stringify({ file_path: filePath }));
+    }
+</script>
+
+<style>
+    #drop_zone {
+        border: 2px dashed #ccc;
+        width: 400px;
+        height: 300px;
+        text-align: center;
+        line-height: 300px;
+        font-family: Arial, sans-serif;
+        cursor: pointer;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}

@@ -224,6 +224,8 @@ LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
 # Static files (CSS, JavaScript, Images)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
