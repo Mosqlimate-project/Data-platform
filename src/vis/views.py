@@ -1,11 +1,14 @@
 import os
 import json
+import geopandas as gpd
+import altair as alt
 from typing import Union
 from itertools import cycle
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views import View
+from django.contrib import messages
 
 from registry.models import Model, Prediction
 from main.api import get_municipality_info
@@ -210,6 +213,32 @@ class LineChartsView(View):
             context["error"] = e
 
         return render(request, self.template_name, context)
+
+
+class GeoPackageMapView(View):
+    def get(self, request):
+        if not (request.user.is_authenticated and request.user.is_superuser):
+            return redirect("home")
+
+        file_path = request.GET.get("file_path")
+        if file_path:
+            try:
+                df = gpd.read_file(file_path)
+
+                map_chart = (
+                    alt.Chart(df)
+                    .mark_geoshape()
+                    .properties(width=500, height=700)
+                )
+
+                map_chart_json = map_chart.to_json()
+                return JsonResponse({"map_chart": map_chart_json})
+            except Exception:
+                messages.error(request, "Error reading gpkg file")
+                return JsonResponse(
+                    {"error": "Error reading gpkg file"}, status=400
+                )
+        return JsonResponse({"error": "File path not provided"}, status=400)
 
 
 def get_model_selector_item(request, model_id):
