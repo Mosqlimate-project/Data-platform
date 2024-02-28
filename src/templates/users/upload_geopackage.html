@@ -5,7 +5,21 @@
 {% load static %}
 
 {% block content %}
-<div id="drop_zone" class="font-golos">Upload GeoPackage files</div>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+<div id="pre-upload">
+    <div id="drop_zone" class="font-golos">Upload GeoPackage files</div>
+</div>
+
+<div id="map-chart" class="font-golos">
+    <div id="loading-container" style="display: none;">
+        <img id="loading-img" src="{% static 'img/main/loading.gif' %}" alt="Loading...">
+        <p class="font-golos">Loading map</p>
+    </div>
+</div>
+
 <form action="{% url 'upload_geopackage' %}" method="post" enctype="multipart/form-data" id="upload_form">
     {% csrf_token %}
     <input type="file" name="file" id="file_input" style="display: none;" accept=".gpkg">
@@ -13,6 +27,10 @@
 </form>
 
 <script>
+    var preUploadDiv = document.getElementById('pre-upload');
+    var mapChartDiv = document.getElementById('map-chart');
+    var loadingContainer = document.getElementById('loading-container');
+
     var dropZone = document.getElementById('drop_zone');
     var fileInput = document.getElementById('file_input');
     var uploadButton = document.getElementById('upload_button');
@@ -48,18 +66,18 @@
     function loadFile(file) {
         if (file.type === "application/geopackage+sqlite3") {
             if (file.size <= 50 * 1024 * 1024) {
-                uploadButton.disabled = false;
+                loadingContainer.style.display = 'block';
+                preUploadDiv.style.display = 'none';
                 plotFile(file);
             } else {
-              dropZone.innerHTML = "File size exceeds 50MB limit";
-              uploadButton.disabled = true;
+                dropZone.innerHTML = "File size exceeds 50MB limit";
+                uploadButton.disabled = true;
             }
         } else {
-          dropZone.innerHTML = "Can load only '.gpkg' files"
-          uploadButton.disabled = true;
+            dropZone.innerHTML = "Can load only '.gpkg' files"
+            uploadButton.disabled = true;
         }
     }
-
 
     function plotFile(file) {
         if (file) {
@@ -72,25 +90,42 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     var filePath = xhr.responseText;
-                    processFile(filePath);
+                    loadMapChart(filePath);
                 }
             };
+
             xhr.send(formData);
         }
     }
 
-    function processFile(filePath) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/vis/geopackage/', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('X-CSRFToken', "{{ csrf_token }}");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log('File processed successfully!');
+    async function loadMapChart(file_path) {
+        try {
+            const response = await fetch(`/vis/geomap-chart/?file_path=${encodeURIComponent(file_path)}`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': "{{ csrf_token }}"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load map chart');
             }
-        };
-        xhr.send(JSON.stringify({ file_path: filePath }));
+
+            const data = await response.json();
+
+            if (data.map_chart) {
+                const mapChartSpec = JSON.parse(data.map_chart);
+                await vegaEmbed(mapChartDiv, mapChartSpec);
+                uploadButton.disabled = false;
+
+            } else {
+                console.error('No map chart data found');
+            }
+        } catch (error) {
+            console.error('Error loading map chart:', error);
+        }
     }
+
 </script>
 
 <style>
