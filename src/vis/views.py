@@ -9,8 +9,10 @@ from django.views import View
 
 from registry.models import Model, Prediction
 from main.api import get_municipality_info
+from vis.dash.errors import VisualizationError
 from .dash.charts import line_charts_by_geocode
 from .home.vis_charts import uf_ibge_mapping
+from .utils import merge_uri_params
 
 
 class DashboardView(View):
@@ -26,9 +28,10 @@ class DashboardView(View):
         context["selectedTemporal"] = None
         context["selectedOutputFormat"] = None
         context["selectedGeocode"] = None
+        selected_prediction_ids = set()
 
         selected_model = request.GET.get("model", None)
-        selected_prediction = request.GET.get("predict", None)
+        selected_predictions = request.GET.getlist("predict", None)
 
         if selected_model:
             model = Model.objects.get(pk=selected_model)
@@ -38,25 +41,25 @@ class DashboardView(View):
             context["selectedSpatial"] = model.spatial
             context["selectedTemporal"] = model.temporal
             context["selectedOutputFormat"] = model.categorical
-            context["selectedPredictions"] = None
 
-        if selected_prediction:
-            prediction = Prediction.objects.get(pk=selected_prediction)
-            context["selectedDisease"] = prediction.model.disease or None
-            context["selectedTimeResolution"] = (
-                prediction.model.time_resolution or None
-            )
-            context["selectedADMLevel"] = prediction.model.ADM_level
-            context["selectedSpatial"] = prediction.model.spatial
-            context["selectedTemporal"] = prediction.model.temporal
-            context["selectedOutputFormat"] = prediction.model.categorical
-            context["selectedGeocode"] = prediction.adm_2_geocode or None
-            context["selectedPredictions"] = prediction.id or None
+        if selected_predictions:
+            for id in selected_predictions:
+                prediction = Prediction.objects.get(pk=id)
+                context["selectedDisease"] = prediction.model.disease or None
+                context["selectedTimeResolution"] = (
+                    prediction.model.time_resolution or None
+                )
+                context["selectedADMLevel"] = prediction.model.ADM_level
+                context["selectedSpatial"] = prediction.model.spatial
+                context["selectedTemporal"] = prediction.model.temporal
+                context["selectedOutputFormat"] = prediction.model.categorical
+                context["selectedGeocode"] = prediction.adm_2_geocode or None
+                selected_prediction_ids.add(prediction.id)
 
         if context["selectedDisease"] == "chikungunya":
             context["selectedDisease"] = "chik"
 
-        print(context)
+        context["selectedPredictions"] = list(selected_prediction_ids)
 
         models = Model.objects.all()
         predictions = Prediction.objects.filter(visualizable=True)
@@ -132,6 +135,10 @@ class DashboardView(View):
                         )
                     )
 
+        context["selected_predictions_uri"] = merge_uri_params(
+            selected_predictions, "predict"
+        )
+
         context["adm_2_geocodes"] = list(geocode_cities)
 
         return render(request, self.template_name, context)
@@ -145,7 +152,47 @@ class LineChartsView(View):
 
         prediction_ids = request.GET.getlist("predict")
 
-        predictions: set[Prediction] = set()
+        diseases: set[str] = set()
+        for id in prediction_ids:
+            predict = get_object_or_404(Prediction, pk=id)
+            diseases.add(predict.model.disease)
+
+        if len(diseases) > 1:
+            raise VisualizationError(
+                "Multiple diseases were selected to be visualized"
+            )
+
+        if not prediction_ids:
+            # Show "Please select Predictions"
+            return render(request, "vis/errors/no-prediction.html", context)
+
+        try:
+            line_chart = line_charts_by_geocode(
+                title="Forecast of dengue new cases",
+                predictions_ids=list(set(prediction_ids)),
+                disease=diseases.pop(),
+                width=450,
+                request=request,
+            )
+            line_chart = line_chart.to_html().replace(
+                "</head>",
+                "<style>#vis.vega-embed {width: 100%;}</style></head>",
+            )
+            context["line_chart"] = line_chart
+        except Exception as e:
+            # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
+            context["error"] = e
+
+        return render(request, self.template_name, context)
+
+
+class PredictTableView(View):
+    template_name = "vis/charts/prediction-table.html"
+
+    def get(self, request):
+        prediction_ids = request.GET.getlist("predict")
+        context = {}
+
         colors = cycle(
             [
                 "#A6BCD4",
@@ -160,20 +207,14 @@ class LineChartsView(View):
             ]
         )
 
-        if not prediction_ids:
-            # Show "Please select Predictions"
-            return render(request, "vis/errors/no-prediction.html", context)
+        predictions: set[Prediction] = set()
+        for id in prediction_ids:
+            predict = get_object_or_404(Prediction, pk=id)
+            predictions.add(predict)
 
-        if prediction_ids:
-            for id in prediction_ids:
-                predict = get_object_or_404(Prediction, pk=id)
-                predictions.add(predict)
-
-        ids = []
         infos = []
         for prediction in predictions:
             info = {}
-            ids.append(prediction.id)
             info["model"] = f"{prediction.model.id} - {prediction.model.name}"
             info["prediction_id"] = prediction.id
             info["disease"] = prediction.model.disease.capitalize()
@@ -189,26 +230,7 @@ class LineChartsView(View):
             info["color"] = next(colors)
             infos.append(info)
 
-        context["prediction_ids"] = ids
         context["prediction_infos"] = infos
-
-        try:
-            line_chart = line_charts_by_geocode(
-                title="Forecast of dengue new cases",
-                predictions_ids=ids,
-                disease="dengue",
-                width=450,
-                request=request,
-            )
-            line_chart = line_chart.to_html().replace(
-                "</head>",
-                "<style>#vis.vega-embed {width: 100%;}</style></head>",
-            )
-            context["line_chart"] = line_chart
-        except Exception as e:
-            # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
-            context["error"] = e
-
         return render(request, self.template_name, context)
 
 
