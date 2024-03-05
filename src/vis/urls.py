@@ -6,6 +6,11 @@ urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
     path(
+        "predict-table/",
+        views.PredictTableView.as_view(),
+        name="predict_table",
+    ),
+    path(
         "get-model-item/<int:model_id>/",
         views.get_model_selector_item,
         name="get_model_selector_item",

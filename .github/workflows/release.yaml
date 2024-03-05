@@ -25,7 +25,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 20.11.0
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           miniconda-version: "latest"
           mamba-version: "*"
@@ -49,9 +49,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # https://github.com/yaml/pyyaml/issues/724
-          pip install "cython<3.0.0" 
-          pip install --no-build-isolation "pyyaml<6.0"
+          # # https://github.com/yaml/pyyaml/issues/724
+          # pip install "cython<3.0.0" 
+          # pip install --no-build-isolation "pyyaml<6.0"
           poetry install --only dev
 
       - name: Run semantic release (for tests)

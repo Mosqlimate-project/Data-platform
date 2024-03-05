@@ -1,82 +1,23 @@
 {% load i18n %}
-{% load filters %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
 <div class="chart">
     {% if line_chart %}
-    <div class="container align-items-center justify-content-center">
-        <center>
-            <div class="line-chart">
-                {{ line_chart|safe }}
-            </div>
-        </center>
-    </div>
-
-    <div class="container pt-2">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">{% trans "Model" %}</th>
-                    <th scope="col">{% trans "Prediction" %}</th>
-                    <th scope="col">{% trans "Disease" %}</th>
-                    <th scope="col">{% trans "Locality" %}</th>
-                    <th scope="col">{% trans "Prediction Date" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for info in prediction_infos %}
-                <tr class="{{ info.color }}">
-                    <td class="model-name">{{info.model}}</td>
-                    <td>{{info.prediction_id}}</td>
-                    <td>{{info.disease}}</td>
-                    <td>{{info.locality}}</td>
-                    <td>{{info.prediction_date}}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {{ line_chart|safe }}
     {% else %}
     <center>
-        {% if error %}
+      {% if error %}
         {{ error }}
-        {% endif %}
+      {% endif %}
     </center>
     {% endif %}
 </div>
 
 <style>
-.\#A6BCD4 { background-color: rgba(166, 188, 212, 0.5); }
-.\#FAC28C { background-color: rgba(250, 194, 140, 0.5); }
-.\#F2ABAB { background-color: rgba(242, 171, 171, 0.5); }
-.\#B9DBD9 { background-color: rgba(185, 219, 217, 0.5); }
-.\#AAD1A5 { background-color: rgba(170, 209, 165, 0.5); }
-.\#F7E59D { background-color: rgba(247, 229, 157, 0.5); }
-.\#D9BCD1 { background-color: rgba(217, 188, 209, 0.5); }
-.\#FFCED3 { background-color: rgba(255, 206, 211, 0.5); }
-.\#CEBAAE { background-color: rgba(206, 186, 174, 0.5); }
-
-.container {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.column {
-    width: 50%;
-    box-sizing: border-box;
-    padding: 10px;
-}
-
-.model-name {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .vega-embed.has-actions {
     padding-right: 0px;
 }
 </style>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
