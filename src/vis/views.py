@@ -4,6 +4,7 @@ from typing import Union
 from itertools import cycle
 
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.http import JsonResponse
 from django.views import View
 
@@ -147,6 +148,7 @@ class DashboardView(View):
 class LineChartsView(View):
     template_name = "vis/charts/line-charts.html"
 
+    @xframe_options_exempt
     def get(self, request):
         context = {}
 
@@ -189,6 +191,7 @@ class LineChartsView(View):
 class PredictTableView(View):
     template_name = "vis/charts/prediction-table.html"
 
+    @xframe_options_exempt
     def get(self, request):
         prediction_ids = request.GET.getlist("predict")
         context = {}
