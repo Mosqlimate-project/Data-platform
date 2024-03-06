@@ -20,6 +20,9 @@ RUN apt-get update -y \
     sudo \
     tzdata \
     openssl \
+    binutils \
+    libproj-dev \
+    gdal-bin \
   && rm -rf /var/lib/apt/lists/* \
     /var/cache/apt/archives \
     /tmp/*
