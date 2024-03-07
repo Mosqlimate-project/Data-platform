@@ -2,54 +2,6 @@ from django.db import models
 from django.contrib.gis.db import models as geomodels
 
 
-class GeoMacroregion(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=1, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
-class GeoState(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=2, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
-class GeoMesoregion(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
-class GeoMicroregion(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=5, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
-class GeoCity(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=7, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
-class GeoMacroSaude(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
-    geometry = geomodels.MultiPolygonField()
-
-    class Meta:
-        app_label = "vis"
-
-
 class Macroregion(models.Model):
     """
     geocode: "1" to "5"
@@ -57,13 +9,13 @@ class Macroregion(models.Model):
 
     geocode = geomodels.CharField(primary_key=True, max_length=1, unique=True)
     name = models.CharField(null=False)
-    geo = models.ForeignKey(GeoMacroregion, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         app_label = "vis"
+        db_table = "brasil_macroregions"
 
 
 class State(models.Model):
@@ -75,13 +27,13 @@ class State(models.Model):
     name = models.CharField(null=False)
     uf = models.CharField(max_length=2, null=False)
     macroregion = models.ForeignKey(Macroregion, on_delete=models.PROTECT)
-    geo = models.ForeignKey(GeoState, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         app_label = "vis"
+        db_table = "brasil_states"
 
 
 class Mesoregion(models.Model):
@@ -92,13 +44,13 @@ class Mesoregion(models.Model):
     geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
     name = models.CharField(null=False)
     state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geo = models.ForeignKey(GeoMesoregion, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         app_label = "vis"
+        db_table = "brasil_mesoregions"
 
 
 class Microregion(models.Model):
@@ -108,14 +60,14 @@ class Microregion(models.Model):
 
     geocode = geomodels.CharField(primary_key=True, max_length=5, unique=True)
     name = models.CharField(null=False)
-    state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geo = models.ForeignKey(GeoMicroregion, on_delete=models.PROTECT)
+    mesoregion = models.ForeignKey(Mesoregion, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         app_label = "vis"
+        db_table = "brasil_microregions"
 
 
 class City(models.Model):
@@ -125,14 +77,81 @@ class City(models.Model):
 
     geocode = geomodels.CharField(primary_key=True, max_length=7, unique=True)
     name = models.CharField(null=False)
-    state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geo = models.ForeignKey(GeoState, on_delete=models.PROTECT)
+    microregion = models.ForeignKey(Microregion, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         app_label = "vis"
+        db_table = "brasil_cities"
+
+
+# -----------------------------------------------------------------------------
+# GeoDjango Models
+
+
+class GeoMacroregion(geomodels.Model):
+    macroregion = geomodels.ForeignKey(
+        Macroregion, on_delete=geomodels.PROTECT
+    )
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_macroregions"
+
+
+class GeoState(geomodels.Model):
+    state = geomodels.ForeignKey(State, on_delete=geomodels.PROTECT)
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_states"
+
+
+class GeoMesoregion(geomodels.Model):
+    mesoregion = geomodels.ForeignKey(Mesoregion, on_delete=geomodels.PROTECT)
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_mesoregions"
+
+
+class GeoMicroregion(geomodels.Model):
+    microregion = geomodels.ForeignKey(
+        Microregion, on_delete=geomodels.PROTECT
+    )
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_microregions"
+
+
+class GeoCity(geomodels.Model):
+    city = geomodels.ForeignKey(City, on_delete=geomodels.PROTECT)
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_cities"
+
+
+class GeoMacroSaude(geomodels.Model):
+    # name = models.CharField(null=False)
+    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
+    state = models.ForeignKey(State, on_delete=models.PROTECT)
+    geometry = geomodels.MultiPolygonField()
+
+    class Meta:
+        app_label = "vis"
+        db_table = "geo_brasil_macro_saude"
+
+
+# -----------------------------------------------------------------------------
 
 
 class ResultsProbLSTM(models.Model):
