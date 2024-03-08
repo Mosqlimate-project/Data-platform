@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as geomodels
+from django.contrib.gis.geos import GEOSGeometry
 
 
 class Macroregion(models.Model):
@@ -95,7 +96,11 @@ class GeoMacroregion(geomodels.Model):
     macroregion = geomodels.ForeignKey(
         Macroregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"
@@ -104,7 +109,11 @@ class GeoMacroregion(geomodels.Model):
 
 class GeoState(geomodels.Model):
     state = geomodels.ForeignKey(State, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"
@@ -113,7 +122,11 @@ class GeoState(geomodels.Model):
 
 class GeoMesoregion(geomodels.Model):
     mesoregion = geomodels.ForeignKey(Mesoregion, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"
@@ -124,7 +137,11 @@ class GeoMicroregion(geomodels.Model):
     microregion = geomodels.ForeignKey(
         Microregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"
@@ -133,7 +150,11 @@ class GeoMicroregion(geomodels.Model):
 
 class GeoCity(geomodels.Model):
     city = geomodels.ForeignKey(City, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"
@@ -143,7 +164,11 @@ class GeoCity(geomodels.Model):
 class GeoMacroSaude(geomodels.Model):
     geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
     state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geometry = geomodels.MultiPolygonField(null=False)
+    geometry = geomodels.GeometryField(null=False)
+
+    def save(self, *args, **kwargs):
+        self.geometry = GEOSGeometry(self.geometry.wkt)
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "vis"

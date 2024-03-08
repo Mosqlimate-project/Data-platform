@@ -103,4 +103,15 @@ class Migration(migrations.Migration):
         ),
     ]
 
-    operations = []
+    operations = list(
+        map(
+            migrations.RunPython,
+            [
+                populate_macroregions,
+                populate_states,
+                populate_mesoregions,
+                populate_microregions,
+                populate_cities,
+            ],
+        )
+    )
