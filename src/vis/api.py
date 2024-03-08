@@ -5,14 +5,17 @@ from ninja import Router, Query
 from ninja.security import django_auth
 from ninja.pagination import paginate
 from django.db import IntegrityError
+from django.views.decorators.csrf import csrf_exempt
 
 from registry.pagination import PagesPagination
 from main.schema import UnprocessableContentSchema, ForbiddenSchema
-from .models import ResultsProbLSTM
+from users.auth import UidKeyAuth
+from .models import ResultsProbLSTM, GeoMacroSaude
 from .schema import ResultsProbLSTMSchema, ResultsProbLSTMFilterSchema
 
 
 router = Router()
+uidkey = UidKeyAuth()
 
 
 @router.get(
@@ -48,9 +51,10 @@ def list_results_prob_lstm(
         403: ForbiddenSchema,
         422: UnprocessableContentSchema,
     },
-    auth=django_auth,
+    auth=uidkey,
     include_in_schema=False,
 )
+@csrf_exempt
 def post_results_prob_lstm(request, payload: ResultsProbLSTMSchema):
     try:
         date.fromisoformat(str(payload.date))
@@ -59,7 +63,13 @@ def post_results_prob_lstm(request, payload: ResultsProbLSTMSchema):
             "message": "Incorrect date format, please use isoformat: YYYY-MM-dd"
         }
 
-    obj = ResultsProbLSTM(**payload.dict())
+    data = payload.dict()
+    try:
+        data["macroregion"] = GeoMacroSaude.objects.get(pk=data["macroregion"])
+    except GeoMacroSaude.DoesNotExist:
+        return 422, {"message": f"Unknown macroregion {data['macroregion']}"}
+
+    obj = ResultsProbLSTM(**data)
 
     try:
         obj.save()
@@ -69,4 +79,5 @@ def post_results_prob_lstm(request, payload: ResultsProbLSTMSchema):
                 "LSTM Result for this date and macroregional already inserted"
             )
         }
+
     return 201, obj

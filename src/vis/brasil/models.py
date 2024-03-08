@@ -95,7 +95,7 @@ class GeoMacroregion(geomodels.Model):
     macroregion = geomodels.ForeignKey(
         Macroregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
@@ -104,7 +104,7 @@ class GeoMacroregion(geomodels.Model):
 
 class GeoState(geomodels.Model):
     state = geomodels.ForeignKey(State, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
@@ -113,7 +113,7 @@ class GeoState(geomodels.Model):
 
 class GeoMesoregion(geomodels.Model):
     mesoregion = geomodels.ForeignKey(Mesoregion, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
@@ -124,7 +124,7 @@ class GeoMicroregion(geomodels.Model):
     microregion = geomodels.ForeignKey(
         Microregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
@@ -133,7 +133,7 @@ class GeoMicroregion(geomodels.Model):
 
 class GeoCity(geomodels.Model):
     city = geomodels.ForeignKey(City, on_delete=geomodels.PROTECT)
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
@@ -141,10 +141,9 @@ class GeoCity(geomodels.Model):
 
 
 class GeoMacroSaude(geomodels.Model):
-    # name = models.CharField(null=False)
     geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
     state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geometry = geomodels.MultiPolygonField()
+    geometry = geomodels.MultiPolygonField(null=False)
 
     class Meta:
         app_label = "vis"
