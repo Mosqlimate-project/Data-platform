@@ -8,9 +8,9 @@
     <div class="col">
       <label>{% translate "Select the disease" %}:</label>
       <select id="diseaseDropdown" onchange="updateChart()">
-        <option value="dengue">Dengue</option>
-        <option value="chik">Chikungunya</option>
-        <option value="zika">Zika</option>
+        {% for disease in disease_name %}
+          <option value="{{ disease }}">{{ disease }}</option>
+        {% endfor %}
       </select>
     </div>
     <div class="col">
@@ -70,8 +70,8 @@ function initializeEChart(disease, incidenceType) {
 
       var br_data = incidenceType === 'total_cases_100k_hab' ? diseaseDataMapping[disease + '_100k'] : diseaseDataMapping[disease];
 
-      var total_cases_title = `Total ${diseaseName[disease]} cases by UF in {{ current_year|safe }}`;
-      var total_cases_100k_title = `${diseaseName[disease]} cases per 100k hab. by UF in {{ current_year|safe }}`
+      var total_cases_title = `Total ${diseaseName[disease]} cases by UF in {{ last_available_year|safe }}`;
+      var total_cases_100k_title = `${diseaseName[disease]} cases per 100k hab. by UF in {{ last_available_year|safe }}`
 
       var map_title = (incidenceType === 'total_cases_100k_hab') ? total_cases_100k_title : total_cases_title;
       var chart_title = (incidenceType === 'total_cases_100k_hab') ? total_cases_100k_title : total_cases_title;

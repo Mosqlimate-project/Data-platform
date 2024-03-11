@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 from django.db.models import Sum
 from typing import Dict, Union, List, Tuple
-
+from django.db.models import Max
 from main.utils import UFs
 from datastore.models import (
     HistoricoAlerta,
@@ -192,3 +192,27 @@ def national_total_cases_data(
         results.append({"name": state_name, "value": total_cases.total_cases})
 
     return sorted(results, key=lambda x: x["value"]), year
+
+
+def get_last_available_year(uf: str, disease: str) -> int:
+    """
+    Gets the last year with data for a specific disease and UF.
+    """
+    disease = disease.lower()
+    uf = uf.upper()
+
+    if disease not in ["dengue", "chik", "chikungunya", "zika"]:
+        raise ValueError("Unknown disease. Options: dengue, zika, chik")
+
+    if uf not in UFs:
+        raise ValueError(f"Unknown UF. Options are {list(UFs)}")
+
+    try:
+        last_available_year = TotalCases.objects.filter(
+            uf=uf, disease=disease
+        ).aggregate(last_year=Max("year"))["last_year"]
+    except TotalCases.DoesNotExist:
+        # Handle the case when no data is available
+        last_available_year = None
+
+    return last_available_year

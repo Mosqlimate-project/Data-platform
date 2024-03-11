@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -111,14 +112,13 @@ MESSAGE_TAGS = {
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DEFAULT_URI = urlparse(env("DEFAULT_POSTGRES_URI"))
 INFODENGUE_URI = urlparse(env("INFODENGUE_POSTGRES_URI"))
-
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": "mosqlimate-postgres",
+        "HOST": os.environ.get("POSTGRES_HOST", "mosqlimate-postgres"),
         "PORT": DEFAULT_URI.port,
     },
     "infodengue": {
