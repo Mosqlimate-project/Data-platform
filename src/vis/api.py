@@ -19,16 +19,16 @@ uidkey = UidKeyAuth()
 
 
 @router.get(
-    "/vis/brasil/results-prob-lstm/",
+    "/results-prob-forecast/",
     response={
         200: List[ResultsProbForecastSchema],
         422: UnprocessableContentSchema,
     },
     auth=django_auth,
-    include_in_schema=False,
+    include_in_schema=True,
 )
 @paginate(PagesPagination)
-def list_results_prob_lstm(
+def list_results_prob_forecast(
     request,
     filters: ResultsProbForecastFilterSchema = Query(...),
     **kwargs,
@@ -45,17 +45,17 @@ def list_results_prob_lstm(
 
 
 @router.post(
-    "/vis/brasil/results-prob-lstm/",
+    "/results-prob-forecast/",
     response={
         201: ResultsProbForecastSchema,
         403: ForbiddenSchema,
         422: UnprocessableContentSchema,
     },
     auth=uidkey,
-    include_in_schema=False,
+    include_in_schema=True,
 )
 @csrf_exempt
-def post_results_prob_lstm(request, payload: ResultsProbForecastSchema):
+def post_results_prob_forecast(request, payload: ResultsProbForecastSchema):
     try:
         date.fromisoformat(str(payload.date))
     except ValueError:
@@ -76,8 +76,10 @@ def post_results_prob_lstm(request, payload: ResultsProbForecastSchema):
     except IntegrityError:
         return 403, {
             "message": (
-                "LSTM Result for this date and geocode already inserted"
+                "Forecast Result for this date and geocode already inserted"
             )
         }
 
-    return 201, obj
+    data["geocode"] = data["geocode"].geocode
+
+    return 201, data

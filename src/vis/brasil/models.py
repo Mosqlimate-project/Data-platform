@@ -179,7 +179,7 @@ class GeoMacroSaude(geomodels.Model):
 
 
 class ResultsProbForecast(models.Model):
-    date = models.DateField(db_column="date", primary_key=True)
+    date = models.DateField(db_column="date")
     geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
     lower_2_5 = models.FloatField(null=False)
     lower_25 = models.FloatField(null=False)

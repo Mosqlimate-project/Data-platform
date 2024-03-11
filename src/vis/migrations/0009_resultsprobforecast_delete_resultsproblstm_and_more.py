@@ -14,16 +14,20 @@ class Migration(migrations.Migration):
             name="ResultsProbForecast",
             fields=[
                 (
-                    "date",
-                    models.DateField(
-                        db_column="date", primary_key=True, serialize=False
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
+                ("date", models.DateField(db_column="date")),
                 ("lower_2_5", models.FloatField()),
                 ("lower_25", models.FloatField()),
                 ("forecast", models.FloatField()),
-                ("upper_75", models.FloatField()),
                 ("upper_97_5", models.FloatField()),
+                ("upper_75", models.FloatField()),
                 ("prob_high", models.FloatField()),
                 ("prob_low", models.FloatField()),
                 ("HT", models.FloatField()),
