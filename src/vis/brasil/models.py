@@ -188,10 +188,10 @@ class ResultsProbForecast(models.Model):
     upper_97_5 = models.FloatField(null=False)
     prob_high = models.FloatField(null=False)
     prob_low = models.FloatField(null=False)
-    HT = models.FloatField(null=False)
-    LT = models.FloatField(null=False)
-    HTinc = models.FloatField(null=False)
-    LTinc = models.FloatField(null=False)
+    high_threshold = models.FloatField(null=False)
+    low_threshold = models.FloatField(null=False)
+    high_incidence_threshold = models.FloatField(null=False)
+    low_incidence_threshold = models.FloatField(null=False)
 
     class Meta:
         app_label = "vis"

@@ -15,10 +15,10 @@ class ResultsProbForecastSchema(Schema):
     upper_97_5: float
     prob_high: float
     prob_low: float
-    HT: float
-    LT: float
-    HTinc: float
-    LTinc: float
+    high_threshold: float
+    low_threshold: float
+    high_incidence_threshold: float
+    low_incidence_threshold: float
 
 
 class ResultsProbForecastFilterSchema(FilterSchema):
