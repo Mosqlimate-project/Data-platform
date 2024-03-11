@@ -195,7 +195,7 @@ class ResultsProbForecast(models.Model):
 
     class Meta:
         app_label = "vis"
-        db_table = "results_prob_lstm"
+        db_table = "results_prob_forecast"
         constraints = [
             models.UniqueConstraint(
                 fields=["date", "geocode"], name="results_prob_forecast_unique"
