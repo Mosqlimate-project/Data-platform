@@ -10,8 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from registry.pagination import PagesPagination
 from main.schema import UnprocessableContentSchema, ForbiddenSchema
 from users.auth import UidKeyAuth
-from .models import ResultsProbLSTM, GeoMacroSaude
-from .schema import ResultsProbLSTMSchema, ResultsProbLSTMFilterSchema
+from .models import ResultsProbForecast, GeoMacroSaude
+from .schema import ResultsProbForecastSchema, ResultsProbForecastFilterSchema
 
 
 router = Router()
@@ -21,7 +21,7 @@ uidkey = UidKeyAuth()
 @router.get(
     "/vis/brasil/results-prob-lstm/",
     response={
-        200: List[ResultsProbLSTMSchema],
+        200: List[ResultsProbForecastSchema],
         422: UnprocessableContentSchema,
     },
     auth=django_auth,
@@ -30,7 +30,7 @@ uidkey = UidKeyAuth()
 @paginate(PagesPagination)
 def list_results_prob_lstm(
     request,
-    filters: ResultsProbLSTMFilterSchema = Query(...),
+    filters: ResultsProbForecastFilterSchema = Query(...),
     **kwargs,
 ):
     try:
@@ -39,7 +39,7 @@ def list_results_prob_lstm(
         return 422, {
             "message": "Incorrect date format, please use isoformat: YYYY-MM-dd"
         }
-    objs = ResultsProbLSTM.objects.all()
+    objs = ResultsProbForecast.objects.all()
     objs = filters.filter(objs)
     return objs.order_by("-date")
 
@@ -47,7 +47,7 @@ def list_results_prob_lstm(
 @router.post(
     "/vis/brasil/results-prob-lstm/",
     response={
-        201: ResultsProbLSTMSchema,
+        201: ResultsProbForecastSchema,
         403: ForbiddenSchema,
         422: UnprocessableContentSchema,
     },
@@ -55,7 +55,7 @@ def list_results_prob_lstm(
     include_in_schema=False,
 )
 @csrf_exempt
-def post_results_prob_lstm(request, payload: ResultsProbLSTMSchema):
+def post_results_prob_lstm(request, payload: ResultsProbForecastSchema):
     try:
         date.fromisoformat(str(payload.date))
     except ValueError:
@@ -65,18 +65,18 @@ def post_results_prob_lstm(request, payload: ResultsProbLSTMSchema):
 
     data = payload.dict()
     try:
-        data["macroregion"] = GeoMacroSaude.objects.get(pk=data["macroregion"])
+        data["geocode"] = GeoMacroSaude.objects.get(pk=data["geocode"])
     except GeoMacroSaude.DoesNotExist:
-        return 422, {"message": f"Unknown macroregion {data['macroregion']}"}
+        return 422, {"message": f"Unknown geocode {data['geocode']}"}
 
-    obj = ResultsProbLSTM(**data)
+    obj = ResultsProbForecast(**data)
 
     try:
         obj.save()
     except IntegrityError:
         return 403, {
             "message": (
-                "LSTM Result for this date and macroregional already inserted"
+                "LSTM Result for this date and geocode already inserted"
             )
         }
 

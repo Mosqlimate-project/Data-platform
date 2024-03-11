@@ -5,9 +5,9 @@ from ninja import FilterSchema, Field
 from main.schema import Schema
 
 
-class ResultsProbLSTMSchema(Schema):
+class ResultsProbForecastSchema(Schema):
     date: date
-    macroregion: int
+    geocode: int
     lower_2_5: float
     lower_25: float
     forecast: float
@@ -21,6 +21,6 @@ class ResultsProbLSTMSchema(Schema):
     LTinc: float
 
 
-class ResultsProbLSTMFilterSchema(FilterSchema):
+class ResultsProbForecastFilterSchema(FilterSchema):
     date: Optional[str] = Field(q="date__str")
-    macroregion: Optional[int] = Field(q="macroregion")
+    geocode: Optional[int] = Field(q="geocode")

@@ -178,9 +178,9 @@ class GeoMacroSaude(geomodels.Model):
 # -----------------------------------------------------------------------------
 
 
-class ResultsProbLSTM(models.Model):
+class ResultsProbForecast(models.Model):
     date = models.DateField(db_column="date", primary_key=True)
-    macroregion = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
+    geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
     lower_2_5 = models.FloatField(null=False)
     lower_25 = models.FloatField(null=False)
     forecast = models.FloatField(null=False)
@@ -198,6 +198,6 @@ class ResultsProbLSTM(models.Model):
         db_table = "results_prob_lstm"
         constraints = [
             models.UniqueConstraint(
-                fields=["date", "macroregion"], name="results_prob_lstm_unique"
+                fields=["date", "geocode"], name="results_prob_forecast_unique"
             )
         ]
