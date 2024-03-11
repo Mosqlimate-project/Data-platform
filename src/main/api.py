@@ -9,6 +9,7 @@ from django.http import HttpResponse
 
 from registry.api import router as registry_router
 from datastore.api import router as datastore_router
+from vis.api import router as vis_router
 from users.api import router as users_router
 from users.auth import InvalidUIDKey
 from main.schema import NotFoundSchema
@@ -38,6 +39,7 @@ api.add_router("/", router=router)
 api.add_router("/registry/", router=registry_router)
 api.add_router("/user/", router=users_router)
 api.add_router("/datastore/", router=datastore_router)
+api.add_router("/vis/", router=vis_router)
 
 
 @api.exception_handler(InvalidUIDKey)

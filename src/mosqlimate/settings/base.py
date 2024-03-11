@@ -114,7 +114,7 @@ INFODENGUE_URI = urlparse(env("INFODENGUE_POSTGRES_URI"))
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
