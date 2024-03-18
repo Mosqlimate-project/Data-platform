@@ -67,7 +67,7 @@ def populate_microregions(apps, schema_editor):
         geocode = mesoregion.state.geocode + str(data["geographic_id"]).zfill(
             3
         )
-        Microregion.objects.get_or_save(
+        Microregion.objects.get_or_create(
             geocode=geocode, name=data["name"], mesoregion=mesoregion
         )
 
