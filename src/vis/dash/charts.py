@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from registry.models import Prediction
 
-from vis.home.vis_charts import historico_alerta_data_for
+from vis.plots.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
 
 

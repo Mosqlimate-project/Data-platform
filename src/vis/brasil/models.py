@@ -163,6 +163,7 @@ class GeoCity(geomodels.Model):
 
 class GeoMacroSaude(geomodels.Model):
     geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
+    name = models.CharField(null=True)
     state = models.ForeignKey(State, on_delete=models.PROTECT)
     geometry = geomodels.GeometryField(null=False)
 

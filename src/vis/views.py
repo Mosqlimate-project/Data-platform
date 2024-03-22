@@ -1,9 +1,6 @@
 import os
 import json
 import datetime
-import numpy as np
-import altair as alt
-import geopandas as gpd
 from typing import Union
 from itertools import cycle
 
@@ -17,9 +14,9 @@ from main.api import get_municipality_info
 from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
 from .dash.charts import line_charts_by_geocode
-from .home.vis_charts import uf_ibge_mapping
-from .utils import merge_uri_params, geo_obj_to_dataframe, obj_to_dataframe
-from .models import ResultsProbForecast, GeoMacroSaude
+from .plots.home.vis_charts import uf_ibge_mapping
+from .plots.forecast_map import macro_forecast_map_table
+from .utils import merge_uri_params
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
@@ -250,191 +247,18 @@ class MacroForecastMap(View):
 
     def get(self, request):
         context = {}
-        try:
-            map = get_macro_forecast_map(datetime.date(2024, 3, 11), 4108)
-            context["res"] = map.to_html()
-        except GeoMacroSaude.DoesNotExist:
-            ...
-        except ResultsProbForecast.DoesNotExist:
-            ...
+        # try:
+        map1 = macro_forecast_map_table(
+            datetime.date(2024, 4, 28)  # , [4105, 4106, 4107, 4108]
+        )
+
+        context["res"] = map1.to_html()
+        # except GeoMacroSaude.DoesNotExist:
+        #     ...
+        # except ResultsProbForecast.DoesNotExist:
+        #     ...
 
         return render(request, self.template_name, context)
-
-
-def get_macro_forecast_map(date: datetime.date, geocode: int):
-    macro_saude = GeoMacroSaude.objects.get(geocode=str(geocode))
-
-    res_prob = ResultsProbForecast.objects.get(
-        date=date, geocode=str(macro_saude.geocode)
-    )
-
-    df = obj_to_dataframe(res_prob)
-
-    df["date"] = df["date"].apply(lambda x: str(x))
-
-    df.prob_low = -df.prob_low
-
-    df["prob_color"] = df.apply(
-        lambda x: x.prob_low
-        if abs(x.prob_low) > abs(x.prob_high)
-        else x.prob_high,
-        axis=1,
-    )
-
-    df["prob_color"] = df.prob_color.apply(lambda x: 0 if abs(x) < 50 else x)
-
-    df = df.drop(columns="id")
-
-    df_macro = geo_obj_to_dataframe(macro_saude)
-
-    df_macro["state_code"] = df_macro["state"]
-
-    df_macro["state"] = df_macro["state"].astype(int).replace(code_to_state)
-
-    df_macro = df_macro.merge(df, on="geocode", how="left")
-
-    df_macro = gpd.GeoDataFrame(df_macro)
-
-    df_macro.set_geometry("geometry")
-
-    df_macro["desc_prob"] = np.nan
-
-    df_macro.loc[
-        df_macro.prob_color > 0, "desc_prob"
-    ] = "Probabilidade de a incidência superar o limiar histórico"
-
-    df_macro.loc[
-        df_macro.prob_color < 0, "desc_prob"
-    ] = "Probabilidade de a incidência ser abaixo do limiar inferior histórico"
-
-    map_dist = (
-        alt.Chart(df_macro, title="")
-        .mark_geoshape()
-        .encode(
-            color=alt.Color(
-                "high_incidence_threshold:Q",
-                scale=alt.Scale(scheme="viridis"),
-                legend=alt.Legend(
-                    direction="vertical",
-                    orient="right",
-                    legendY=30,
-                    title="Incidência /100.000 hab.",
-                    titleOrient="left",
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip("state:N", title="Estado:"),
-                # alt.Tooltip('name_code_macro:N', title='Macrorregião:'),
-                alt.Tooltip("high_incidence_threshold:Q", title="Incidência:"),
-            ],
-        )
-    )
-
-    text_dist = (
-        alt.Chart(df_macro)
-        .mark_text(dy=-170, dx=20, size=14, fontWeight=100)
-        .encode(text="date:N")
-        .transform_calculate(
-            date='"Limiar superior de Incidência na semana de " + datum.date'
-        )
-    )
-
-    map_prob = (
-        alt.Chart(df_macro, title="")
-        .mark_geoshape()
-        .encode(
-            color=alt.Color(
-                "prob_color:Q",
-                scale=alt.Scale(scheme="redblue", reverse=True),
-                legend=alt.Legend(
-                    direction="vertical",
-                    orient="right",
-                    legendY=30,
-                    title="Probabilidade (%)",
-                    titleOrient="left",
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip("state:N", title="Estado:"),
-                # alt.Tooltip('name_code_macro:N', title='Macrorregião:'),
-                alt.Tooltip("prob_color:Q", title="Probabilidade (%):"),
-                alt.Tooltip("desc_prob:N", title="Info:"),
-            ],
-        )
-    )
-
-    text_prob = (
-        alt.Chart(df_macro)
-        .mark_text(dy=-170, dx=20, size=14, fontWeight=100)
-        .encode(text="date:N")
-        .transform_calculate(
-            date='"Previsão probabilística na semana de " + datum.date'
-        )
-    )
-
-    final_maps = alt.hconcat(
-        alt.layer(map_dist, text_dist), alt.layer(map_prob, text_prob)
-    ).resolve_scale(color="independent")
-
-    ranked_table_prob = (
-        alt.Chart(
-            df_macro[
-                [
-                    "date",
-                    "state",
-                    # 'name_code_macro',
-                    "prob_color",
-                    "high_incidence_threshold",
-                ]
-            ]
-        )
-        .mark_text(align="right")
-        .encode(y=alt.Y("row_number:O").axis(None))
-        .transform_window(
-            row_number="row_number()",
-            rank="rank(prob_color)",
-            sort=[alt.SortField("prob_color", order="descending")],
-        )
-        .transform_filter(alt.datum.prob_color > 90)
-    )
-
-    d = ranked_table_prob.encode(text="date:N").properties(
-        title=alt.Title(text="date", align="right")
-    )
-
-    # name = ranked_table_prob.encode(text='name_code_macro:N').properties(
-    #     title=alt.Title(text='Macrorregião', align='right')
-    # )
-
-    state = ranked_table_prob.encode(text="state:N").properties(
-        title=alt.Title(text="Estado", align="right")
-    )
-
-    prob = ranked_table_prob.encode(text="prob_color:N").properties(
-        title=alt.Title(text="Probabilidade (%)", align="right")
-    )
-
-    inc = ranked_table_prob.encode(
-        text="high_incidence_threshold:Q"
-    ).properties(
-        title=alt.Title(
-            text="Limiar superior de Incidência (100k)", align="right"
-        )
-    )
-
-    table_prob = alt.hconcat(
-        d,
-        state,
-        # name,
-        inc,
-        prob,
-    )
-
-    final_plot = alt.vconcat(final_maps, table_prob).configure_view(
-        stroke=None
-    )
-
-    return final_plot
 
 
 def get_model_selector_item(request, model_id):
