@@ -8,8 +8,6 @@ def aedes_egg_dataset_file(request):
 
     file_path = os.path.join(settings.STATIC_ROOT, f"data/{filename}")
 
-    print(file_path)
-
     if not os.path.exists(file_path):
         raise Http404("File not available")
 
