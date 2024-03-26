@@ -6,6 +6,11 @@ urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
     path(
+        "macro-forecast-map/",
+        views.MacroForecastMap.as_view(),
+        name="macro_forecast_map",
+    ),
+    path(
         "predict-table/",
         views.PredictTableView.as_view(),
         name="predict_table",
