@@ -1,8 +1,13 @@
 from django.test import TestCase
 from django.core.cache import cache
+from django.db.models import Max
 from datetime import datetime as dt
 from datastore.models import HistoricoAlerta
-from vis.vis_charts import national_total_cases_data, uf_ibge_mapping
+from vis.home.vis_charts import (
+    national_total_cases_data,
+    get_last_available_year,
+    uf_ibge_mapping,
+)
 import unittest
 
 
@@ -50,6 +55,34 @@ class EchartsVisDataTestCase(TestCase):
 
         self.assertIn(
             "Rio de Janeiro", [result["name"] for result in response]
+        )
+
+    def test_get_last_available_year(self):
+        uf = "RJ"
+        disease = "dengue"
+
+        # Get the maximum available year from the dataset
+        max_available_year = HistoricoAlerta.objects.using(
+            "infodengue"
+        ).aggregate(max_year=Max("data_iniSE__year"))["max_year"]
+
+        last_available_year = get_last_available_year(uf, disease)
+
+        self.assertIsNotNone(last_available_year)
+        self.assertIsInstance(last_available_year, int)
+        self.assertGreaterEqual(last_available_year, 1970)
+
+        self.assertLessEqual(last_available_year, max_available_year)
+
+        # Ensure that there is data for the given UF and disease
+        # in the last available year
+        data = HistoricoAlerta.objects.using("infodengue").filter(
+            municipio_geocodigo__startswith=uf_ibge_mapping[uf]["code"],
+            data_iniSE__year=last_available_year,
+        )
+        self.assertTrue(
+            data.exists(),
+            f"No data found for {uf} and {disease} in {last_available_year}",
         )
 
     def tearDown(self):
