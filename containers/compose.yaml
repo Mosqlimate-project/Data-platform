@@ -16,6 +16,8 @@ services:
     env_file:
       - ../.env
     user: "mosqlimate:mosqlimate"
+    volumes:
+      - ${EPISCANNER_HOST_DATA_DIR}:${DJANGO_CONTAINER_DATA_PATH}/episcanner
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${DJANGO_PORT}/status"]
       interval: 60s

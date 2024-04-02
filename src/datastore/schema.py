@@ -82,6 +82,24 @@ class ContaOvosSchema(Schema):
     year: int
 
 
+class EpiScannerSchema(Schema):
+    disease: str
+    CID10: str
+    year: int
+    geocode: int
+    muni_name: str
+    peak_week: float
+    beta: float
+    gamma: float
+    R0: float
+    total_cases: float
+    alpha: float
+    sum_res: float
+    ep_ini: str
+    ep_end: str
+    ep_dur: int
+
+
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 

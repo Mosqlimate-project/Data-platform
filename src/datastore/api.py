@@ -1,10 +1,15 @@
+import datetime
 import requests
 from typing import List, Literal, Optional
+
+import duckdb
+import pandas as pd
 
 from ninja import Router, Query
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
+from django.conf import settings
 
 from main.schema import NotFoundSchema, InternalErrorSchema
 from main.utils import UFs
@@ -22,6 +27,7 @@ from .schema import (
     CopernicusBrasilSchema,
     CopernicusBrasilFilterSchema,
     ContaOvosSchema,
+    EpiScannerSchema,
 )
 
 
@@ -55,7 +61,7 @@ def get_infodengue(
     # fmt: on
     **kwargs,
 ):
-    disease = disease.lower()
+    disease = disease.lower()  # pyright: ignore
 
     try:
         if disease in ["chik", "chikungunya"]:
@@ -72,7 +78,7 @@ def get_infodengue(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf = uf.upper()
+        uf = uf.upper()  # pyright: ignore
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
@@ -116,7 +122,7 @@ def get_copernicus_brasil(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf = uf.upper()
+        uf = uf.upper()  # pyright: ignore
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
@@ -155,3 +161,84 @@ def get_contaovos(request, key: str, page: int):
         }
 
     return 404, {"message": response.json()}
+
+
+@router.get(
+    "/episcanner/",
+    response={
+        200: List[EpiScannerSchema],
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
+    tags=["datastore", "episcanner"],
+)
+@csrf_exempt
+def get_episcanner(
+    request,
+    # fmt: off
+    disease: Literal["dengue", "zika", "chik"],
+    uf: Literal[
+        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
+        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
+        "SE", "TO", "DF"
+    ],
+    # fmt: on
+    year: int = datetime.datetime.now().year,
+    # geocode: Optional[List[int]] = None
+):
+    db = duckdb.connect(
+        str(
+            settings.DJANGO_CONTAINER_DATA_PATH
+            / "episcanner"
+            / "episcanner.duckdb"
+        )
+    )
+
+    describe: pd.DataFrame = db.execute("DESCRIBE").fetchdf()
+
+    if describe.empty:
+        print("Duckdb data not found while trying to retrieve EpiScanner data")
+        return 500, {
+            "message": "Internal error. Please contact the moderation"
+        }
+
+    sql = f"SELECT * FROM '{uf}' WHERE disease = '{disease}' AND year = {year}"
+
+    try:
+        df = db.execute(sql).fetchdf()
+    except duckdb.CatalogException as e:
+        print(f"Duckdb error executing sql {sql}\n{e}")
+        return 500, {
+            "message": "Internal error. Please contact the moderation"
+        }
+    except duckdb.IOException as e:
+        print(f"Duckdb IO error: {e}")
+        return 500, {
+            "message": "Internal error. Please contact the moderation"
+        }
+    finally:
+        db.close()
+
+    if df.empty:
+        return 404, {
+            "message": (
+                f"Data not found for specific query ({disease}, {uf}, {year})"
+            )
+        }
+
+    # if geocode:
+    #     df = df[df['geocode'].isin(geocode)]
+
+    #     if df.empty:
+    #         return 404, {
+    #             "message": (
+    #                 f"Data not found for specific geocode(s) ({geocode})"
+    #             )
+    #         }
+
+    objs = [
+        EpiScannerSchema(**d)
+        for d in df.to_dict(orient="records")  # pyright: ignore
+    ]
+
+    return 200, objs
