@@ -5,7 +5,10 @@
 
 <p>
 This endpoint retrieves information from the <a href="https://info.dengue.mat.br/epi-scanner/">Epi-Scanner</a>
-project, which provide analyzed data of the expansion of dengue, zika and chikungunya in Brazil using up-to-date incidence data from Infodengue.
+project, which provide analyzed data of the expansion of dengue, zika and chikungunya in Brazil
+using up-to-date incidence data from Infodengue.
+<br>
+<i>If no year is provided, the default value will be the current year.</i>
 </p>
 
 <div class="row mb-3">
@@ -29,6 +32,21 @@ project, which provide analyzed data of the expansion of dengue, zika and chikun
             </option>
             {% endfor %}
         </select>
+    </div>
+    <div class="col">
+        <label>{% translate "Year" %}:</label>
+        <input
+            type="text"
+            min="0"
+            id="episcanner-select-year"
+            name="episcanner-year"
+            value=""
+            class="form-control"
+            maxlength="4"
+            onkeydown="return (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8;"
+            oninput="this.value=this.value.slice(0,this.maxLength)"
+            placeholder="{{year}}"
+        >
     </div>
 </div>
 <span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
@@ -62,28 +80,33 @@ project, which provide analyzed data of the expansion of dengue, zika and chikun
 
     const episcannerDisease = document.getElementById("episcanner-select-disease");
     const episcannerUf = document.getElementById("episcanner-select-uf");
+    const episcannerYear = document.getElementById("episcanner-select-year");
 
     episcannerDisease.addEventListener("change", updateEpiscannerUrl);
     episcannerUf.addEventListener("change", updateEpiscannerUrl);
+    episcannerYear.addEventListener("input", updateEpiscannerUrl);
 
     function updateEpiscannerUrl() {
-      const updatedEpiscannerUrl = buildApiUrl(
+      const updatedEpiscannerUrl = buildEpiscannerApiUrl(
           episcannerDisease.value, 
-          episcannerUf.value
+          episcannerUf.value,
+          episcannerYear.value
       );
-      updateApiUrl(updatedEpiscannerUrl);
+      updateEpiscannerApiUrl(updatedEpiscannerUrl);
     }
 
-    function buildApiUrl(
+    function buildEpiscannerApiUrl(
         episcannerDiseaseValue, 
-        episcannerUfValue
+        episcannerUfValue,
+        episcannerYearValue
     ) {
       const episcannerDiseasePart = "disease=" + episcannerDiseaseValue;
-      const episcannerUfPart = "&uf=" + episcannerUfValue;
-      return episcannerDefaultApiUrl + episcannerDiseasePart + episcannerUfPart;
+      const episcannerUfPart = episcannerUfValue.trim() !== "" ? "&uf=" + episcannerUfValue : "";
+      const episcannerYearPart = episcannerYearValue.trim() !== "" ? "&year=" +  episcannerYearValue: "";
+      return episcannerDefaultApiUrl + episcannerDiseasePart + episcannerUfPart + episcannerYearPart;
     }
 
-    function updateApiUrl(updatedEpiscannerUrl) {
+    function updateEpiscannerApiUrl(updatedEpiscannerUrl) {
       episcannerApiUrl.textContent = updatedEpiscannerUrl;
       episcannerApiUrl.href = updatedEpiscannerUrl;
     }

@@ -99,17 +99,17 @@ municipalities on a weekly time scale.
     infodengueUf.addEventListener("change", updateInfodengueUrl);
 
     function updateInfodengueUrl() {
-      const updatedInfodengueUrl = buildApiUrl(
+      const updatedInfodengueUrl = buildInfodengueApiUrl(
           infodengueGeocode.value, 
           infodengueDisease.value, 
           infodengueStart.value, 
           infodengueEnd.value, 
           infodengueUf.value
       );
-      updateApiUrl(updatedInfodengueUrl);
+      updateInfodengueApiUrl(updatedInfodengueUrl);
     }
 
-    function buildApiUrl(
+    function buildInfodengueApiUrl(
         infodengueGeocodeValue, 
         infodengueDiseaseValue, 
         infodengueStartValue, 
@@ -124,7 +124,7 @@ municipalities on a weekly time scale.
       return infodengueDefaultApiUrl + infodengueDiseasePart + infodengueStartPart + infodengueEndPart + infodengueGeocodePart + infodengueUfPart;
     }
 
-    function updateApiUrl(updatedInfodengueUrl) {
+    function updateInfodengueApiUrl(updatedInfodengueUrl) {
       infodengueApiUrl.textContent = updatedInfodengueUrl;
       infodengueApiUrl.href = updatedInfodengueUrl;
     }

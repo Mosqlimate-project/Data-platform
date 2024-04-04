@@ -1,3 +1,4 @@
+import datetime as dt
 from django import template
 
 from main.utils import UFs
@@ -38,5 +39,10 @@ def episcanner():
         ("chik", "Chikungunya"),
     ]
 
-    context = {"diseases": diseases, "UFs": UFs.items()}
+    context = {
+        "diseases": diseases,
+        "UFs": UFs.items(),
+        "year": dt.datetime.now().year,
+    }
+
     return context
