@@ -222,7 +222,8 @@ def get_episcanner(
     if df.empty:
         return 404, {
             "message": (
-                f"Data not found for specific query ({disease}, {uf}, {year})"
+                "No data for specific query "
+                f"(disease={disease}, uf={uf}, year={year})"
             )
         }
 
