@@ -22,15 +22,15 @@ def obj_to_dataframe(obj: models.Model) -> pd.DataFrame:
     return pd.DataFrame(dict(zip(columns, fields)), index=[0])
 
 
-def geo_obj_to_dataframe(obj: geomodels.Model) -> gpd.GeoDataFrame:
+def geo_obj_to_dataframe(obj: geomodels.Model) -> pd.DataFrame:
     columns = [_field.name for _field in obj._meta._get_fields(reverse=False)]
     fields = [obj.serializable_value(column) for column in columns]
     df = gpd.GeoDataFrame(dict(zip(columns, fields)))
     df["geometry"] = df["geometry"].apply(
         lambda x: parse_gis_types_to_shapely(x)
     )
-    df.set_geometry("geometry")
-    return df
+    df = df.set_geometry("geometry")
+    return df.dissolve()
 
 
 def parse_gis_types_to_shapely(

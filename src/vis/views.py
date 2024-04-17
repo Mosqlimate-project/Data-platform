@@ -1,12 +1,15 @@
 import os
 import json
-import datetime
+from pathlib import Path
 from typing import Union
 from itertools import cycle
+from hashlib import blake2b
+from dateutil import parser
 
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.http import JsonResponse
+from django.conf import settings
+from django.http import JsonResponse, FileResponse
 from django.views import View
 
 from registry.models import Model, Prediction
@@ -243,22 +246,65 @@ class PredictTableView(View):
 
 
 class MacroForecastMap(View):
-    template_name = "vis/charts/macro-forecast-map.html"
-
     def get(self, request):
-        context = {}
-        # try:
-        map1 = macro_forecast_map_table(
-            datetime.date(2024, 4, 28)  # , [4105, 4106, 4107, 4108]
+        date = request.GET.get("date")
+        macroregion = request.GET.get("macroregion", None)
+        uf = request.GET.get("uf", None)
+        geocodes = request.GET.getlist("geocode", [])
+
+        date = parser.parse(date).date()
+        unique_flag: str = ""
+        params: dict = {"date": date}
+
+        if geocodes:
+            geocodes = sorted(list(map(str, geocodes)))
+            unified_geocodes = "".join(geocodes).encode()
+            unique_flag = blake2b(unified_geocodes, digest_size=10).hexdigest()
+            params |= {"geocodes": geocodes}
+
+        if uf:
+            uf = str(uf).upper()
+            unique_flag = uf
+            params |= {"uf": uf}
+
+        if macroregion:
+            macroregion = str(macroregion)
+            macros = {
+                "1": "norte",
+                "2": "nordeste",
+                "3": "centrooeste",
+                "4": "sudeste",
+                "5": "sul",
+            }
+            unique_flag = macros[macroregion]
+            params |= {"macroregion": macroregion}
+
+        if unique_flag:
+            html_name = str(date) + "-" + unique_flag + ".html"
+        else:
+            html_name = str(date) + ".html"
+
+        macro_html_dir = Path(
+            os.path.join(settings.STATIC_ROOT, "vis/brasil/geomacrosaude")
         )
 
-        context["res"] = map1.to_html()
-        # except GeoMacroSaude.DoesNotExist:
-        #     ...
-        # except ResultsProbForecast.DoesNotExist:
-        #     ...
+        if not macro_html_dir.exists():
+            macro_html_dir.mkdir(parents=True, exist_ok=True)
 
-        return render(request, self.template_name, context)
+        macro_html_file = macro_html_dir / html_name
+
+        if macro_html_file.exists():
+            return FileResponse(
+                open(macro_html_file, "rb"), content_type="text/html"
+            )
+
+        macro_map = macro_forecast_map_table(**params)
+
+        macro_map.save(str(macro_html_file), "html")
+
+        return FileResponse(
+            open(macro_html_file, "rb"), content_type="text/html"
+        )
 
 
 def get_model_selector_item(request, model_id):
