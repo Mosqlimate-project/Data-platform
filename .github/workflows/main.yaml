@@ -17,9 +17,6 @@ jobs:
       EMAIL_HOST_PASSWORD: TODO
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      matrix:
-        python-version: ["3.9"]
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
