@@ -283,6 +283,10 @@ variables = {
     "MKDOCS_PORT": 8043,
     # [Redis]
     "REDIS_PORT": redis_port,
+    # [EpiScanner]
+    "EPISCANNER_HOST_DATA_DIR": os.path.join(
+        os.path.expanduser("~"), "episcanner"
+    ),
 }
 
 if not CI:
