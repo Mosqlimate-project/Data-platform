@@ -1,5 +1,5 @@
-version: 1.8.1
-
+version: 1.0
+shell: bash
 groups:
   docker:
     env-file: .env
@@ -54,7 +54,6 @@ groups:
           # sugar run --service django --cmd "python manage.py makemigrations --no-input"
           sugar run --service django --cmd "python manage.py migrate --no-input"
 
-
       collectstatic:
         help: Run `collectstatic` inside container
         run: |
@@ -69,6 +68,14 @@ groups:
         help: Enters in Django Database shell on container
         run: |
           sugar run --service django --cmd "python manage.py dbshell"
+
+      runserver:
+        help: Run the django application
+        env-file: ./.env
+        run: |
+          export POSTGRES_HOST=localhost
+          CMD="python src/manage.py runserver 0.0.0.0:8000"
+          $CMD
 
       test:
         args:
@@ -87,6 +94,7 @@ groups:
       dotenv:
         help: Configure .env file
         run: |
+          touch ./.env
           python contrib/scripts/do_dotenv.py
 
       psql-conf:

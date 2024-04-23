@@ -1,14 +1,14 @@
 """
 This module has three main purposes:
 - Define default values to environment variables
-- Serve as a Contributor guide to generate the .env file  
+- Serve as a Contributor guide to generate the .env file
 - Intermediate the logic between the CI env vars and the .env file
 
 It will use Jinja2 and the `.env.tpl` file at contrib/templates directory,
 the `get_env_var_or_input` method firstly checks if the target variable exists
-in the local variables, then asks for an input if the variable doesn't exist. A 
-default_val will be returned. A default value will be overridden if it already 
-exists on Environment and it won't ask for input. 
+in the local variables, then asks for an input if the variable doesn't exist. A
+default_val will be returned. A default value will be overridden if it already
+exists on Environment and it won't ask for input.
 """
 import os
 import logging
@@ -283,19 +283,24 @@ variables = {
     "MKDOCS_PORT": 8043,
     # [Redis]
     "REDIS_PORT": redis_port,
+    # [EpiScanner]
+    "EPISCANNER_HOST_DATA_DIR": os.path.join(
+        os.path.expanduser("~"), "episcanner"
+    ),
 }
 
-if dotenv_file.exists():
-    answer = ""
-    print(f"\nNote: .env file found at {project_dir}, replace it? [y/N] ")
-    while True:
-        answer = input()
-        if answer.lower() in ["y", "yes"]:
-            dotenv_file.unlink()
-            break
-        if answer.lower() in ["n", "no"]:
-            print("canceled")
-            break
+if not CI:
+    if dotenv_file.exists():
+        answer = ""
+        print(f"\nNote: .env file found at {project_dir}, replace it? [y/N] ")
+        while True:
+            answer = input()
+            if answer.lower() in ["y", "yes"]:
+                dotenv_file.unlink()
+                break
+            if answer.lower() in ["n", "no"]:
+                print("canceled")
+                break
 
 if not dotenv_file.exists():
     output = dotenv_template.render(variables)
