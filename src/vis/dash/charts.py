@@ -6,7 +6,6 @@ import altair as alt
 from django.urls import reverse
 
 from registry.models import Prediction
-
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
 

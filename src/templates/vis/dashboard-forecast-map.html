@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{% load plotly_dash %}
+{% load filters %}
+
+{% block title %}{% translate "Visualization" %}{% endblock %}
+
+{% block content %}
+<div style="display:flex;">
+  <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
+    <div class="sidebar-menu">
+      <center>
+        <div class="p-3">
+          <label for="date" class="text-white"><b>{% trans "Date" %}</b></label><br>
+          <select name="date">
+            {% for date in available_dates %}
+            <option value="{{ date }}">{{ date }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <hr style="color:white;">
+
+        <div class="p-3">
+          <label for="macroregion" class="text-white"><b>{% trans "Macroregion" %}</b></label><br>
+          <select name="macroregion">
+            {% for geocode, name in macroregions %}
+            <option value="{{ geocode }}">{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <hr style="color:white;">
+
+        <div class="p-3">
+          <label for="state" class="text-white"><b>{% trans "State" %}</b></label><br>
+          <select name="state">
+            {% for uf, name in ufs %}
+            <option value="{{ uf }}">{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <hr style="color:white;">
+
+        <div class="p-3">
+          <label for="macroSaude" class="text-white"><b>{% trans "Macro Saúde" %}</b></label><br>
+          <select name="macroSaude">
+            {% for geocode, name, uf in macros_saude %}
+            <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </center>
+    </div>
+  </div>
+
+  <div class="vis-content d-flex flex-column justify-content-center align-items-center flex-shrink-0 p-3 bg-light" style="height: auto;">
+    <div class="macro-forecast-chart">
+      <center>
+        <iframe 
+         id="macroForecastIframe" 
+         src="http://0.0.0.0:8042/vis/macro-forecast-map/?date=2024-04-28"
+         style="width: 100%; height: 100%; border: none;"
+         ></iframe>
+      </center>
+    </div>
+  </div>
+</div>
+
+<style>
+.vis-sidebar {
+  width: 280px;
+  min-height: calc(100vh - 211px);
+}
+
+.vis-content {
+  flex-grow: 1;
+}
+
+.macro-forecast-chart {
+  width: 1150px; 
+  height: auto; 
+  overflow: hidden;"
+}
+
+#macroForecastIframe {
+  background-color: #FFFFFF;
+  min-height: calc(100vh - 211px);
+}
+</style>
+
+
+</style>
+{% endblock %}

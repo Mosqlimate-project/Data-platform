@@ -16,6 +16,12 @@ from registry.models import Model, Prediction
 from main.api import get_municipality_info
 from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
+from .models import (
+    UFs,
+    Macroregion,
+    GeoMacroSaude,
+    ResultsProbForecast,
+)
 from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
@@ -149,6 +155,37 @@ class DashboardView(View):
         )
 
         context["adm_2_geocodes"] = list(geocode_cities)
+
+        return render(request, self.template_name, context)
+
+
+class DashboardForecastMacroView(View):
+    template_name = "vis/dashboard-forecast-map.html"
+
+    @xframe_options_exempt
+    def get(self, request):
+        context = {}
+
+        context["available_dates"] = list(
+            map(
+                str,
+                ResultsProbForecast.objects.values_list(
+                    "date", flat=True
+                ).distinct(),
+            )
+        )
+
+        context["macroregions"] = list(
+            Macroregion.objects.values_list("geocode", "name")
+        )
+
+        context["ufs"] = UFs.choices
+
+        context["macros_saude"] = list(
+            GeoMacroSaude.objects.values_list(
+                "geocode", "name", "state__uf"
+            ).order_by("geocode")
+        )
 
         return render(request, self.template_name, context)
 
