@@ -5,8 +5,9 @@ import pandas as pd
 import altair as alt
 import geopandas as gpd
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, reverse
 from django.utils.translation import gettext_lazy as _
+from django.http import HttpRequest
 
 from main.utils import UF_CODES
 from vis.utils import geo_obj_to_dataframe, obj_to_dataframe
@@ -17,38 +18,17 @@ code_to_state = {v: k for k, v in UF_CODES.items()}
 
 def macro_forecast_map_table(
     date: datetime.date,
+    request: HttpRequest,
     macroregion: Optional[Literal[1, 2, 3, 4, 5]] = None,
+    # fmt: off
     uf: Optional[
         Literal[
-            "AC",
-            "AL",
-            "AP",
-            "AM",
-            "BA",
-            "CE",
-            "ES",
-            "GO",
-            "MA",
-            "MT",
-            "MS",
-            "MG",
-            "PA",
-            "PB",
-            "PR",
-            "PE",
-            "PI",
-            "RJ",
-            "RN",
-            "RS",
-            "RO",
-            "RR",
-            "SC",
-            "SP",
-            "SE",
-            "TO",
-            "DF",
+            "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA",
+            "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ",
+            "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "DF",
         ]
     ] = None,
+    # fmt: on
     geocodes: Optional[list[int]] = None,
     title_left: str = "Limiar superior de Incidência na semana",
     title_right: str = "Previsão probabilística na semana",
@@ -108,7 +88,7 @@ def macro_forecast_map_table(
         .reset_index(drop=True)
     )
 
-    df["date"] = df["date"].apply(lambda x: str(x))
+    df["date"] = df["date"].apply(str)
 
     df.prob_low = -df.prob_low
 
@@ -147,6 +127,7 @@ def macro_forecast_map_table(
 
     maps = macro_maps(
         df_macro,
+        request=request,
         title_left=title_left,
         title_right=title_right,
         width=width,
@@ -167,12 +148,43 @@ def macro_forecast_map_table(
 
 def macro_maps(
     df: gpd.GeoDataFrame,
+    request: HttpRequest,
     title_left: str = "Limiar superior de Incidência na semana",
     title_right: str = "Previsão probabilística na semana",
     width: int = 450,
     height: int = 350,
     fontsize: int = 16,
 ):
+    watermark = (
+        alt.Chart(
+            {
+                "values": [
+                    {
+                        "url": request.build_absolute_uri(
+                            reverse("api-1:get_mosqlimate_logo")
+                        )
+                    }
+                ]
+            }
+        )
+        .mark_image(opacity=0.75)
+        .encode(
+            x=alt.value(width),
+            x2=alt.value(width - 70),  # from left
+            y=alt.value(height),
+            y2=alt.value(height - 70),  # from top
+            url="url:N",
+        )
+    )
+
+    watermark_text = (
+        alt.Chart({"values": [{"text": "mosqlimate.org"}]})
+        .mark_text(align="center", fontSize=12, opacity=0.75)
+        .encode(text="text:N", x=alt.value(width - 35), y=alt.value(height))
+    )
+
+    watermark = watermark + watermark_text
+
     text_dist = (
         alt.Chart(df)
         .mark_text(
@@ -201,13 +213,14 @@ def macro_maps(
             tooltip=[
                 alt.Tooltip("state:N", title=str(_("Estado:"))),
                 alt.Tooltip("name:N", title=str(_("Macrorregião:"))),
+                alt.Tooltip("geocode:N", title=str(_("Geocódigo:"))),
                 alt.Tooltip(
                     "high_incidence_threshold:Q", title=str(_("Incidência:"))
                 ),
             ],
         )
         .properties(width=width, height=height)
-    )
+    ) + watermark
 
     map_prob = (
         alt.Chart(df, title="")
@@ -226,8 +239,9 @@ def macro_maps(
                 ),
             ),
             tooltip=[
-                alt.Tooltip("state:N", title=str(_("Estado:"))),
                 alt.Tooltip("name:N", title=str(_("Macrorregião:"))),
+                alt.Tooltip("state:N", title=str(_("Estado:"))),
+                alt.Tooltip("geocode:N", title=str(_("Geocódigo:"))),
                 alt.Tooltip(
                     "prob_color:Q", title=str(_("Probabilidade (%):"))
                 ),
@@ -235,7 +249,7 @@ def macro_maps(
             ],
         )
         .properties(width=width, height=height)
-    )
+    ) + watermark
 
     text_prob = (
         alt.Chart(df)
@@ -261,15 +275,16 @@ def macro_table(
             df_macro[
                 [
                     "date",
-                    "state",
                     "name",
+                    "geocode",
+                    "state",
                     "prob_color",
                     "high_incidence_threshold",
                 ]
             ],
             width=width,
         )
-        .mark_text(align="right", fontSize=fontsize * 0.95)
+        .mark_text(align="center", fontSize=fontsize * 0.95)
         .encode(y=alt.Y("row_number:O").axis(None))
         .transform_window(
             row_number="row_number()",
@@ -279,42 +294,64 @@ def macro_table(
         .transform_filter(alt.datum.prob_color > 90)
     )
 
-    d = ranked_table_prob.encode(text="date:N").properties(
-        title=alt.Title(text=str(_("Data")), align="right", fontSize=fontsize)
-    )
-
-    name = ranked_table_prob.encode(text="name:N").properties(
+    d = ranked_table_prob.encode(text=alt.Text("date:N")).properties(
         title=alt.Title(
-            text=str(_("Macrorregião")), align="right", fontSize=fontsize
+            text=str(_("Data")),
+            align="center",
+            fontSize=fontsize,
         )
     )
 
-    state = ranked_table_prob.encode(text="state:N").properties(
+    name = ranked_table_prob.encode(text=alt.Text("name:N")).properties(
         title=alt.Title(
-            text=str(_("Estado")), align="right", fontSize=fontsize
+            text=str(_("Macrorregião")),
+            align="center",
+            fontSize=fontsize,
         )
     )
 
-    prob = ranked_table_prob.encode(text="prob_color:N").properties(
+    geocode = ranked_table_prob.encode(text=alt.Text("geocode:N")).properties(
         title=alt.Title(
-            text=str(_("Probabilidade (%)")), align="right", fontSize=fontsize
+            text=str(_("Geocódigo")),
+            align="center",
+            fontSize=fontsize,
+        )
+    )
+
+    state = ranked_table_prob.encode(text=alt.Text("state:N")).properties(
+        title=alt.Title(
+            text=str(_("Estado")),
+            align="center",
+            fontSize=fontsize,
+        )
+    )
+
+    prob = ranked_table_prob.encode(text=alt.Text("prob_color:N")).properties(
+        title=alt.Title(
+            text=str(_("Probabilidade (%)")),
+            align="center",
+            fontSize=fontsize,
         )
     )
 
     inc = ranked_table_prob.encode(
-        text="high_incidence_threshold:Q"
+        text=alt.Text(
+            "high_incidence_threshold:Q",
+            format=",.2f",
+        )
     ).properties(
         title=alt.Title(
             text=str(_("Limiar superior de Incidência (100k)")),
-            align="right",
+            align="center",
             fontSize=fontsize,
         )
     )
 
     table_prob = alt.hconcat(
         d,
-        state,
         name,
+        geocode,
+        state,
         inc,
         prob,
     )

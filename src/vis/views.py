@@ -254,7 +254,7 @@ class MacroForecastMap(View):
 
         date = parser.parse(date).date()
         unique_flag: str = ""
-        params: dict = {"date": date}
+        params: dict = {"date": date, "request": request}
 
         if geocodes:
             geocodes = sorted(list(map(str, geocodes)))
