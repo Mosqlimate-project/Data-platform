@@ -123,7 +123,7 @@ def macro_forecast_map_table(
         )
     )
 
-    df_macro.loc[df_macro.prob_color == 0, "desc_prob"] = ""
+    df_macro.loc[df_macro.prob_color == 0, "desc_prob"] = "N/A"
 
     maps = macro_maps(
         df_macro,
@@ -228,7 +228,9 @@ def macro_maps(
         .encode(
             color=alt.Color(
                 "prob_color:Q",
-                scale=alt.Scale(scheme="redblue", reverse=True),
+                scale=alt.Scale(
+                    scheme="redblue", reverse=True, domain=[-100, 100]
+                ),
                 legend=alt.Legend(
                     direction="vertical",
                     orient="right",
