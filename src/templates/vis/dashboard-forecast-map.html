@@ -10,9 +10,10 @@
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <center>
-        <div class="p-3">
-          <label for="date" class="text-white"><b>{% trans "Date" %}</b></label><br>
-          <select name="date">
+        <div class="p-3" id="date">
+          <label for="date" class="text-white"><b>{% trans "Select the date:" %}</b></label><br>
+          <select name="date" class="form-select" aria-label="select">
+            <option value="" hidden selected>Date</option>
             {% for date in available_dates %}
             <option value="{{ date }}">{{ date }}</option>
             {% endfor %}
@@ -21,36 +22,71 @@
 
         <hr style="color:white;">
 
-        <div class="p-3">
-          <label for="macroregion" class="text-white"><b>{% trans "Macroregion" %}</b></label><br>
-          <select name="macroregion">
-            {% for geocode, name in macroregions %}
-            <option value="{{ geocode }}">{{ name }}</option>
-            {% endfor %}
-          </select>
+        <p class="text-white"><b>Select the region:</b></p>
+        
+      </center>
+
+      <div class="ps-3">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-national" checked onChange="showRegionSelect()">
+          <label class="form-check-label text-white" for="select-national">
+            {% trans "National" %}
+          </label>
         </div>
 
-        <hr style="color:white;">
-
-        <div class="p-3">
-          <label for="state" class="text-white"><b>{% trans "State" %}</b></label><br>
-          <select name="state">
-            {% for uf, name in ufs %}
-            <option value="{{ uf }}">{{ name }}</option>
-            {% endfor %}
-          </select>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macroregion" onChange="showRegionSelect()">
+          <label class="form-check-label text-white" for="select-macroregion">
+            {% trans "Macroregion" %}
+          </label>
         </div>
 
-        <hr style="color:white;">
-
-        <div class="p-3">
-          <label for="macroSaude" class="text-white"><b>{% trans "Macro Saúde" %}</b></label><br>
-          <select name="macroSaude">
-            {% for geocode, name, uf in macros_saude %}
-            <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
-            {% endfor %}
-          </select>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-state" onChange="showRegionSelect()">
+          <label class="form-check-label text-white" for="select-state">
+            {% trans "State" %}
+          </label>
         </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macro-saude" onChange="showRegionSelect()">
+          <label class="form-check-label text-white" for="select-macro-saude">
+            {% trans "Macro Saúde" %}
+          </label>
+        </div>
+      </div>
+
+      <div id="macroregion" class="region-select p-4">
+        <select class="form-select" aria-label="select">
+          <option value="" hidden selected disabled>{% trans "Select macroregion" %}</option>
+          {% for geocode, name in macroregions %}
+          <option value="{{ geocode }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="state" class="region-select p-4">
+        <select class="form-select" aria-label="select">
+          <option value="" hidden selected disabled>{% trans "Select state" %}</option>
+          {% for uf, name in ufs %}
+          <option value="{{ uf }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="macroSaude" class="region-select p-4">
+        <select class="selectpicker p-0" multiple>
+          {% for geocode, name, uf in macros_saude %}
+          <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <br>
+
+      <center>
+
+        <button type="button" class="btn btn-secondary">{% trans "Generate map" %}</button>
 
       </center>
     </div>
@@ -82,7 +118,7 @@
 .macro-forecast-chart {
   width: 1150px; 
   height: auto; 
-  overflow: hidden;"
+  overflow: hidden;
 }
 
 #macroForecastIframe {
@@ -91,6 +127,19 @@
 }
 </style>
 
+<script>
+$(".region-select").hide();
 
-</style>
+function showRegionSelect() {
+  $(".region-select").hide();
+  if ($("#select-macroregion").is(":checked")) {
+    $("#macroregion").show();
+  } else if ($("#select-state").is(":checked")) {
+    $("#state").show();
+  } else if ($("#select-macro-saude").is(":checked")) {
+    $("#macroSaude").show();
+  }
+}
+</script>
+
 {% endblock %}
