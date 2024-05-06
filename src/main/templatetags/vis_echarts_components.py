@@ -1,5 +1,5 @@
 from django import template
-from vis.home.vis_charts import (
+from vis.plots.home.vis_charts import (
     national_total_cases_data,
     get_last_available_year,
 )

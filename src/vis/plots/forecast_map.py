@@ -5,13 +5,14 @@ import pandas as pd
 import altair as alt
 import geopandas as gpd
 
-from django.shortcuts import get_object_or_404, reverse
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.http import HttpRequest
 
 from main.utils import UF_CODES
 from vis.utils import geo_obj_to_dataframe, obj_to_dataframe
 from vis.models import ResultsProbForecast, GeoMacroSaude, State, Macroregion
+from vis.dash.charts import watermark
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
@@ -93,9 +94,9 @@ def macro_forecast_map_table(
     df.prob_low = -df.prob_low
 
     df["prob_color"] = df.apply(
-        lambda x: x.prob_low
-        if abs(x.prob_low) > abs(x.prob_high)
-        else x.prob_high,
+        lambda x: (
+            x.prob_low if abs(x.prob_low) > abs(x.prob_high) else x.prob_high
+        ),
         axis=1,
     )
 
@@ -155,35 +156,22 @@ def macro_maps(
     height: int = 350,
     fontsize: int = 16,
 ):
-    watermark = (
-        alt.Chart(
-            {
-                "values": [
-                    {
-                        "url": request.build_absolute_uri(
-                            reverse("api-1:get_mosqlimate_logo")
-                        )
-                    }
-                ]
-            }
-        )
-        .mark_image(opacity=0.75)
-        .encode(
-            x=alt.value(width),
-            x2=alt.value(width - 70),  # from left
-            y=alt.value(height),
-            y2=alt.value(height - 70),  # from top
-            url="url:N",
-        )
+    wk = watermark(
+        request,
+        opacity=0.75,
+        ini_x=width,
+        end_x=width - 70,
+        ini_y=height,
+        end_y=height - 70,
     )
 
-    watermark_text = (
+    wk_text = (
         alt.Chart({"values": [{"text": "mosqlimate.org"}]})
         .mark_text(align="center", fontSize=12, opacity=0.75)
         .encode(text="text:N", x=alt.value(width - 35), y=alt.value(height))
     )
 
-    watermark = watermark + watermark_text
+    wk = wk + wk_text
 
     text_dist = (
         alt.Chart(df)
@@ -220,7 +208,7 @@ def macro_maps(
             ],
         )
         .properties(width=width, height=height)
-    ) + watermark
+    ) + wk
 
     map_prob = (
         alt.Chart(df, title="")
@@ -251,7 +239,7 @@ def macro_maps(
             ],
         )
         .properties(width=width, height=height)
-    ) + watermark
+    ) + wk
 
     text_prob = (
         alt.Chart(df)
