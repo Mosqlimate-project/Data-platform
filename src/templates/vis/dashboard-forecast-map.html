@@ -3,103 +3,109 @@
 {% load plotly_dash %}
 {% load filters %}
 
-{% block title %}{% translate "Visualization" %}{% endblock %}
+  {% block title %}{% translate "Visualization" %}{% endblock %}
 
-{% block content %}
+  {% block content %}
 <div style="display:flex;">
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <center>
-        <div class="p-3" id="date">
-          <label for="date" class="text-white"><b>{% trans "Select the date:" %}</b></label><br>
-          <select name="date" class="form-select" aria-label="select">
+        <div class="ps-3 pe-3 pt-3" id="date-div">
+          <label for="date" class="text-white pb-3"><b>{% trans "Select the date:" %}</b></label><br>
+          <select id="date" name="date" class="form-select" aria-label="select">
             <option value="" hidden selected>Date</option>
             {% for date in available_dates %}
             <option value="{{ date }}">{{ date }}</option>
             {% endfor %}
           </select>
         </div>
-
-        <hr style="color:white;">
-
-        <p class="text-white"><b>Select the region:</b></p>
-        
       </center>
 
-      <div class="ps-3">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-national" checked onChange="showRegionSelect()">
-          <label class="form-check-label text-white" for="select-national">
-            {% trans "National" %}
-          </label>
+      <div id="after-date">
+        <center>
+          <hr style="color:white;">
+          <p class="text-white"><b>Select the region:</b></p>
+        </center>
+
+        <div class="ps-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-national" checked onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-national">
+              {% trans "National" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macroregion" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-macroregion">
+              {% trans "Macroregion" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-state" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-state">
+              {% trans "State" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macro-saude" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-macro-saude">
+              {% trans "Macro Saúde" %}
+            </label>
+          </div>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macroregion" onChange="showRegionSelect()">
-          <label class="form-check-label text-white" for="select-macroregion">
-            {% trans "Macroregion" %}
-          </label>
+        <div id="macroregion-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="macroregion" class="form-select" aria-label="select">
+            <option value="" hidden selected disabled>{% trans "Select the macroregion" %}</option>
+            {% for geocode, name in macroregions %}
+            <option value="{{ geocode }}">{{ name }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-state" onChange="showRegionSelect()">
-          <label class="form-check-label text-white" for="select-state">
-            {% trans "State" %}
-          </label>
+        <div id="state-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="state" class="form-select" aria-label="select">
+            <option value="" hidden selected disabled>{% trans "Select the state" %}</option>
+            {% for uf, name in ufs %}
+            <option value="{{ uf }}">{{ name }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macro-saude" onChange="showRegionSelect()">
-          <label class="form-check-label text-white" for="select-macro-saude">
-            {% trans "Macro Saúde" %}
-          </label>
+        <div id="macroSaude-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="macroSaude" class="selectpicker p-0" data-allow-clear="true" multiple>
+            {% for geocode, name, uf in macros_saude %}
+            <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
+            {% endfor %}
+          </select>
         </div>
-      </div>
 
-      <div id="macroregion" class="region-select p-4">
-        <select class="form-select" aria-label="select">
-          <option value="" hidden selected disabled>{% trans "Select macroregion" %}</option>
-          {% for geocode, name in macroregions %}
-          <option value="{{ geocode }}">{{ name }}</option>
-          {% endfor %}
-        </select>
       </div>
-
-      <div id="state" class="region-select p-4">
-        <select class="form-select" aria-label="select">
-          <option value="" hidden selected disabled>{% trans "Select state" %}</option>
-          {% for uf, name in ufs %}
-          <option value="{{ uf }}">{{ name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div id="macroSaude" class="region-select p-4">
-        <select class="selectpicker p-0" multiple>
-          {% for geocode, name, uf in macros_saude %}
-          <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <br>
 
       <center>
-
-        <button type="button" class="btn btn-secondary">{% trans "Generate map" %}</button>
-
+        <div class="pt-4">
+          <button id="generate-map" type="button" class="btn btn-secondary">{% trans "Generate map" %}</button>
+        </div>
       </center>
     </div>
   </div>
 
   <div class="vis-content d-flex flex-column justify-content-center align-items-center flex-shrink-0 p-3 bg-light" style="height: auto;">
+    <p>bla</p>
     <div class="macro-forecast-chart">
       <center>
+        <div id="loading" style="display: none;">
+          <!-- <img src="" alt="Loading..." /> -->
+          <p>loading..</p>
+        </div>
         <iframe 
-         id="macroForecastIframe" 
-         src="http://0.0.0.0:8042/vis/macro-forecast-map/?date=2024-04-28"
-         style="width: 100%; height: 100%; border: none;"
-         ></iframe>
+          id="macroForecastIframe" 
+          src=""
+          style="width: 100%; height: 100%; border: none;"
+        ></iframe>
       </center>
     </div>
   </div>
@@ -128,17 +134,136 @@
 </style>
 
 <script>
+var iframe = document.getElementById('macroForecastIframe');
+
+var date;
+var macroregion_geocode;
+var state_uf;
+var macros_saude = [];
+var macro_map_uri;
+
 $(".region-select").hide();
+$("#after-date").hide();
+$("#generate-map").hide();
+
+$("#date").change(function() {
+  $("#after-date").show();
+  date = $(this).val();
+  showGenerateMapBtn();
+  // $("#macroForecastIframe").hide();
+});
 
 function showRegionSelect() {
   $(".region-select").hide();
-  if ($("#select-macroregion").is(":checked")) {
-    $("#macroregion").show();
+  macroregion_geocode = null;
+  state_uf = null;
+  macros_saude = [];
+  if ($("#select-national").is(":checked")) {
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    state_uf = null;
+    $('#state').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    showGenerateMapBtn();
+  } else if ($("#select-macroregion").is(":checked")) {
+    state_uf = null;
+    $('#state').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    $("#macroregion-div").show();
+    showGenerateMapBtn();
   } else if ($("#select-state").is(":checked")) {
-    $("#state").show();
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    $("#state-div").show();
+    showGenerateMapBtn();
   } else if ($("#select-macro-saude").is(":checked")) {
-    $("#macroSaude").show();
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    state_uf = null;
+    $('#state').val('');
+    $("#macroSaude-div").show();
+    showGenerateMapBtn();
   }
+}
+
+function showGenerateMapBtn() {
+  $("#generate-map").hide();
+  if (macroregion_geocode !== null || state_uf !== null || macros_saude.length > 0) {
+    $("#generate-map").show();
+  }
+  if ($("#select-national").is(":checked")) {
+    $("#generate-map").show();
+  }
+}
+
+$("#macroregion").change(function() {
+  // $("#macroForecastIframe").hide();
+  macroregion_geocode = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#state").change(function() {
+  // $("#macroForecastIframe").hide();
+  state_uf = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#macroSaude").change(function() {
+  // $("#macroForecastIframe").hide();
+  macros_saude = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#generate-map").click(function() {
+    $("#macroForecastIframe").hide();
+    $("#loading").show();
+
+    let context = {
+      "date": date,
+    };
+
+    if (macroregion_geocode && macroregion_geocode !== null) {
+      context["macroregion"] = macroregion_geocode;
+    }
+
+    if (state_uf && state_uf !== null) {
+      context["uf"] = state_uf;
+    }
+
+    let params = new URLSearchParams(context).toString();
+
+    if (macros_saude !== null && macros_saude.length > 0) {
+      let macros_uri = "";
+      macros_saude.forEach(macro_saude => {
+        macros_uri = macros_uri + `&geocode=${macro_saude}`;
+      })
+      params = params + macros_uri;
+    }
+
+    if (macro_map_uri !== params) {
+      macro_map_uri = params;
+      renderMap(params);
+    } else {
+      $("#loading").hide();
+      $("#macroForecastIframe").show();
+    }
+});
+
+function renderMap(params) {
+  var url = '/vis/macro-forecast-map/?' + params;
+
+  iframe.src = url;
+
+  console.log(url);
+
+  iframe.onload = function() {
+    $("#loading").hide();
+    $("#macroForecastIframe").show();
+  };
 }
 </script>
 

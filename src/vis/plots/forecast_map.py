@@ -176,7 +176,10 @@ def macro_maps(
     text_dist = (
         alt.Chart(df)
         .mark_text(
-            dy=-(height * 0.55), dx=width / 20, size=fontsize, fontWeight=100
+            dy=-(height * 0.55),
+            dx=width / 20,
+            size=fontsize + 2,
+            fontWeight="normal",
         )
         .encode(text="date:N")
         .transform_calculate(date=f'"{_(title_left)} - " + datum.date')
@@ -244,7 +247,10 @@ def macro_maps(
     text_prob = (
         alt.Chart(df)
         .mark_text(
-            dy=-(height * 0.55), dx=width / 20, size=fontsize, fontWeight=100
+            dy=-(height * 0.55),
+            dx=width / 20,
+            size=fontsize + 2,
+            fontWeight=100,
         )
         .encode(text="date:N")
         .transform_calculate(date=f'"{_(title_right)} - " + datum.date')
