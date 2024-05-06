@@ -174,19 +174,20 @@ def macro_maps(
     wk = wk + wk_text
 
     text_dist = (
-        alt.Chart(df)
+        alt.Chart(df.head(1))
         .mark_text(
             dy=-(height * 0.55),
             dx=width / 20,
-            size=fontsize + 2,
+            size=fontsize,
             fontWeight="normal",
+            font="Arial",
         )
         .encode(text="date:N")
-        .transform_calculate(date=f'"{_(title_left)} - " + datum.date')
+        .transform_calculate(date='datum.date + " - " + datum.disease')
     )
 
     map_dist = (
-        alt.Chart(df, title="")
+        alt.Chart(df, title=alt.Title(title_left, fontSize=fontsize + 2))
         .mark_geoshape()
         .encode(
             color=alt.Color(
@@ -214,7 +215,7 @@ def macro_maps(
     ) + wk
 
     map_prob = (
-        alt.Chart(df, title="")
+        alt.Chart(df, title=alt.Title(title_right, fontSize=fontsize + 2))
         .mark_geoshape()
         .encode(
             color=alt.Color(
@@ -245,15 +246,15 @@ def macro_maps(
     ) + wk
 
     text_prob = (
-        alt.Chart(df)
+        alt.Chart(df.head(1))
         .mark_text(
             dy=-(height * 0.55),
             dx=width / 20,
-            size=fontsize + 2,
-            fontWeight=100,
+            size=fontsize,
+            fontWeight="normal",
         )
         .encode(text="date:N")
-        .transform_calculate(date=f'"{_(title_right)} - " + datum.date')
+        .transform_calculate(date='datum.date + " - " + datum.disease')
     )
 
     final_maps = alt.hconcat(
