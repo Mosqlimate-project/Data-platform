@@ -174,31 +174,3 @@ class GeoMacroSaude(geomodels.Model):
     class Meta:
         app_label = "vis"
         db_table = "geo_brasil_macro_saude"
-
-
-# -----------------------------------------------------------------------------
-
-
-class ResultsProbForecast(models.Model):
-    date = models.DateField(db_column="date")
-    geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
-    lower_2_5 = models.FloatField(null=False)
-    lower_25 = models.FloatField(null=False)
-    forecast = models.FloatField(null=False)
-    upper_75 = models.FloatField(null=False)
-    upper_97_5 = models.FloatField(null=False)
-    prob_high = models.FloatField(null=False)
-    prob_low = models.FloatField(null=False)
-    high_threshold = models.FloatField(null=False)
-    low_threshold = models.FloatField(null=False)
-    high_incidence_threshold = models.FloatField(null=False)
-    low_incidence_threshold = models.FloatField(null=False)
-
-    class Meta:
-        app_label = "vis"
-        db_table = "results_prob_forecast"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["date", "geocode"], name="results_prob_forecast_unique"
-            )
-        ]

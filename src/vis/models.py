@@ -4,6 +4,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .brasil.models import *  # noqa: F403
+from .brasil.models import GeoMacroSaude
 
 
 class UFs(models.TextChoices):
@@ -91,3 +92,31 @@ class TotalCases100kHab(models.Model):
 
     def __str__(self):
         return f"{self.disease} - {self.year} - {self.uf} - {self.total_cases}"
+
+
+class ResultsProbForecast(models.Model):
+    date = models.DateField(db_column="date")
+    disease = models.CharField(
+        choices=Diseases.choices, null=False, default=Diseases.DENGUE
+    )
+    geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
+    lower_2_5 = models.FloatField(null=False)
+    lower_25 = models.FloatField(null=False)
+    forecast = models.FloatField(null=False)
+    upper_75 = models.FloatField(null=False)
+    upper_97_5 = models.FloatField(null=False)
+    prob_high = models.FloatField(null=False)
+    prob_low = models.FloatField(null=False)
+    high_threshold = models.FloatField(null=False)
+    low_threshold = models.FloatField(null=False)
+    high_incidence_threshold = models.FloatField(null=False)
+    low_incidence_threshold = models.FloatField(null=False)
+
+    class Meta:
+        app_label = "vis"
+        db_table = "results_prob_forecast"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["date", "geocode"], name="results_prob_forecast_unique"
+            )
+        ]
