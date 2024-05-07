@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Union
 from itertools import cycle
+from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
 
@@ -166,14 +167,14 @@ class DashboardForecastMacroView(View):
     def get(self, request):
         context = {}
 
-        context["available_dates"] = list(
-            map(
-                str,
-                ResultsProbForecast.objects.values_list(
-                    "date", flat=True
-                ).distinct(),
-            )
-        )
+        dates_by_disease = defaultdict(list)
+
+        for res in ResultsProbForecast.objects.values(
+            "disease", "date"
+        ).distinct():
+            dates_by_disease[res["disease"]].append(str(res["date"]))
+
+        context["dates_by_disease"] = dict(dates_by_disease)
 
         context["macroregions"] = list(
             Macroregion.objects.values_list("geocode", "name")
@@ -284,6 +285,7 @@ class PredictTableView(View):
 
 class MacroForecastMap(View):
     def get(self, request):
+        disease = request.GET.get("disease")
         date = request.GET.get("date")
         macroregion = request.GET.get("macroregion", None)
         uf = request.GET.get("uf", None)
@@ -291,7 +293,7 @@ class MacroForecastMap(View):
 
         date = parser.parse(date).date()
         unique_flag: str = ""
-        params: dict = {"date": date, "request": request}
+        params: dict = {"disease": disease, "date": date, "request": request}
 
         if geocodes:
             geocodes = sorted(list(map(str, geocodes)))
@@ -317,9 +319,9 @@ class MacroForecastMap(View):
             params |= {"macroregion": macroregion}
 
         if unique_flag:
-            html_name = str(date) + "-" + unique_flag + ".html"
+            html_name = disease + "-" + str(date) + "-" + unique_flag + ".html"
         else:
-            html_name = str(date) + ".html"
+            html_name = disease + "-" + str(date) + ".html"
 
         macro_html_dir = Path(
             os.path.join(settings.STATIC_ROOT, "vis/brasil/geomacrosaude")

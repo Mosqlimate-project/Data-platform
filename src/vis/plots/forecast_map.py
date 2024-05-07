@@ -12,12 +12,14 @@ from django.http import HttpRequest
 from main.utils import UF_CODES
 from vis.utils import geo_obj_to_dataframe, obj_to_dataframe
 from vis.models import ResultsProbForecast, GeoMacroSaude, State, Macroregion
+from vis.dash.errors import VisualizationError
 from vis.dash.charts import watermark
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
 
 def macro_forecast_map_table(
+    disease: Literal["dengue", "zika", "chik"],
     date: datetime.date,
     request: HttpRequest,
     macroregion: Optional[Literal[1, 2, 3, 4, 5]] = None,
@@ -38,15 +40,20 @@ def macro_forecast_map_table(
     height: int = 350,
     table_width: int = int(450 * 0.25),
 ):
-    if not isinstance(date, datetime.date):
-        raise ValueError("date must be a datetime.date object")
+    if disease not in ["dengue", "zika", "chik"]:
+        raise VisualizationError(
+            "diseases options: ['dengue', 'zika', 'chik']"
+        )
 
-    macros_saude = GeoMacroSaude.objects.all()
+    if not isinstance(date, datetime.date):
+        raise VisualizationError("date must be a datetime.date object")
+
+    macros_saude = GeoMacroSaude.objects.filter()
 
     if geocodes:
         macros_saude = GeoMacroSaude.objects.filter(geocode__in=geocodes)
         if not macros_saude:
-            raise ValueError(
+            raise VisualizationError(
                 "Incorrect MacroSaude geocode(s). Example: [1101, 1102]"
             )
 
@@ -56,7 +63,7 @@ def macro_forecast_map_table(
                 state=State.objects.get(uf=uf)
             )
         except State.DoesNotExist:
-            raise ValueError("Incorrect UF. Example: 'SP'")
+            raise VisualizationError("Incorrect UF. Example: 'SP'")
 
     if macroregion:
         macros_saude = GeoMacroSaude.objects.filter(
@@ -69,12 +76,16 @@ def macro_forecast_map_table(
             )
         )
         if not macros_saude:
-            raise ValueError("Incorrect macroregion selected. Options: 1 to 5")
+            raise VisualizationError(
+                "Incorrect macroregion selected. Options: 1 to 5"
+            )
 
     results = set()
     for macro in macros_saude:
         results.add(
-            get_object_or_404(ResultsProbForecast, date=date, geocode=macro)
+            get_object_or_404(
+                ResultsProbForecast, disease=disease, date=date, geocode=macro
+            )
         )
 
     df = pd.concat([obj_to_dataframe(o) for o in results]).reset_index(

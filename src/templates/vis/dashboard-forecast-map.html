@@ -2,22 +2,60 @@
 {% load i18n %}
 {% load plotly_dash %}
 {% load filters %}
+{% load static %}
 
-  {% block title %}{% translate "Visualization" %}{% endblock %}
+{% block title %}{% translate "Forecast Macro Saúde" %}{% endblock %}
 
-  {% block content %}
+{% block content %}
 <div style="display:flex;">
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
+      <div class="ps-3">
+        <center><label for="diseaseRadio" class="text-white pt-3 pb-2"><b>{% trans "Select the disease:" %}</b></label></center>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="dengue"
+          onchange="updateOnDisease('dengue')"
+          {% if "dengue" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="dengue">Dengue</label>
+        </div>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="zika"
+          onchange="updateOnDisease('zika')"
+          {% if "zika" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="zika">Zika</label>
+        </div>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="chik"
+          onchange="updateOnDisease('chik')"
+          {% if "chik" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="chik">Chikungunya</label>
+        </div>
+      </div>
+
+
       <center>
-        <div class="ps-3 pe-3 pt-3" id="date-div">
-          <label for="date" class="text-white pb-3"><b>{% trans "Select the date:" %}</b></label><br>
-          <select id="date" name="date" class="form-select" aria-label="select">
-            <option value="" hidden selected>Date</option>
-            {% for date in available_dates %}
-            <option value="{{ date }}">{{ date }}</option>
-            {% endfor %}
-          </select>
+        <div id="date-div">
+          <hr style="color:white;">
+          <div class="ps-3 pe-3 pt-1">
+            <label for="date" class="text-white pb-3"><b>{% trans "Select the date:" %}</b></label><br>
+            <select id="date" name="date" class="form-select" aria-label="select">
+            </select>
+          </div>
         </div>
       </center>
 
@@ -93,18 +131,19 @@
     </div>
   </div>
 
-  <div class="vis-content d-flex flex-column justify-content-center align-items-center flex-shrink-0 p-3 bg-light" style="height: auto;">
-    <h2>{% trans "" %}</h2>
+  <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light" style="height: auto;">
+    <h2>{% trans "Probabilistic Forecast Results" %}</h2>
+    <h5 id="subtitle">{% trans "Select the disease, date and region to generate the visualization" %}</h5>
     <div class="macro-forecast-chart">
       <center>
         <div id="loading" style="display: none;">
-          <!-- <img src="" alt="Loading..." /> -->
-          <p>loading..</p>
+          <img src="{% static '/img/loading.gif' %}" alt="Loading..." width="100" height="100"/>
         </div>
         <iframe 
           id="macroForecastIframe" 
           src=""
           style="width: 100%; height: 100%; border: none;"
+          class="justify-content-center"
         ></iframe>
       </center>
     </div>
@@ -119,6 +158,7 @@
 
 .vis-content {
   flex-grow: 1;
+  align-items: center;
 }
 
 .macro-forecast-chart {
@@ -131,27 +171,59 @@
   background-color: #FFFFFF;
   min-height: calc(100vh - 211px);
 }
+
+#loading {
+  justify-content: center;
+  margin-top: 15%;
+}
 </style>
 
 <script>
 var iframe = document.getElementById('macroForecastIframe');
 
+var disease;
 var date;
 var macroregion_geocode;
 var state_uf;
 var macros_saude = [];
 var macro_map_uri;
 
+$("#date-div").hide();
 $(".region-select").hide();
 $("#after-date").hide();
 $("#generate-map").hide();
 
 $("#date").change(function() {
-  $("#after-date").show();
+  if (!date) {
+    $("#after-date").showTopToBottom();
+  } else {
+    $("#after-date").show();
+  }
   date = $(this).val();
   showGenerateMapBtn();
   // $("#macroForecastIframe").hide();
 });
+
+function updateOnDisease(dis) {
+  $("#date-div").showTopToBottom();
+  disease = dis;
+  const dateSelect = document.getElementById("date");
+  dateSelect.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.text = '{% trans "Select a date" %}';
+  placeholder.value = "";
+  placeholder.hidden = true;
+  dateSelect.add(placeholder);
+
+  const dates = {{ dates_by_disease|safe }}[dis] || [];
+  for (const date of dates) {
+    const option = document.createElement("option");
+    option.text = date;
+    option.value = date;
+    dateSelect.add(option);
+  }
+}
 
 function showRegionSelect() {
   $(".region-select").hide();
@@ -171,21 +243,21 @@ function showRegionSelect() {
     $('#state').val('');
     macros_saude = [];
     $('#macroSaude').selectpicker('deselectAll');
-    $("#macroregion-div").show();
+    $("#macroregion-div").showTopToBottom();
     showGenerateMapBtn();
   } else if ($("#select-state").is(":checked")) {
     macroregion_geocode = null;
     $('#macroregion').val('');
     macros_saude = [];
     $('#macroSaude').selectpicker('deselectAll');
-    $("#state-div").show();
+    $("#state-div").showTopToBottom();
     showGenerateMapBtn();
   } else if ($("#select-macro-saude").is(":checked")) {
     macroregion_geocode = null;
     $('#macroregion').val('');
     state_uf = null;
     $('#state').val('');
-    $("#macroSaude-div").show();
+    $("#macroSaude-div").showTopToBottom();
     showGenerateMapBtn();
   }
 }
@@ -220,9 +292,11 @@ $("#macroSaude").change(function() {
 
 $("#generate-map").click(function() {
     $("#macroForecastIframe").hide();
+    $("#subtitle").hide();
     $("#loading").show();
 
     let context = {
+      "disease": disease,
       "date": date,
     };
 
@@ -265,6 +339,17 @@ function renderMap(params) {
     $("#macroForecastIframe").show();
   };
 }
+
+$.fn.showTopToBottom = function() {
+  return this.css({
+    display: "block",
+    opacity: 0,
+    marginTop: "-50px"
+  }).animate({
+    opacity: 1,
+    marginTop: 0
+  }, "fast");
+};
 </script>
 
 {% endblock %}
