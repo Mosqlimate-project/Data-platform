@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.db.models import Max
 from datetime import datetime as dt
 from datastore.models import HistoricoAlerta
-from vis.home.vis_charts import (
+from vis.plots.home.vis_charts import (
     national_total_cases_data,
     get_last_available_year,
     uf_ibge_mapping,

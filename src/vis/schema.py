@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from datetime import date
 
 from ninja import FilterSchema, Field
@@ -6,6 +6,7 @@ from main.schema import Schema
 
 
 class ResultsProbForecastSchema(Schema):
+    disease: Literal["dengue", "chik", "zika"]
     date: date
     geocode: int
     lower_2_5: float

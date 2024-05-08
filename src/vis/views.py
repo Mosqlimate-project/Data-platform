@@ -1,19 +1,34 @@
 import os
 import json
+from pathlib import Path
 from typing import Union
 from itertools import cycle
+from collections import defaultdict
+from hashlib import blake2b
+from dateutil import parser
 
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.http import JsonResponse
+from django.conf import settings
+from django.http import JsonResponse, FileResponse
 from django.views import View
 
 from registry.models import Model, Prediction
 from main.api import get_municipality_info
+from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
+from .models import (
+    UFs,
+    Macroregion,
+    GeoMacroSaude,
+    ResultsProbForecast,
+)
 from .dash.charts import line_charts_by_geocode
-from .home.vis_charts import uf_ibge_mapping
+from .plots.home.vis_charts import uf_ibge_mapping
+from .plots.forecast_map import macro_forecast_map_table
 from .utils import merge_uri_params
+
+code_to_state = {v: k for k, v in UF_CODES.items()}
 
 
 class DashboardView(View):
@@ -145,6 +160,37 @@ class DashboardView(View):
         return render(request, self.template_name, context)
 
 
+class DashboardForecastMacroView(View):
+    template_name = "vis/dashboard-forecast-map.html"
+
+    @xframe_options_exempt
+    def get(self, request):
+        context = {}
+
+        dates_by_disease = defaultdict(list)
+
+        for res in ResultsProbForecast.objects.values(
+            "disease", "date"
+        ).distinct():
+            dates_by_disease[res["disease"]].append(str(res["date"]))
+
+        context["dates_by_disease"] = dict(dates_by_disease)
+
+        context["macroregions"] = list(
+            Macroregion.objects.values_list("geocode", "name")
+        )
+
+        context["ufs"] = UFs.choices
+
+        context["macros_saude"] = list(
+            GeoMacroSaude.objects.values_list(
+                "geocode", "name", "state__uf"
+            ).order_by("geocode")
+        )
+
+        return render(request, self.template_name, context)
+
+
 class LineChartsView(View):
     template_name = "vis/charts/line-charts.html"
 
@@ -235,6 +281,69 @@ class PredictTableView(View):
 
         context["prediction_infos"] = infos
         return render(request, self.template_name, context)
+
+
+class MacroForecastMap(View):
+    def get(self, request):
+        disease = request.GET.get("disease")
+        date = request.GET.get("date")
+        macroregion = request.GET.get("macroregion", None)
+        uf = request.GET.get("uf", None)
+        geocodes = request.GET.getlist("geocode", [])
+
+        date = parser.parse(date).date()
+        unique_flag: str = ""
+        params: dict = {"disease": disease, "date": date, "request": request}
+
+        if geocodes:
+            geocodes = sorted(list(map(str, geocodes)))
+            unified_geocodes = "".join(geocodes).encode()
+            unique_flag = blake2b(unified_geocodes, digest_size=10).hexdigest()
+            params |= {"geocodes": geocodes}
+
+        if uf:
+            uf = str(uf).upper()
+            unique_flag = uf
+            params |= {"uf": uf}
+
+        if macroregion:
+            macroregion = str(macroregion)
+            macros = {
+                "1": "norte",
+                "2": "nordeste",
+                "3": "centrooeste",
+                "4": "sudeste",
+                "5": "sul",
+            }
+            unique_flag = macros[macroregion]
+            params |= {"macroregion": macroregion}
+
+        if unique_flag:
+            html_name = disease + "-" + str(date) + "-" + unique_flag + ".html"
+        else:
+            html_name = disease + "-" + str(date) + ".html"
+
+        macro_html_dir = Path(
+            os.path.join(settings.STATIC_ROOT, "vis/brasil/geomacrosaude")
+        )
+
+        if not macro_html_dir.exists():
+            macro_html_dir.mkdir(parents=True, exist_ok=True)
+
+        macro_html_file = macro_html_dir / html_name
+
+        if macro_html_file.exists():
+            return FileResponse(
+                open(macro_html_file, "rb"), content_type="text/html"
+            )
+
+        macro_map = macro_forecast_map_table(**params)
+
+        macro_map.save(str(macro_html_file), "html")
+
+        return FileResponse(
+            open(macro_html_file, "rb"), content_type="text/html"
+        )
 
 
 def get_model_selector_item(request, model_id):

@@ -7,7 +7,7 @@ from django.db.models import Sum, Max
 from mosqlimate.celeryapp import app
 
 from .models import TotalCases, TotalCases100kHab
-from .home.vis_charts import (
+from .plots.home.vis_charts import (
     uf_ibge_mapping,
     historico_alerta_data_for,
     get_total_cases,

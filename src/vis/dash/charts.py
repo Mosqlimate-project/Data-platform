@@ -4,11 +4,42 @@ import pandas as pd
 import altair as alt
 
 from django.urls import reverse
+from django.http import HttpRequest
 
 from registry.models import Prediction
-
-from vis.home.vis_charts import historico_alerta_data_for
+from vis.plots.home.vis_charts import historico_alerta_data_for
 from .errors import NotFoundError, VisualizationError
+
+
+def watermark(
+    request: HttpRequest,
+    opacity: float,
+    ini_x: int,
+    end_x: int,
+    ini_y: int,
+    end_y: int,
+) -> alt.Chart:
+    return (
+        alt.Chart(
+            {
+                "values": [
+                    {
+                        "url": request.build_absolute_uri(
+                            reverse("api-1:get_mosqlimate_logo")
+                        )
+                    }
+                ]
+            }
+        )
+        .mark_image(opacity=opacity)
+        .encode(
+            x=alt.value(ini_x),  # point in x axis
+            x2=alt.value(end_x),  # pixels from x (left)
+            y=alt.value(ini_y),
+            y2=alt.value(end_y),  # pixels from y (top)
+            url="url:N",
+        )
+    )
 
 
 def predictions_df_by_geocode(predictions_ids: list[int]):
@@ -216,33 +247,15 @@ def line_charts_by_geocode(
         )
     )
 
-    watermark = (
-        alt.Chart(
-            {
-                "values": [
-                    {
-                        "url": request.build_absolute_uri(
-                            reverse("api-1:get_mosqlimate_logo")
-                        )
-                    }
-                ]
-            }
-        )
-        .mark_image(opacity=0.25)
-        .encode(
-            x=alt.value(150),
-            x2=alt.value(300),  # from left
-            y=alt.value(60),
-            y2=alt.value(230),  # from top
-            url="url:N",
-        )
+    wk = watermark(
+        request, opacity=0.25, ini_x=150, end_x=300, ini_y=60, end_y=230
     )
 
     # here we concatenate the layers, the + put one layer above the other
     # the | put them syde by syde (as columns), and & put them side by side as lines
     final = (
-        points + lines + data_chart + watermark
-        | timeseries + timeseries_conf + data_chart + watermark
+        points + lines + data_chart + wk
+        | timeseries + timeseries_conf + data_chart + wk
     )
 
     return final
