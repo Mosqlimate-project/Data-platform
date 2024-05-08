@@ -31,8 +31,17 @@ class TestValidCreatePrediction(TestCase):
         with open(self.validation_IBGE_codes, "r") as validation_file:
             self.validation_data = json.load(validation_file)
 
-        with open(app_dir / "tests/data/prediction.test.json", "r") as file:
-            self.data = json.load(file)
+        self.data = [
+            {
+                "dates": "2022-01-02",
+                "preds": 23.4811749402,
+                "lower": 0.0,
+                "upper": 42.6501866267,
+                "adm_2": 2704302,
+                "adm_1": "AL",
+                "adm_0": "BR",
+            }
+        ]
 
         user, _ = CustomUser.objects.get_or_create(username="usertest")
         language = ImplementationLanguage.objects.create(
@@ -166,7 +175,10 @@ class TestValidCreateModel(TestCase):
             description="Test description",
             repository="https://github.com/testuser/test-repo",
             implementation_language="Python",
-            type="valid_data",
+            disease="dengue",
+            temporal=True,
+            spatial=True,
+            categorical=True,
             ADM_level=3,
             time_resolution="month",
         )

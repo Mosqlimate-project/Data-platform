@@ -85,8 +85,8 @@ groups:
             required: True
         help: Run django test on an app inside container
         run: |
-            sugar run --service django --cmd "python manage.py makemigrations {{ args.app }}"
-            sugar run --service django --cmd "python manage.py migrate --database=default"
+            # sugar run --service django --cmd "python manage.py makemigrations {{ args.app }}"
+            # sugar run --service django --cmd "python manage.py migrate --database=default"
             sugar run --service django --cmd "python manage.py test -v 2 {{ args.app }}.tests"
 
   dev:

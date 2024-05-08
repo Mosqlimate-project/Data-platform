@@ -33,9 +33,11 @@ class ModelSchema(Schema):
     repository: str
     implementation_language: ImplementationLanguageSchema
     disease: Literal["dengue", "chikungunya", "zika"] = None
-    type: str
-    ADM_level: int = None
-    time_resolution: str = None
+    categorical: bool = None
+    spatial: bool = None
+    temporal: bool = None
+    ADM_level: Literal[0, 1, 2, 3] = None
+    time_resolution: Literal["day", "week", "month", "year"] = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -57,8 +59,10 @@ class ModelFilterSchema(FilterSchema):
     disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
         q="disease__iexact"
     )
-    type: Optional[str] = Field(q="type__icontains")
-    ADM_level: Optional[int] = Field(q="ADM_level")
+    ADM_level: Optional[Literal[0, 1, 2, 3]] = Field(q="ADM_level")
+    temporal: Optional[bool] = Field(q="temporal")
+    spatial: Optional[bool] = Field(q="spatial")
+    categorical: Optional[bool] = Field(q="categorical")
     time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
         q="time_resolution__iexact"
     )
