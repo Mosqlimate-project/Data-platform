@@ -1,4 +1,3 @@
-import requests
 from datetime import datetime, timedelta
 from django.test import Client, TestCase
 
@@ -11,11 +10,11 @@ class DatastoreAPITest(TestCase):
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=180)
 
-        url = "https://api.mosqlimate.org/api/datastore/historico_alerta/?"
+        url = "/api/datastore/infodengue/?"
         pagination = "page=%s&per_page=100&"
         filters = f"disease=dengue&start={start_date}&end={end_date}"
 
-        r = requests.get(url + pagination % (1) + filters, timeout=60)
+        r = self.client.get(url + pagination % (1) + filters, timeout=60)
         items = r.json()["items"]
         pages = r.json()["pagination"]
         self.assertEqual(r.status_code, 200)
@@ -33,11 +32,11 @@ class DatastoreAPITest(TestCase):
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=180)
 
-        url = "https://api.mosqlimate.org/api/datastore/copernicus_brasil/?"
+        url = "/api/datastore/climate/?"
         pagination = "page=%s&per_page=100&"
         filters = f"start={start_date}&end={end_date}&geocode=3304557"
 
-        r = requests.get(url + pagination % (1) + filters, timeout=60)
+        r = self.client.get(url + pagination % (1) + filters, timeout=60)
         items = r.json()["items"]
         self.assertEqual(r.status_code, 200)
         self.assertEqual(any(items), True)

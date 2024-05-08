@@ -154,7 +154,7 @@ def validate_prediction(payload: dict) -> tuple:
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(
-        json.loads(str(payload.prediction)), validation_regions
+        json.loads(json.dumps(payload.prediction)), validation_regions
     )
 
     if commit_error:

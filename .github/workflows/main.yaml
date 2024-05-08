@@ -65,14 +65,14 @@ jobs:
       run: |
         sugar up --group dev --options -d
 
-    - name: Test datastore
-      run: |
-        makim django.test --app datastore
+    # Datastore models mostly consist in External db connections
+    # - name: Test datastore
+    #   run: |
+    #     makim django.test --app datastore
 
     - name: Test registry
       run: |
-        sugar run --service django --cmd "python manage.py test -v 2 registry.tests.test_api"
-        sugar run --service django --cmd "python manage.py test -v 2 registry.tests.test_validations"
+        sugar run --service django --cmd "python manage.py test -v 2 registry"
 
     # - name: Container wait
     #   run: |

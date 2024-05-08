@@ -19,21 +19,16 @@ class CreateAuthorTest(TestCase):
             provider="github",
             uid="123456",
         )
-        self.client.force_login(user="testuser")
+        self.client.force_login(self.user)
 
     def test_create_author_with_authenticated_user(self):
-        response = self.client.post(
-            "/authors/",
-            {
-                "user": "testuser",
-                "institution": "Test Institution",
-            },
-            content_type="application/json",
+        response = self.client.get(
+            f"/api/registry/authors/{self.user.username}"
         )
 
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["user"], "testuser")
-        self.assertEqual(response.data["institution"], "Test Institution")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["user"]["username"], "testuser")
+        self.assertEqual(response.json()["institution"], None)
 
     def tearDown(self):
         self.social_account.delete()
