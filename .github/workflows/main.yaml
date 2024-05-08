@@ -59,11 +59,11 @@ jobs:
       run: |
         makim dev.dotenv
         makim dev.psql-conf
-        makim docker.build
+        sugar build --group dev
 
     - name: Start containers
       run: |
-        makim docker.start
+        sugar up --group dev --options -d
 
     - name: Test datastore
       run: |

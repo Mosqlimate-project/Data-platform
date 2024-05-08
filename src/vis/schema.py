@@ -23,6 +23,5 @@ class ResultsProbForecastSchema(Schema):
 
 
 class ResultsProbForecastFilterSchema(FilterSchema):
-    disease: Optional[str] = Field(q="disease")
     date: Optional[str] = Field(q="date__str")
     geocode: Optional[int] = Field(q="geocode")
