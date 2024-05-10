@@ -117,6 +117,7 @@ class ResultsProbForecast(models.Model):
         db_table = "results_prob_forecast"
         constraints = [
             models.UniqueConstraint(
-                fields=["date", "geocode"], name="results_prob_forecast_unique"
+                fields=["disease", "date", "geocode"],
+                name="results_prob_forecast_unique",
             )
         ]
