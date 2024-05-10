@@ -10,6 +10,9 @@
 | author_institution | no | str _(icontains)_ | Author institution |
 | repository | no | str (icontains) | Github repository |
 | implementation_language | no | str _(icontains)_ | Implementation language |
+| temporal | no | bool | Is the model temporal? |
+| spatial | no | bool | Is the model spatial? |
+| categorical | no | bool | Is the model categorical? |
 | type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
 | ADM_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |

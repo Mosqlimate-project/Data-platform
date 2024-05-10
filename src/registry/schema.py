@@ -103,7 +103,9 @@ class PredictionFilterSchema(FilterSchema):
     implementation_language: Optional[str] = Field(
         q="model__implementation_language__language__iexact"
     )
-    type: Optional[str] = Field(q="model__type__icontains")
+    temporal: Optional[bool] = Field(q="model__temporal")
+    spatial: Optional[bool] = Field(q="model__spatial")
+    categorical: Optional[bool] = Field(q="model__categorical")
     commit: Optional[str] = Field(q="commit")
     predict_date: Optional[date] = Field(q="predict_date")
     start: Optional[date] = Field(q="predict_date__gte")

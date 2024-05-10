@@ -13,7 +13,9 @@
 | author_institution | no | str _(icontains)_ | Author institution |
 | repository | no | str (icontains) | Github repository |
 | implementation_language | no | str _(icontains)_ | Implementation language |
-| type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
+| temporal | no | bool | Is the predition's model temporal? |
+| spatial | no | bool | Is the predition's model spatial? |
+| categorical | no | bool | Is the predition's model categorical? |
 | commit | no | str | Prediction git commit |
 | predict_date | no | str _(YYYY-mm-dd)_ | Prediction modeling date |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |

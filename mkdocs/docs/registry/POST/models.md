@@ -9,7 +9,9 @@
 | repository | str | Github repository URL |
 | implementation_language | str | Implementation language |
 | disease | str _(iexact)_ | Model disease. Options: Dengue, Zika and Chikungunya |
-| type | str _(icontains)_ | Model type. E.g: nowcast / forecast |
+| temporal | bool | Is the model temporal? |
+| spatial | bool | Is the model spatial? |
+| categorical | bool | Is the model categorical? |
 | ADM_level | str _(iexact)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | str _(iexact)_ | Options are: day, week, month or year |
 
@@ -43,7 +45,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         repository: str, 
         implementation_language: str, 
         disease: Literal["dengue", "chikungunya", "zika"],
-        mtype: str,
+        temporal: bool,
+        spatial: bool,
+        categorical: bool
         adm_level: Literal[0, 1, 2, 3],
         time_resolution: Literal["day", "week", "month", "year"],
     ):
@@ -55,6 +59,9 @@ POST requests require [User API Token](uid-key.md) to be called.
             "repository": repository,
             "implementation_language": implementation_language,
             "disease": disease,
+            "temporal": temporal,
+            "spatial": spatial,
+            "categorical": categorical,
             "type": mtype,
             "ADM_level": adm_level,
             "time_resolution": time_resolution,
@@ -63,15 +70,15 @@ POST requests require [User API Token](uid-key.md) to be called.
 
 
     # Example
-    types = ["nowcast", "forecast"]
-
     post_model(
         name = "My Nowcasting Model",
         description = "My Model description",
         repository = "https://github.com/Mosqlimate-project/Data-platform",
         implementation_language = "Python",
         disease = "dengue",
-        mtype = types[0],
+        temporal = False,
+        spatial = True,
+        categorical = False,
         adm_level = 0, # National
         time_resolution = "week",
     )
@@ -89,7 +96,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       repository,
       implementation_language,
       disease,
-      mtype,
+      spatial,
+      temporal,
+      categorical,
       adm_level,
       time_resolution
     ) {
@@ -101,7 +110,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         repository = repository,
         implementation_language = implementation_language,
         disease = disease,
-        type = mtype,
+        spatial = spatial,
+        temporal = temporal,
+        categorical = categorical,
         ADM_level = adm_level,
         time_resolution = time_resolution
       )
@@ -110,15 +121,15 @@ POST requests require [User API Token](uid-key.md) to be called.
     }
 
     # Example
-    types <- c("nowcast", "forecast")
-
     post_model(
       name = "My Nowcasting Model",
       description = "My Model description",
       repository = "https://github.com/Mosqlimate-project/Data-platform",
       implementation_language = "R",
       disease = "dengue",
-      mtype = types[1],
+      spatial = TRUE,
+      temporal = FALSE,
+      categorical = TRUE,
       adm_level = 0,
       time_resolution = "week"
     )
@@ -137,7 +148,9 @@ POST requests require [User API Token](uid-key.md) to be called.
         "repository": "https://github.com/Mosqlimate-project/Data-platform",
         "implementation_language": "Python",
         "disease": "dengue",
-        "type": "nowcast",
+        "spatial": true,
+        "temporal": true,
+        "categorical": true,
         "ADM_level": 0,
         "time_resolution": "week"
     }'
