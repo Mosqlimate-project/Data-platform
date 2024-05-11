@@ -20,122 +20,122 @@ msgstr ""
 
 #: src/main/views.py:155 src/registry/models.py:69
 msgid "National"
-msgstr ""
+msgstr "Nacional"
 
 #: src/main/views.py:156 src/registry/models.py:70
 msgid "State"
-msgstr ""
+msgstr "stay"
 
 #: src/main/views.py:157 src/registry/models.py:71
 msgid "Municipality"
-msgstr ""
+msgstr "Município"
 
 #: src/main/views.py:158 src/registry/models.py:72
 msgid "Sub Municipality"
-msgstr ""
+msgstr "Submunicípio"
 
 #: src/main/views.py:161 src/registry/models.py:63 src/users/forms.py:42
 msgid "Day"
-msgstr ""
+msgstr "Dia"
 
 #: src/main/views.py:162 src/registry/models.py:64 src/users/forms.py:43
 msgid "Week"
-msgstr ""
+msgstr "Semana"
 
 #: src/main/views.py:163 src/registry/models.py:65 src/users/forms.py:44
 msgid "Month"
-msgstr ""
+msgstr "Mês"
 
 #: src/main/views.py:164 src/registry/models.py:66 src/users/forms.py:45
 msgid "Year"
-msgstr ""
+msgstr "Ano"
 
 #: src/main/views.py:176
 msgid "Invalid form"
-msgstr ""
+msgstr "Formulário inválido"
 
 #: src/main/views.py:217
 msgid "Model updated successfully"
-msgstr ""
+msgstr "Modelo atualizado com sucesso"
 
 #: src/main/views.py:219 src/main/views.py:384
 msgid "Unauthorized"
-msgstr ""
+msgstr "Não autorizado"
 
 #: src/main/views.py:224
 msgid "Failed to update model: "
-msgstr ""
+msgstr "Falha ao atualizar o modelo"
 
 #: src/main/views.py:234
 msgid "Model deleted"
-msgstr ""
+msgstr "Modelo excluído"
 
 #: src/main/views.py:236
 msgid "Cannot delete Model"
-msgstr ""
+msgstr "não é possível excluir o modelo"
 
 #: src/main/views.py:381
 msgid "Prediction updated successfully"
-msgstr ""
+msgstr "Previsão atualizada com sucesso"
 
 #: src/main/views.py:389
 msgid "Failed to update prediction: "
-msgstr ""
+msgstr "Falha ao atualizar a previsão"
 
 #: src/main/views.py:399
 msgid "Prediction deleted"
-msgstr ""
+msgstr "Previsão excluída"
 
 #: src/main/views.py:401
 msgid "Error deleting prediction"
-msgstr ""
+msgstr "Erro ao excluir previsão"
 
 #: src/registry/models.py:33 src/templates/main/models.html:77
 #: src/templates/users/components/models-box.html:97
 msgid "Implementation Language"
-msgstr ""
+msgstr "Linguagem de Implementação"
 
 #: src/registry/models.py:34
 msgid "Implementation Languages"
-msgstr ""
+msgstr "Linguagens de Implementação"
 
 #: src/registry/models.py:52 src/templates/main/components/models-list.html:22
 #: src/templates/main/components/predictions-list.html:21
 msgid "Author"
-msgstr ""
+msgstr "Author"
 
 #: src/registry/models.py:53
 msgid "Authors"
-msgstr ""
+msgstr "Authors"
 
 #: src/registry/models.py:58
 msgid "Chikungunya"
-msgstr ""
+msgstr "Chikungunya"
 
 #: src/registry/models.py:59
 msgid "Dengue"
-msgstr ""
+msgstr "Dengue"
 
 #: src/registry/models.py:60
 msgid "Zika"
-msgstr ""
+msgstr "Zica"
 
 #: src/registry/models.py:107 src/templates/main/edit-prediction.html:16
 #: src/templates/users/profile.html:56
 #: src/templates/vis/charts/line-charts.html:19
 msgid "Model"
-msgstr ""
+msgstr "Modelo"
 
 #: src/registry/models.py:108 src/templates/main/components/navbar.html:38
 #: src/templates/main/models.html:6 src/templates/main/models.html:10
 #: src/templates/users/profile.html:56
 msgid "Models"
-msgstr ""
+msgstr "Modelos"
 
 #: src/registry/models.py:197 src/templates/users/profile.html:65
 #: src/templates/vis/charts/line-charts.html:22
 msgid "Prediction"
-msgstr ""
+msgstr "Predição"
 
 #: src/registry/models.py:198 src/templates/main/components/navbar.html:41
 #: src/templates/main/predictions.html:5 src/templates/main/predictions.html:9
@@ -143,107 +143,107 @@ msgstr ""
 #: src/templates/users/components/models-box.html:76
 #: src/templates/users/profile.html:65 src/templates/vis/dashboard.html:50
 msgid "Predictions"
-msgstr ""
+msgstr "Previsões"
 
 #: src/templates/account/messages/logged_in.txt:4
 #, python-format
 msgid "Successfully signed in as %(name)s."
-msgstr ""
+msgstr "Conectado com sucesso como %(name)s."
 
 #: src/templates/account/messages/logged_out.txt:2
 msgid "You have signed out."
-msgstr ""
+msgstr "Você saiu"
 
 #: src/templates/main/404.html:4 src/templates/main/404.html:7
 msgid "Page Not Found"
-msgstr ""
+msgstr "Página não encontrada"
 
 #: src/templates/main/500.html:4
 msgid "Server error"
-msgstr ""
+msgstr "Erro de servidor"
 
 #: src/templates/main/500.html:7
 msgid "Something went wrong"
-msgstr ""
+msgstr "Algo deu errado"
 
 #: src/templates/main/about.html:5 src/templates/main/components/navbar.html:23
 msgid "About"
-msgstr ""
+msgstr "Sobre"
 
 #: src/templates/main/about.html:9
 msgid "About Mosqlimate"
-msgstr ""
+msgstr "Sobre Mosqlimate"
 
 #: src/templates/main/components/datastore/climate.html:13
 #: src/templates/main/components/datastore/infodengue.html:24
 #: src/templates/main/predictions.html:95
 msgid "Start"
-msgstr ""
+msgstr "Começar"
 
 #: src/templates/main/components/datastore/climate.html:17
 #: src/templates/main/components/datastore/infodengue.html:28
 #: src/templates/main/predictions.html:99
 msgid "End"
-msgstr ""
+msgstr "Fim"
 
 #: src/templates/main/components/datastore/climate.html:21
 #: src/templates/main/components/datastore/infodengue.html:34
 #: src/templates/vis/dashboard.html:41
 msgid "Geocode"
-msgstr ""
+msgstr "Geocódigo"
 
 #: src/templates/main/components/datastore/climate.html:47
 #: src/templates/main/components/datastore/infodengue.html:60
 #: src/templates/main/components/datastore/mosquito.html:34
 msgid "Required inputs"
-msgstr ""
+msgstr "Entradas necessárias"
 
 #: src/templates/main/components/datastore/infodengue.html:14
 #: src/templates/main/edit-model.html:55
 #: src/templates/vis/charts/line-charts.html:20
 #: src/templates/vis/dashboard.html:22
 msgid "Disease"
-msgstr ""
+msgstr "Doença"
 
 #: src/templates/main/components/datastore/mosquito.html:13
 msgid "ContaOvos API Key"
-msgstr ""
+msgstr "Chave API ContaOvos"
 
 #: src/templates/main/components/datastore/mosquito.html:23
 #: src/templates/main/models.html:140 src/templates/main/predictions.html:157
 msgid "Page"
-msgstr ""
+msgstr "Página"
 
 #: src/templates/main/components/footer.html:18
 msgid "Funding"
-msgstr ""
+msgstr "Financiamento"
 
 #: src/templates/main/components/footer.html:24
 msgid "Partners"
-msgstr ""
+msgstr "Partners"
 
 #: src/templates/main/components/models-list.html:16
 #: src/templates/main/components/predictions-list.html:15
 msgid "Lang"
-msgstr ""
+msgstr "Lang"
 
 #: src/templates/main/components/models-list.html:19
 #: src/templates/main/models.html:30
 #: src/templates/users/components/models-box.html:17
 #: src/templates/users/components/models-box.html:85
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: src/templates/main/components/models-list.html:25
 #: src/templates/main/components/predictions-list.html:24
 #: src/templates/users/components/models-box.html:23
 #: src/templates/users/components/models-box.html:93
 msgid "Repository"
-msgstr ""
+msgstr "Repositório"
 
 #: src/templates/main/components/models-list.html:28
 msgid "Created"
-msgstr ""
+msgstr "Created"
 
 #: src/templates/main/components/models-list.html:29
 #: src/templates/main/components/predictions-list.html:28
@@ -251,7 +251,7 @@ msgstr ""
 #: src/templates/users/components/models-box.html:20
 #: src/templates/users/components/models-box.html:101
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: src/templates/main/components/models-list.html:33
 #: src/templates/main/components/predictions-list.html:33
@@ -259,149 +259,149 @@ msgstr ""
 #: src/templates/main/edit-prediction.html:34
 #: src/templates/users/components/models-box.html:89
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 #: src/templates/main/components/models-list.html:69
 #: src/templates/main/components/predictions-list.html:70
 msgid "Visualize"
-msgstr ""
+msgstr "Visualizar"
 
 #: src/templates/main/components/navbar.html:20 src/templates/main/home.html:6
 msgid "Home"
-msgstr ""
+msgstr "Lar"
 
 #: src/templates/main/components/navbar.html:26
 msgid "Documentation"
-msgstr ""
+msgstr "Documentação"
 
 #: src/templates/main/components/navbar.html:29
 msgid "API Demo"
-msgstr ""
+msgstr "Demonstração de API"
 
 #: src/templates/main/components/navbar.html:62
 msgid "logout"
-msgstr ""
+msgstr "sair"
 
 #: src/templates/main/components/navbar.html:69
 msgid "Login with Github"
-msgstr ""
+msgstr "Faça login com Github"
 
 #: src/templates/main/components/predictions-list.html:18
 #: src/templates/main/edit-model.html:16
 msgid "Model name"
-msgstr ""
+msgstr "Nome do modelo"
 
 #: src/templates/main/components/predictions-list.html:27
 msgid "Predict date"
-msgstr ""
+msgstr "Prever data"
 
 #: src/templates/main/components/predictions-list.html:29
 #: src/templates/main/models.html:25 src/templates/main/predictions.html:27
 msgid "Model ID"
-msgstr ""
+msgstr "ID do modelo"
 
 #: src/templates/main/components/vis-echarts.html:9
 msgid "Select the disease"
-msgstr ""
+msgstr "Selecione a doença"
 
 #: src/templates/main/components/vis-echarts.html:18
 msgid "Total cases"
-msgstr ""
+msgstr "Total de casos"
 
 #: src/templates/main/components/vis-echarts.html:21
 msgid "Cases per 100k hab."
-msgstr ""
+msgstr "Casos por 100 mil hab."
 
 #: src/templates/main/edit-model.html:5 src/templates/main/edit-model.html:10
 msgid "Edit model"
-msgstr ""
+msgstr "Editar modelo"
 
 #: src/templates/main/edit-model.html:29
 msgid "Model description"
-msgstr ""
+msgstr "Descrição do modelo"
 
 #: src/templates/main/edit-model.html:35
 msgid "Time resolution"
-msgstr ""
+msgstr "Resolução de tempo"
 
 #: src/templates/main/edit-model.html:45
 msgid "ADM Level"
-msgstr ""
+msgstr "Nível ADM"
 
 #: src/templates/main/edit-model.html:67
 msgid "Github repository"
-msgstr ""
+msgstr "Repositório Github"
 
 #: src/templates/main/edit-model.html:71 src/templates/main/predictions.html:83
 msgid "Implementation language"
-msgstr ""
+msgstr "Linguagem de implementação"
 
 #: src/templates/main/edit-model.html:83 src/templates/vis/dashboard.html:6
 msgid "Visualization"
-msgstr ""
+msgstr "Visualização"
 
 #: src/templates/main/edit-model.html:88
 msgid "Classification axis"
-msgstr ""
+msgstr "Eixo de classificação"
 
 #: src/templates/main/edit-model.html:93
 msgid "Time"
-msgstr ""
+msgstr "Tempo"
 
 #: src/templates/main/edit-model.html:100
 msgid "Space"
-msgstr ""
+msgstr "espaço"
 
 #: src/templates/main/edit-model.html:106
 msgid "Output format"
-msgstr ""
+msgstr "Formato de saída"
 
 #: src/templates/main/edit-model.html:111
 msgid "Quantitative"
-msgstr ""
+msgstr "Quantitative"
 
 #: src/templates/main/edit-model.html:118
 msgid "Categorical"
-msgstr ""
+msgstr "Categorical"
 
 #: src/templates/main/edit-model.html:126
 #: src/templates/main/edit-model.html:141
 msgid "Delete model"
-msgstr ""
+msgstr "Excluir modelo"
 
 #: src/templates/main/edit-model.html:129
 #: src/templates/main/edit-prediction.html:45
 msgid "Save changes"
-msgstr ""
+msgstr "salvar alterações"
 
 #: src/templates/main/edit-model.html:148
 #: src/templates/main/edit-prediction.html:64
 #: src/templates/users/profile.html:130
 msgid "Cancel"
-msgstr ""
+msgstr "cancelar"
 
 #: src/templates/main/edit-model.html:149
 #: src/templates/main/edit-prediction.html:65
 msgid "Delete"
-msgstr ""
+msgstr "Excluir"
 
 #: src/templates/main/edit-prediction.html:5
 #: src/templates/main/edit-prediction.html:10
 msgid "Edit prediction"
-msgstr ""
+msgstr "Editar previsão"
 
 #: src/templates/main/edit-prediction.html:28
 msgid "Prediction date"
-msgstr ""
+msgstr "Data de previsão"
 
 #: src/templates/main/edit-prediction.html:42
 #: src/templates/main/edit-prediction.html:57
 msgid "Delete prediction"
-msgstr ""
+msgstr "Excluir previsão"
 
 #: src/templates/main/home.html:10
 msgid "Mosqlimate Data API"
-msgstr ""
+msgstr "API de dados Mosqlimate"
 
 #: src/templates/main/home.html:12
 msgid ""
@@ -412,7 +412,14 @@ msgid ""
 "diseases in Brazil. Relevant climate data is also made available to help "
 "include climate influence into the modeling.\n"
 "      "
-msgstr ""
+msgstr "
+"\n"
+" Esta plataforma disponibiliza dados para serem utilizados na previsão de "
+"Doenças por arboviroses no Brasil. Também serve como registro aberto de <a "
+"href=\"https://api.mosqlimate.org/models/\">modelos de previsão</a> para tais "
+“doenças no Brasil. Dados climáticos relevantes também são disponibilizados para ajudar”
+"inclua a influência climática na modelagem.\n"
+"
 
 #: src/templates/main/home.html:17
 msgid ""
@@ -422,7 +429,11 @@ msgid ""
 "data made available are in the public domain and are official data made "
 "available by the Brazilian Ministry of Health.\n"
 "      "
-msgstr ""
+msgstr "Atualmente, só estão disponíveis dados sobre dengue, chikungunya e zika”
+"através desta plataforma. Mais conjuntos de dados serão disponibilizados a tempo. Todos os "
+“os dados disponibilizados são de domínio público e são dados oficiais disponibilizados”
+"disponível pelo Ministério da Saúde do Brasil.\n"
+"
 
 #: src/templates/main/home.html:22
 msgid ""
@@ -434,127 +445,133 @@ msgid ""
 "the right to curate the model collection and decide which one to make "
 "available through the platform.\n"
 "      "
-msgstr ""
+msgstr "
+O objetivo desta plataforma é melhorar a comparabilidade de "
+"modelos de previsão, possibilitando que todos os modelos aprendam com o"
+"mesmos dados. O registro do modelo está aberto a qualquer pessoa disposta a contribuir, mas "
+"exigirá a criação de uma conta de usuário primeiro. As reservas do projeto Mosqlimate "
+"o direito de fazer a curadoria da coleção de modelos e decidir qual fazer"
+"disponível através da plataforma.\n""
 
 #: src/templates/main/models.html:46 src/templates/main/predictions.html:48
 msgid "Author Name"
-msgstr ""
+msgstr "Nome do autor"
 
 #: src/templates/main/models.html:52 src/templates/main/predictions.html:54
 msgid "Author Username"
-msgstr ""
+msgstr "Nome de usuário do autor"
 
 #: src/templates/main/models.html:59 src/templates/main/predictions.html:60
 msgid "Author Institution"
-msgstr ""
+msgstr "Instituição do autor"
 
 #: src/templates/main/models.html:68 src/templates/main/predictions.html:69
 msgid "Github Repository"
-msgstr ""
+msgstr "Repositório Git"
 
 #: src/templates/main/models.html:87 src/templates/main/predictions.html:104
 msgid "Clear"
-msgstr ""
+msgstr "Clara"
 
 #: src/templates/main/models.html:88 src/templates/main/predictions.html:105
 msgid "Search"
-msgstr ""
+msgstr "Procurar"
 
 #: src/templates/main/models.html:97
 msgid "Models pagination"
-msgstr ""
+msgstr "Paginação de modelos"
 
 #: src/templates/main/models.html:101 src/templates/main/models.html:103
 #: src/templates/main/predictions.html:118
 #: src/templates/main/predictions.html:120
 msgid "Previous"
-msgstr ""
+msgstr "Anterior"
 
 #: src/templates/main/models.html:116 src/templates/main/models.html:118
 #: src/templates/main/predictions.html:133
 #: src/templates/main/predictions.html:135
 msgid "Next"
-msgstr ""
+msgstr "Next"
 
 #: src/templates/main/models.html:129
 msgid "model"
-msgstr ""
+msgstr "modelo"
 
 #: src/templates/main/models.html:131
 msgid "models"
-msgstr ""
+msgstr "modelos"
 
 #: src/templates/main/models.html:140 src/templates/main/predictions.html:157
 msgid "of"
-msgstr ""
+msgstr "de"
 
 #: src/templates/main/models.html:146
 msgid "No Models"
-msgstr ""
+msgstr "Nenhum modelo"
 
 #: src/templates/main/models.html:149
 msgid "No models found"
-msgstr ""
+msgstr "Nenhum modelo encontrado"
 
 #: src/templates/main/predictions.html:24
 msgid "Prediction ID"
-msgstr ""
+msgstr "ID de previsão"
 
 #: src/templates/main/predictions.html:32
 msgid "Model Name"
-msgstr ""
+msgstr "Nome do modelo"
 
 #: src/templates/main/predictions.html:146
 msgid "prediction"
-msgstr ""
+msgstr "predição"
 
 #: src/templates/main/predictions.html:148
 msgid "predictions"
-msgstr ""
+msgstr "previsões"
 
 #: src/templates/main/predictions.html:163
 msgid "No Predictions"
-msgstr ""
+msgstr "Sem previsões"
 
 #: src/templates/main/predictions.html:166
 msgid "No predictions found"
-msgstr ""
+msgstr "Nenhuma previsão encontrada"
 
 #: src/templates/users/components/models-box.html:26
 msgid "Language"
-msgstr ""
+msgstr "Linguagem"
 
 #: src/templates/users/components/models-box.html:32
 msgid "Updated"
-msgstr ""
+msgstr "Updated"
 
 #: src/templates/users/profile.html:81
 msgid "Show"
-msgstr ""
+msgstr "Mostrar"
 
 #: src/templates/users/profile.html:106
 msgid "Update Author"
-msgstr ""
+msgstr "Atualizar autor"
 
 #: src/templates/users/profile.html:107
 msgid "Close"
-msgstr ""
+msgstr "Fechar"
 
 #: src/templates/users/profile.html:114
 msgid "First Name"
-msgstr ""
+msgstr "Primeiro nome"
 
 #: src/templates/users/profile.html:118
 msgid "Last Name"
-msgstr ""
+msgstr "Sobrenome"
 
 #: src/templates/users/profile.html:124
 msgid "Institution"
-msgstr ""
+msgstr "Instituição"
 
 #: src/templates/users/profile.html:131
 msgid "Update"
-msgstr ""
+msgstr "Atualizar"
 
 #: src/templates/users/profile.html:152
 msgid "Hide"
@@ -562,36 +579,36 @@ msgstr "Esconder"
 
 #: src/templates/vis/charts/line-charts.html:21
 msgid "Locality"
-msgstr ""
+msgstr "Localidade"
 
 #: src/templates/vis/charts/line-charts.html:23
 msgid "Prediction Date"
-msgstr ""
+msgstr "Data de previsão"
 
 #: src/templates/vis/dashboard.html:14
 msgid "Series"
-msgstr ""
+msgstr "Series"
 
 #: src/templates/vis/dashboard.html:31
 msgid "Administrative level"
-msgstr ""
+msgstr "Nível administrativo"
 
 #: src/users/models.py:14
 msgid "The Email must be set"
-msgstr ""
+msgstr "O e-mail deve ser definido"
 
 #: src/users/models.py:27
 msgid "Superuser must have is_staff=True."
-msgstr ""
+msgstr "O superusuário deve ter is_staff=True."
 
 #: src/users/models.py:29
 msgid "Superuser must have is_superuser=True."
-msgstr ""
+msgstr "O superusuário deve ter is_superuser=True."
 
 #: src/users/views.py:51
 msgid "Author updated successfully"
-msgstr ""
+msgstr "Autor atualizado com sucesso"
 
 #: src/users/views.py:53
 msgid "Invalid request"
-msgstr ""
+msgstr "Invalid request"
