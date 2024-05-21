@@ -1,10 +1,30 @@
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .brasil.models import *  # noqa: F403
 from .brasil.models import GeoMacroSaude
+from registry.models import Model
+
+User = get_user_model()
+
+
+class VisualizationBase(models.Model):
+    """
+    Base Visualization Model. Its children should be able to generate a
+    visualization giving its specs
+    """
+
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
+    description = models.TextField(blank=True, null=True)
+    model = models.OneToOneField(Model, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
 
 
 class UFs(models.TextChoices):
@@ -112,6 +132,9 @@ class ResultsProbForecast(models.Model):
     high_incidence_threshold = models.FloatField(null=False)
     low_incidence_threshold = models.FloatField(null=False)
 
+    def __str__(self):
+        return str(self.pk)
+
     class Meta:
         app_label = "vis"
         db_table = "results_prob_forecast"
@@ -121,3 +144,13 @@ class ResultsProbForecast(models.Model):
                 name="results_prob_forecast_unique",
             )
         ]
+
+
+class RPFMap(VisualizationBase):
+    """
+    ResultsProbForecast Map Visualization Model
+    """
+
+    forecast = models.OneToOneField(
+        ResultsProbForecast, on_delete=models.CASCADE
+    )

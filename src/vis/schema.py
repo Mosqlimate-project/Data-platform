@@ -6,6 +6,7 @@ from main.schema import Schema
 
 
 class ResultsProbForecastSchema(Schema):
+    model: int
     disease: Literal["dengue", "chik", "zika"]
     date: date
     geocode: int
@@ -23,5 +24,6 @@ class ResultsProbForecastSchema(Schema):
 
 
 class ResultsProbForecastFilterSchema(FilterSchema):
+    model: Optional[int] = Field(q="model__int")
     date: Optional[str] = Field(q="date__str")
     geocode: Optional[int] = Field(q="geocode")
