@@ -18,7 +18,6 @@ class VisualizationBase(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
-    description = models.TextField(blank=True, null=True)
     model = models.OneToOneField(Model, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
