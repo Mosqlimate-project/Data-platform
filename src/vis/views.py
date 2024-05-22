@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import date
 from pathlib import Path
 from typing import Union
 from itertools import cycle
@@ -169,9 +170,11 @@ class DashboardForecastMacroView(View):
 
         dates_by_disease = defaultdict(list)
 
-        for res in ResultsProbForecast.objects.values(
-            "disease", "date"
-        ).distinct():
+        for res in (
+            ResultsProbForecast.objects.filter(date__gte=str(date.today()))
+            .values("disease", "date")
+            .distinct()
+        ):
             dates_by_disease[res["disease"]].append(str(res["date"]))
 
         context["dates_by_disease"] = dict(dates_by_disease)
