@@ -7,6 +7,7 @@ import pandas as pd
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator
 
 from vis.dash import errors
 from vis.metadata import compose_prediction_metadata
@@ -14,6 +15,26 @@ from vis.metadata import compose_prediction_metadata
 
 def get_plangs_path() -> str:
     return os.path.join(settings.STATIC_ROOT, "img/plangs")
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+    color = models.CharField(
+        max_length=7,
+        validators=[
+            RegexValidator(
+                regex=r"^#[0-9A-Fa-f]{6}$",
+                message=_(
+                    "Color must be in hexadecimal format, e.g., #ffffff"
+                ),
+            ),
+        ],
+        help_text=_("Color in hexadecimal format. E.g: #ffffff"),
+    )
+    active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 class ImplementationLanguage(models.Model):
@@ -76,6 +97,7 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=500, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, related_name="tags")
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage,
