@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Author, Model, Prediction, ImplementationLanguage
+from .models import Tag, Author, Model, Prediction, ImplementationLanguage
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "color")
+    search_fields = ("name",)
 
 
 @admin.register(ImplementationLanguage)
@@ -30,6 +36,7 @@ class ModelAdmin(admin.ModelAdmin):
     list_display_links = ("__str__",)
     search_fields = (
         "name",
+        "tags",
         "description",
         "author__name",
         "author__institution",
