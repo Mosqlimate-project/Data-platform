@@ -62,7 +62,7 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
 },
 ```
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../utils/AsyncRequests.ipynb) code
+> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
 
 
 ## Usage examples

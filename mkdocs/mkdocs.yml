@@ -13,7 +13,7 @@ repo_url: "https://github.com/Mosqlimate-project/Data-platform"
 edit_uri: "https://github.com/peaceiris/mkdocs-material-boilerplate/edit/main/docs_sample"
 #
 # Configuration
-docs_dir: "/root/docs"
+docs_dir: "docs"
 theme:
   name: "material"
   language: "en"
@@ -95,20 +95,19 @@ nav:
     - "Getting Started": "index.md"
   - "Model Registry":
     - "Registry API": "registry/index.md"
-    - "Retrieve":
-      - "Authors": "registry/GET/authors.md"
-      - "Models": "registry/GET/models.md"
-      - "Predictions": "registry/GET/predictions.md"
-    - "Insert":
-      - "X-UID-Key Token": "registry/POST/uid-key.md"
-      - "Models": "registry/POST/models.md"
-      - "Predictions": "registry/POST/predictions.md"
+    - "Fetch Authors": "registry/GET/authors.md"
+    - "Fetch Models": "registry/GET/models.md"
+    - "Fetch Predictions": "registry/GET/predictions.md"
+    - "Using the X-UID-Key Token": "registry/POST/uid-key.md"
+    - "Inserting Models": "registry/POST/models.md"
+    - "Inserting Predictions": "registry/POST/predictions.md"
   - "Datastore":
     - "Datastore API": "datastore/index.md"
-    - "Retrieve":
-      - "Infodengue": "datastore/GET/infodengue.md"
-      - "Climate": "datastore/GET/climate.md"
-      - "Mosquito": "datastore/GET/mosquito.md"
-  - "Utils":
-    - "Async requests": "utils/AsyncRequests.ipynb"
+    - "Infodengue": "datastore/GET/infodengue.md"
+    - "Climate": "datastore/GET/climate.md"
+    - "Mosquito": "datastore/GET/mosquito.md"
+    - "Episcanner parameters": "datastore/GET/episcanner.md"
+  - "Tutorials":
+    - "Making asynchronous requests": "tutorials/AsyncRequests.ipynb"
+    - "Making Concurrent requests": "tutorials/ConcurrentRequests.md"
   - "Back to API": "https://api.mosqlimate.org/"

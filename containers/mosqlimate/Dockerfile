@@ -12,7 +12,7 @@ ARG GID
 
 RUN apt-get update -y \
   && apt-get install -y \
-    apt-utils \
+    apt-tutorials \
     build-essential \
     curl \
     nginx \
