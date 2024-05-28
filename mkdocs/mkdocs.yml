@@ -13,7 +13,7 @@ repo_url: "https://github.com/Mosqlimate-project/Data-platform"
 edit_uri: "https://github.com/peaceiris/mkdocs-material-boilerplate/edit/main/docs_sample"
 #
 # Configuration
-docs_dir: "docs"
+docs_dir: "/root/docs"
 theme:
   name: "material"
   language: "en"
