@@ -43,7 +43,7 @@ Through this API endpoint, you can fetch several climate variables that have bee
 },
 ```
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../utils/AsyncRequests.ipynb) code
+> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
 
 
 ## Usage examples

@@ -11,7 +11,7 @@ scope* of the API is Brazil, at the level of municipality.
 ## Models
 The model part of the API, is called [Model  Registry](https://api.mosqlimate.org/docs/registry/),
 and it allows registered users to upload metadata about open-source forecasting
-models that use Mosqlimate data. To register a model, an user needs to:
+models that use Mosqlimate data. To register a model, a user needs to:
 
  - Have an account on the platform; 
  - Have the code of her model in a GitHub repository.
