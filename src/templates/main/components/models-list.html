@@ -24,12 +24,12 @@
     <div class="col-2">
       <p class="mb-1 fw-bold repository">{% trans 'Repository' %}</p>
     </div>
-    <div class="col-3 badge-container">
-      <span class="badge created-date bg-primary rounded-pill">{% trans 'Created' %}</span>
+    <div class="col-1 badge-container">
+      <span class="badge created-date bg-primary rounded-pill">Tags</span>
     </div>
     <hr style="margin-top:5px;">
-    <div class="col-10" style="padding-left: 10px;">
-      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">{% trans 'Description' %}</p>
+    <div class="col-13" style="padding-left: 10px;">
+      <p class="mb-1 fw-bold description">{% trans 'Description' %}</p>
     </div>
   </div>
   {% for model in models %}
@@ -46,7 +46,7 @@
       {% endif %}
       {% endwith %}
     </div>
-    <div class="col-3">
+    <div class="col-4">
       <p class="mb-1 model">{{ model.name }}</p>
     </div>
     <div class="col-2">
@@ -60,8 +60,8 @@
           <span class="badge {% if forloop.counter != 1 %}tag{% endif %} rounded-pill" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
       {% endfor %}
     </div>
-    <hr style="margin-top:5px;">
-    <div class="col-10" style="padding-left: 5px;">
+    <hr>
+    <div class="col-13" style="padding-left: 5px;">
       <p class="mb-1 description">{{ model.description }}</p>
     </div>
     <div class="icons">

@@ -72,14 +72,12 @@
 
                     <div class="col">
                         <div class="input-container">
-                            <div class="input-group">
-                                <select class="form-select selectpicker" name="implementation_language">
-                                    <option value="" style="color: grey;">{% trans 'Implementation Language' %}</option>
-                                    {% for language in implementation_languages_with_refs %}
-                                    <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <select class="form-select selectpicker" name="implementation_language">
+                                <option value="" style="color: grey;">{% trans 'Implementation Language' %}</option>
+                                {% for language in implementation_languages_with_refs %}
+                                <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 </div>

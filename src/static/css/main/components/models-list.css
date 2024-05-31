@@ -8,6 +8,13 @@
   max-height: 40px;
 }
 
+.model-item hr {
+  margin: 10px 0;
+  width: 99%;
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .list-group-item:hover{
   opacity: 1;
   max-height: none;
