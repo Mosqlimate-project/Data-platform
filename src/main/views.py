@@ -59,8 +59,11 @@ class ModelsView(View):
             """Stores parameters in session"""
             for param in params:
                 value = params.get(param)
-                if value:
-                    request.session[param] = value
+                if value is not None:
+                    if value == "":
+                        request.session[param] = None
+                    else:
+                        request.session[param] = value
                 else:
                     request.session[param] = None
 
@@ -75,8 +78,11 @@ class ModelsView(View):
             "author_institution": get("author_institution", ""),
             "repository": get("repository", ""),
             "implementation_language": get("implementation_language", ""),
-            "type": get("type", ""),
+            # "spatial": spatial,
+            # "temporal": temporal,
         }
+
+        print(predicts_params)
 
         def get_filters() -> tuple[ModelFilterSchema, PagesPagination.Input]:
             """Gets parameters from request"""
@@ -88,11 +94,14 @@ class ModelsView(View):
 
             for param, value in predicts_params.items():
                 store_session(**{param: value})
-                if value:
+                if value is not None:
                     if param in ["page", "per_page"]:
                         setattr(pagination, param, int(value))
                     else:
-                        setattr(filters, param, value)
+                        if value == "":
+                            setattr(filters, param, None)
+                        else:
+                            setattr(filters, param, value)
 
             return filters, pagination
 

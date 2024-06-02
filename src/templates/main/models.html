@@ -25,17 +25,10 @@
                         <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="{% trans 'Model ID' %}">
                     </div>
 
-                    <div class="col-6">
+                    <div class="col-9">
                         <div class="input-container">
                             <input type="text" class="form-control" name="name" value="{{ request.session.name|default_if_none:'' }}" placeholder="{% trans 'Name' %}">
                             <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-3">
-                        <div class="input-container">
-                            <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="{% trans 'Type' %}">
-                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
                         </div>
                     </div>
                 </div>
@@ -72,7 +65,7 @@
 
                     <div class="col">
                         <div class="input-container">
-                            <select class="form-select selectpicker" name="implementation_language">
+                            <select class="form-control selectpicker" name="implementation_language">
                                 <option value="" style="color: grey;">{% trans 'Implementation Language' %}</option>
                                 {% for language in implementation_languages_with_refs %}
                                 <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
@@ -82,6 +75,62 @@
                     </div>
                 </div>
 
+<!-- REPLACED BY TAGS -->
+                <!-- <center><h4>{% translate "Visualization" %}</h4></center> -->
+                <!-- <center><hr></center> -->
+                <!---->
+                <!-- <div class="row mb-3"> -->
+                <!--   <div class="col"> -->
+                <!--     <label><b>{% translate "Model type" %}:</b></label> -->
+                <!--     <div class="form-check"> -->
+                <!--        <input -->
+                <!--           class="form-check-input"  -->
+                <!--           type="checkbox"  -->
+                <!--           id="spatial"  -->
+                <!--           name="spatial" -->
+                <!--        > -->
+                <!--       <label class="form-check-label" for="spatial"> -->
+                <!--           Spatial Models -->
+                <!--       </label> -->
+                <!--     </div> -->
+                <!---->
+                <!--     <div class="form-check"> -->
+                <!--        <input -->
+                <!--           class="form-check-input"  -->
+                <!--           type="checkbox"  -->
+                <!--           value="1" -->
+                <!--           id="temporal"  -->
+                <!--           name="temporal" -->
+                <!--           {% if request.session.temporal == '0' %} -->
+                <!--           value="0" -->
+                <!--           {% endif %} -->
+                <!--           {% if request.session.temporal == '1' %} -->
+                <!--           checked -->
+                <!--           {% endif %} -->
+                <!--        > -->
+                <!--       <label class="form-check-label" for="temporal"> -->
+                <!--           Temporal Models -->
+                <!--       </label> -->
+                <!--     </div> -->
+                <!--   </div> -->
+                <!--   <div class="col"> -->
+                <!--       <input type="hidden" name="categorical" id="model-categorical"> -->
+                <!--       <label for="categorical"><b>{% translate "Output format" %}:</b></label> -->
+                <!--       <div class="form-check"> -->
+                <!--           <input class="form-check-input" type="radio" name="categorical" id="categorical"> -->
+                <!--           <label class="form-check-label" for="categorical"> -->
+                <!--               {% translate "Quantitative Models" %} -->
+                <!--           </label> -->
+                <!--       </div> -->
+                <!--       <div class="form-check"> -->
+                <!--           <input class="form-check-input" type="radio" name="quantitative" id="quantitative"> -->
+                <!--           <label class="form-check-label" for="quantitative"> -->
+                <!--               {% translate "Categorical Models" %} -->
+                <!--           </label> -->
+                <!--       </div> -->
+                <!--   </div> -->
+                <!-- </div> -->
+                <!---->
                 <button type="button" class="btn btn-danger" onclick="clearAllInputs()">{% trans 'Clear' %}</button>
                 <button type="submit" class="btn btn-primary btn-models">{% trans 'Search' %}</button>
             </div>
@@ -151,5 +200,6 @@
     {% endif %}      
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
+
 <script src="{% static 'js/main/predictions.js' %}"></script>
 {% endblock %}
