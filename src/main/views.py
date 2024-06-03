@@ -78,6 +78,7 @@ class ModelsView(View):
             "author_institution": get("author_institution", ""),
             "repository": get("repository", ""),
             "implementation_language": get("implementation_language", ""),
+            "tag": get("tag", ""),
             # "spatial": spatial,
             # "temporal": temporal,
         }

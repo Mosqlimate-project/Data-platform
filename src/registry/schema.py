@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 
 from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
@@ -38,6 +38,7 @@ class ModelSchema(Schema):
     temporal: bool = None
     ADM_level: Literal[0, 1, 2, 3] = None
     time_resolution: Literal["day", "week", "month", "year"] = None
+    tags: List[int] = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -66,6 +67,7 @@ class ModelFilterSchema(FilterSchema):
     time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
         q="time_resolution__iexact"
     )
+    tags: Optional[List[int]] = Field(q="tags__id__in")
 
 
 class PredictionSchema(Schema):
