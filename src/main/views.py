@@ -20,7 +20,7 @@ from registry.api import (
 )
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
-from registry.models import Model, Prediction, ImplementationLanguage
+from registry.models import Model, Prediction, ImplementationLanguage, Tag
 
 
 # -- Utils --
@@ -67,6 +67,10 @@ class ModelsView(View):
                 else:
                     request.session[param] = None
 
+        tags = list(
+            filter(lambda x: x != "", request.GET.getlist("tags", None))
+        )
+
         # Parameters that come in the request
         predicts_params = {
             "page": get("page", 1),
@@ -78,7 +82,7 @@ class ModelsView(View):
             "author_institution": get("author_institution", ""),
             "repository": get("repository", ""),
             "implementation_language": get("implementation_language", ""),
-            "tag": get("tag", ""),
+            "tags": tags or None,
             # "spatial": spatial,
             # "temporal": temporal,
         }
@@ -132,6 +136,7 @@ class ModelsView(View):
 
         langs = languages_refs.values_list("language", flat=True)
         context["implementation_languages_with_refs"] = list(langs)
+        context["tags"] = list(Tag.objects.all())
 
         if response["items"]:
             context["models"] = response["items"]

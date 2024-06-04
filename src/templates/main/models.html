@@ -74,6 +74,17 @@
                         </div>
                     </div>
                 </div>
+                <input type="hidden" name="tags" id="tags">
+                <div class="row mb-3 tags">
+                  <label for="institution">Tags:</label>
+                  <center><hr style="width:100%;"></center>
+                  <div class="col">
+                    {% for tag in tags %}
+                        <span class="badge rounded-pill" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+
 
 <!-- REPLACED BY TAGS -->
                 <!-- <center><h4>{% translate "Visualization" %}</h4></center> -->
