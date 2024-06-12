@@ -16,7 +16,7 @@
     </div>
 
     <div class="container">
-        <form method="get" action={% url 'models' %}>
+        <form method="get" id="getModels" action="{% url 'models' %}" onsubmit="addTagsToForm()">
             <input type="hidden" class="form-control" name="per_page" value="{{ pagination.per_page|default_if_none:50 }}" min="1" max="50">
             <div class="p-2 collapse" id="modelCollapse">
 
@@ -80,68 +80,17 @@
                   <label for="institution">Tags:</label>
                   <div class="col">
                     {% for tag in tags %}
-                        <span class="badge rounded-pill" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                        <span 
+                          class="badge rounded-pill model-tag {% if tag.id|stringformat:'s' in selected_tags|safe %}selected-tag{% endif %}" 
+                          style="background-color: {{ tag.color }};"
+                          onclick="toggleTag(this, {{ tag.id }})"
+                        >
+                          {{ tag.id }} - {{ tag.name }}
+                        </span>
                     {% endfor %}
                   </div>
                 </div>
 
-
-<!-- REPLACED BY TAGS -->
-                <!-- <center><h4>{% translate "Visualization" %}</h4></center> -->
-                <!-- <center><hr></center> -->
-                <!---->
-                <!-- <div class="row mb-3"> -->
-                <!--   <div class="col"> -->
-                <!--     <label><b>{% translate "Model type" %}:</b></label> -->
-                <!--     <div class="form-check"> -->
-                <!--        <input -->
-                <!--           class="form-check-input"  -->
-                <!--           type="checkbox"  -->
-                <!--           id="spatial"  -->
-                <!--           name="spatial" -->
-                <!--        > -->
-                <!--       <label class="form-check-label" for="spatial"> -->
-                <!--           Spatial Models -->
-                <!--       </label> -->
-                <!--     </div> -->
-                <!---->
-                <!--     <div class="form-check"> -->
-                <!--        <input -->
-                <!--           class="form-check-input"  -->
-                <!--           type="checkbox"  -->
-                <!--           value="1" -->
-                <!--           id="temporal"  -->
-                <!--           name="temporal" -->
-                <!--           {% if request.session.temporal == '0' %} -->
-                <!--           value="0" -->
-                <!--           {% endif %} -->
-                <!--           {% if request.session.temporal == '1' %} -->
-                <!--           checked -->
-                <!--           {% endif %} -->
-                <!--        > -->
-                <!--       <label class="form-check-label" for="temporal"> -->
-                <!--           Temporal Models -->
-                <!--       </label> -->
-                <!--     </div> -->
-                <!--   </div> -->
-                <!--   <div class="col"> -->
-                <!--       <input type="hidden" name="categorical" id="model-categorical"> -->
-                <!--       <label for="categorical"><b>{% translate "Output format" %}:</b></label> -->
-                <!--       <div class="form-check"> -->
-                <!--           <input class="form-check-input" type="radio" name="categorical" id="categorical"> -->
-                <!--           <label class="form-check-label" for="categorical"> -->
-                <!--               {% translate "Quantitative Models" %} -->
-                <!--           </label> -->
-                <!--       </div> -->
-                <!--       <div class="form-check"> -->
-                <!--           <input class="form-check-input" type="radio" name="quantitative" id="quantitative"> -->
-                <!--           <label class="form-check-label" for="quantitative"> -->
-                <!--               {% translate "Categorical Models" %} -->
-                <!--           </label> -->
-                <!--       </div> -->
-                <!--   </div> -->
-                <!-- </div> -->
-                <!---->
                 <button type="button" class="btn btn-danger" onclick="clearAllInputs()">{% trans 'Clear' %}</button>
                 <button type="submit" class="btn btn-primary btn-models">{% trans 'Search' %}</button>
             </div>
@@ -213,8 +162,28 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
 
 <script>
-  let tags = "{{selected_tags}}";
-  console.log(tags);
+function toggleTag(element, tagId) {
+    element.classList.toggle('selected-tag');
+    element.classList.contains('selected-tag') ? element.dataset.selected = 'true' : element.dataset.selected = 'false';
+}
+
+function addTagsToForm() {
+    document.querySelectorAll('input[name="tags"]').forEach(el => el.remove());
+
+    const selectedTags = document.querySelectorAll('.model-tag.selected-tag');
+    selectedTags.forEach(tag => {
+        const tagId = tag.textContent.trim().split(' - ')[0];
+        const input = document.createElement('input');
+        input.classList.add('form-control');
+        input.type = 'hidden';
+        input.name = 'tags';
+        input.value = tagId;
+        console.log(input);
+        document.getElementById('getModels').appendChild(input);
+    });
+}
+
 </script>
+
 <script src="{% static 'js/main/predictions.js' %}"></script>
 {% endblock %}

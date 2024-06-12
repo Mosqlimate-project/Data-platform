@@ -20,6 +20,10 @@ function clearAllInputs() {
     selectpicker.selectedIndex = 0;
     $(selectpicker).selectpicker('refresh');
   });
+
+  document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => input.value = '');
+  document.querySelectorAll('.model-tag').forEach(tag => tag.classList.remove('selected-tag'));
+  document.querySelectorAll('.model-tag').forEach(tag => tag.dataset.selected = 'false');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

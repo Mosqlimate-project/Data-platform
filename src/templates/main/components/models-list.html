@@ -57,7 +57,12 @@
     </div>
     <div class="col-1 badge-container">
       {% for tag in model.tags.all %}
-          <span class="badge {% if forloop.counter != 1 %}tag{% endif %} rounded-pill" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+          <span 
+            class="badge {% if forloop.counter != 1 %}tag{% endif %} rounded-pill" 
+            style="background-color: {{ tag.color }};"
+          >
+            {{ tag.name }}
+          </span>
       {% endfor %}
     </div>
     <hr>

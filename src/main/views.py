@@ -121,8 +121,6 @@ class ModelsView(View):
             request, filters=filters, ninja_pagination=pagination
         )
 
-        print(response)
-
         context = {}
 
         # Build equivalent API url
