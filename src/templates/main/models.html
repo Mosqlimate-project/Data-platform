@@ -74,10 +74,10 @@
                         </div>
                     </div>
                 </div>
+                <center><hr style="width:100%;"></center>
                 <input type="hidden" name="tags" id="tags">
                 <div class="row mb-3 tags">
                   <label for="institution">Tags:</label>
-                  <center><hr style="width:100%;"></center>
                   <div class="col">
                     {% for tag in tags %}
                         <span class="badge rounded-pill" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
@@ -212,5 +212,9 @@
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
 
+<script>
+  let tags = "{{selected_tags}}";
+  console.log(tags);
+</script>
 <script src="{% static 'js/main/predictions.js' %}"></script>
 {% endblock %}

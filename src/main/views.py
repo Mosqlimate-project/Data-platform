@@ -25,13 +25,18 @@ from registry.models import Model, Prediction, ImplementationLanguage, Tag
 
 # -- Utils --
 def build_url_path(params) -> str:
-    return "&".join(
-        [
-            f"{p}={v}"
-            for p, v in params
-            if v and p not in ["items", "total_items", "total_pages"]
-        ]
-    )
+    url_params = []
+    for p, v in params:
+        if not v:
+            continue
+        if p in ["items", "total_items", "total_pages"]:
+            continue
+        if isinstance(v, list):
+            for i in v:
+                url_params.append(f"{p}={i}")
+        else:
+            url_params.append(f"{p}={v}")
+    return "&".join(url_params)
 
 
 # --
@@ -68,7 +73,7 @@ class ModelsView(View):
                     request.session[param] = None
 
         tags = list(
-            filter(lambda x: x != "", request.GET.getlist("tags", None))
+            set(filter(lambda x: x != "", request.GET.getlist("tags", None)))
         )
 
         # Parameters that come in the request
@@ -86,8 +91,6 @@ class ModelsView(View):
             # "spatial": spatial,
             # "temporal": temporal,
         }
-
-        print(predicts_params)
 
         def get_filters() -> tuple[ModelFilterSchema, PagesPagination.Input]:
             """Gets parameters from request"""
@@ -118,6 +121,8 @@ class ModelsView(View):
             request, filters=filters, ninja_pagination=pagination
         )
 
+        print(response)
+
         context = {}
 
         # Build equivalent API url
@@ -137,6 +142,7 @@ class ModelsView(View):
         langs = languages_refs.values_list("language", flat=True)
         context["implementation_languages_with_refs"] = list(langs)
         context["tags"] = list(Tag.objects.all())
+        context["selected_tags"] = tags
 
         if response["items"]:
             context["models"] = response["items"]
