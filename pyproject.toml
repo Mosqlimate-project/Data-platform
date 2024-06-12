@@ -56,7 +56,7 @@ ruff = "^0.0.272"
 [tool.poetry.group.dev.dependencies]
 compose-go = "^2.22.0"
 containers-sugar = ">=1.8"
-makim = "^1.8.1"
+makim = ">=1.15.2"
 pygments = "^2.15.1"
 
 
