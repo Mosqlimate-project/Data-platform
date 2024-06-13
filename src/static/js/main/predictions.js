@@ -13,9 +13,17 @@ function clearAllInputs() {
     if (input.name !== 'page' && input.name !== 'per_page') {
       input.value = '';
     }
-    const selectpickerElement = document.querySelector('.selectpicker');
-    selectpickerElement.selectedIndex = 0;
   });
+
+  const selectpickers = document.querySelectorAll('.selectpicker');
+  selectpickers.forEach((selectpicker) => {
+    selectpicker.selectedIndex = 0;
+    $(selectpicker).selectpicker('refresh');
+  });
+
+  document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => input.value = '');
+  document.querySelectorAll('.model-tag').forEach(tag => tag.classList.remove('selected-tag'));
+  document.querySelectorAll('.model-tag').forEach(tag => tag.dataset.selected = 'false');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

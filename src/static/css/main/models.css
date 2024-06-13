@@ -26,7 +26,8 @@ ul.pagination {
 }
 
 .input-container .form-control {
-  padding-right: 30px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .clear-icon {
@@ -71,5 +72,15 @@ ul.pagination {
 }
 
 .api-url {
-    text-align: end;
+  text-align: end;
+}
+
+.model-tag {
+  cursor: pointer;
+}
+
+.selected-tag {
+  cursor: pointer;
+  border: 2.5px solid #c6db41;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }

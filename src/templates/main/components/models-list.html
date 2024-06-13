@@ -24,13 +24,12 @@
     <div class="col-2">
       <p class="mb-1 fw-bold repository">{% trans 'Repository' %}</p>
     </div>
-    <div class="col-3 badge-container">
-      <span class="badge created-date bg-primary rounded-pill">{% trans 'Created' %}</span>
-      <span class="badge type bg-primary rounded-pill">{% trans 'Type' %}</span>
+    <div class="col-1 badge-container">
+      <span class="badge created-date bg-primary rounded-pill">Tags</span>
     </div>
     <hr style="margin-top:5px;">
-    <div class="col-10" style="padding-left: 10px;">
-      <p class="mb-1 fw-bold description" style="text-align:center;margin-top:-10px;">{% trans 'Description' %}</p>
+    <div class="col-13" style="padding-left: 10px;">
+      <p class="mb-1 fw-bold description">{% trans 'Description' %}</p>
     </div>
   </div>
   {% for model in models %}
@@ -54,17 +53,24 @@
       <a href="{% url 'profile' username=model.author.user.username %}"><p class="mb-1 author">{{ model.author.user.username }}</p></a>
     </div>
     <div class="col-2">
-        <a href="{{ model.repository }}"><p class="mb-1 repository">{{ model.repository|get_repo }}</p></a>    
+      <p class="mb-1 predict-date">{{ model.created|date:"Y-m-d" }}</p>
     </div>
-    <div class="col-3 badge-container">
-      <span class="badge predict-date bg-primary rounded-pill">{{ model.created|date:"Y-m-d" }}</span>
-      <span class="badge type bg-primary rounded-pill">{{ model.type }}</span>
+    <div class="col-1 badge-container">
+      {% for tag in model.tags.all %}
+          <span 
+            class="badge {% if forloop.counter != 1 %}tag{% endif %} rounded-pill" 
+            style="background-color: {{ tag.color }};"
+          >
+            {{ tag.name }}
+          </span>
+      {% endfor %}
     </div>
-    <hr style="margin-top:5px;">
-    <div class="col-10" style="padding-left: 5px;">
+    <hr>
+    <div class="col-13" style="padding-left: 5px;">
       <p class="mb-1 description">{{ model.description }}</p>
     </div>
     <div class="icons">
+      <a href="{{ model.repository }}"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fa-github"></i></a>
       {% if model|is_model_visualizable %}
       <a href="{% url 'dashboard' %}?model={{model.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
       {% endif %}

@@ -20,18 +20,23 @@ from registry.api import (
 )
 from registry.pagination import PagesPagination
 from registry.schema import ModelFilterSchema, PredictionFilterSchema
-from registry.models import Model, Prediction, ImplementationLanguage
+from registry.models import Model, Prediction, ImplementationLanguage, Tag
 
 
 # -- Utils --
 def build_url_path(params) -> str:
-    return "&".join(
-        [
-            f"{p}={v}"
-            for p, v in params
-            if v and p not in ["items", "total_items", "total_pages"]
-        ]
-    )
+    url_params = []
+    for p, v in params:
+        if not v:
+            continue
+        if p in ["items", "total_items", "total_pages"]:
+            continue
+        if isinstance(v, list):
+            for i in v:
+                url_params.append(f"{p}={i}")
+        else:
+            url_params.append(f"{p}={v}")
+    return "&".join(url_params)
 
 
 # --
@@ -59,10 +64,17 @@ class ModelsView(View):
             """Stores parameters in session"""
             for param in params:
                 value = params.get(param)
-                if value:
-                    request.session[param] = value
+                if value is not None:
+                    if value == "":
+                        request.session[param] = None
+                    else:
+                        request.session[param] = value
                 else:
                     request.session[param] = None
+
+        tags = list(
+            set(filter(lambda x: x != "", request.GET.getlist("tags", None)))
+        )
 
         # Parameters that come in the request
         predicts_params = {
@@ -75,7 +87,9 @@ class ModelsView(View):
             "author_institution": get("author_institution", ""),
             "repository": get("repository", ""),
             "implementation_language": get("implementation_language", ""),
-            "type": get("type", ""),
+            "tags": tags or None,
+            # "spatial": spatial,
+            # "temporal": temporal,
         }
 
         def get_filters() -> tuple[ModelFilterSchema, PagesPagination.Input]:
@@ -88,11 +102,14 @@ class ModelsView(View):
 
             for param, value in predicts_params.items():
                 store_session(**{param: value})
-                if value:
+                if value is not None:
                     if param in ["page", "per_page"]:
                         setattr(pagination, param, int(value))
                     else:
-                        setattr(filters, param, value)
+                        if value == "":
+                            setattr(filters, param, None)
+                        else:
+                            setattr(filters, param, value)
 
             return filters, pagination
 
@@ -122,6 +139,8 @@ class ModelsView(View):
 
         langs = languages_refs.values_list("language", flat=True)
         context["implementation_languages_with_refs"] = list(langs)
+        context["tags"] = list(Tag.objects.all())
+        context["selected_tags"] = tags
 
         if response["items"]:
             context["models"] = response["items"]

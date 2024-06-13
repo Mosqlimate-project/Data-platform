@@ -3,7 +3,7 @@ shell: bash
 groups:
   docker:
     env-file: .env
-    targets:
+    tasks:
       build:
         help: Build containers
         run: |
@@ -21,7 +21,7 @@ groups:
           sugar stop --group $ENV
 
   django:
-    targets:
+    tasks:
       createsuperuser:
         args:
           email:
@@ -35,7 +35,7 @@ groups:
         help: Run `createsuperuser` inside container
         run: |
           sugar run --service django --cmd "python manage.py createsuperuser \
-            --noinput --username {{ args.username }} --email {{ args.email }}"
+            --noinput --username ${{ args.username }} --email ${{ args.email }}"
 
       changepassword:
         args:
@@ -45,7 +45,7 @@ groups:
             required: True
         help: Run `changepassword <user>` inside container
         run: |
-          sugar run --service django --cmd "python manage.py changepassword {{ args.username }}"
+          sugar run --service django --cmd "python manage.py changepassword ${{ args.username }}"
 
       migrations:
         help: Run `migrate` inside container
@@ -87,10 +87,10 @@ groups:
         run: |
             # sugar run --service django --cmd "python manage.py makemigrations {{ args.app }}"
             # sugar run --service django --cmd "python manage.py migrate --database=default"
-            sugar run --service django --cmd "python manage.py test -v 2 {{ args.app }}.tests"
+            sugar run --service django --cmd "python manage.py test -v 2 ${{ args.app }}.tests"
 
   dev:
-    targets:
+    tasks:
       dotenv:
         help: Configure .env file
         run: |
@@ -122,13 +122,13 @@ groups:
           -p "semantic-release-replace-plugin@1.2.7" \
           semantic-release
 
-    targets:
+    tasks:
       ci:
         help: run semantic release on CI
         run: |
-          {{ vars.app }} --debug --ci --branches main
+          ${{ vars.app }} --debug --ci --branches main
 
       dry:
         help: run semantic release in dry-run mode
         run: |
-          {{ vars.app }} --dry-run --branches main
+          ${{ vars.app }} --dry-run --branches main

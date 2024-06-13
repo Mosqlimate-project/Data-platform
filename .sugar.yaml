@@ -3,8 +3,8 @@ compose-app: docker-compose
 env-file: .env
 defaults:
   group: {{ env.ENV }}
-service-groups:
-  - name: prod
+groups:
+  prod:
     project-name: mosqlimate
     compose-path: 
       - containers/compose.yaml
@@ -19,7 +19,7 @@ service-groups:
         - name: documentation
         - name: redis
 
-  - name: dev
+  dev:
     project-name: mosqlimate
     compose-path:
       - containers/compose.yaml

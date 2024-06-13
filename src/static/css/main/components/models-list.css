@@ -8,6 +8,13 @@
   max-height: 40px;
 }
 
+.model-item hr {
+  margin: 10px 0;
+  width: 99%;
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .list-group-item:hover{
   opacity: 1;
   max-height: none;
@@ -55,7 +62,7 @@
   transition: opacity 0.3s ease;
 }
 
-.badge.type {
+.badge.tag {
   position: relative;
   margin-top: 3px;
   top: 0;
@@ -64,7 +71,7 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.list-group-item:hover .badge.type{
+.list-group-item:hover .badge.tag{
   opacity: 1;
   transform: translateY(0%);
 }

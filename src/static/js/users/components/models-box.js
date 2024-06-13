@@ -38,7 +38,6 @@ function fetchModelData() {
             modelNameElement.textContent = data.name;
             modelDescriptionElement.textContent = data.description;
             modelLanguageElement.textContent = data.implementation_language.language;
-            console.log(data.implementation_language.language);
             modelTypeElement.textContent = data.type;
 
             const repositoryLink = document.createElement('a');

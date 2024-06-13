@@ -16,7 +16,7 @@
     </div>
 
     <div class="container">
-        <form method="get" action={% url 'models' %}>
+        <form method="get" id="getModels" action="{% url 'models' %}" onsubmit="addTagsToForm()">
             <input type="hidden" class="form-control" name="per_page" value="{{ pagination.per_page|default_if_none:50 }}" min="1" max="50">
             <div class="p-2 collapse" id="modelCollapse">
 
@@ -25,17 +25,10 @@
                         <input type="number" class="form-control" name="id" value="{{ request.session.id|default_if_none:'' }}" placeholder="{% trans 'Model ID' %}">
                     </div>
 
-                    <div class="col-6">
+                    <div class="col-9">
                         <div class="input-container">
                             <input type="text" class="form-control" name="name" value="{{ request.session.name|default_if_none:'' }}" placeholder="{% trans 'Name' %}">
                             <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('model_name')"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-3">
-                        <div class="input-container">
-                            <input type="text" class="form-control" name="type" value="{{ request.session.type|default_if_none:'' }}" placeholder="{% trans 'Type' %}">
-                            <i class="fa-solid fa-xmark clear-icon" onclick="clearInput('type')"></i>
                         </div>
                     </div>
                 </div>
@@ -72,16 +65,30 @@
 
                     <div class="col">
                         <div class="input-container">
-                            <div class="input-group">
-                                <select class="form-select selectpicker" name="implementation_language">
-                                    <option value="" style="color: grey;">{% trans 'Implementation Language' %}</option>
-                                    {% for language in implementation_languages_with_refs %}
-                                    <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <select class="form-control selectpicker" name="implementation_language">
+                                <option value="" style="color: grey;">{% trans 'Implementation Language' %}</option>
+                                {% for language in implementation_languages_with_refs %}
+                                <option value="{{ language }}"{% if language == request.session.implementation_language|default_if_none:'' %}selected{% endif %}>{{ language }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
+                </div>
+                <center><hr style="width:100%;"></center>
+                <input type="hidden" name="tags" id="tags">
+                <div class="row mb-3 tags">
+                  <label for="institution">Tags:</label>
+                  <div class="col">
+                    {% for tag in tags %}
+                        <span 
+                          class="badge rounded-pill model-tag {% if tag.id|stringformat:'s' in selected_tags|safe %}selected-tag{% endif %}" 
+                          style="background-color: {{ tag.color }};"
+                          onclick="toggleTag(this, {{ tag.id }})"
+                        >
+                          {{ tag.id }} - {{ tag.name }}
+                        </span>
+                    {% endfor %}
+                  </div>
                 </div>
 
                 <button type="button" class="btn btn-danger" onclick="clearAllInputs()">{% trans 'Clear' %}</button>
@@ -153,5 +160,30 @@
     {% endif %}      
 </div>
 <link rel="stylesheet" type="text/css" href="{% static 'css/main/models.css' %}">
+
+<script>
+function toggleTag(element, tagId) {
+    element.classList.toggle('selected-tag');
+    element.classList.contains('selected-tag') ? element.dataset.selected = 'true' : element.dataset.selected = 'false';
+}
+
+function addTagsToForm() {
+    document.querySelectorAll('input[name="tags"]').forEach(el => el.remove());
+
+    const selectedTags = document.querySelectorAll('.model-tag.selected-tag');
+    selectedTags.forEach(tag => {
+        const tagId = tag.textContent.trim().split(' - ')[0];
+        const input = document.createElement('input');
+        input.classList.add('form-control');
+        input.type = 'hidden';
+        input.name = 'tags';
+        input.value = tagId;
+        console.log(input);
+        document.getElementById('getModels').appendChild(input);
+    });
+}
+
+</script>
+
 <script src="{% static 'js/main/predictions.js' %}"></script>
 {% endblock %}
