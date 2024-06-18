@@ -34,7 +34,7 @@ from .schema import (
 router = Router()
 
 paginator = PagesPagination
-paginator.max_per_page = 100
+paginator.max_per_page = 300
 
 
 @router.get(
