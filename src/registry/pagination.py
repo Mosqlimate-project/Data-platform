@@ -4,11 +4,11 @@ from typing import Any, List
 
 
 class PagesPagination(PaginationBase):
-    max_per_page: int = 50
+    max_per_page: int = 300
 
     class Input(Schema):
         page: int = 1
-        per_page: int = 50
+        per_page: int = 300
 
     class Output(Schema):
         items: List[Any]
