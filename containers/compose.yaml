@@ -69,6 +69,7 @@ services:
         - UID=${POSTGRES_HOST_UID}
         - GID=${POSTGRES_HOST_GID}
         - environment=${ENV}
+    shm_size: '2gb'
     env_file:
       - ../.env
     ports:
