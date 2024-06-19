@@ -10,6 +10,7 @@ from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
 from django.conf import settings
+from asgiref.sync import sync_to_async
 
 from main.schema import NotFoundSchema, InternalErrorSchema
 from main.utils import UFs
@@ -65,11 +66,18 @@ async def get_infodengue(
 
     try:
         if disease in ["chik", "chikungunya"]:
-            data = HistoricoAlertaChik.objects.using("infodengue").all()
+            data = await sync_to_async(
+                HistoricoAlertaChik.objects.using("infodengue").all
+            )()
         elif disease in ["deng", "dengue"]:
-            data = HistoricoAlerta.objects.using("infodengue").all()
+            data = await sync_to_async(
+                HistoricoAlerta.objects.using("infodengue").all
+            )()
         elif disease == "zika":
-            data = HistoricoAlertaZika.objects.using("infodengue").all()
+            data = await sync_to_async(
+                HistoricoAlertaZika.objects.using("infodengue").all
+            )()
+
         else:
             return 404, {
                 "message": "Unknown disease. Options: dengue, zika, chik"
@@ -82,11 +90,11 @@ async def get_infodengue(
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
-        geocodes = (
+        geocodes = await sync_to_async(
             DengueGlobal.objects.using("infodengue")
             .filter(uf=uf_name)
-            .values_list("geocodigo", flat=True)
-        )
+            .values_list
+        )("geocodigo", flat=True)
         data = data.filter(municipio_geocodigo__in=geocodes)
 
     data = filters.filter(data)
@@ -117,7 +125,9 @@ async def get_copernicus_brasil(
     **kwargs,
 ):
     try:
-        data = CopernicusBrasil.objects.using("infodengue").all()
+        data = await sync_to_async(
+            CopernicusBrasil.objects.using("infodengue").all
+        )()
     except OperationalError:
         return 500, {"message": "Server error. Please contact the moderation"}
 
@@ -126,11 +136,11 @@ async def get_copernicus_brasil(
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
-        geocodes = (
+        geocodes = await sync_to_async(
             DengueGlobal.objects.using("infodengue")
             .filter(uf=uf_name)
-            .values_list("geocodigo", flat=True)
-        )
+            .values_list
+        )("geocodigo", flat=True)
         data = data.filter(geocodigo__in=geocodes)
 
     data = filters.filter(data)
