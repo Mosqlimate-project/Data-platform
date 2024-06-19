@@ -48,7 +48,7 @@ paginator.max_per_page = 300
 )
 @paginate(paginator)
 @csrf_exempt
-def get_infodengue(
+async def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
@@ -61,7 +61,7 @@ def get_infodengue(
     # fmt: on
     **kwargs,
 ):
-    disease = disease.lower()  # pyright: ignore
+    disease = disease.lower()
 
     try:
         if disease in ["chik", "chikungunya"]:
@@ -104,7 +104,7 @@ def get_infodengue(
 )
 @paginate(paginator)
 @csrf_exempt
-def get_copernicus_brasil(
+async def get_copernicus_brasil(
     request,
     filters: CopernicusBrasilFilterSchema = Query(...),
     # fmt: off
