@@ -1,10 +1,12 @@
 import json
+import pandas as pd
 from datetime import date, datetime, timedelta
 from difflib import get_close_matches
 from pathlib import Path
 from urllib.parse import urlparse
-
+from registry.models import Prediction
 from .models import ImplementationLanguage
+from dateutil.parser import isoparse
 
 
 def validate_commit(commit: str) -> str:
@@ -15,6 +17,14 @@ def validate_commit(commit: str) -> str:
         incorrect length. Please ensure you have captured the correct 
         commit using: 'git show --format=%H -s'
         """
+
+
+def validate_date_format(date_str):
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
 
 def validate_description(description: str) -> str:
@@ -53,11 +63,12 @@ def validate_predict_date(predict_date) -> str:
         return "Invalid predict_date format. Use YYYY-MM-DD."
 
 
-def validate_prediction_obj(obj, validation_regions) -> str:
+def validate_prediction_obj(obj, model, validation_regions) -> str:
     """Validate prediction data based on specified criteria.
 
     Args:
         obj (list[dict]): List of prediction data entries.
+        model (int): id of the model to get the adm level associated
         validation_regions (list[dict]): List of regions used for additional
           validation, containing information about valid 'geocodigo'
           and 'uf_abbv' values and corresponding 'adm_levels'.
@@ -65,47 +76,57 @@ def validate_prediction_obj(obj, validation_regions) -> str:
     Returns:
         str: Error message if any validation check fails, otherwise None.
     """
+
+    adm_model = Prediction.objects.get(pk=model).model.ADM_level
+
     required_keys = [
         "dates",
         "preds",
         "lower",
         "upper",
-        "adm_2",
-        "adm_1",
-        "adm_0",
+        f"adm_{adm_model}",
     ]
 
-    for entry in obj:
-        # Check if any key is missing
-        if set(required_keys) != set(entry):
-            return (
-                "Missing required keys in the entry: "
-                f"{set(required_keys).difference(set(entry))}"
-            )
+    # transform json in DataFrame for validation:
+    df = pd.DataFrame(obj)
 
-        dates_value = entry.get("dates")
-        if not isinstance(dates_value, str) or len(dates_value) != 10:
-            return "Invalid data type or length for 'dates' field."
+    # Check if any key is missing
+    if not set(required_keys).issubset(set(list(df.columns))):
+        return (
+            "Missing required keys in the entry: "
+            f"{set(required_keys).difference(set(list(df.columns)))}"
+        )
 
-        try:
-            parsed_date = datetime.fromisoformat(dates_value)
-            current_year = datetime.now().year
-            if not 2010 <= parsed_date.year <= current_year:
-                return """\n
-                    Invalid 'dates' year. Should be between 2010 
-                    and the current year.
-                """
-            if parsed_date.date() > date.today():
-                return "Invalid 'dates'. Cannot be in the future."
+    # Check if all the rows of the required keys are filled
+    if df[required_keys].isna().any().sum() != 0:
+        return "Null values in one of the required keys: " f"{required_keys}"
 
-        except ValueError:
-            return "Invalid 'dates' format. Use YYYY-MM-DD."
+    # date validation
+    try:
+        for value in df["dates"]:
+            isoparse(value)
 
-        for field in ["preds", "lower", "upper"]:
-            if not isinstance(entry.get(field), float):
-                return f"Invalid data type for '{field}' field."
+    except ValueError:
+        return "Date values must be in the YYYY-MM-DD format."
 
-        adm_2_value = entry.get("adm_2")
+    # preds validation
+    for field in ["preds", "lower", "upper"]:
+        if not (
+            pd.api.types.is_integer_dtype(df[field])
+            or pd.api.types.is_float_dtype(df[field])
+        ):
+            return f"Invalid data type for '{field}' field."
+
+    condition_preds = (df["lower"] < df["preds"]) & (df["preds"] < df["upper"])
+    if not condition_preds.all():
+        return """Invalid predictions, the predictions must follow:
+          lower < preds < upper for all values."""
+
+    if adm_model == 2:
+        if len(df["adm_2"].unique()) != 1:
+            return "The adm_2 must be filled with a unique value"
+
+        adm_2_value = df["adm_2"].unique()[0]
         if (
             not isinstance(adm_2_value, int)
             or len(str(adm_2_value)) != 7
@@ -114,7 +135,11 @@ def validate_prediction_obj(obj, validation_regions) -> str:
         ):
             return "Invalid data type, length, or geocode for 'adm_2' field."
 
-        adm_1_value = entry.get("adm_1")
+    if adm_model == 1:
+        if len(df["adm_1"].unique()) != 1:
+            return "The adm_1 must be filled with a unique value"
+
+        adm_1_value = df["adm_1"].unique()[0]
         if (
             not isinstance(adm_1_value, str)
             or len(str(adm_1_value)) != 2
@@ -123,7 +148,11 @@ def validate_prediction_obj(obj, validation_regions) -> str:
         ):
             return "Invalid data type, length, or UF abbv for 'adm_1' field."
 
-        adm_0_value = entry.get("adm_0")
+    if adm_model == 0:
+        if len(df["adm_2"].unique()) != 1:
+            return "The adm_2 must be filled with a unique value"
+
+        adm_0_value = df["adm_0"].unique()[0]
         if not isinstance(adm_0_value, str) or len(adm_0_value) != 2:
             return (
                 "Invalid data type or length for 'adm_0' field. Format: 'BR'"
@@ -154,7 +183,9 @@ def validate_prediction(payload: dict) -> tuple:
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(
-        json.loads(json.dumps(payload.prediction)), validation_regions
+        json.loads(json.dumps(payload.prediction)),
+        payload.model,
+        validation_regions,
     )
 
     if commit_error:
