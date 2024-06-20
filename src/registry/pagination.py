@@ -1,6 +1,13 @@
+from functools import wraps
+import asyncio
 from ninja.pagination import PaginationBase
-from ninja import Schema
+from ninja import Schema, Field
 from typing import Any, List
+from abc import abstractmethod
+from django.db.models import QuerySet
+from ninja.conf import settings
+from math import inf
+from asgiref.sync import sync_to_async
 
 
 class PagesPagination(PaginationBase):
@@ -88,3 +95,110 @@ class PagesPagination(PaginationBase):
             },
             "message": message,
         }
+
+
+class AsyncPaginationBase(PaginationBase):
+    @abstractmethod
+    async def apaginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Any,
+        **params: Any,
+    ) -> Any:
+        pass  # pragma: no cover
+
+    async def _aitems_count(self, queryset: QuerySet) -> int:
+        try:
+            return await queryset.all().acount()
+        except AttributeError:
+            return len(queryset)
+
+
+class LimitOffsetPagination(AsyncPaginationBase):
+    class Input(Schema):
+        limit: int = Field(
+            settings.PAGINATION_PER_PAGE,
+            ge=1,
+            le=settings.PAGINATION_MAX_LIMIT
+            if settings.PAGINATION_MAX_LIMIT != inf
+            else None,
+        )
+        offset: int = Field(0, ge=0)
+
+    def paginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        **params: Any,
+    ) -> Any:
+        print("paginate_queryset: " + str(queryset))
+        print(type(queryset))
+        if asyncio.iscoroutine(queryset):
+            print("it is")
+            return sync_to_async(
+                self.apaginate_queryset(queryset, pagination, **params)
+            )
+        print("its not")
+        offset = pagination.offset
+        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
+        return {
+            "items": queryset[offset : offset + limit],
+            "count": self._items_count(queryset),
+        }  # noqa: E203
+
+    async def apaginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        **params: Any,
+    ) -> Any:
+        print("apaginate_queryset: " + str(queryset))
+        offset = pagination.offset
+        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
+        return {
+            "items": queryset[offset : offset + limit],
+            "count": await self._aitems_count(queryset),
+        }  # noqa: E203
+
+
+def paginate(paginator_class):
+    def decorator(func):
+        print(f"Decorating function: {func.__name__}")
+        print(f"Is coroutine function: {asyncio.iscoroutinefunction(func)}")
+        if asyncio.iscoroutinefunction(func):
+            print("its corroutine 'paginate'")
+
+            @wraps(func)
+            async def async_wrapper(*args, **kwargs):
+                request = args[0]
+                paginator = paginator_class()
+                pagination_input = paginator.Input(**request.GET)
+                queryset = await func(*args, **kwargs)
+                if asyncio.iscoroutine(queryset):
+                    paginated_result = await paginator.apaginate_queryset(
+                        queryset, pagination_input
+                    )
+                else:
+                    paginated_result = paginator.paginate_queryset(
+                        queryset, pagination_input
+                    )
+                return paginated_result
+
+            return async_wrapper
+        else:
+            print("not corroutine 'paginate'")
+
+            @wraps(func)
+            def sync_wrapper(*args, **kwargs):
+                request = args[0]
+                paginator = paginator_class()
+                pagination_input = paginator.Input(**request.GET)
+                queryset = func(*args, **kwargs)
+                paginated_result = paginator.paginate_queryset(
+                    queryset, pagination_input
+                )
+                return paginated_result
+
+            return sync_wrapper
+
+    return decorator
