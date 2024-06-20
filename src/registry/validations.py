@@ -109,6 +109,9 @@ def validate_prediction_obj(obj, model, validation_regions) -> str:
     except ValueError:
         return "Date values must be in the YYYY-MM-DD format."
 
+    if min(pd.to_datetime(df.dates).dt.year) < 2010:
+        return "Invalid 'dates' year. Should be equal to or bigger than 2010."
+
     # preds validation
     for field in ["preds", "lower", "upper"]:
         if not (
