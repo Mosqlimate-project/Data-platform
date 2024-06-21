@@ -4,7 +4,6 @@ from datetime import date, datetime, timedelta
 from difflib import get_close_matches
 from pathlib import Path
 from urllib.parse import urlparse
-from registry.models import Prediction
 from .models import ImplementationLanguage
 from dateutil.parser import isoparse
 
@@ -63,7 +62,7 @@ def validate_predict_date(predict_date) -> str:
         return "Invalid predict_date format. Use YYYY-MM-DD."
 
 
-def validate_prediction_obj(obj, model, validation_regions) -> str:
+def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
     """Validate prediction data based on specified criteria.
 
     Args:
@@ -77,8 +76,6 @@ def validate_prediction_obj(obj, model, validation_regions) -> str:
         str: Error message if any validation check fails, otherwise None.
     """
 
-    adm_model = Prediction.objects.get(pk=model).model.ADM_level
-
     required_keys = [
         "dates",
         "preds",
@@ -88,7 +85,10 @@ def validate_prediction_obj(obj, model, validation_regions) -> str:
     ]
 
     # transform json in DataFrame for validation:
-    df = pd.DataFrame(obj)
+    try:
+        df = pd.DataFrame(json.loads(json.dumps(obj)))
+    except ValueError:
+        print("json object can not be transformed in DataFrame.")
 
     # Check if any key is missing
     if not set(required_keys).issubset(set(list(df.columns))):
@@ -129,14 +129,17 @@ def validate_prediction_obj(obj, model, validation_regions) -> str:
         if len(df["adm_2"].unique()) != 1:
             return "The adm_2 must be filled with a unique value"
 
-        adm_2_value = df["adm_2"].unique()[0]
-        if (
-            not isinstance(adm_2_value, int)
-            or len(str(adm_2_value)) != 7
-            or adm_2_value
-            not in [region["geocodigo"] for region in validation_regions]
-        ):
-            return "Invalid data type, length, or geocode for 'adm_2' field."
+        try:
+            adm_2_value = int(df["adm_2"].unique()[0])
+        except ValueError:
+            return "'adm_2' field must be int"
+        if len(str(adm_2_value)) != 7:
+            return "Invalid length, 'adm_2' field must have 7 digits."
+
+        if adm_2_value not in [
+            region["geocodigo"] for region in validation_regions
+        ]:
+            return "Invalid  geocode for 'adm_2' field."
 
     if adm_model == 1:
         if len(df["adm_1"].unique()) != 1:
@@ -186,8 +189,8 @@ def validate_prediction(payload: dict) -> tuple:
     predict_date_error = validate_predict_date(payload.predict_date)
     commit_error = validate_commit(payload.commit)
     predict_obj_error = validate_prediction_obj(
-        json.loads(json.dumps(payload.prediction)),
-        payload.model,
+        payload.prediction,
+        payload.model.ADM_level,
         validation_regions,
     )
 
