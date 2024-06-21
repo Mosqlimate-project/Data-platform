@@ -88,7 +88,7 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
     try:
         df = pd.DataFrame(json.loads(json.dumps(obj)))
     except ValueError:
-        print("json object can not be transformed in DataFrame.")
+        return "json object can not be transformed in DataFrame."
 
     # Check if any key is missing
     if not set(required_keys).issubset(set(list(df.columns))):
