@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional, Literal, List
+from pydantic import validator
 
 from ninja import Field, FilterSchema
 from ninja.orm.fields import AnyObject
@@ -25,6 +26,21 @@ class AuthorFilterSchema(FilterSchema):
     institution: Optional[str] = Field(q="institution__icontains")
 
 
+class TagSchema(Schema):
+    id: Optional[int]
+    name: str
+    color: str
+
+    @validator("id", pre=True, always=True)
+    def convert_id(cls, value):
+        if value is not None:
+            try:
+                return int(value)
+            except ValueError:
+                raise ValueError("Tag ID must be an integer")
+        return value
+
+
 class ModelSchema(Schema):
     id: Optional[int]
     name: str
@@ -38,7 +54,7 @@ class ModelSchema(Schema):
     temporal: bool = None
     ADM_level: Literal[0, 1, 2, 3] = None
     time_resolution: Literal["day", "week", "month", "year"] = None
-    tags: List[int] = None
+    tags: Optional[List[TagSchema]] = None
 
 
 class ModelFilterSchema(FilterSchema):
