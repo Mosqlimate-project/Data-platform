@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from io import StringIO
-
+from main.utils import UF_CODES
 import pandas as pd
 
 from django.conf import settings
@@ -191,7 +191,19 @@ class Prediction(models.Model):
             case 0:
                 self.adm_0_geocode = code[0]
             case 1:
-                self.adm_1_geocode = code[0]
+                if isinstance(code[0], str):
+                    self.adm_1_geocode = self._parse_uf_geocode(code[0])
+                elif isinstance(code[0], int):
+                    if code[0] not in list(UF_CODES.values()):
+                        raise errors.VisualizationError(
+                            f"Unknow UF Code '{code[0]}'"
+                        )
+                    self.adm_1_geocode = code[0]
+                else:
+                    raise TypeError(
+                        f"Incorrect type for adm_1 '{type(code[0])}'. ",
+                        "Expects str (UF) or int (UF Code)",
+                    )
             case 2:
                 self.adm_2_geocode = code[0]
             case 3:
@@ -213,6 +225,12 @@ class Prediction(models.Model):
             raise errors.VisualizationError(
                 "Incorrect date format on column dates"
             )
+
+    def _parse_uf_geocode(self, uf: str):
+        uf = uf.upper()
+        if uf not in UF_CODES:
+            raise errors.VisualizationError(f"Unkown UF '{uf}'")
+        return UF_CODES[uf]
 
     class Meta:
         verbose_name = _("Prediction")
