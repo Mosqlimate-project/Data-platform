@@ -27,7 +27,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
+    command: uvicorn mosqlimate.asgi:application --host 0.0.0.0 --port ${DJANGO_PORT} --reload
     networks:
       - mosqlimate
 
@@ -69,6 +69,7 @@ services:
         - UID=${POSTGRES_HOST_UID}
         - GID=${POSTGRES_HOST_GID}
         - environment=${ENV}
+    shm_size: '2gb'
     env_file:
       - ../.env
     ports:
