@@ -96,7 +96,7 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=500, null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name="tags")
+    tags = models.ManyToManyField(Tag, related_name="tags", default=[])
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage,
