@@ -103,7 +103,8 @@ POST requests require [User API Token](uid-key.md) to be called.
       time_resolution
     ) {
       url <- "https://api.mosqlimate.org/api/registry/models/"
-      headers <- add_headers("X-UID-Key" = "See X-UID-Key documentation")
+      key = c("<USER>:<KEY>. See X-UID-Key documentation")
+      names(key) <- 'X-UID-Key'
       model <- list(
         name = name,
         description = description,
@@ -116,7 +117,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         ADM_level = adm_level,
         time_resolution = time_resolution
       )
-      response <- POST(url, body = list(model), encode = "json", headers = headers)
+      response <- POST(url, body = model, add_headers(.headers=key),  encode = "json", verbose())
       return(content(response, "text"))
     }
 

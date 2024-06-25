@@ -74,7 +74,8 @@ POST requests require [User API Token](uid-key.md) to be called.
       predict
     ) {
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
-      headers <- add_headers("X-UID-Key" = "See X-UID-Key documentation")
+      key = c("<USER>:<KEY>. See X-UID-Key documentation")
+      names(key) <- 'X-UID-Key'
       prediction <- list(
         model = model_id,
         description = description,
@@ -82,7 +83,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         predict_date = predict_date,
         prediction = predict
       )
-      response <- POST(url, body = list(prediction), encode = "json", headers = headers)
+      response <- POST(url, body = prediction, add_headers(.headers=key),  encode = "json", verbose())
       return(content(response, "text"))
     }
 
