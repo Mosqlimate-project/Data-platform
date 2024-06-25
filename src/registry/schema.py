@@ -54,7 +54,6 @@ class ModelSchema(Schema):
     temporal: bool = None
     ADM_level: Literal[0, 1, 2, 3] = None
     time_resolution: Literal["day", "week", "month", "year"] = None
-    tags: Optional[List[TagSchema]] = None
 
 
 class ModelFilterSchema(FilterSchema):
