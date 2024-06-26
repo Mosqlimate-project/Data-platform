@@ -146,11 +146,11 @@
                   <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
                 </b></center>
                 <div class="form-check">
-                  <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  value="" 
-                  id="spatialType" 
+                  <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value=""
+                  id="spatialType"
                   {% if "spatial" not in model_types %}disabled{% endif %}
                   >
                   <label class="form-check-label text-white" for="spatialType">
@@ -209,6 +209,14 @@
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
     <div id="search-container" class="d-flex relative-container">
+      <div id="uf-geocode-div" class="absolute-uf-search">
+        <label for="uf-geocode" style="padding-bottom: 5px;">{% trans "Select a state:" %}</label>
+        <br>
+        <select name="uf-geocode" style="width: 100%;" id="uf-geocode">
+          <option value="" selected disabled>Select a state</option>
+        </select>
+      </div>
+
       <div id="geocode-div" class="absolute-geocode">
         <label for="geocode" style="padding-bottom: 5px;">{% trans "Select a city:" %}</label>
         <br>
@@ -301,7 +309,7 @@
   width: 14%;
 }
 
-.absolute-geocode {
+.absolute-geocode, .absolute-uf-search {
   position: absolute;
   top: 0;
   left: 0;
@@ -386,6 +394,20 @@
       lineChartContainer.load('{% url "line_charts" %}{{ line_charts_default_uri }}');
       predictTableContainer.load('{% url "predict_table" %}{{ line_charts_default_uri }}');
 
+      function displayADMDiv(adm_level) {
+        if (String(adm_level) === "1") {
+          document.getElementById("uf-geocode-div").style.display = "block";
+        } else {
+          document.getElementById("uf-geocode-div").style.display = "none";
+        }
+
+        if (String(adm_level) === "2") {
+          document.getElementById("geocode-div").style.display = "block";
+        } else {
+          document.getElementById("geocode-div").style.display = "none";
+        }
+      }
+
       if (!selectedSpatial) {
         spatial.indeterminate = true;
       } else {
@@ -410,31 +432,46 @@
         {% endfor %}
       };
 
-      if (String(selectedAdmLevel) === "2") {
-        document.getElementById("geocode-div").style.display = "block";
-      } else {
-        document.getElementById("geocode-div").style.display = "none";
-      }
+      displayADMDiv(selectedAdmLevel);
 
-      const extractedGeocodes = initialPredictions.map(prediction => {
-        const parts = prediction.split('-');
+      const extractedGeocodes = initialPredictions.map(hash => {
+        const parts = hash.split('-');
         return parts[2];
       });
+
+
 
       const geocodes = [...new Set(extractedGeocodes)];
 
       geocodes.forEach(geocode => {
-        var opt = document.createElement('option');
-        opt.value = geocode;
+        if (geocode.length === 2) {
+          var opt = document.createElement('option');
+          opt.value = geocode;
+          console.log(geocode);
 
-        getCityName(geocode)
-          .then(cityString => {
-            opt.innerHTML = cityString;
-            $("#geocode").append(opt).selectpicker('refresh');
-          })
-          .catch(error => {
-            console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
-          });
+          getStateName(geocode)
+            .then(cityString => {
+              opt.innerHTML = cityString;
+              $("#uf-geocode").append(opt).selectpicker('refresh');
+            })
+            .catch(error => {
+              console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
+            });
+        }
+
+        if (geocode.length === 7) {
+          var opt = document.createElement('option');
+          opt.value = geocode;
+
+          getCityName(geocode)
+            .then(cityString => {
+              opt.innerHTML = cityString;
+              $("#geocode").append(opt).selectpicker('refresh');
+            })
+            .catch(error => {
+              console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
+            });
+        }
       });
 
       diseases.forEach(function (disease) {
@@ -466,12 +503,7 @@
       admLevel.forEach(function (level) {
         level.addEventListener("change", function () {
           selectedAdmLevel = this.value;
-          if (String(selectedAdmLevel) === "2") {
-            document.getElementById("geocode-div").style.display = "block";
-          } else {
-            selectedGeocode = null;
-            document.getElementById("geocode-div").style.display = "none";
-          }
+          displayADMDiv(selectedAdmLevel);
           $('#predictionSearch').val([]).trigger('change');
           filterPredictions();
         });
@@ -505,6 +537,16 @@
           format.checked = true;
           format.dispatchEvent(new Event('change'));
         }
+      });
+
+      $('#uf-geocode').on("change", function () {
+        let geocode = $(this).val();
+        console.log(geocode);
+        if (String(geocode) !== String(selectedGeocode)) {
+          $('#predictionSearch').val([]).trigger('change');
+        }
+        selectedGeocode = geocode;
+        filterPredictions();
       });
 
       $('#geocode').on("change", function () {
@@ -555,23 +597,27 @@
             if (prediction.substr(3, 2) === "NA") {
               selectedAdmLevel = 0;
               selectedGeocode = null;
-              document.getElementById("geocode-div").style.display = "none";
               $("#national").prop("checked", true);
             } else if (prediction.substr(3, 2) === "ST") {
+              const parts = prediction.split('-');
+              let uf_geocode = parts[2];
               selectedAdmLevel = 1;
-              selectedGeocode = null;
-              document.getElementById("geocode-div").style.display = "none";
+              selectedGeocode = uf_geocode;
+              displayADMDiv(selectedAdmLevel);
               $("#state").prop("checked", true);
+              console.log(`predict: ${selectedGeocode}`);
+              $("#uf-geocode").val(selectedGeocode).trigger("change");
+              $("#uf-geocode").selectpicker('refresh');
             } else if (prediction.substr(3, 2) === "MU") {
-              document.getElementById("geocode-div").style.display = "block";
+              displayADMDiv(selectedAdmLevel);
               selectedAdmLevel = 2;
               selectedGeocode = prediction.substr(10, 7);
               $("#municipal").prop("checked", true);
-              $("#geocode").val(selectedGeocode).trigger("change"); // this one works
+              $("#geocode").val(selectedGeocode).trigger("change");
             } else if (prediction.substr(3, 2) === "SM") {
+              displayADMDiv(selectedAdmLevel);
               selectedAdmLevel = 3;
               selectedGeocode = null;
-              document.getElementById("geocode-div").style.display = "none";
               $("#submunicipal").prop("checked", true);
             };
 
@@ -625,7 +671,6 @@
       function clearSelectors() {
         selectedDisease = null;
         selectedPredictions = [];
-        console.log("cleared");
         selectedTimeResolution = null;
         selectedAdmLevel = null;
         selectedSpatial = null;
@@ -634,6 +679,9 @@
         selectedGeocode = null;
 
         document.getElementById("geocode-div").style.display = "none";
+        document.getElementById("uf-geocode-div").style.display = "none";
+        $("#uf-geocode").val(selectedGeocode).trigger("change");
+        $("#uf-geocode").selectpicker('refresh');
 
         $("#dengue, #zika, #chik").prop("checked", false);
 
@@ -743,7 +791,9 @@
           }
 
           if (geocode != null) {
-            if (hash.substr(10, 7) !== geocode) {
+            const parts = hash.split('-');
+            let hash_geocode = parts[2];
+            if (hash_geocode !== geocode) {
               return false;
             }
           }
@@ -752,6 +802,26 @@
         });
 
         updatePredictions(filteredPredictions);
+      }
+
+      function getStateName(geocode) {
+        return fetch(`/api/state_info/?geocode=${geocode}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data && data.name && data.uf) {
+              return `${data.name} - ${data.uf}`;
+            } else {
+              throw new Error('Invalid data format or missing information');
+            }
+          })
+          .catch(error => {
+            console.error(error, error.message);
+          });
       }
 
       function getCityName(geocode) {

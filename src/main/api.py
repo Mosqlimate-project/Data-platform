@@ -62,6 +62,30 @@ class MunicipalityInfoSchema(Schema):
     longitude: float
 
 
+class StateInfoSchema(Schema):
+    name: str
+    uf: str
+
+
+@router.get(
+    "/state_info/",
+    response={200: StateInfoSchema, 404: NotFoundSchema},
+    include_in_schema=False,
+)
+@csrf_exempt
+def get_state_info(request, geocode):
+    codes_uf = {v: k for k, v in UF_CODES.items()}
+    state_info = {}
+
+    try:
+        state_info["uf"] = codes_uf[int(geocode)]
+        state_info["name"] = UFs[state_info["uf"]]
+    except (KeyError, ValueError):
+        return 404, {"message": f"Unknown geocode: {geocode}"}
+
+    return 200, state_info
+
+
 @router.get(
     "/city_info/",
     response={200: MunicipalityInfoSchema, 404: NotFoundSchema},
