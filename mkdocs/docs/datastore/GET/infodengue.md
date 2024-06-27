@@ -114,3 +114,22 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
 *The response's pagination contains information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
 data by changing the `page` parameter on the URL. [See details](#details)
+
+
+## Example using the mosqlient package
+
+The mosqlient is a Python package created to facilitate the use of API. 
+
+In the package, there is a function called `get_infodengue` that returns a pandas DataFrame with the data. This function accepts as filters the parameters `start_date`, `end_date`, `diasese`, `geocode`, and `uf`, with the same types defined in the parameters table above. 
+
+Below is a usable example of fetching data from the `RJ` state.
+```py
+    from mosqlient import get_infodengue
+
+    # return a pd.DataFrame with the data 
+    df = get_infodengue(
+               start_date='2022-12-30', 
+               end_date = '2023-01-30', 
+               disease = 'dengue',
+               uf = 'RJ')
+```

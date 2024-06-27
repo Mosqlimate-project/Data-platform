@@ -115,3 +115,28 @@ POST requests require [User API Token](uid-key.md) to be called.
       "prediction": {"prediction": "example"}
     }'   
     ```
+
+## Examples using the mosqlient package
+
+The mosqlient is a Python package created to facilitate the use of API. 
+
+In the package, there is a function called `upload_prediction` that can be used to send the predictions to the platform. 
+
+Below is a usable example of the function.
+```py
+    from mosqlient import upload_prediction
+
+    upload_prediction(
+        model_id = 0, # Check the ID in models list or profile
+        description = "My Prediction description",
+        commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
+        predict_date = "2023-10-31",
+        predict =  "json_str_prediction",
+        api_key = "X-UID-Key"
+    )
+```
+
+If you have a pandas DataFrame, called `df`, with the columns requested by the platform, that is: `dates`, `lower`, `preds`, `upper`, `adm_0`, `adm_1`, and `adm_2` you can transform it in the JSON string format accepted by the platform following the example below: 
+```py
+    df.to_json(orient = 'records', date_format = 'iso')
+```

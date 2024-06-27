@@ -140,3 +140,24 @@
       -H 'accept: application/json'
 
     ```
+
+## Examples using the mosqlient package
+
+The mosqlient is a Python package created to facilitate the use of API. 
+
+In the package, there is a function called `get_models` that returns a list of dictionaries with information about the models. This function accepts as filters all the parameters in the parameters table above except `page` and `per_page`. 
+
+Below is a usable example of fetching the models filtering by `implementation_language` and `author_name`.
+```py
+    from mosqlient import get_models
+
+    get_models(implementation_language = 'Python', author_name = 'Eduardo Correa Araujo')
+```
+
+Also, there is a specific function that filters the models by any parameter. This function is called `get_models_by_{parameter}`. The example below shows how it can be used to filter all the `dengue` models in the platform. 
+
+```py
+    from mosqlient import get_models_by_disease
+
+    get_models_by_disease(disease = 'dengue')
+```
