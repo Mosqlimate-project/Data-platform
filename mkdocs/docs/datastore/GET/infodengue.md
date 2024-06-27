@@ -128,8 +128,8 @@ Below is a usable example of fetching data from the `RJ` state.
 
     # return a pd.DataFrame with the data 
     df = get_infodengue(
-               start_date='2022-12-30', 
-               end_date = '2023-01-30', 
-               disease = 'dengue',
-               uf = 'RJ')
+        start_date='2022-12-30', 
+        end_date = '2023-01-30', 
+        disease = 'dengue',
+        uf = 'RJ')
 ```

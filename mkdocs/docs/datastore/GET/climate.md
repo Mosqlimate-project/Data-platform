@@ -120,9 +120,9 @@ Below is a usable example of fetching data from the 3304557 (Rio de Janeiro) cit
 ```py
   from mosqlient import get_climate
 
-    # return a pd.DataFrame with the data 
-    df = get_climate(
-               start_date='2022-12-30', 
-               end_date = '2023-01-30',
-               geocode = 3304557)
+  # return a pd.DataFrame with the data 
+  df = get_climate(
+      start_date='2022-12-30', 
+      end_date = '2023-01-30',
+      geocode = 3304557)
 ```
