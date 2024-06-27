@@ -138,5 +138,5 @@ upload_prediction(
 
 If you have a pandas DataFrame, called `df`, with the columns requested by the platform, that is: `dates`, `lower`, `preds`, `upper`, `adm_0`, `adm_1`, and `adm_2` you can transform it in the JSON string format accepted by the platform following the example below: 
 ```py
-    df.to_json(orient = 'records', date_format = 'iso')
+df.to_json(orient = 'records', date_format = 'iso')
 ```
