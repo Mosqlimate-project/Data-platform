@@ -156,3 +156,28 @@ POST requests require [User API Token](uid-key.md) to be called.
         "time_resolution": "week"
     }'
     ```
+
+## Examples using the mosqlient package
+
+The mosqlient is a Python package created to facilitate the use of API. 
+
+In the package, there is a function called `upload_model` that can be used to save the models in the platform. 
+
+Below is a usable example of the function.
+```py
+from mosqlient import upload_model
+
+upload_model(
+    name = "My Nowcasting Model",
+    description = "My Model description",
+    repository = "https://github.com/Mosqlimate-project/Data-platform",
+    implementation_language = "Python",
+    disease = "dengue",
+    temporal = False,
+    spatial = True,
+    categorical = False,
+    adm_level = 0, # National
+    time_resolution = "week",
+    api_key = "X-UID-Key"
+    )
+```
