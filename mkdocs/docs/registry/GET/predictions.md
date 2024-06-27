@@ -143,43 +143,43 @@ In the package, there is a function called `get_predictions` that returns a list
 
 Below is a usable example of fetching the predictions filtering by `model_disease` and `model_ADM_level`.
 ```py
-    from mosqlient import get_predictions
+from mosqlient import get_predictions
 
-    get_predictions(model_disease = 'dengue', model_ADM_level = 2)
+get_predictions(model_disease = 'dengue', model_ADM_level = 2)
 ```
 
 Also, there is a specific function that filters the predictions by any parameter. This function is called `get_models_by_{parameter}`. The example below shows how it can be used to filter all the predictions from a specific model, referred to by his`model_id`, in the platform. Below is an example. 
 
 ```py
-    from mosqlient import get_predictions_by_model_id
+from mosqlient import get_predictions_by_model_id
 
-    get_predictions_by_model_id(model_id = 6)
+get_predictions_by_model_id(model_id = 6)
 ```
 
 The functions above return a list of dictionaries, each representing the metadata associated with a single prediction. To obtain a DataFrame from the JSON prediction, you can use the code below: 
 
 ```py 
-    from mosqlient import get_predictions_by_model_id
+from mosqlient import get_predictions_by_model_id
     
-    def transform_json_to_dataframe(res:dict) -> pd.DataFrame:
-      """
-      A function that transforms the prediction output from the API and transforms it in a DataFrame.
+def transform_json_to_dataframe(res:dict) -> pd.DataFrame:
+  """
+  A function that transforms the prediction output from the API and transforms it in a DataFrame.
 
-      Parameters:
-      rest (dict): Output of the  prediction's API.
+  Parameters:
+  rest (dict): Output of the  prediction's API.
 
-      Returns:
-      pd.DataFrame. 
-      """
+  Returns:
+  pd.DataFrame. 
+  """
 
-      json_struct = json.loads(res['prediction'])    
-      df = pd.json_normalize(json_struct)
-      df.dates = pd.to_datetime(df.dates)
+  json_struct = json.loads(res['prediction'])    
+  df = pd.json_normalize(json_struct)
+  df.dates = pd.to_datetime(df.dates)
 
-      return df
+  return df
     
 
-    preds = get_predictions_by_model_id(model_id = 6)
+preds = get_predictions_by_model_id(model_id = 6)
 
-    df_preds_0 = transform_json_to_dataframe(preds[0])
+df_preds_0 = transform_json_to_dataframe(preds[0])
 ```

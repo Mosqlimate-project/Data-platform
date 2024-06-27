@@ -164,19 +164,19 @@ In the package, there is a function called `upload_model` that can be used to sa
 
 Below is a usable example of the function.
 ```py
-    from mosqlient import upload_model
+from mosqlient import upload_model
 
-    upload_model(
-        name = "My Nowcasting Model",
-        description = "My Model description",
-        repository = "https://github.com/Mosqlimate-project/Data-platform",
-        implementation_language = "Python",
-        disease = "dengue",
-        temporal = False,
-        spatial = True,
-        categorical = False,
-        adm_level = 0, # National
-        time_resolution = "week",
-        api_key = "X-UID-Key"
+upload_model(
+    name = "My Nowcasting Model",
+    description = "My Model description",
+    repository = "https://github.com/Mosqlimate-project/Data-platform",
+    implementation_language = "Python",
+    disease = "dengue",
+    temporal = False,
+    spatial = True,
+    categorical = False,
+    adm_level = 0, # National
+    time_resolution = "week",
+    api_key = "X-UID-Key"
     )
 ```

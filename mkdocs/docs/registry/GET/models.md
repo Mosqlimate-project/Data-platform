@@ -149,15 +149,16 @@ In the package, there is a function called `get_models` that returns a list of d
 
 Below is a usable example of fetching the models filtering by `implementation_language` and `author_name`.
 ```py
-    from mosqlient import get_models
+from mosqlient import get_models
 
-    get_models(implementation_language = 'Python', author_name = 'Eduardo Correa Araujo')
+get_models(implementation_language = 'Python', 
+          author_name = 'Eduardo Correa Araujo')
 ```
 
 Also, there is a specific function that filters the models by any parameter. This function is called `get_models_by_{parameter}`. The example below shows how it can be used to filter all the `dengue` models in the platform. 
 
 ```py
-    from mosqlient import get_models_by_disease
+from mosqlient import get_models_by_disease
 
-    get_models_by_disease(disease = 'dengue')
+get_models_by_disease(disease = 'dengue')
 ```

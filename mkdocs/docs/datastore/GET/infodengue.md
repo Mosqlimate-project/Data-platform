@@ -124,12 +124,12 @@ In the package, there is a function called `get_infodengue` that returns a panda
 
 Below is a usable example of fetching data from the `RJ` state.
 ```py
-    from mosqlient import get_infodengue
+from mosqlient import get_infodengue
 
-    # return a pd.DataFrame with the data 
-    df = get_infodengue(
-        start_date='2022-12-30', 
-        end_date = '2023-01-30', 
-        disease = 'dengue',
-        uf = 'RJ')
+# return a pd.DataFrame with the data 
+df = get_infodengue(
+    start_date='2022-12-30', 
+    end_date = '2023-01-30', 
+    disease = 'dengue',
+    uf = 'RJ')
 ```
