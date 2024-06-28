@@ -4,10 +4,13 @@ import pandas as pd
 import altair as alt
 
 from django.urls import reverse
+from django.db.models import Sum
 from django.http import HttpRequest
 
 from registry.models import Prediction
 from vis.plots.home.vis_charts import historico_alerta_data_for
+from main.utils import UF_CODES, UFs
+from datastore.models import DengueGlobal, HistoricoAlerta
 from .errors import NotFoundError, VisualizationError
 
 
@@ -80,21 +83,54 @@ def data_chart_by_geocode(
     disease: Literal["dengue", "chikungunya", "zika"],
     start: date,
     end: date,
-    geocode: int,
+    adm_1_geocode: int = None,
+    adm_2_geocode: int = None,
     width="container",
     x: str = "dates",
     y: str = "target",
     legend: str = "Data",
 ) -> pd.DataFrame:
     hist_alerta = historico_alerta_data_for(disease)
-    data = hist_alerta.filter(
-        data_iniSE__gt=start, data_iniSE__lt=end, municipio_geocodigo=geocode
-    )
-
+    codes_uf = {v: k for k, v in UF_CODES.items()}
     res = {x: [], y: []}
-    for obj in data:
-        res[x].append(obj.data_iniSE)
-        res[y].append(obj.casos)
+
+    if adm_1_geocode:
+        data = HistoricoAlerta.objects.using("infodengue").all()
+        try:
+            uf = codes_uf[int(adm_1_geocode)]
+        except (KeyError, ValueError):
+            raise VisualizationError(
+                f"Unkown UF Geocode {adm_1_geocode}. Example: 31"
+            )
+        uf_name = UFs[uf]
+        geocodes = (
+            DengueGlobal.objects.using("infodengue")
+            .filter(uf=uf_name)
+            .values_list("geocodigo", flat=True)
+        )
+        data = (
+            data.filter(
+                data_iniSE__gt=start,
+                data_iniSE__lt=end,
+                municipio_geocodigo__in=geocodes,
+            )
+            .values("data_iniSE")
+            .annotate(casos=Sum("casos"))
+            .order_by("data_iniSE")
+        )
+        for obj in data:
+            res[x].append(obj["data_iniSE"])
+            res[y].append(obj["casos"])
+
+    if adm_2_geocode:
+        data = hist_alerta.filter(
+            data_iniSE__gt=start,
+            data_iniSE__lt=end,
+            municipio_geocodigo=adm_2_geocode,
+        )
+        for obj in data:
+            res[x].append(obj.data_iniSE)
+            res[y].append(obj.casos)
 
     df = pd.DataFrame(res)
     df["legend"] = "Data"
@@ -126,7 +162,8 @@ def line_charts_by_geocode(
     x = "dates"
     y = "target"
 
-    geocode: int = None
+    adm_1_geocode: int = None
+    adm_2_geocode: int = None
 
     for prediction_id in predictions_ids:
         try:
@@ -135,15 +172,26 @@ def line_charts_by_geocode(
             # TODO: Improve error handling
             raise VisualizationError("Prediction not found")
 
-        if not geocode:
-            geocode = prediction.adm_2_geocode
+        adm_level = prediction.model.ADM_level
+        if adm_level == 1:
+            if not adm_1_geocode:
+                adm_1_geocode = prediction.adm_1_geocode
 
-        if geocode != prediction.adm_2_geocode:
-            raise VisualizationError(
-                "Two different geocodes were added to be visualized"
-            )
+            if adm_1_geocode != prediction.adm_1_geocode:
+                raise VisualizationError(
+                    "Two different geocodes were added to be visualized"
+                )
 
-    if not geocode:
+        if adm_level == 2:
+            if not adm_2_geocode:
+                adm_2_geocode = prediction.adm_2_geocode
+
+            if adm_2_geocode != prediction.adm_2_geocode:
+                raise VisualizationError(
+                    "Two different geocodes were added to be visualized"
+                )
+
+    if not adm_1_geocode and not adm_2_geocode:
         raise VisualizationError("No geocode was selected to be visualized")
 
     predicts_df = predictions_df_by_geocode(predictions_ids)
@@ -175,7 +223,8 @@ def line_charts_by_geocode(
 
     data_chart = data_chart_by_geocode(
         disease=disease,
-        geocode=geocode,
+        adm_1_geocode=adm_1_geocode,
+        adm_2_geocode=adm_2_geocode,
         start=min(predicts_df.dates),
         end=max(predicts_df.dates),
         width=width,
