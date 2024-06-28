@@ -111,8 +111,6 @@ class DashboardView(View):
                     )
                 )
 
-        print(predictions_data)
-
         context["predictions"] = predictions_data
 
         model_types = set()
