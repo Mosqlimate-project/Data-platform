@@ -447,7 +447,6 @@
         if (geocode.length === 2) {
           var opt = document.createElement('option');
           opt.value = geocode;
-          console.log(geocode);
 
           getStateName(geocode)
             .then(cityString => {
@@ -541,7 +540,6 @@
 
       $('#uf-geocode').on("change", function () {
         let geocode = $(this).val();
-        console.log(geocode);
         if (String(geocode) !== String(selectedGeocode)) {
           $('#predictionSearch').val([]).trigger('change');
         }
@@ -605,7 +603,6 @@
               selectedGeocode = uf_geocode;
               displayADMDiv(selectedAdmLevel);
               $("#state").prop("checked", true);
-              console.log(`predict: ${selectedGeocode}`);
               $("#uf-geocode").val(selectedGeocode).trigger("change");
               $("#uf-geocode").selectpicker('refresh');
             } else if (prediction.substr(3, 2) === "MU") {
