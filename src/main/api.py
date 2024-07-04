@@ -1,8 +1,10 @@
 import os
 import json
+import orjson
 
-from django.urls import reverse
 from ninja import NinjaAPI, Router, Schema
+from ninja.parser import Parser
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse
@@ -21,6 +23,12 @@ MUN_FILE = settings.BASE_DIR / "static/data/geo/BR/municipios.json"
 with open(MUN_FILE, "r") as file:
     MUN_DATA = json.load(file)
 
+
+class ORJSONParser(Parser):
+    def parse_body(self, request):
+        return orjson.loads(request.body)
+
+
 api = NinjaAPI(
     csrf=True,
     title="API Demo",
@@ -31,6 +39,7 @@ api = NinjaAPI(
         "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
     ),
     version="1",
+    parser=ORJSONParser(),
 )
 
 router = Router()

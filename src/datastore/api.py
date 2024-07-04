@@ -16,7 +16,7 @@ from main.utils import UFs
 from registry.pagination import (
     paginate,
     PagesPagination,
-    LimitOffsetPagination,
+    # LimitOffsetPagination,
 )
 from .models import (
     DengueGlobal,
@@ -38,11 +38,11 @@ from .schema import (
 router = Router()
 
 paginator = PagesPagination
-async_paginator = LimitOffsetPagination
+# paginator = LimitOffsetPagination
 paginator.max_per_page = 300
 
 
-@paginate(async_paginator)
+@paginate(paginator)
 @router.get(
     "/infodengue/",
     response={
