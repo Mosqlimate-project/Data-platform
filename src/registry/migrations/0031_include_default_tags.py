@@ -8,7 +8,7 @@ def populate_default_tags(apps, schema_editor):
     Tag.objects.get_or_create(name="Spatial", color="#4500db")
     Tag.objects.get_or_create(name="Temporal", color="#00d824")
     Tag.objects.get_or_create(name="Quantitative", color="#ddc018")
-    Tag.objects.get_or_create(name="Qualitative", color="#cb00d6")
+    Tag.objects.get_or_create(name="Categorical", color="#cb00d6")
     Tag.objects.get_or_create(name="Daily", color="#d3005b")
     Tag.objects.get_or_create(name="Weekly", color="#b700d3")
     Tag.objects.get_or_create(name="Monthly", color="#9400d3")
@@ -20,6 +20,7 @@ def populate_default_tags(apps, schema_editor):
     Tag.objects.get_or_create(name="Dengue", color="#ff003b")
     Tag.objects.get_or_create(name="Zika", color="#aa00ff")
     Tag.objects.get_or_create(name="Chikungunya", color="#00bfff")
+    Tag.objects.get_or_create(name="Sprint2425", color="#06d1a1")
 
 
 class Migration(migrations.Migration):

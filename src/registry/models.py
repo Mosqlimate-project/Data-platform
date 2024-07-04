@@ -1,14 +1,15 @@
 import os
-from datetime import datetime
-from io import StringIO
-from main.utils import UF_CODES
 import pandas as pd
+from io import StringIO
+from typing import Literal
+from datetime import datetime
 
-from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from django.core.validators import RegexValidator
+from django.utils.translation import gettext_lazy as _
 
+from main.utils import UF_CODES
 from vis.dash import errors
 from vis.metadata import compose_prediction_metadata
 
@@ -34,6 +35,50 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_tag_ids_from_model_id(model_id: int) -> list[int]:
+        return _get_tag_ids_from_model_id(model_id)
+
+    @staticmethod
+    def get_tag_id_by_disease(
+        disease: Literal["dengue", "zika", "chik"]
+    ) -> int:
+        disease = "chikungunya" if disease == "chik" else disease
+        try:
+            return Tag.objects.get(name=disease.capitalize()).id
+        except Tag.DoesNotExist:
+            pass
+
+    @staticmethod
+    def get_tag_id_by_time_resolution(
+        time_resolution: Literal["day", "week", "month", "year"]
+    ) -> int:
+        times_res = {
+            "day": "Daily",
+            "week": "Weekly",
+            "month": "Monthly",
+            "year": "Yearly",
+        }
+        try:
+            time_resolution = times_res[time_resolution]
+            return Tag.objects.get(name=time_resolution).id
+        except (Tag.DoesNotExist, KeyError):
+            pass
+
+    @staticmethod
+    def get_tag_id_by_adm_level(adm_level: Literal[0, 1, 2, 3]) -> int:
+        adm_levels = {
+            0: "ADM 0",
+            1: "ADM 1",
+            2: "ADM 2",
+            3: "ADM 3",
+        }
+        try:
+            adm_level = adm_levels[adm_level]
+            return Tag.objects.get(name=adm_level).id
+        except (Tag.DoesNotExist, KeyError):
+            pass
 
 
 class ImplementationLanguage(models.Model):
@@ -235,3 +280,23 @@ class Prediction(models.Model):
     class Meta:
         verbose_name = _("Prediction")
         verbose_name_plural = _("Predictions")
+
+
+def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
+    model = Model.objects.get(pk=model_id)
+    tags = set(
+        [
+            Tag.get_tag_id_by_disease(model.disease),
+            Tag.get_tag_id_by_adm_level(model.ADM_level),
+            Tag.get_tag_id_by_time_resolution(model.time_resolution),
+        ]
+    )
+    if model.temporal:
+        tags.add(Tag.objects.get(name="Temporal").id)
+    if model.spatial:
+        tags.add(Tag.objects.get(name="Spatial").id)
+    if model.categorical:
+        tags.add(Tag.objects.get(name="Categorical").id)
+    else:
+        tags.add(Tag.objects.get(name="Quantitative").id)
+    return list(tags)
