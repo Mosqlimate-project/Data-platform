@@ -16,7 +16,7 @@
 
   <div class="container">
     <form method="get" action={% url 'predictions' %}>
-      <input type="hidden" class="form-control" name="per_page" value="{{ pagination.per_page|default_if_none:50 }}" min="1" max="50">
+      <input type="hidden" class="form-control" name="per_page" value="{{ pagination.per_page|default_if_none:300 }}" min="1" max="300">
       <div class="p-2 collapse" id="modelCollapse">
 
         <div class="row mb-3 model-row">

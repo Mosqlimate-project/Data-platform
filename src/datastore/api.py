@@ -6,18 +6,14 @@ import duckdb
 import pandas as pd
 
 from ninja import Router, Query
+from ninja.pagination import paginate  # , PageNumberPagination
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
 from django.conf import settings
-from asgiref.sync import sync_to_async
 
 from main.schema import NotFoundSchema, InternalErrorSchema
 from main.utils import UFs
-from registry.pagination import (
-    paginate,
-    PagesPagination,
-    # LimitOffsetPagination,
-)
+from registry.pagination import LimitOffsetPagination
 from .models import (
     DengueGlobal,
     HistoricoAlerta,
@@ -37,12 +33,10 @@ from .schema import (
 
 router = Router()
 
-paginator = PagesPagination
-# paginator = LimitOffsetPagination
-paginator.max_per_page = 300
+# paginator = PagesPagination
+paginator = LimitOffsetPagination
 
 
-@paginate(paginator)
 @router.get(
     "/infodengue/",
     response={
@@ -52,60 +46,45 @@ paginator.max_per_page = 300
     },
     tags=["datastore", "infodengue"],
 )
+@paginate(paginator)
 @csrf_exempt
 async def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
-    uf: Optional[
-        Literal[
-            "AC",
-            "AL",
-            "AP",
-            "AM",
-            "BA",
-            "CE",
-            "ES",
-            "GO",
-            "MA",
-            "MT",
-            "MS",
-            "MG",
-            "PA",
-            "PB",
-            "PR",
-            "PE",
-            "PI",
-            "RJ",
-            "RN",
-            "RS",
-            "RO",
-            "RR",
-            "SC",
-            "SP",
-            "SE",
-            "TO",
-            "DF",
-        ]
-    ] = None,
+    # fmt: off
+    uf: Optional[Literal[
+        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
+        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
+        "SE", "TO", "DF"
+    ]] = None,
+    # fmt: on
     **kwargs,
 ):
-    print("Inside get_infodengue function")
-    disease = disease.lower()
+    disease = disease.lower()  # pyright: ignore
 
     try:
         if disease in ["chik", "chikungunya"]:
-            data = await sync_to_async(
-                HistoricoAlertaChik.objects.using("infodengue").all
-            )()
+            data = [
+                i
+                async for i in HistoricoAlertaChik.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         elif disease in ["deng", "dengue"]:
-            data = await sync_to_async(
-                HistoricoAlerta.objects.using("infodengue").all
-            )()
+            data = [
+                i
+                async for i in HistoricoAlerta.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         elif disease == "zika":
-            data = await sync_to_async(
-                HistoricoAlertaZika.objects.using("infodengue").all
-            )()
+            data = [
+                i
+                async for i in HistoricoAlertaZika.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         else:
             return 404, {
                 "message": "Unknown disease. Options: dengue, zika, chik"
@@ -116,13 +95,14 @@ async def get_infodengue(
     if uf:
         uf = uf.upper()  # pyright: ignore
         if uf not in list(UFs):
-            return 404, {"message": "Unknown UF. Format: SP"}
+            return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
-        geocodes = await sync_to_async(
-            DengueGlobal.objects.using("infodengue")
+        geocodes = [
+            i
+            async for i in DengueGlobal.objects.using("infodengue")
             .filter(uf=uf_name)
-            .values_list
-        )("geocodigo", flat=True)
+            .values_list("geocodigo", flat=True)
+        ]
         data = data.filter(municipio_geocodigo__in=geocodes)
 
     data = filters.filter(data)
@@ -140,7 +120,7 @@ async def get_infodengue(
 )
 @paginate(paginator)
 @csrf_exempt
-async def get_copernicus_brasil(
+def get_copernicus_brasil(
     request,
     filters: CopernicusBrasilFilterSchema = Query(...),
     # fmt: off
@@ -153,9 +133,7 @@ async def get_copernicus_brasil(
     **kwargs,
 ):
     try:
-        data = await sync_to_async(
-            CopernicusBrasil.objects.using("infodengue").all
-        )()
+        data = CopernicusBrasil.objects.using("infodengue").all()
     except OperationalError:
         return 500, {"message": "Server error. Please contact the moderation"}
 
@@ -164,11 +142,11 @@ async def get_copernicus_brasil(
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
-        geocodes = await sync_to_async(
+        geocodes = (
             DengueGlobal.objects.using("infodengue")
             .filter(uf=uf_name)
-            .values_list
-        )("geocodigo", flat=True)
+            .values_list("geocodigo", flat=True)
+        )
         data = data.filter(geocodigo__in=geocodes)
 
     data = filters.filter(data)

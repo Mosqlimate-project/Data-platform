@@ -828,6 +828,17 @@ typer = ">=0.9.0"
 tui = ["plotille (>=5)", "rich (>=10.11.0)", "textual (>=0.48)"]
 
 [[package]]
+name = "contextlib2"
+version = "21.6.0"
+description = "Backports and enhancements for the contextlib module"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "contextlib2-21.6.0-py2.py3-none-any.whl", hash = "sha256:3fbdb64466afd23abaf6c977627b75b6139a5a3e8ce38405c5b413aed7a0471f"},
+    {file = "contextlib2-21.6.0.tar.gz", hash = "sha256:ab1e2bfe1d01d968e1b7e8d9023bc51ef3509bba217bb730cee3827e1ee82869"},
+]
+
+[[package]]
 name = "contourpy"
 version = "1.2.1"
 description = "Python library for calculating contours of 2D quadrilateral grids"
@@ -1218,13 +1229,13 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-ninja"
-version = "1.1.0"
+version = "1.2.0"
 description = "Django Ninja - Fast Django REST framework"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "django_ninja-1.1.0-py3-none-any.whl", hash = "sha256:6330c3497061d9fd1f43c1200f85c13aab7687110e2899f8304e5aa476c10b44"},
-    {file = "django_ninja-1.1.0.tar.gz", hash = "sha256:87bff046416a2653ed2fbef1408e101292bf8170684821bac82accfd73bef059"},
+    {file = "django_ninja-1.2.0-py3-none-any.whl", hash = "sha256:aa8ca853bf189cc13247b1922ca41f1a6e60056c90041ec0081cce0ea8d8de02"},
+    {file = "django_ninja-1.2.0.tar.gz", hash = "sha256:0a7b7e20202f50546ae45af6a262fccb606c9e75b8bbe9fe38d49075a9435bf0"},
 ]
 
 [package.dependencies]
@@ -1234,7 +1245,25 @@ pydantic = ">=2.0,<3.0.0"
 [package.extras]
 dev = ["pre-commit"]
 doc = ["markdown-include", "mkdocs", "mkdocs-material", "mkdocstrings"]
-test = ["django-stubs", "mypy (==1.7.1)", "psycopg2-binary", "pytest", "pytest-asyncio", "pytest-cov", "pytest-django", "ruff (==0.1.7)"]
+test = ["django-stubs", "mypy (==1.7.1)", "psycopg2-binary", "pytest", "pytest-asyncio", "pytest-cov", "pytest-django", "ruff (==0.4.2)"]
+
+[[package]]
+name = "django-ninja-extra"
+version = "0.21.0"
+description = "Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST framework)"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "django_ninja_extra-0.21.0-py3-none-any.whl", hash = "sha256:9364760cbe0e3d80696ce0cfd07742139957bb4267813cb86643e7ce00779a8e"},
+    {file = "django_ninja_extra-0.21.0.tar.gz", hash = "sha256:c8cb2ca620bed132075b5858ed1ce9f71969ec4ffab6e0e8a58098d613a9dc39"},
+]
+
+[package.dependencies]
+asgiref = "*"
+contextlib2 = "*"
+Django = ">=2.2"
+django-ninja = "1.2.0"
+injector = ">=0.19.0"
 
 [[package]]
 name = "django-plotly-dash"
@@ -1791,6 +1820,20 @@ typing-extensions = "*"
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
 testing = ["pygments", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
+
+[[package]]
+name = "injector"
+version = "0.21.0"
+description = "Injector - Python dependency injection framework, inspired by Guice"
+optional = false
+python-versions = "*"
+files = [
+    {file = "injector-0.21.0-py2.py3-none-any.whl", hash = "sha256:3942c5e4c501d390d5ad1b8d7d486ef93b844934afeeb17211acb6c4ca29eeb4"},
+    {file = "injector-0.21.0.tar.gz", hash = "sha256:919eb6b9f96f40bf98fda34c79762b217bd1544d9adc35805ff2948e92356c9c"},
+]
+
+[package.extras]
+dev = ["black (==23.3.0)", "build (==0.10.0)", "check-manifest (==0.49)", "click (==8.1.3)", "coverage (==7.2.7)", "exceptiongroup (==1.1.1)", "iniconfig (==2.0.0)", "mypy (==1.4.1)", "mypy-extensions (==1.0.0)", "packaging (==23.1)", "pathspec (==0.11.1)", "platformdirs (==3.8.0)", "pluggy (==1.2.0)", "pyproject-hooks (==1.0.0)", "pytest (==7.4.0)", "pytest-cov (==4.1.0)", "tomli (==2.0.1)", "typing-extensions (==4.7.0)"]
 
 [[package]]
 name = "ipykernel"
@@ -3132,6 +3175,20 @@ files = [
     {file = "orjson-3.10.6-cp39-none-win_amd64.whl", hash = "sha256:49e3bc615652617d463069f91b867a4458114c5b104e13b7ae6872e5f79d0844"},
     {file = "orjson-3.10.6.tar.gz", hash = "sha256:e54b63d0a7c6c54a5f5f726bc93a2078111ef060fec4ecbf34c5db800ca3b3a7"},
 ]
+
+[[package]]
+name = "outcome"
+version = "1.3.0.post0"
+description = "Capture the outcome of Python function calls."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "outcome-1.3.0.post0-py2.py3-none-any.whl", hash = "sha256:e771c5ce06d1415e356078d3bdd68523f284b4ce5419828922b6871e65eda82b"},
+    {file = "outcome-1.3.0.post0.tar.gz", hash = "sha256:9dcf02e65f2971b80047b377468e72a268e15c0af3cf1238e6ff14f7f91143b8"},
+]
+
+[package.dependencies]
+attrs = ">=19.2.0"
 
 [[package]]
 name = "overrides"
@@ -4658,6 +4715,17 @@ files = [
 ]
 
 [[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
+]
+
+[[package]]
 name = "soupsieve"
 version = "2.5"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -4801,6 +4869,25 @@ files = [
 [package.extras]
 docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
+
+[[package]]
+name = "trio"
+version = "0.25.1"
+description = "A friendly Python library for async concurrency and I/O"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "trio-0.25.1-py3-none-any.whl", hash = "sha256:e42617ba091e7b2e50c899052e83a3c403101841de925187f61e7b7eaebdf3fb"},
+    {file = "trio-0.25.1.tar.gz", hash = "sha256:9f5314f014ea3af489e77b001861c535005c3858d38ec46b6b071ebfa339d7fb"},
+]
+
+[package.dependencies]
+attrs = ">=23.2.0"
+cffi = {version = ">=1.14", markers = "os_name == \"nt\" and implementation_name != \"pypy\""}
+idna = "*"
+outcome = "*"
+sniffio = ">=1.3.0"
+sortedcontainers = "*"
 
 [[package]]
 name = "twisted"
@@ -5241,4 +5328,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "a44067c2cc4c3860145ef9ca07032a64bf38578b6415d98ed16171708fa546a2"
+content-hash = "dfd33be69b44b7d85ae139dc90860635aa3540c8c33191053412fa361c69f4c9"
