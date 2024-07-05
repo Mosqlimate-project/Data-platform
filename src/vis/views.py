@@ -35,6 +35,7 @@ class DashboardView(View):
     template_name = "vis/dashboard.html"
 
     def get(self, request):
+        codes_uf = {v: k for k, v in UF_CODES.items()}
         context = {}
 
         context["selectedDisease"] = None
@@ -79,21 +80,36 @@ class DashboardView(View):
 
         models = Model.objects.all()
         predictions = Prediction.objects.filter(visualizable=True)
+        predictions_data = []
 
-        city_names_w_uf = []
-        for geocode in predictions.values_list("adm_2_geocode", flat=True):
-            if geocode:
-                _, info = get_municipality_info(request, geocode)
-                city_names_w_uf.append(f"{info['municipio']} - {info['uf']}")
+        for prediction in Prediction.objects.filter(model__ADM_level=1):
+            if prediction.adm_1_geocode:
+                predictions_data.append(
+                    tuple(
+                        [
+                            prediction.id,
+                            prediction.model.name,
+                            prediction.metadata,
+                            codes_uf[prediction.adm_1_geocode],
+                        ]
+                    )
+                )
 
-        predictions_data = list(
-            zip(
-                list(predictions.values_list("id", flat=True)),
-                list(predictions.values_list("model__name", flat=True)),
-                list(predictions.values_list("metadata", flat=True)),
-                city_names_w_uf,
-            )
-        )
+        for prediction in Prediction.objects.filter(model__ADM_level=2):
+            if prediction.adm_2_geocode:
+                _, info = get_municipality_info(
+                    request, prediction.adm_2_geocode
+                )
+                predictions_data.append(
+                    tuple(
+                        [
+                            prediction.id,
+                            prediction.model.name,
+                            prediction.metadata,
+                            f"{info['municipio']} - {info['uf']}",
+                        ]
+                    )
+                )
 
         context["predictions"] = predictions_data
 
