@@ -79,7 +79,7 @@ class ModelsView(View):
         # Parameters that come in the request
         predicts_params = {
             "page": get("page", 1),
-            "per_page": get("per_page", 50),
+            "per_page": get("per_page", 300),
             "id": get("id", ""),
             "name": get("name", ""),
             "author_name": get("author_name", ""),
@@ -97,7 +97,7 @@ class ModelsView(View):
             filters = ModelFilterSchema()
             pagination = PagesPagination.Input(
                 page=int(request.session.get("page") or 1),
-                per_page=int(request.session.get("per_page") or 50),
+                per_page=int(request.session.get("per_page") or 300),
             )
 
             for param, value in predicts_params.items():
@@ -274,7 +274,7 @@ class PredictionsView(View):
         # Parameters that come in the request
         predicts_params = {
             "page": get("page", 1),
-            "per_page": get("per_page", 50),
+            "per_page": get("per_page", 300),
             "id": get("id", ""),
             "model_id": get("model_id", ""),
             "model_name": get("model_name", ""),
@@ -296,7 +296,7 @@ class PredictionsView(View):
             filters = PredictionFilterSchema()
             pagination = PagesPagination.Input(
                 page=int(request.session.get("page") or 1),
-                per_page=int(request.session.get("per_page") or 50),
+                per_page=int(request.session.get("per_page") or 300),
             )
 
             for param, value in predicts_params.items():

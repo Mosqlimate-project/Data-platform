@@ -6,14 +6,14 @@ import duckdb
 import pandas as pd
 
 from ninja import Router, Query
-from ninja.pagination import paginate
+from ninja.pagination import paginate  # , PageNumberPagination
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
 from django.conf import settings
 
 from main.schema import NotFoundSchema, InternalErrorSchema
 from main.utils import UFs
-from registry.pagination import PagesPagination
+from registry.pagination import LimitOffsetPagination
 from .models import (
     DengueGlobal,
     HistoricoAlerta,
@@ -33,8 +33,8 @@ from .schema import (
 
 router = Router()
 
-paginator = PagesPagination
-paginator.max_per_page = 300
+# paginator = PagesPagination
+paginator = LimitOffsetPagination
 
 
 @router.get(
@@ -48,7 +48,7 @@ paginator.max_per_page = 300
 )
 @paginate(paginator)
 @csrf_exempt
-def get_infodengue(
+async def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik"],
     filters: HistoricoAlertaFilterSchema = Query(...),
@@ -65,11 +65,26 @@ def get_infodengue(
 
     try:
         if disease in ["chik", "chikungunya"]:
-            data = HistoricoAlertaChik.objects.using("infodengue").all()
+            data = [
+                i
+                async for i in HistoricoAlertaChik.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         elif disease in ["deng", "dengue"]:
-            data = HistoricoAlerta.objects.using("infodengue").all()
+            data = [
+                i
+                async for i in HistoricoAlerta.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         elif disease == "zika":
-            data = HistoricoAlertaZika.objects.using("infodengue").all()
+            data = [
+                i
+                async for i in HistoricoAlertaZika.objects.using(
+                    "infodengue"
+                ).all()
+            ]
         else:
             return 404, {
                 "message": "Unknown disease. Options: dengue, zika, chik"
@@ -82,11 +97,12 @@ def get_infodengue(
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
-        geocodes = (
-            DengueGlobal.objects.using("infodengue")
+        geocodes = [
+            i
+            async for i in DengueGlobal.objects.using("infodengue")
             .filter(uf=uf_name)
             .values_list("geocodigo", flat=True)
-        )
+        ]
         data = data.filter(municipio_geocodigo__in=geocodes)
 
     data = filters.filter(data)

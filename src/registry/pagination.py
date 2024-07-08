@@ -1,9 +1,38 @@
-from ninja.pagination import PaginationBase
-from ninja import Schema
+from math import inf
 from typing import Any, List
 
+import asyncio
+from ninja.pagination import AsyncPaginationBase
+from ninja import Schema, Field
+from ninja.conf import settings
+from django.db.models import QuerySet
 
-class PagesPagination(PaginationBase):
+
+class PagesPagination(AsyncPaginationBase):
+    """
+    Pagination formula:
+        "Total pages" = ("Query" // "Per page") (+ 1)
+        NOTE: + 1 if there are leftovers
+
+    Slicing:
+        result = "Query"[("Page"-1) * "Per Page" : "Page" * "Per page"]
+
+    Example:
+        query: 42 objects
+        per page: 5
+
+        total pages = (42//5)+1 = 9
+
+        page 1 = query[0:5]
+        page 2 = query[5:10]
+        page 3 = query[10:15]
+        ...
+        page 9 = query[40:45]
+
+    Notes:
+        - If the requested page is < 1 or > last page, return rather 1 or last page
+    """
+
     max_per_page: int = 300
 
     class Input(Schema):
@@ -17,33 +46,10 @@ class PagesPagination(PaginationBase):
 
     def paginate_queryset(
         self,
-        queryset,
+        queryset: QuerySet,
         pagination: Input,
         **params: Any,
     ) -> Any:
-        """
-        Pagination formula:
-            "Total pages" = ("Query" // "Per page") (+ 1)
-            NOTE: + 1 if there are leftovers
-
-        Slicing:
-            result = "Query"[("Page"-1) * "Per Page" : "Page" * "Per page"]
-
-        Example:
-            query: 42 objects
-            per page: 5
-
-            total pages = (42//5)+1 = 9
-
-            page 1 = query[0:5]
-            page 2 = query[5:10]
-            page 3 = query[10:15]
-            ...
-            page 9 = query[40:45]
-
-        Notes:
-            - If the requested page is < 1 or > last page, return rather 1 or last page
-        """
         total_items: int = self._items_count(queryset)
         page: int = pagination.page
         per_page: int = pagination.per_page
@@ -80,7 +86,7 @@ class PagesPagination(PaginationBase):
         return {
             "items": items,
             "pagination": {
-                "items": len(items),
+                "items": self._aitems_count(queryset),
                 "total_items": total_items,
                 "page": page,
                 "total_pages": total_pages,
@@ -88,3 +94,61 @@ class PagesPagination(PaginationBase):
             },
             "message": message,
         }
+
+    async def apaginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        **params: Any,
+    ) -> Any:
+        offset = pagination.offset
+        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
+        return {
+            "items": queryset[offset : offset + limit],
+            "count": await self._aitems_count(queryset),
+        }  # noqa: E203
+
+
+class LimitOffsetPagination(AsyncPaginationBase):
+    class Input(Schema):
+        limit: int = Field(
+            settings.PAGINATION_PER_PAGE,
+            ge=1,
+            le=settings.PAGINATION_MAX_LIMIT
+            if settings.PAGINATION_MAX_LIMIT != inf
+            else None,
+        )
+        offset: int = Field(0, ge=0)
+
+    async def paginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        **params: Any,
+    ) -> Any:
+        if asyncio.iscoroutine(queryset):
+            print("it is")
+            return await self.apaginate_queryset(
+                queryset, pagination, **params
+            )
+        print("it is not")
+
+        offset = pagination.offset
+        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
+        return {
+            "items": queryset[offset : offset + limit],
+            "count": self._items_count(queryset),
+        }
+
+    async def apaginate_queryset(
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        **params: Any,
+    ) -> Any:
+        offset = pagination.offset
+        limit: int = min(pagination.limit, settings.PAGINATION_MAX_LIMIT)
+        return {
+            "items": queryset[offset : offset + limit],
+            "count": await self._aitems_count(queryset),
+        }  # noqa: E203
