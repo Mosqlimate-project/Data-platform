@@ -3,6 +3,7 @@ import pandas as pd
 from io import StringIO
 from typing import Literal
 from datetime import datetime
+from random import randrange as rr
 
 from django.db import models
 from django.conf import settings
@@ -22,6 +23,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
     color = models.CharField(
         max_length=7,
+        null=True,
         validators=[
             RegexValidator(
                 regex=r"^#[0-9A-Fa-f]{6}$",
@@ -37,8 +39,46 @@ class Tag(models.Model):
         return self.name
 
     @staticmethod
+    def random_rgb() -> str:
+        return f"#{rr(255):02x}{rr(255):02x}{rr(255):02x}"
+
+    @staticmethod
     def get_tag_ids_from_model_id(model_id: int) -> list[int]:
         return _get_tag_ids_from_model_id(model_id)
+
+    @staticmethod
+    def get_tag_id_by_implementation_language(
+        implementation_language: Literal[
+            "Python",
+            "C++",
+            "CoffeeScript",
+            "C#",
+            "C",
+            ".NET",
+            "Erlang",
+            "Go",
+            "Haskell",
+            "JavaScript",
+            "Java",
+            "Kotlin",
+            "Lua",
+            "R",
+            "Ruby",
+            "Rust",
+            "Zig",
+        ]
+    ) -> int:
+        languages = ImplementationLanguage.objects.values_list(
+            "language", flat=True
+        )
+        if implementation_language not in languages:
+            raise ValueError(
+                f"Unknown programming language '{implementation_language}'"
+            )
+        try:
+            return Tag.objects.get(name=implementation_language).id
+        except Tag.DoesNotExist:
+            pass
 
     @staticmethod
     def get_tag_id_by_disease(
@@ -286,15 +326,21 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
     model = Model.objects.get(pk=model_id)
     tags = set(
         [
+            Tag.get_tag_id_by_implementation_language(
+                model.implementation_language
+            ),
             Tag.get_tag_id_by_disease(model.disease),
             Tag.get_tag_id_by_adm_level(model.ADM_level),
             Tag.get_tag_id_by_time_resolution(model.time_resolution),
         ]
     )
-    if model.temporal:
-        tags.add(Tag.objects.get(name="Temporal").id)
-    if model.spatial:
-        tags.add(Tag.objects.get(name="Spatial").id)
+    if model.temporal and model.spatial:
+        tags.add(Tag.objects.get(name="Spatio-Temporal").id)
+    else:
+        if model.temporal:
+            tags.add(Tag.objects.get(name="Temporal").id)
+        if model.spatial:
+            tags.add(Tag.objects.get(name="Spatial").id)
     if model.categorical:
         tags.add(Tag.objects.get(name="Categorical").id)
     else:

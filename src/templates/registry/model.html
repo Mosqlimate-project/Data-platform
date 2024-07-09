@@ -1,0 +1,36 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}Model {{ model.id }}{% endblock %}
+
+{% block content %}
+<div class="container shadow p-5 mb-3 bg-body rounded font-golos">
+    <center><h1>Model {{ model.id }}</h1></center>
+    <center>
+    {% for tag in tags %}
+        <span 
+          class="badge rounded-pill model-tag" 
+          style="background-color: {{ tag.color }};"
+        >
+        {{ tag.name }}
+        </span>
+    {% endfor %}
+    </center>
+    <center><hr style="width:90%;"></center>
+
+    <center><div><h3>{{ model.name }}</h3></div></center>
+    <div><a href="{% url 'profile' user.username %}" style="text-decoration:none;">{{ model.author }}</a></div>
+    <div>{{ model.get_disease_display }}</div>
+    <div>{{ model.get_ADM_level_display }}</div>
+    <div>{{ model.get_time_resolution_display }}</div>
+    <div>{{ model.implementation_language }}</div>
+
+    <br>
+
+    <h3>{% trans "Description" %}:</h3>
+    <div>{{ model.description }}</div>
+
+    <br>
+
+</div>
+{% endblock %}

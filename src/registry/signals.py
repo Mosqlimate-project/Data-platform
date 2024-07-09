@@ -11,3 +11,10 @@ def include_model_tags(sender, instance, created, **kwargs):
         for id in Tag.get_tag_ids_from_model_id(instance.id)
     ]
     instance.tags.set(tags)
+
+
+@receiver(post_save, sender=Tag)
+def tags_post_save(sender, instance, created, **kwargs):
+    if created and instance.color is None:
+        instance.color = Tag.random_rgb()
+        instance.save()
