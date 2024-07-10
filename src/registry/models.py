@@ -68,10 +68,10 @@ class Tag(models.Model):
             "Zig",
         ]
     ) -> int:
-        languages = ImplementationLanguage.objects.values_list(
-            "language", flat=True
+        languages = list(
+            ImplementationLanguage.objects.values_list("language", flat=True)
         )
-        if implementation_language not in languages:
+        if str(implementation_language) not in languages:
             raise ValueError(
                 f"Unknown programming language '{implementation_language}'"
             )

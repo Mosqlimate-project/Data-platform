@@ -4,33 +4,75 @@
 {% block title %}Model {{ model.id }}{% endblock %}
 
 {% block content %}
-<div class="container shadow p-5 mb-3 bg-body rounded font-golos">
-    <center><h1>Model {{ model.id }}</h1></center>
+  <div class="container shadow p-5 mb-3 bg-body rounded font-golos">
     <center>
-    {% for tag in tags %}
-        <span 
-          class="badge rounded-pill model-tag" 
-          style="background-color: {{ tag.color }};"
-        >
-        {{ tag.name }}
-        </span>
-    {% endfor %}
+      <h1>
+        Model {{ model.id }}
+        {% if user.is_authenticated %}
+        {% if user.username == model.author.user.username %}
+        <a href="{% url 'edit-model' model_id=model.id %}"><i class="fa-solid fa-pencil fs-6 edit-model"></i></a>
+        {% endif %}
+        {% endif %}
+      </h1>
     </center>
-    <center><hr style="width:90%;"></center>
+    <center>
+      {% for tag in tags %}
+      <span 
+        class="badge rounded-pill model-tag" 
+        style="background-color: {{ tag.color }};"
+      >
+        {{ tag.name }}
+      </span>
+      {% endfor %}
+    </center>
+    <center><hr style="width:70%;"></center>
 
-    <center><div><h3>{{ model.name }}</h3></div></center>
-    <div><a href="{% url 'profile' user.username %}" style="text-decoration:none;">{{ model.author }}</a></div>
-    <div>{{ model.get_disease_display }}</div>
-    <div>{{ model.get_ADM_level_display }}</div>
-    <div>{{ model.get_time_resolution_display }}</div>
-    <div>{{ model.implementation_language }}</div>
+    <div class="container" style="width: 70%;">
+      <center>
+        <div>
+          <h3>{{ model.name }}</h3>
+        </div>
+      </center>
 
-    <br>
+      <br>
 
-    <h3>{% trans "Description" %}:</h3>
-    <div>{{ model.description }}</div>
+      <table class="table table-bordered">
+        <tbody>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Author" %}</th>
+            <td class="d-flex justify-content-center"><a href="{% url 'profile' user.username %}" style="text-decoration:none;">{{ model.author }}</a></td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Disease" %}</th>
+            <td class="d-flex justify-content-center">{{ model.get_disease_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Administrative Level" %}</th>
+            <td class="d-flex justify-content-center">{{ model.get_ADM_level_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Time Resolution" %}</th>
+            <td class="d-flex justify-content-center">{{ model.get_time_resolution_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Implementation Language" %}</th>
+            <td class="d-flex justify-content-center">{{ model.implementation_language }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-    <br>
+      <br>
 
-</div>
+      <h4>{% trans "Description" %}:</h4>
+      <div>{{ model.description }}</div>
+    </div>
+
+  </div>
+
+<style>
+  .fa-pencil {
+    color: #9a9996;
+  }
+</style>
+
 {% endblock %}
