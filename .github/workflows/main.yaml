@@ -60,7 +60,6 @@ jobs:
         makim dev.dotenv
         makim dev.psql-conf
         sugar build --group dev
-        cat .env
 
     - name: Start containers
       run: |
