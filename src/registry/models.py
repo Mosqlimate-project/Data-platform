@@ -203,6 +203,11 @@ class Model(models.Model):
     time_resolution = models.CharField(
         choices=Periodicities.choices, null=True
     )  # TODO: change to false
+    sprint = models.BooleanField(
+        default=False,
+        null=False,
+        help_text=_("Model created to Sprint 2024/25"),
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
