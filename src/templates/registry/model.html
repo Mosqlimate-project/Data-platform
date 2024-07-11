@@ -7,12 +7,15 @@
   <div class="container shadow p-5 mb-3 bg-body rounded font-golos">
     <center>
       <h1>
-        Model {{ model.id }}
-        {% if user.is_authenticated %}
-        {% if user.username == model.author.user.username %}
-        <a href="{% url 'edit-model' model_id=model.id %}"><i class="fa-solid fa-pencil fs-6 edit-model"></i></a>
-        {% endif %}
-        {% endif %}
+        <span>Model {{ model.id }}</span>
+        <div class="icons">
+            {% if user.is_authenticated %}
+            {% if user.username == model.author.user.username %}
+            <a href="{% url 'edit-model' model_id=model.id %}" title="Edit Model"><i class="fa-solid fa-pencil fs-6 edit-model"></i></a>
+            {% endif %}
+            {% endif %}
+            <a href="{{ model.repository }}" title="Repository" target="_blank" rel="noopener noreferrer"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fs-6 fa-github"></i></a>
+        </div>
       </h1>
     </center>
     <center>
@@ -40,7 +43,7 @@
         <tbody>
           <tr>
             <th scope="row" class="fw-normal">{% trans "Author" %}</th>
-            <td class="d-flex justify-content-center"><a href="{% url 'profile' user.username %}" style="text-decoration:none;">{{ model.author }}</a></td>
+          <td class="d-flex justify-content-center"><a href="{% url 'profile' user.username %}" title="{{ model.author.user }}" style="text-decoration:none;">{{ model.author }}</a></td>
           </tr>
           <tr>
             <th scope="row" class="fw-normal">{% trans "Disease" %}</th>
@@ -70,9 +73,41 @@
   </div>
 
 <style>
-  .fa-pencil {
-    color: #9a9996;
-  }
+h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 .icons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 0px;
+  right: 0px;
+  width: 20px;
+  gap: 5px;
+}
+
+.icons a {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.fa-solid {
+  height: 13px;
+  font-size: 13px;
+  color: #9a9996;
+}
 </style>
 
 {% endblock %}
