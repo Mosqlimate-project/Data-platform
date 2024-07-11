@@ -214,12 +214,12 @@ dj_default_from_email = var_in(
 )
 dj_email_backend = var_in(
     "EMAIL_BACKEND",
-    input_text="Email backend [django.core.mail.backends.smtp.EmailBackend]: ",
+    input_text="  Email backend [django.core.mail.backends.smtp.EmailBackend]: ",
     default_val="django.core.mail.backends.smtp.EmailBackend",
 )
 dj_email_host = var_in(
     "EMAIL_HOST",
-    input_text="Email host [smtp.example.com]: ",
+    input_text="  Email host [smtp.example.com]: ",
     default_val="smtp.example.com",
 )
 dj_email_port = var_in(
@@ -227,7 +227,7 @@ dj_email_port = var_in(
 )
 dj_email_host_user = var_in(
     "EMAIL_HOST_USER",
-    input_text="Email host user [email@example.com]: ",
+    input_text="  Email host user [email@example.com]: ",
     default_val="email@example.com",
 )
 dj_email_host_pass = var_in(

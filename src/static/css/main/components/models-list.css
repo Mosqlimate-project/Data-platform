@@ -1,3 +1,7 @@
+a {
+  text-decoration: none;
+}
+
 .list-group-item {
   align-self: center;
   display: flex;

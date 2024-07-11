@@ -27,7 +27,7 @@
     <div class="col-1 badge-container">
       <span class="badge created-date bg-primary rounded-pill">Tags</span>
     </div>
-    <hr style="margin-top:5px;">
+    <hr style="margin-top: 5px;">
     <div class="col-13" style="padding-left: 10px;">
       <p class="mb-1 fw-bold description">{% trans 'Description' %}</p>
     </div>
@@ -35,7 +35,7 @@
   {% for model in models %}
   <div class="list-group-item row list-group-item-action align-items-start model-item">
     <div class="col-1">
-      <p class="mb-1 id">{{ model.id }}</p>
+      <a href="{% url 'model' model_id=model.id %}"><p class="mb-1 id">{{ model.id }}</p></a>
     </div>
     <div class="col-1" style="padding-left: 0;">
       {% with image_path='img/plangs/'|add:model.implementation_language.svg_path %}
