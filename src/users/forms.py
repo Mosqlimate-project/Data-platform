@@ -45,6 +45,7 @@ class UpdateModelForm(forms.Form):
             ("year", _("Year")),
         ],
     )
+    model_sprint = forms.BooleanField(required=False)
 
     # def clean_model_author(self):
     #     author = self.cleaned_data["model_author"]

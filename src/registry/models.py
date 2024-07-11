@@ -350,4 +350,6 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
         tags.add(Tag.objects.get(name="Categorical").id)
     else:
         tags.add(Tag.objects.get(name="Quantitative").id)
+    if model.sprint:
+        tags.add(Tag.objects.get(name="Sprint2425").id)
     return list(tags)
