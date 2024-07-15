@@ -100,6 +100,23 @@ class EpiScannerSchema(Schema):
     ep_dur: int
 
 
+class Sprint202425Schema(Schema):
+    date: date
+    year: int
+    epiweek: int
+    casos: int
+    geocode: int
+    regional: str
+    regional_geocode: int
+    macroregional: str
+    macroregional_geocode: int
+    uf: str
+    train_1: bool
+    train_2: bool
+    target_1: bool
+    target_2: bool
+
+
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 
