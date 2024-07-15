@@ -7,10 +7,10 @@ from django.urls import reverse
 from django.db.models import Sum
 from django.http import HttpRequest
 
-from registry.models import Prediction
+from registry.models import Prediction, Model
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from main.utils import UF_CODES, UFs
-from datastore.models import DengueGlobal, HistoricoAlerta
+from datastore.models import DengueGlobal, Sprint202425
 from .errors import NotFoundError, VisualizationError
 
 
@@ -79,7 +79,7 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
     return df
 
 
-def data_chart_by_geocode(
+def dataframe_by_geocode(
     disease: Literal["dengue", "chikungunya", "zika"],
     start: date,
     end: date,
@@ -89,13 +89,17 @@ def data_chart_by_geocode(
     x: str = "dates",
     y: str = "target",
     legend: str = "Data",
+    sprint: bool = False,
 ) -> pd.DataFrame:
-    hist_alerta = historico_alerta_data_for(disease)
+    if sprint:
+        data = Sprint202425.objects.using("infodengue").all()
+    else:
+        data = historico_alerta_data_for(disease)
+
     codes_uf = {v: k for k, v in UF_CODES.items()}
     res = {x: [], y: []}
 
     if adm_1_geocode:
-        data = HistoricoAlerta.objects.using("infodengue").all()
         try:
             uf = codes_uf[int(adm_1_geocode)]
         except (KeyError, ValueError):
@@ -108,29 +112,55 @@ def data_chart_by_geocode(
             .filter(uf=uf_name)
             .values_list("geocodigo", flat=True)
         )
-        data = (
-            data.filter(
-                data_iniSE__gt=start,
-                data_iniSE__lt=end,
-                municipio_geocodigo__in=geocodes,
+
+        if sprint:
+            data = (
+                data.filter(
+                    date__gt=start,
+                    date__lt=end,
+                    geocode__in=geocodes,
+                )
+                .values("date")
+                .annotate(casos=Sum("casos"))
+                .order_by("date")
             )
-            .values("data_iniSE")
-            .annotate(casos=Sum("casos"))
-            .order_by("data_iniSE")
-        )
-        for obj in data:
-            res[x].append(obj["data_iniSE"])
-            res[y].append(obj["casos"])
+            for obj in data:
+                res[x].append(obj["date"])
+                res[y].append(obj["casos"])
+        else:
+            data = (
+                data.filter(
+                    data_iniSE__gt=start,
+                    data_iniSE__lt=end,
+                    municipio_geocodigo__in=geocodes,
+                )
+                .values("data_iniSE")
+                .annotate(casos=Sum("casos"))
+                .order_by("data_iniSE")
+            )
+            for obj in data:
+                res[x].append(obj["data_iniSE"])
+                res[y].append(obj["casos"])
 
     if adm_2_geocode:
-        data = hist_alerta.filter(
-            data_iniSE__gt=start,
-            data_iniSE__lt=end,
-            municipio_geocodigo=adm_2_geocode,
-        )
-        for obj in data:
-            res[x].append(obj.data_iniSE)
-            res[y].append(obj.casos)
+        if sprint:
+            data = data.filter(
+                date__gt=start,
+                date__lt=end,
+                geocode=adm_2_geocode,
+            )
+            for obj in data:
+                res[x].append(obj.date)
+                res[y].append(obj.casos)
+        else:
+            data = data.filter(
+                data_iniSE__gt=start,
+                data_iniSE__lt=end,
+                municipio_geocodigo=adm_2_geocode,
+            )
+            for obj in data:
+                res[x].append(obj.data_iniSE)
+                res[y].append(obj.casos)
 
     df = pd.DataFrame(res)
     df["legend"] = "Data"
@@ -165,6 +195,9 @@ def line_charts_by_geocode(
     adm_1_geocode: int = None
     adm_2_geocode: int = None
 
+    model: Model = None
+    sprint: bool = False
+
     for prediction_id in predictions_ids:
         try:
             prediction = Prediction.objects.get(pk=prediction_id)
@@ -190,6 +223,17 @@ def line_charts_by_geocode(
                 raise VisualizationError(
                     "Two different geocodes were added to be visualized"
                 )
+
+        if not model:
+            model = prediction.model
+
+        if model and model.sprint != prediction.model.sprint:
+            raise VisualizationError(
+                "Sprint Predictions shaw only be vizualized with other Sprint "
+                "Predictions"
+            )
+
+        sprint = model.sprint
 
     if not adm_1_geocode and not adm_2_geocode:
         raise VisualizationError("No geocode was selected to be visualized")
@@ -221,7 +265,7 @@ def line_charts_by_geocode(
         nearest=True,
     )
 
-    data_chart = data_chart_by_geocode(
+    data_chart = dataframe_by_geocode(
         disease=disease,
         adm_1_geocode=adm_1_geocode,
         adm_2_geocode=adm_2_geocode,
@@ -231,6 +275,7 @@ def line_charts_by_geocode(
         x=x,
         y=y,
         legend="Data",
+        sprint=sprint,
     )
 
     # here is created the base element for the time series

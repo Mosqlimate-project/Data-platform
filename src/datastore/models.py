@@ -218,7 +218,7 @@ class CopernicusBrasil(models.Model):
         ]
 
 
-class Sprint202425Schema(models.Model):
+class Sprint202425(models.Model):
     date = models.DateField(db_column="date")
     year = models.BigIntegerField(db_column="year")
     epiweek = models.BigIntegerField(db_column="epiweek")
