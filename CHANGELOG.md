@@ -1,6 +1,30 @@
 Release Notes
 ---
 
+# [1.1.0](https://github.com/Mosqlimate-project/Data-platform/compare/1.0.0...1.1.0) (2024-07-15)
+
+
+### Bug Fixes
+
+* **api:** increase max items per page to 300 ([#200](https://github.com/Mosqlimate-project/Data-platform/issues/200)) ([d68a7f1](https://github.com/Mosqlimate-project/Data-platform/commit/d68a7f12225f388ad50f53ee925a8be5d758fef3))
+* **api:** remove TagSchema from ModelSchema due to pre-initialization error ([#209](https://github.com/Mosqlimate-project/Data-platform/issues/209)) ([f7966a1](https://github.com/Mosqlimate-project/Data-platform/commit/f7966a16446cfd9950db64676c1ef13a52ee6e3f))
+* **dashboard:** fix models/predictions visualize button ([#166](https://github.com/Mosqlimate-project/Data-platform/issues/166)) ([619069e](https://github.com/Mosqlimate-project/Data-platform/commit/619069ee86cb3531d0f44614aba43878a5037411))
+* **dashboard:** include logic to display adm_level 1 predictions on dashboard ([#211](https://github.com/Mosqlimate-project/Data-platform/issues/211)) ([75e5d1d](https://github.com/Mosqlimate-project/Data-platform/commit/75e5d1d822a7b93ada353150f24c0717a0c5b4b0))
+* **datastore:** include episcanner year field on /datastore/ form ([#177](https://github.com/Mosqlimate-project/Data-platform/issues/177)) ([026c2e5](https://github.com/Mosqlimate-project/Data-platform/commit/026c2e5c0cdadc12a5616bd03410db3b6125fcb9))
+* **docs:** Improve the api documentation with mosqlient package examples ([71801e9](https://github.com/Mosqlimate-project/Data-platform/commit/71801e98b544c9a6cc559a82e644496c698c13df))
+* **mkdocs:** update mkdocs-jupyter dependencies to fix container initialization ([#184](https://github.com/Mosqlimate-project/Data-platform/issues/184)) ([22aff40](https://github.com/Mosqlimate-project/Data-platform/commit/22aff4062140b6e163a9855e261ac6eb0b98eaf0))
+* **validation:** improve the prediction's validation ([#202](https://github.com/Mosqlimate-project/Data-platform/issues/202)) ([403d249](https://github.com/Mosqlimate-project/Data-platform/commit/403d249d1f968c42de91b88b70055b9dccbeaac3))
+
+
+### Features
+
+* **datastore:** episcanner API endpoint ([#175](https://github.com/Mosqlimate-project/Data-platform/issues/175)) ([f45d469](https://github.com/Mosqlimate-project/Data-platform/commit/f45d46937106fdef9c54e3a86214dbba1d708563))
+* **datastore:** serve aedes_eggs_data.zip ([#174](https://github.com/Mosqlimate-project/Data-platform/issues/174)) ([61ad5b9](https://github.com/Mosqlimate-project/Data-platform/commit/61ad5b9aa3d34c1df9477da2b4e7fb481e2f78dc))
+* **macro-forecast-map:** add MacroForecastMap view ([#173](https://github.com/Mosqlimate-project/Data-platform/issues/173)) ([0e48e12](https://github.com/Mosqlimate-project/Data-platform/commit/0e48e12fb70c273d60d9b56b4b6d9614e36de5f9))
+* **postgis:** install postgis on mosqlimate-postgres image ([#168](https://github.com/Mosqlimate-project/Data-platform/issues/168)) ([e6ca18f](https://github.com/Mosqlimate-project/Data-platform/commit/e6ca18f73320bd0857c0efe7d291f1d0e3630b06))
+* **tags:** include tags on registry.Model ([#189](https://github.com/Mosqlimate-project/Data-platform/issues/189)) ([a4f6698](https://github.com/Mosqlimate-project/Data-platform/commit/a4f66986e9932629d99977e9d86cdd8a5f394841))
+* **vis:** Prepare "Results prob lstm" plot; add geo specific models to receive geo data ([#172](https://github.com/Mosqlimate-project/Data-platform/issues/172)) ([1eae6ed](https://github.com/Mosqlimate-project/Data-platform/commit/1eae6ed1e955711684110c7df5411008d9be3f82))
+
 # 1.0.0 (2023-12-19)
 
 
