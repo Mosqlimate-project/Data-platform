@@ -18,7 +18,7 @@ The prediction itself, must be provided as a JSON object. Please refer to our vi
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
 | predict_date | date _(YYYY-mm-dd)_ | Date when Prediction was generated |
-| predict | dict _(JSON)_ | The Prediction result data |
+| prediction | dict _(JSON)_ | The Prediction result data |
 
 ## X-UID-Key
 POST requests require [User API Token](uid-key.md) to be called.
@@ -34,16 +34,16 @@ POST requests require [User API Token](uid-key.md) to be called.
         description: str, 
         commit: str, 
         predict_date: str, 
-        predict: dict
+        prediction: dict
     ):
         url = "https://api.mosqlimate.org/api/registry/predictions/"
         headers = {"X-UID-Key": "See X-UID-Key documentation"}
-        prediction = {
+        predict = {
             "model": model_id,
             "description": description,
             "commit": commit,
             "predict_date": predict_date,
-            "prediction": predict
+            "prediction": prediction
         }
         return requests.post(url, json=prediction, headers=headers)
 
@@ -54,7 +54,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = "My Prediction description",
         commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
         predict_date = "2023-10-31",
-        predict = {
+        prediction = {
             "prediction": "example"
         }
     )
@@ -71,19 +71,19 @@ POST requests require [User API Token](uid-key.md) to be called.
       description,
       commit,
       predict_date,
-      predict
+      prediction
     ) {
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
       key = c("<USER>:<KEY>. See X-UID-Key documentation")
       names(key) <- 'X-UID-Key'
-      prediction <- list(
+      predict <- list(
         model = model_id,
         description = description,
         commit = commit,
         predict_date = predict_date,
-        prediction = predict
+        prediction = prediction
       )
-      response <- POST(url, body = prediction, add_headers(.headers=key),  encode = "json", verbose())
+      response <- POST(url, body = predict, add_headers(.headers=key),  encode = "json", verbose())
       return(content(response, "text"))
     }
 
@@ -93,7 +93,7 @@ POST requests require [User API Token](uid-key.md) to be called.
       description = "My Prediction description",
       commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
       predict_date = "2023-10-31",
-      predict = list(
+      prediction = list(
         prediction = "example"
       )
     )
@@ -132,7 +132,7 @@ upload_prediction(
   description = "My Prediction description",
   commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
   predict_date = "2023-10-31",
-  predict =  "json_str_prediction",
+  prediction =  "json_str_prediction",
   api_key = "X-UID-Key"
   )
 ```

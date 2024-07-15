@@ -20,6 +20,7 @@ function handleModelClick(modelId) {
     displayCurlCommand();
     displayPythonCode();
 
+    updateModelLink();
     updatePredictionsLink();
 }
 
@@ -33,12 +34,10 @@ function fetchModelData() {
             const modelDescriptionElement = document.getElementById('model-description');
             const modelRepositoryElement = document.getElementById('model-repository');
             const modelLanguageElement = document.getElementById('model-language');
-            const modelTypeElement = document.getElementById('model-type');
 
             modelNameElement.textContent = data.name;
             modelDescriptionElement.textContent = data.description;
             modelLanguageElement.textContent = data.implementation_language.language;
-            modelTypeElement.textContent = data.type;
 
             const repositoryLink = document.createElement('a');
             repositoryLink.href = data.repository;
@@ -70,6 +69,12 @@ function displayPythonCode() {
     const pythonTabContent = document.getElementById('python-model-code');
     pythonTabContent.innerHTML = pythonCode;
     hljs.highlightBlock(pythonTabContent);
+}
+
+function updateModelLink() {
+    const link = `/registry/model/${selectedModelId}/`;
+    const modelLink = document.getElementById('model-link');
+    modelLink.href = link;
 }
 
 function updatePredictionsLink() {

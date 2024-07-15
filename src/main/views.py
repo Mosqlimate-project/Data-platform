@@ -234,6 +234,11 @@ class EditModelView(View):
 
                 if status_code == 201:
                     messages.success(request, _("Model updated successfully"))
+                    if form.cleaned_data["model_sprint"]:
+                        model.sprint = True
+                    else:
+                        model.sprint = False
+                    model.save()
                 elif status_code == 401:
                     messages.error(request, _("Unauthorized"))
                 else:

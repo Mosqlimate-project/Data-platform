@@ -216,3 +216,26 @@ class CopernicusBrasil(models.Model):
                 fields=["date", "geocodigo"], name="composite_primary_key"
             )
         ]
+
+
+class Sprint202425(models.Model):
+    date = models.DateField(db_column="date")
+    year = models.BigIntegerField(db_column="year")
+    epiweek = models.BigIntegerField(db_column="epiweek")
+    casos = models.BigIntegerField(db_column="casos")
+    geocode = models.BigIntegerField(db_column="geocode")
+    regional = models.CharField(db_column="regional")
+    regional_geocode = models.IntegerField(db_column="regional_geocode")
+    macroregional = models.IntegerField(db_column="macroregional")
+    macroregional_geocode = models.IntegerField(
+        db_column="macroregional_geocode"
+    )
+    uf = models.CharField(db_column="uf")
+    train_1 = models.BooleanField(db_column="train_1")
+    train_2 = models.BooleanField(db_column="train_2")
+    target_1 = models.BooleanField(db_column="target_1")
+    target_2 = models.BooleanField(db_column="target_2")
+
+    class Meta:
+        managed = False
+        db_table = "sprint202425"

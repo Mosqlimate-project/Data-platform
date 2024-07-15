@@ -17,9 +17,6 @@
             {% trans "Name" %}
           </th>
           <th scope="col">
-            {% trans "Type" %}
-          </th>
-          <th scope="col">
             {% trans "Repository" %}
           </th>
           <th scope="col"><center>
@@ -41,7 +38,6 @@
         <tr onclick="handleModelClick('{{model.id}}')">
           <td>{{model.id}}</td>
           <td>{{model.name}}</td>
-          <td>{{model.type}}</td>
           <td><a href="{{ model.repository }}">{{model.repository|get_repo}}</a></td>
           <td><center>{{model.implementation_language.language}}</center></td>
           <td><center>{{model.predictions_count}}</center></td> 
@@ -71,7 +67,11 @@
       <li class="nav-item">
         <a class="nav-link" href="" onclick="changeTab(event, 'python')">Python</a>
       </li>
-      <div class="ms-auto">
+      <div class="d-flex align-items-center ms-auto pb-2">
+        <a id="model-link" href="#" target="_blank" class="btn btn-primary me-2">
+          {% trans "Model" %}
+          <i class="fa-solid fa-square-arrow-up-right"></i>
+        </a>
         <a id="predictions-link" href="#" target="_blank" class="btn btn-primary">
           {% trans "Predictions" %}
           <i class="fa-solid fa-square-arrow-up-right"></i>
@@ -96,10 +96,6 @@
       <div class="info-tab-item row gap-0">
         <div class="info-tab-item-var text-black-50">{% trans "Implementation Language" %}</div>
         <div id="model-language" class="rounded"></div>
-      </div>
-      <div class="info-tab-item row gap-0">
-        <div class="info-tab-item-var text-black-50">{% trans "Type" %}</div>
-        <div id="model-type" class="rounded"></div>
       </div>
     </div>
     <div id="json-tab" class="tab-content" style="display: none;">
