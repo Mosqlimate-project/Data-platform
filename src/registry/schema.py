@@ -15,7 +15,7 @@ class ImplementationLanguageSchema(Schema):
 
 class AuthorSchema(Schema):
     user: UserSchema
-    institution: str = None
+    institution: Optional[str] = None
 
 
 class AuthorFilterSchema(FilterSchema):
@@ -44,16 +44,16 @@ class TagSchema(Schema):
 class ModelSchema(Schema):
     id: Optional[int]
     name: str
-    description: str = None
+    description: str | None = None
     author: AuthorSchema
     repository: str
     implementation_language: ImplementationLanguageSchema
-    disease: Literal["dengue", "chikungunya", "zika"] = None
-    categorical: bool = None
-    spatial: bool = None
-    temporal: bool = None
-    ADM_level: Literal[0, 1, 2, 3] = None
-    time_resolution: Literal["day", "week", "month", "year"] = None
+    disease: Literal["dengue", "chikungunya", "zika"] | None = None
+    categorical: bool | None = None
+    spatial: bool | None = None
+    temporal: bool | None = None
+    ADM_level: Literal[0, 1, 2, 3] | None = None
+    time_resolution: Literal["day", "week", "month", "year"] | None = None
 
 
 class ModelFilterSchema(FilterSchema):
@@ -88,7 +88,7 @@ class ModelFilterSchema(FilterSchema):
 class PredictionSchema(Schema):
     id: Optional[int]
     model: ModelSchema
-    description: str = None
+    description: str | None = None
     commit: str
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject

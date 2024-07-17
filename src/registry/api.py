@@ -70,6 +70,7 @@ def list_authors(
     """
     models_count = Author.objects.annotate(num_models=Count("model"))
     authors = models_count.filter(num_models__gt=0)
+    print(filters.filter(authors).order_by("-updated"))
     return filters.filter(authors).order_by("-updated")
 
 
