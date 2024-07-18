@@ -3177,13 +3177,13 @@ files = [
 
 [[package]]
 name = "mosqlient"
-version = "1.3.2"
+version = "1.4.0"
 description = "client library for the mosqlimate client library"
 optional = false
 python-versions = "<3.13,>=3.10"
 files = [
-    {file = "mosqlient-1.3.2-py3-none-any.whl", hash = "sha256:533869ae5a8966d85e1919493fbf085f8c1847f958e35a0dfea6c841aec409d0"},
-    {file = "mosqlient-1.3.2.tar.gz", hash = "sha256:efa66f6143c3bf665cfd7268e169e7ccecd18ba915f5dc3947714c518118b87e"},
+    {file = "mosqlient-1.4.0-py3-none-any.whl", hash = "sha256:5029c67500c58e1822a7874f5e01f1cb52c99abe3c23905680d0116e4dba4c13"},
+    {file = "mosqlient-1.4.0.tar.gz", hash = "sha256:82ce740e1e941654157a0a17282c061f21aaf23be976ce4f286e3f0f93737306"},
 ]
 
 [package.dependencies]
@@ -6208,4 +6208,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "d43ef48dd0ac97630d0fdde3658daa0d82603ed5aadf5d67eef35823a883959a"
+content-hash = "89aa2826cd6434002e55f07a5b5706775ac063461c1abc060526d7385a23439b"
