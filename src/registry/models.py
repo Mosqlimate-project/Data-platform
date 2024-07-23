@@ -253,6 +253,30 @@ class Prediction(models.Model):
     def __str__(self):
         return f"{self.id}"
 
+    def to_dataframe(self) -> pd.DataFrame:
+        rows = self.data.all()
+
+        if not rows:
+            return pd.DataFrame()
+
+        fields = [
+            "dates",
+            "preds",
+            "lower",
+            "upper",
+            "adm_0",
+            "adm_1",
+            "adm_2",
+            "adm_3",
+        ]
+
+        data = list(rows.values(*fields))
+
+        return pd.DataFrame(data, columns=fields)
+
+    def to_json(self) -> str:
+        return self.to_dataframe().to_json(orient="records", date_format="iso")
+
     def parse_metadata(self):
         if not self.prediction_df.empty:
             self._add_adm_geocode()
@@ -260,6 +284,53 @@ class Prediction(models.Model):
             self.visualizable = True
             self.metadata = compose_prediction_metadata(self)
             self.save()
+
+    def parse_prediction(self):
+        df = self.prediction_df
+
+        data = []
+        for _, row in df.iterrows():  # noqa
+            adm_0 = "BRA"
+            try:
+                adm_1 = (
+                    None
+                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
+                    else row.adm_1
+                )
+            except AttributeError:
+                adm_1 = None
+            try:
+                adm_2 = (
+                    None
+                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
+                    else row.adm_2
+                )
+            except AttributeError:
+                adm_2 = None
+            try:
+                adm_3 = (
+                    None
+                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
+                    else row.adm_3
+                )
+            except AttributeError:
+                adm_3 = None
+
+            obj, c = PredictionDataRow.objects.get_or_create(
+                predict=self,
+                dates=pd.to_datetime(row.dates).date(),
+                preds=float(row.preds),
+                upper=float(row.upper),
+                lower=float(row.lower),
+                adm_0=adm_0,
+                adm_1=adm_1,
+                adm_2=adm_2,
+                adm_3=adm_3,
+            )
+
+            data.append(obj)
+
+        return data
 
     def _add_adm_geocode(self):
         level = self.model.ADM_level
@@ -325,6 +396,20 @@ class Prediction(models.Model):
     class Meta:
         verbose_name = _("Prediction")
         verbose_name_plural = _("Predictions")
+
+
+class PredictionDataRow(models.Model):
+    predict = models.ForeignKey(
+        Prediction, on_delete=models.CASCADE, related_name="data"
+    )
+    dates = models.DateField(null=False)
+    preds = models.FloatField(null=False)
+    lower = models.FloatField(null=False)
+    upper = models.FloatField(null=False)
+    adm_0 = models.CharField(max_length=3, null=True)
+    adm_1 = models.CharField(max_length=2, null=True)
+    adm_2 = models.IntegerField(null=True)
+    adm_3 = models.IntegerField(null=True)
 
 
 def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:

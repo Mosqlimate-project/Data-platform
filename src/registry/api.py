@@ -246,7 +246,9 @@ class UpdateModelForm(Schema):
     description: str = None
     repository: str
     implementation_language: str
-    type: str
+    categorical: bool
+    temporal: bool
+    spatial: bool
 
 
 @router.put(

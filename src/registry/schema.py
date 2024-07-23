@@ -85,6 +85,17 @@ class ModelFilterSchema(FilterSchema):
     tags: Optional[List[int]] = Field(None, q="tags__id__in")
 
 
+class PredictionDataRowSchema(Schema):
+    dates: date
+    preds: float
+    lower: float
+    upper: float
+    adm_0: str = "BRA"
+    adm_1: Optional[str] = None
+    adm_2: Optional[int] = None
+    adm_3: Optional[int] = None
+
+
 class PredictionSchema(Schema):
     id: Optional[int]
     model: ModelSchema
