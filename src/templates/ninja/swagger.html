@@ -1,19 +1,22 @@
 {% extends 'main/base.html' %}
 {% block title %}API Demo{% endblock %}
-{% block content %}
 {% load static %}
 {% load i18n %}
 
+{% block content %}
 <head>
     <link type="text/css" rel="stylesheet" href="{% static 'ninja/swagger-ui.css' %}">
 </head>
 <body
     data-openapi-url="{{ openapi_json_url }}"
     data-api-csrf="{{ api.csrf|default:"" }}">
-    
-    <div id="swagger-ui"></div> <!-- Swagger UI-->
+
+    <script type="application/json" id="swagger-settings">
+        {{ swagger_settings | safe }}
+    </script>
+ 
+    <div id="swagger-ui"></div>
     <script src="{% static 'ninja/swagger-ui-bundle.js' %}"></script>
     <script src="{% static 'ninja/swagger-ui-init.js' %}"></script>
-
 </body>
 {% endblock %}

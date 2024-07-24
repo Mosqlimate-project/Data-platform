@@ -2,7 +2,7 @@ import os
 import json
 
 from django.urls import reverse
-from ninja import NinjaAPI, Router, Schema
+from ninja import NinjaAPI, Router, Schema, Swagger
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse
@@ -31,6 +31,7 @@ api = NinjaAPI(
         "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
     ),
     version="1",
+    docs=Swagger(),
 )
 
 router = Router()

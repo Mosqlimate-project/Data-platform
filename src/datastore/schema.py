@@ -120,14 +120,14 @@ class Sprint202425Schema(Schema):
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 
-    start: date = Field(q="data_iniSE__gte")
-    end: date = Field(q="data_iniSE__lte")
-    geocode: Optional[int] = Field(q="municipio_geocodigo")
+    start: date = Field("2024-01-01", q="data_iniSE__gte")
+    end: date = Field("2024-02-01", q="data_iniSE__lte")
+    geocode: Optional[int] = Field(None, q="municipio_geocodigo")
 
 
 class CopernicusBrasilFilterSchema(FilterSchema):
     """url/?paremeters to search for weather.copernicus_brasil table"""
 
-    start: date = Field(q="date__gte")
-    end: date = Field(q="date__lte")
-    geocode: Optional[int] = Field(q="geocodigo")
+    start: date = Field("2024-01-01", q="date__gte")
+    end: date = Field("2024-02-01", q="date__lte")
+    geocode: Optional[int] = Field(None, q="geocodigo")

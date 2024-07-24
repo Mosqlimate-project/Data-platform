@@ -6,6 +6,8 @@ from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 import environ
 
+from mosqlient._config import set_api_url
+
 load_dotenv()
 
 env = environ.Env()
@@ -269,3 +271,5 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+set_api_url(os.getenv("MOSQLIENT_API_URL", "http://0.0.0.0:8042/api/"))

@@ -23,5 +23,5 @@ class ResultsProbForecastSchema(Schema):
 
 
 class ResultsProbForecastFilterSchema(FilterSchema):
-    date: Optional[str] = Field(q="date__str")
+    date: Optional[str] = Field("2024-01-01", q="date__str")
     geocode: Optional[int] = Field(q="geocode")

@@ -246,7 +246,9 @@ class UpdateModelForm(Schema):
     description: str = None
     repository: str
     implementation_language: str
-    type: str
+    categorical: bool
+    temporal: bool
+    spatial: bool
 
 
 @router.put(
@@ -403,6 +405,12 @@ def create_prediction(request, payload: PredictionIn):
     if not calling_via_swagger(request):
         prediction.parse_metadata()
         prediction.save()
+        try:
+            prediction.parse_prediction()
+        except Exception as e:
+            return 422, {
+                "message" f"Could not parse prediction data. Error: {e}"
+            }
 
     return 201, prediction
 
