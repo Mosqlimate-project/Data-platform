@@ -120,10 +120,14 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
         ):
             return f"Invalid data type for '{field}' field."
 
-    condition_preds = (df["lower"] < df["preds"]) & (df["preds"] < df["upper"])
+    condition_preds = (df["lower"] <= df["preds"]) & (
+        df["preds"] <= df["upper"]
+    )
     if not condition_preds.all():
-        return """Invalid predictions, the predictions must follow:
-          lower < preds < upper for all values."""
+        return (
+            "Invalid predictions, the predictions must follow:"
+            + "lower <= preds <= upper for all values."
+        )
 
     if adm_model == 2:
         if len(df["adm_2"].unique()) != 1:
@@ -204,17 +208,17 @@ def validate_prediction(payload: dict) -> tuple:
         return 422, {"message": predict_obj_error}
 
 
-def validate_repository(repository: str) -> str:
+def validate_repository(repository: str) -> str | None:
     """ """
     repo_url = urlparse(repository)
-    if repo_url.netloc != "github.com":  # TODO: add gitlab here?
-        return "Model repository must be on Github"
+    if repo_url.netloc not in ["github.com", "gitlab.com"]:
+        return "Model repository must be on GitHub or GitLab"
     if not repo_url.path:
         return "Invalid repository"
     return None
 
 
-def validate_ADM_level(ADM_level: int) -> str:
+def validate_ADM_level(ADM_level: int) -> str | None:
     """ """
     if ADM_level not in [0, 1, 2, 3]:
         return (
@@ -224,14 +228,16 @@ def validate_ADM_level(ADM_level: int) -> str:
     return None
 
 
-def validate_time_resolution(time_resolution: str) -> str:
+def validate_time_resolution(time_resolution: str) -> str | None:
     """ """
     if time_resolution not in ["day", "week", "month", "year"]:
         return 'Time resolution must be "day", "week", "month" or "year"'
     return None
 
 
-def validate_implementation_language(implementation_language: str) -> tuple:
+def validate_implementation_language(
+    implementation_language: str,
+) -> tuple | None:
     """ """
     try:
         ImplementationLanguage.objects.get(

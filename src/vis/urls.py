@@ -11,6 +11,11 @@ urlpatterns = [
     ),
     path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
     path(
+        "mae-bar-chart/",
+        views.ScoreBarChartView.as_view(),
+        name="mae_bar_chart",
+    ),
+    path(
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
         name="macro_forecast_map",
