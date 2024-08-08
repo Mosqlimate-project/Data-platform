@@ -43,7 +43,7 @@
         <tbody>
           <tr>
             <th scope="row" class="fw-normal">{% trans "Author" %}</th>
-          <td class="d-flex justify-content-center"><a href="{% url 'profile' user.username %}" title="{{ model.author.user }}" style="text-decoration:none;">{{ model.author }}</a></td>
+          <td class="d-flex justify-content-center"><a href="{% url 'profile' model.author.user.username %}" title="{{ model.author.user.username }}" style="text-decoration:none;">{{ model.author }}</a></td>
           </tr>
           <tr>
             <th scope="row" class="fw-normal">{% trans "Disease" %}</th>

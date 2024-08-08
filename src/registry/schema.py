@@ -103,6 +103,7 @@ class PredictionSchema(Schema):
     commit: str
     predict_date: date  # YYYY-mm-dd
     prediction: AnyObject
+    data: List[PredictionDataRowSchema]
 
 
 class PredictionFilterSchema(FilterSchema):
