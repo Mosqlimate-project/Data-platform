@@ -139,7 +139,7 @@
 
 The mosqlient is a Python package created to facilitate the use of API. 
 
-In the package, there is a function called `get_predictions` that returns a list of dictionaries with information about the predictions. This function accepts as filters all the parameters in the parameters table above except `page` and `per_page`. 
+In the package, there is a function called `get_predictions` that returns a list of elements with information about the predictions. This function accepts as filters all the parameters in the parameters table above except `page` and `per_page`. 
 
 Below is a usable example of fetching the predictions filtering by `model_disease` and `model_ADM_level`.
 ```py
@@ -156,30 +156,12 @@ from mosqlient import get_predictions_by_model_id
 get_predictions_by_model_id(model_id = 6)
 ```
 
-The functions above return a list of dictionaries, each representing the metadata associated with a single prediction. To obtain a DataFrame from the JSON prediction, you can use the code below: 
+The functions above return a list of prediction elements, each representing the metadata associated with a single prediction. To obtain a DataFrame from the prediction, you can use the code below: 
 
 ```py 
-from mosqlient import get_predictions_by_model_id
-    
-def transform_json_to_dataframe(res:dict) -> pd.DataFrame:
-  """
-  A function that transforms the prediction output from the API and transforms it in a DataFrame.
-
-  Parameters:
-  rest (dict): Output of the  prediction's API.
-
-  Returns:
-  pd.DataFrame. 
-  """
-
-  json_struct = json.loads(res['prediction'])    
-  df = pd.json_normalize(json_struct)
-  df.dates = pd.to_datetime(df.dates)
-
-  return df
-    
+from mosqlient import get_predictions_by_model_id    
 
 preds = get_predictions_by_model_id(model_id = 6)
 
-df_preds_0 = transform_json_to_dataframe(preds[0])
+df_preds_0 = preds[0].to_dataframe()
 ```

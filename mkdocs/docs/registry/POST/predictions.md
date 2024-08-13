@@ -121,23 +121,28 @@ POST requests require [User API Token](uid-key.md) to be called.
 
 The mosqlient is a Python package created to facilitate the use of API. 
 
-In the package, there is a function called `upload_prediction` that can be used to send the predictions to the platform. 
+In the package, there is a function called `upload_prediction` that can be used to send the predictions to the platform. The function accepts the parameters described above, but the `prediction` parameter, instead of json, must be filled with a pandas DataFrame containing the following columns: [dates, lower, preds, upper, adm_{adm_level}]. When registering your model, you must provide the output predictions' ADM Level. If your model has an ADM level—1, state level, then your predictions must contain the adm_1 column.
 
-Below is a usable example of the function.
+Below is a usable example of the function for a model that predicts a horizon of 10 weeks for adm 1 level.
 ```py
+import numpy as np 
+import pandas as pd 
 from mosqlient import upload_prediction
+
+df_preds = pd.DataFrame()
+
+df_preds['dates'] = pd.date_range(start='2024-08-04', periods=10)
+df_preds['lower'] = np.arange(100, 200, 10)
+df_preds['preds'] = np.arange(150, 250, 10)
+df_preds['upper'] = np.arange(200, 300, 10)
+df_preds['adm_1'] = 10*['PR']
 
 upload_prediction(
   model_id = 0, # Check the ID in models list or profile
   description = "My Prediction description",
   commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
   predict_date = "2023-10-31",
-  prediction =  "json_str_prediction",
+  prediction =  df_preds,
   api_key = "X-UID-Key"
   )
-```
-
-If you have a pandas DataFrame, called `df`, with the columns requested by the platform, that is: `dates`, `lower`, `preds`, `upper`, `adm_0`, `adm_1`, and `adm_2` you can transform it in the JSON string format accepted by the platform following the example below: 
-```py
-df.to_json(orient = 'records', date_format = 'iso')
 ```
