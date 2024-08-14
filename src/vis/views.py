@@ -1,19 +1,26 @@
 import os
 import json
+import logging
 from pathlib import Path
 from typing import Union
 from itertools import cycle
 from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
+from datetime import datetime as dt
+
+import pandas as pd
+from mosqlient.models.score import Scorer
 
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
+from django.db.models import CharField, functions
 
 from registry.models import Model, Prediction
+from datastore.models import DengueGlobal, Sprint202425
 from main.api import get_municipality_info
 from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
@@ -26,7 +33,7 @@ from .models import (
 from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
-from .utils import merge_uri_params
+from .utils import merge_uri_params, obj_to_dataframe
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
@@ -280,7 +287,8 @@ class PredictTableView(View):
         infos = []
         for prediction in predictions:
             info = {}
-            info["model"] = f"{prediction.model.id} - {prediction.model.name}"
+            info["model_id"] = prediction.model.id
+            info["model"] = prediction.model.name
             info["prediction_id"] = prediction.id
             info["disease"] = prediction.model.disease.capitalize()
             if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
@@ -294,6 +302,22 @@ class PredictTableView(View):
             info["prediction_date"] = prediction.predict_date
             info["color"] = next(colors)
             infos.append(info)
+
+        if predictions:
+            try:
+                ids = [p.id for p in predictions]
+                df = get_score(ids).summary
+                df = df.reset_index()
+                score_info = df.to_dict(orient="records")
+                labels = []
+                for score in score_info:
+                    labels.extend([k for k in score.keys() if k != "id"])
+                context["score_info"] = score_info
+                context["score_labels"] = list(set(labels))
+            except Exception as err:
+                logging.error(err)
+                context["score_error"] = err
+                context["score_info"] = {}
 
         context["prediction_infos"] = infos
         return render(request, self.template_name, context)
@@ -360,6 +384,68 @@ class MacroForecastMap(View):
         return FileResponse(
             open(macro_html_file, "rb"), content_type="text/html"
         )
+
+
+def get_score(prediction_ids: list[int]) -> Scorer:
+    if not prediction_ids:
+        raise VisualizationError("No Prediction selected")
+
+    try:
+        predictions = Prediction.objects.filter(id__in=prediction_ids)
+    except Prediction.DoesNotExist:
+        raise VisualizationError("No Prediction selected")
+
+    start: dt.date = None
+    end: dt.date = None
+    geocodes: set[int] = set()
+
+    for prediction in predictions:
+        if not prediction.visualizable:
+            raise VisualizationError(
+                f"Prediction with id {prediction.id} is not visualizable"
+            )
+
+        s = prediction.prediction_df.dates.min()
+        e = prediction.prediction_df.dates.max()
+
+        if not start:
+            start = s
+        if not end:
+            end = e
+
+        if s != start:
+            raise VisualizationError(
+                "Can't score Predictions with different start dates"
+            )
+        if e != end:
+            raise VisualizationError(
+                "Can't score Predictions with different end dates"
+            )
+
+        if prediction.model.ADM_level == 1:
+            geocodes |= set(
+                DengueGlobal.objects.using("infodengue")
+                .annotate(
+                    geocodigo_str=functions.Cast("geocodigo", CharField())
+                )
+                .filter(
+                    geocodigo_str__startswith=str(prediction.adm_1_geocode)
+                )
+                .values_list("geocodigo", flat=True)
+            )
+
+        if prediction.model.ADM_level == 2:
+            geocodes.add(int(prediction.adm_2_geocode))
+
+    data = Sprint202425.objects.using("infodengue").filter(
+        geocode__in=geocodes,
+        date__gte=dt.fromisoformat(start).date(),
+        date__lte=dt.fromisoformat(end).date(),
+    )
+    df: pd.DataFrame = pd.concat([obj_to_dataframe(o) for o in data])
+    df = df.rename(columns={"date": "dates"})
+    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)), preds=None)
+    return score
 
 
 def get_model_selector_item(request, model_id):

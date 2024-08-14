@@ -10,6 +10,17 @@
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <div class="p-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          value=""
+          id="sprint"
+          disabled
+        >
+        <label class="form-check-label text-white" for="sprint">
+          Sprint 2024/25
+        </label>
+        <hr style="color:white;">
         <center><b>
             <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
           </b></center>
@@ -243,32 +254,30 @@
 
     <br>
 
-    <!-- <div class="line-chart"> -->
-    <!--   <div id="lineChartContainer"></div> -->
-    <!-- </div> -->
-
-    <!-- <div class="predict-table"> -->
-    <!--   <div id="predictTableContainer"></div> -->
-    <!-- </div> -->
+  <div class="container-fluid bg-white border shadow">
+    <div class="predict-table">
+      <center>
+        <iframe 
+          id="predictTableIframe"
+          src="{% url 'predict_table' %}{{selected_predictions_uri}}"
+          width="1115px"
+          height="auto"
+          frameborder="0"
+          onload="resizeIframe(this)"
+        ></iframe>
+      </center>
+    </div>
 
     <div class="line-chart">
       <center>
         <iframe 
           id="lineChartIframe" 
           src="{% url 'line_charts' %}{{selected_predictions_uri}}"
-          width="1150px" height="400px" frameborder="0"
-        ></iframe>
-      </center>
-    </div>
-
-    <div class="predict-table">
-      <center>
-        <iframe 
-          id="predictTableIframe" 
-          src="{% url 'predict_table' %}{{selected_predictions_uri}}"
-          width="80%" 
-          height="auto" 
+          width="1200px"
+          height="400px"
           frameborder="0"
+          style="margin-left: 75px;"
+          onload="resizeIframe(this)"
         ></iframe>
       </center>
     </div>
@@ -330,6 +339,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
   <script>
+    function resizeIframe(iframe) {
+      iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+    }
+
     $(document).ready(function () {
       $('#predictionSearch').select2({
         placeholder: 'Search',

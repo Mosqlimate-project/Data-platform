@@ -10,16 +10,23 @@
               <th scope="col">{% trans "Disease" %}</th>
               <th scope="col">{% trans "Locality" %}</th>
               <th scope="col">{% trans "Prediction Date" %}</th>
+              <th scope="col"><select id="score" name="score" class="form-control fw-bold" onchange="updateSelectedScore()" style="padding: 2px 6px; line-height: 1; max-width: 100px">
+                <option value="" disabled selected>Score</option>
+                {% for score in score_labels %}
+                    <option value="{{ score }}" class="fw-bold">{{ score }}</option>
+                {% endfor %}
+              </select></th>
           </tr>
       </thead>
       <tbody>
           {% for info in prediction_infos %}
           <tr class="{{ info.color }}">
-              <td class="model-name">{{info.model}}</td>
+              <td class="model-name"><a href="{% url 'model' model_id=info.model_id %}" target="_blank" style="text-decoration:none">{{info.model}}</a></td>
               <td>{{info.prediction_id}}</td>
               <td>{{info.disease}}</td>
               <td>{{info.locality}}</td>
               <td>{{info.prediction_date}}</td>
+              <td id="score-{{ info.prediction_id }}"></td>
           </tr>
           {% endfor %}
       </tbody>
@@ -42,4 +49,59 @@
     box-sizing: border-box;
     padding: 10px;
 }
+
+.model-name {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 </style>
+
+<script>
+  let selectedScore = null;
+  let scoreInfo = [];
+
+  try {
+      let infoStr = "{{ score_info|safe }}";
+      scoreInfo = JSON.parse(`${infoStr}`.replace(/'/g, '"')) || [];
+  } catch (e) {
+      scoreInfo = [];
+  }
+
+  function updateSelectedScore() {
+      const score = document.getElementById('score').value;
+      selectedScore = score;
+      updateScoreTds();
+  }
+
+  function getScoreValue(id) {
+      console.log(scoreInfo.length);
+      for (let i = 0; i < scoreInfo.length; i++) {
+          if (selectedScore !== null && scoreInfo[i].id === id) {
+              let scoreValue = scoreInfo[i][selectedScore];
+              if (scoreValue !== undefined) {
+                  return parseFloat(scoreValue).toFixed(2);
+              } else {
+                  return null;
+              }
+          }
+      }
+      return null;
+  }
+
+  function updateScoreTds() {
+      const allTds = document.querySelectorAll('td[id^="score-"]');
+      allTds.forEach(td => {
+          const predictionId = td.id.split('-')[1];
+          console.log(predictionId);
+          const scoreValue = getScoreValue(predictionId);
+          console.log(scoreValue);
+          if (scoreValue !== null) {
+              td.innerHTML = scoreValue;
+          } else {
+              td.innerHTML = "";
+          }
+      });
+  }
+</script>
