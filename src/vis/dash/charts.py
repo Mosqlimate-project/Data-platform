@@ -63,7 +63,7 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
             df_flat = p.prediction_df
             df_flat.dates = pd.to_datetime(df_flat.dates)
             df_flat["model_id"] = p.model.id
-            df_flat["predict_id"] = p.id
+            df_flat["prediction"] = p.id
             dfs.append(df_flat)
 
     try:
@@ -239,7 +239,7 @@ def line_charts_by_geocode(
         raise VisualizationError("No geocode was selected to be visualized")
 
     predicts_df = predictions_df_by_geocode(predictions_ids)
-    predict_id_values = predicts_df["predict_id"].unique()
+    predict_id_values = predicts_df["prediction"].unique()
 
     colors = [
         "#A6BCD4",
@@ -261,7 +261,7 @@ def line_charts_by_geocode(
     highlight = alt.selection_point(
         on="mouseover",
         value=predicts_df.model_id.values[0],
-        fields=["predict_id"],
+        fields=["prediction"],
         nearest=True,
     )
 
@@ -299,10 +299,10 @@ def line_charts_by_geocode(
             # size=alt.condition(~highlight, alt.value(1), alt.value(3))
             color=alt.condition(
                 highlight,
-                alt.Color("predict_id:N", scale=custom_color_scale),
+                alt.Color("prediction:N", scale=custom_color_scale),
                 alt.value("lightgray"),
             ),
-            tooltip=["predict_id:N", "preds"],
+            tooltip=["prediction:N", "preds"],
         )
         .properties(
             title=alt.TitleParams(
@@ -318,7 +318,7 @@ def line_charts_by_geocode(
     # here we define the plot of the right figure
     timeseries = (
         base.mark_line()
-        .encode(color=alt.Color("predict_id:N", scale=custom_color_scale))
+        .encode(color=alt.Color("prediction:N", scale=custom_color_scale))
         .transform_filter(
             highlight  # this function transform filter will just filter the element
             # in highlight from the column model N of the df_for
@@ -365,5 +365,5 @@ def base_model_chart(
     return alt.Chart(data).encode(
         x=alt.X(f"{x}:T", axis=alt.Axis(format="%b/%Y")).title(x_title),
         y=alt.Y(f"{y}:Q").title(y_title),
-        color="predict_id:N",
+        color="prediction:N",
     )
