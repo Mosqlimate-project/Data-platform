@@ -76,7 +76,6 @@
   }
 
   function getScoreValue(id) {
-      console.log(scoreInfo.length);
       for (let i = 0; i < scoreInfo.length; i++) {
           if (selectedScore !== null && scoreInfo[i].id === id) {
               let scoreValue = scoreInfo[i][selectedScore];
@@ -94,9 +93,7 @@
       const allTds = document.querySelectorAll('td[id^="score-"]');
       allTds.forEach(td => {
           const predictionId = td.id.split('-')[1];
-          console.log(predictionId);
           const scoreValue = getScoreValue(predictionId);
-          console.log(scoreValue);
           if (scoreValue !== null) {
               td.innerHTML = scoreValue;
           } else {

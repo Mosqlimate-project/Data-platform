@@ -775,8 +775,6 @@
         var outputFormat = selectedOutputFormat;
         var geocode = selectedGeocode;
         var sprint = selectedSprint;
-        console.log(sprint);
-        console.log(selectedSprint);
 
         var filteredPredictions = predictions.filter(hash => {
           if (disease != null && !hash.startsWith(DISEASES[disease])) {
