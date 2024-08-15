@@ -17,7 +17,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.db.models import CharField, functions
+from django.db.models import CharField, functions, Sum
 
 from registry.models import Model, Prediction
 from datastore.models import DengueGlobal, Sprint202425
@@ -52,6 +52,7 @@ class DashboardView(View):
         context["selectedTemporal"] = None
         context["selectedOutputFormat"] = None
         context["selectedGeocode"] = None
+        context["selectedSprint"] = None
         selected_prediction_ids = set()
 
         selected_model = request.GET.get("model", None)
@@ -65,6 +66,7 @@ class DashboardView(View):
             context["selectedSpatial"] = model.spatial
             context["selectedTemporal"] = model.temporal
             context["selectedOutputFormat"] = model.categorical
+            context["selectedSprint"] = "0" if not model.sprint else "1"
 
         if selected_predictions:
             for id in selected_predictions:
@@ -78,6 +80,9 @@ class DashboardView(View):
                 context["selectedTemporal"] = prediction.model.temporal
                 context["selectedOutputFormat"] = prediction.model.categorical
                 context["selectedGeocode"] = prediction.adm_2_geocode or None
+                context["selectedSprint"] = (
+                    "0" if not prediction.model.sprint else "1"
+                )
                 selected_prediction_ids.add(prediction.id)
 
         if context["selectedDisease"] == "chikungunya":
@@ -442,7 +447,15 @@ def get_score(prediction_ids: list[int]) -> Scorer:
         date__gte=dt.fromisoformat(start).date(),
         date__lte=dt.fromisoformat(end).date(),
     )
+
     df: pd.DataFrame = pd.concat([obj_to_dataframe(o) for o in data])
+
+    if prediction.model.ADM_level == 1:
+        data = (
+            data.values("date").annotate(casos=Sum("casos")).order_by("date")
+        )
+        df = pd.DataFrame(list(data))
+
     df = df.rename(columns={"date": "dates"})
     score = Scorer(df_true=df, ids=list(map(int, prediction_ids)), preds=None)
     return score

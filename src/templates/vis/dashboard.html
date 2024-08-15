@@ -13,9 +13,8 @@
         <input
           class="form-check-input"
           type="checkbox"
-          value=""
+          value="0"
           id="sprint"
-          disabled
         >
         <label class="form-check-label text-white" for="sprint">
           Sprint 2024/25
@@ -398,6 +397,7 @@
       let selectedTemporal = {{ selectedTemporal|default_if_none:'null'|lower }};
       let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
       let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
+      let selectedSprint = {{ selectedSprint|default_if_none:'0' }};
 
       var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
 
@@ -558,6 +558,15 @@
         }
         selectedGeocode = geocode;
         filterPredictions();
+      });
+
+      $('#sprint').on("change", function () {
+          let sprint = $(this).is(':checked') ? '1' : '0';
+          if (String(sprint) !== String(selectedSprint)) {
+              $('#predictionSearch').val([]).trigger('change');
+          }
+          selectedSprint = sprint;
+          filterPredictions();
       });
 
       $('#geocode').on("change", function () {
@@ -765,6 +774,7 @@
         var temporal = selectedTemporal;
         var outputFormat = selectedOutputFormat;
         var geocode = selectedGeocode;
+        var sprint = selectedSprint;
 
         var filteredPredictions = predictions.filter(hash => {
           if (disease != null && !hash.startsWith(DISEASES[disease])) {
@@ -806,6 +816,15 @@
             if (hash_geocode !== geocode) {
               return false;
             }
+          }
+
+          if (sprint != null) {
+            const parts = hash.split('-');
+            let sprint_part = parts[5];
+            if (String(sprint_part) !== String(sprint)) {
+              return false;
+            }
+
           }
 
           return true;

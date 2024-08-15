@@ -162,6 +162,7 @@ class ModelIn(Schema):
     categorical: bool
     ADM_level: Literal[0, 1, 2, 3]
     time_resolution: Literal["day", "week", "month", "year"]
+    sprint: bool = False
 
 
 @router.get(

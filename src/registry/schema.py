@@ -54,6 +54,7 @@ class ModelSchema(Schema):
     temporal: bool | None = None
     ADM_level: Literal[0, 1, 2, 3] | None = None
     time_resolution: Literal["day", "week", "month", "year"] | None = None
+    sprint: bool
 
 
 class ModelFilterSchema(FilterSchema):
@@ -83,6 +84,7 @@ class ModelFilterSchema(FilterSchema):
         None, q="time_resolution__iexact"
     )
     tags: Optional[List[int]] = Field(None, q="tags__id__in")
+    sprint: Optional[bool] = Field(None, q="sprint")
 
 
 class PredictionDataRowSchema(Schema):
@@ -139,3 +141,4 @@ class PredictionFilterSchema(FilterSchema):
     predict_date: Optional[date] = Field(None, q="predict_date")
     start: Optional[date] = Field(None, q="predict_date__gte")
     end: Optional[date] = Field(None, q="predict_date__lte")
+    sprint: Optional[bool] = Field(None, q="model__sprint")
