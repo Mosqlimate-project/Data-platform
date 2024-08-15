@@ -52,6 +52,7 @@ class DashboardView(View):
         context["selectedTemporal"] = None
         context["selectedOutputFormat"] = None
         context["selectedGeocode"] = None
+        context["selectedSprint"] = None
         selected_prediction_ids = set()
 
         selected_model = request.GET.get("model", None)
@@ -65,6 +66,7 @@ class DashboardView(View):
             context["selectedSpatial"] = model.spatial
             context["selectedTemporal"] = model.temporal
             context["selectedOutputFormat"] = model.categorical
+            context["selectedSprint"] = "0" if not model.sprint else "1"
 
         if selected_predictions:
             for id in selected_predictions:
@@ -78,6 +80,9 @@ class DashboardView(View):
                 context["selectedTemporal"] = prediction.model.temporal
                 context["selectedOutputFormat"] = prediction.model.categorical
                 context["selectedGeocode"] = prediction.adm_2_geocode or None
+                context["selectedSprint"] = (
+                    "0" if not prediction.model.sprint else "1"
+                )
                 selected_prediction_ids.add(prediction.id)
 
         if context["selectedDisease"] == "chikungunya":

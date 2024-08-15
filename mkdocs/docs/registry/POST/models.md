@@ -14,6 +14,7 @@
 | categorical | bool | Is the model categorical? |
 | ADM_level | str _(iexact)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | str _(iexact)_ | Options are: day, week, month or year |
+| sprint | bool | Model for Sprint 2024/25 |
 
 
 ### Implementation Language
@@ -50,6 +51,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         categorical: bool
         adm_level: Literal[0, 1, 2, 3],
         time_resolution: Literal["day", "week", "month", "year"],
+        sprint: bool = False
     ):
         url = "https://api.mosqlimate.org/api/registry/models/"
         headers = {"X-UID-Key": "See X-UID-Key documentation"}
@@ -65,6 +67,7 @@ POST requests require [User API Token](uid-key.md) to be called.
             "type": mtype,
             "ADM_level": adm_level,
             "time_resolution": time_resolution,
+            "sprint": sprint
         }
         return requests.post(url, json=model, headers=headers)
 
@@ -81,6 +84,7 @@ POST requests require [User API Token](uid-key.md) to be called.
         categorical = False,
         adm_level = 0, # National
         time_resolution = "week",
+        sprint = False
     )
     ```
 
@@ -100,7 +104,8 @@ POST requests require [User API Token](uid-key.md) to be called.
       temporal,
       categorical,
       adm_level,
-      time_resolution
+      time_resolution,
+      sprint
     ) {
       url <- "https://api.mosqlimate.org/api/registry/models/"
       key = c("<USER>:<KEY>. See X-UID-Key documentation")
@@ -115,7 +120,8 @@ POST requests require [User API Token](uid-key.md) to be called.
         temporal = temporal,
         categorical = categorical,
         ADM_level = adm_level,
-        time_resolution = time_resolution
+        time_resolution = time_resolution,
+        sprint = sprint
       )
       response <- POST(url, body = model, add_headers(.headers=key),  encode = "json", verbose())
       return(content(response, "text"))
@@ -132,7 +138,8 @@ POST requests require [User API Token](uid-key.md) to be called.
       temporal = FALSE,
       categorical = TRUE,
       adm_level = 0,
-      time_resolution = "week"
+      time_resolution = "week",
+      sprint = FALSE,
     )
     ```
 
@@ -153,7 +160,8 @@ POST requests require [User API Token](uid-key.md) to be called.
         "temporal": true,
         "categorical": true,
         "ADM_level": 0,
-        "time_resolution": "week"
+        "time_resolution": "week",
+        "sprint": false
     }'
     ```
 
@@ -178,6 +186,7 @@ upload_model(
     categorical = False,
     adm_level = 0, # National
     time_resolution = "week",
+    sprint = False,
     api_key = "X-UID-Key"
     )
 ```

@@ -1,3 +1,6 @@
+from typing import Any
+
+from django.http.response import JsonResponse
 from django.views import View
 from django.shortcuts import render, get_object_or_404
 
@@ -16,3 +19,9 @@ class ModelView(View):
 
         context = {"model": model, "tags": tags}
         return render(request, self.template_name, context)
+
+
+def filter_predictions(
+    request, ids: list[int], filters: dict[str, Any]
+) -> JsonResponse:
+    ...

@@ -22,11 +22,12 @@ def compose_prediction_metadata(prediction) -> str:
     Convert the Prediction specifications into a ID to be used to extract
     its information across the platform. ID example:
 
-    01DMU-11Q-3304557-1388775707-1704301311
+    01DMU-11Q-3304557-1388775707-1704301311-0
     - Dengue / Daily / ADM Level 2
     - Spatio-Temporal Quantitative
     - Rio de Janeiro - RJ
     - Jan 03 2014 until Jan 03 2024
+    - sprint = False
 
     Parameters
     ----------
@@ -64,6 +65,8 @@ def compose_prediction_metadata(prediction) -> str:
     ini_timestamp = int(prediction.date_ini_prediction.timestamp())
     end_timestamp = int(prediction.date_end_prediction.timestamp())
 
+    sprint = "0" if not prediction.model.sprint else "1"
+
     return "-".join(
         [
             "".join((disease, time_res, adm_level)),
@@ -71,6 +74,7 @@ def compose_prediction_metadata(prediction) -> str:
             str(code),
             str(ini_timestamp),
             str(end_timestamp),
+            sprint,
         ]
     )
 
