@@ -5,6 +5,11 @@ from . import views
 urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path(
+        "sprint/dashboard/",
+        views.DashboardSprintView.as_view(),
+        name="dashboard_sprint",
+    ),
+    path(
         "dashboard/macro-forecast-map/",
         views.DashboardForecastMacroView.as_view(),
         name="dashboard_forecast_map",
