@@ -616,7 +616,7 @@ def get_score(prediction_ids: list[int]) -> Scorer:
         )
         df = pd.DataFrame(list(data))
 
-    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)), preds=None)
+    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)))
     return score
 
 
