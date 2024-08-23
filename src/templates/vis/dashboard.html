@@ -10,16 +10,6 @@
   <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
     <div class="sidebar-menu">
       <div class="p-3">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          value="0"
-          id="sprint"
-        >
-        <label class="form-check-label text-white" for="sprint">
-          Sprint 2024/25
-        </label>
-        <hr style="color:white;">
         <center><b>
             <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
           </b></center>
@@ -149,36 +139,6 @@
                 >
                 <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
               </div>
-
-              <hr style="color:white;">
-
-              <center><b>
-                  <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
-                </b></center>
-                <div class="form-check">
-                  <input
-                  class="form-check-input"
-                  type="checkbox"
-                  value=""
-                  id="spatialType"
-                  {% if "spatial" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="spatialType">
-                    Spatial
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                  class="form-check-input" 
-                  type="checkbox" 
-                  value="" 
-                  id="temporalType" 
-                  {% if "temporal" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="temporalType">
-                    Temporal
-                  </label>
-                </div>
 
                 <hr style="color:white;">
 
@@ -387,14 +347,10 @@
       var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
       var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
       var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
-      var spatial = document.getElementById("spatialType");
-      var temporal = document.getElementById("temporalType");
       var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
       let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
       let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
       let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
-      let selectedSpatial = {{ selectedSpatial|default_if_none:'null'|lower }};
-      let selectedTemporal = {{ selectedTemporal|default_if_none:'null'|lower }};
       let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
       let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
       let selectedSprint = {{ selectedSprint|default_if_none:'0' }};
@@ -419,18 +375,6 @@
         } else {
           document.getElementById("geocode-div").style.display = "none";
         }
-      }
-
-      if (!selectedSpatial) {
-        spatial.indeterminate = true;
-      } else {
-        spatial.checked = selectedSpatial;
-      }
-
-      if (!selectedTemporal) {
-        temporal.indeterminate = true;
-      } else {
-        temporal.checked = selectedTemporal;
       }
 
       const initialPredictions = [
@@ -524,18 +468,6 @@
           level.checked = true;
           level.dispatchEvent(new Event('change'));
         }
-      });
-
-      spatial.addEventListener("change", function() {
-        selectedSpatial = this.checked;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-
-      temporal.addEventListener("change", function() {
-        selectedTemporal = this.checked;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
       });
 
       outputFormat.forEach(function (format) {
@@ -640,16 +572,6 @@
               $("#submunicipal").prop("checked", true);
             };
 
-            if (prediction.charAt(6) === "0") {
-              selectedSpatial = false;
-              spatial.indeterminate = false;
-              spatial.checked = false;
-            } else if (prediction.charAt(6) === "1") {
-              selectedSpatial = true;
-              spatial.indeterminate = false;
-              spatial.checked = true;
-            };
-
             if (prediction.charAt(7) === "0") {
               selectedTemporal = false;
               temporal.indeterminate = false;
@@ -692,8 +614,6 @@
         selectedPredictions = [];
         selectedTimeResolution = null;
         selectedAdmLevel = null;
-        selectedSpatial = null;
-        selectedTemporal = null;
         selectedOutputFormat = null;
         selectedGeocode = null;
 
@@ -709,10 +629,6 @@
         admLevel.forEach(level => {
           level.checked = false;
         });
-
-        spatial.indeterminate = true;
-
-        temporal.indeterminate = true;
 
         outputFormat.forEach(format => {
           format.checked = false;
@@ -770,11 +686,8 @@
         var disease = selectedDisease;
         var timeResolution = selectedTimeResolution;
         var admLevel = selectedAdmLevel;
-        var spatial = selectedSpatial;
-        var temporal = selectedTemporal;
         var outputFormat = selectedOutputFormat;
         var geocode = selectedGeocode;
-        var sprint = selectedSprint;
 
         var filteredPredictions = predictions.filter(hash => {
           if (disease != null && !hash.startsWith(DISEASES[disease])) {
@@ -789,21 +702,9 @@
             return false;
           }
 
-          if (spatial != null) {
-            if ((spatial && hash.charAt(6) === "0") || (!spatial && hash.charAt(6) === "1")) {
-              return false;
-            }
-          }
-
-          if (temporal != null) {
-            if ((temporal && hash.charAt(7) === "0") || (!temporal && hash.charAt(7) === "1")) {
-              return false;
-            }
-          }
-
           if (outputFormat != null) {
             if (
-              (outputFormat === "C" && hash.charAt(8) !== "C") || 
+              (outputFormat === "C" && hash.charAt(8) !== "C") ||
               (outputFormat === "Q" && hash.charAt(8) !== "Q")
             ) {
               return false;
@@ -816,15 +717,6 @@
             if (hash_geocode !== geocode) {
               return false;
             }
-          }
-
-          if (sprint != null) {
-            const parts = hash.split('-');
-            let sprint_part = parts[5];
-            if (String(sprint_part) !== String(sprint)) {
-              return false;
-            }
-
           }
 
           return true;

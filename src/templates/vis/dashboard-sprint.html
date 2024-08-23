@@ -140,36 +140,6 @@
                 <label class="form-check-label text-white" for="submunicipal">Sub Municipal</label>
               </div>
 
-              <hr style="color:white;">
-
-              <center><b>
-                  <label for="modelType" class="text-white">{% trans "Model Type" %}</label>
-                </b></center>
-                <div class="form-check">
-                  <input
-                  class="form-check-input"
-                  type="checkbox"
-                  value=""
-                  id="spatialType"
-                  {% if "spatial" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="spatialType">
-                    Spatial
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                  class="form-check-input" 
-                  type="checkbox" 
-                  value="" 
-                  id="temporalType" 
-                  {% if "temporal" not in model_types %}disabled{% endif %}
-                  >
-                  <label class="form-check-label text-white" for="temporalType">
-                    Temporal
-                  </label>
-                </div>
-
                 <hr style="color:white;">
 
                 <center><b>
@@ -377,14 +347,10 @@
       var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
       var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
       var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
-      var spatial = document.getElementById("spatialType");
-      var temporal = document.getElementById("temporalType");
       var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
       let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
       let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
       let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
-      let selectedSpatial = {{ selectedSpatial|default_if_none:'null'|lower }};
-      let selectedTemporal = {{ selectedTemporal|default_if_none:'null'|lower }};
       let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
       let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
 
@@ -408,18 +374,6 @@
         } else {
           document.getElementById("geocode-div").style.display = "none";
         }
-      }
-
-      if (!selectedSpatial) {
-        spatial.indeterminate = true;
-      } else {
-        spatial.checked = selectedSpatial;
-      }
-
-      if (!selectedTemporal) {
-        temporal.indeterminate = true;
-      } else {
-        temporal.checked = selectedTemporal;
       }
 
       const initialPredictions = [
@@ -515,17 +469,6 @@
         }
       });
 
-      spatial.addEventListener("change", function() {
-        selectedSpatial = this.checked;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
-
-      temporal.addEventListener("change", function() {
-        selectedTemporal = this.checked;
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      });
 
       outputFormat.forEach(function (format) {
         format.addEventListener("change", function () {
@@ -620,26 +563,6 @@
               $("#submunicipal").prop("checked", true);
             };
 
-            if (prediction.charAt(6) === "0") {
-              selectedSpatial = false;
-              spatial.indeterminate = false;
-              spatial.checked = false;
-            } else if (prediction.charAt(6) === "1") {
-              selectedSpatial = true;
-              spatial.indeterminate = false;
-              spatial.checked = true;
-            };
-
-            if (prediction.charAt(7) === "0") {
-              selectedTemporal = false;
-              temporal.indeterminate = false;
-              temporal.checked = false;
-            } else if (prediction.charAt(7) === "1") {
-              selectedTemporal = true;
-              temporal.indeterminate = false;
-              temporal.checked = true;
-            };
-
             if (prediction.charAt(8) === "C") {
               selectedOutputFormat = "C";
               outputFormat.forEach(function (radio) {
@@ -672,8 +595,6 @@
         selectedPredictions = [];
         selectedTimeResolution = null;
         selectedAdmLevel = null;
-        selectedSpatial = null;
-        selectedTemporal = null;
         selectedOutputFormat = null;
         selectedGeocode = null;
 
@@ -689,10 +610,6 @@
         admLevel.forEach(level => {
           level.checked = false;
         });
-
-        spatial.indeterminate = true;
-
-        temporal.indeterminate = true;
 
         outputFormat.forEach(format => {
           format.checked = false;
@@ -750,8 +667,6 @@
         var disease = selectedDisease;
         var timeResolution = selectedTimeResolution;
         var admLevel = selectedAdmLevel;
-        var spatial = selectedSpatial;
-        var temporal = selectedTemporal;
         var outputFormat = selectedOutputFormat;
         var geocode = selectedGeocode;
 
@@ -766,18 +681,6 @@
 
           if (admLevel != null && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
             return false;
-          }
-
-          if (spatial != null) {
-            if ((spatial && hash.charAt(6) === "0") || (!spatial && hash.charAt(6) === "1")) {
-              return false;
-            }
-          }
-
-          if (temporal != null) {
-            if ((temporal && hash.charAt(7) === "0") || (!temporal && hash.charAt(7) === "1")) {
-              return false;
-            }
           }
 
           if (outputFormat != null) {
