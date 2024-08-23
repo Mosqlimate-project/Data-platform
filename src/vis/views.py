@@ -10,6 +10,7 @@ from dateutil import parser
 from datetime import datetime as dt
 
 import pandas as pd
+import numpy as np
 from mosqlient.models.score import Scorer
 
 from django.shortcuts import render, get_object_or_404
@@ -90,11 +91,13 @@ class DashboardView(View):
 
         context["selectedPredictions"] = list(selected_prediction_ids)
 
-        models = Model.objects.all()
-        predictions = Prediction.objects.filter(visualizable=True)
+        models = Model.objects.filter(sprint=False)
+        predictions = Prediction.objects.filter(
+            visualizable=True, model__sprint=False
+        )
         predictions_data = []
 
-        for prediction in Prediction.objects.filter(model__ADM_level=1):
+        for prediction in predictions.filter(model__ADM_level=1):
             if prediction.adm_1_geocode:
                 predictions_data.append(
                     tuple(
@@ -107,7 +110,159 @@ class DashboardView(View):
                     )
                 )
 
-        for prediction in Prediction.objects.filter(model__ADM_level=2):
+        for prediction in predictions.filter(model__ADM_level=2):
+            if prediction.adm_2_geocode:
+                _, info = get_municipality_info(
+                    request, prediction.adm_2_geocode
+                )
+                predictions_data.append(
+                    tuple(
+                        [
+                            prediction.id,
+                            prediction.model.name,
+                            prediction.metadata,
+                            f"{info['municipio']} - {info['uf']}",
+                        ]
+                    )
+                )
+
+        context["predictions"] = predictions_data
+
+        model_types = set()
+        output_formats = set()
+        for model in models:
+            if model.categorical:
+                output_formats.add("C")
+            else:
+                output_formats.add("Q")
+
+            if model.spatial:
+                model_types.add("spatial")
+
+            if model.temporal:
+                model_types.add("temporal")
+
+        context["model_types"] = list(model_types)
+        context["output_formats"] = list(output_formats)
+
+        context["diseases"] = list(
+            set(models.values_list("disease", flat=True))
+        )
+
+        context["adm_levels"] = list(
+            set(models.values_list("ADM_level", flat=True))
+        )
+
+        context["time_resolutions"] = list(
+            set(models.values_list("time_resolution", flat=True))
+        )
+
+        adm_2_geocodes = set(
+            predictions.values_list("adm_2_geocode", flat=True)
+        )
+
+        geocode_cities = set()
+        municipios_file = os.path.join("static", "data/geo/BR/municipios.json")
+        if os.path.isfile(municipios_file):
+            uf_codes = dict()
+            for uf, info in uf_ibge_mapping.items():
+                uf_codes[int(info["code"])] = uf
+
+            with open(municipios_file, "rb") as f:
+                geocodes = json.load(f)
+
+            for geocode in geocodes:
+                if int(geocode) in adm_2_geocodes:
+                    data = geocodes[geocode]
+                    geocode_cities.add(
+                        (
+                            geocode,
+                            data["municipio"],
+                            uf_codes[int(data["codigo_uf"])],
+                        )
+                    )
+
+        context["selected_predictions_uri"] = merge_uri_params(
+            selected_predictions, "predict"
+        )
+
+        context["adm_2_geocodes"] = list(geocode_cities)
+
+        return render(request, self.template_name, context)
+
+
+class DashboardSprintView(View):
+    template_name = "vis/dashboard-sprint.html"
+
+    def get(self, request):
+        codes_uf = {v: k for k, v in UF_CODES.items()}
+        context = {}
+
+        context["selectedDisease"] = None
+        context["selectedTimeResolution"] = None
+        context["selectedADMLevel"] = None
+        context["selectedSpatial"] = None
+        context["selectedTemporal"] = None
+        context["selectedOutputFormat"] = None
+        context["selectedGeocode"] = None
+        context["selectedSprint"] = None
+        selected_prediction_ids = set()
+
+        selected_model = request.GET.get("model", None)
+        selected_predictions = request.GET.getlist("predict", None)
+
+        if selected_model:
+            model = Model.objects.get(pk=selected_model)
+            context["selectedDisease"] = model.disease or None
+            context["selectedTimeResolution"] = model.time_resolution or None
+            context["selectedADMLevel"] = model.ADM_level
+            context["selectedSpatial"] = model.spatial
+            context["selectedTemporal"] = model.temporal
+            context["selectedOutputFormat"] = model.categorical
+            context["selectedSprint"] = "0" if not model.sprint else "1"
+
+        if selected_predictions:
+            for id in selected_predictions:
+                prediction = Prediction.objects.get(pk=id)
+                context["selectedDisease"] = prediction.model.disease or None
+                context["selectedTimeResolution"] = (
+                    prediction.model.time_resolution or None
+                )
+                context["selectedADMLevel"] = prediction.model.ADM_level
+                context["selectedSpatial"] = prediction.model.spatial
+                context["selectedTemporal"] = prediction.model.temporal
+                context["selectedOutputFormat"] = prediction.model.categorical
+                context["selectedGeocode"] = prediction.adm_2_geocode or None
+                context["selectedSprint"] = (
+                    "0" if not prediction.model.sprint else "1"
+                )
+                selected_prediction_ids.add(prediction.id)
+
+        if context["selectedDisease"] == "chikungunya":
+            context["selectedDisease"] = "chik"
+
+        context["selectedPredictions"] = list(selected_prediction_ids)
+
+        models = Model.objects.filter(sprint=True)
+        predictions = Prediction.objects.filter(
+            visualizable=True, model__sprint=True
+        )
+        predictions_data = []
+
+        for prediction in predictions.filter(model__ADM_level=1):
+            if prediction.adm_1_geocode:
+                predictions_data.append(
+                    tuple(
+                        [
+                            prediction.id,
+                            prediction.model.name,
+                            prediction.metadata,
+                            codes_uf[prediction.adm_1_geocode],
+                        ]
+                    )
+                )
+
+        for prediction in predictions.filter(model__ADM_level=2):
             if prediction.adm_2_geocode:
                 _, info = get_municipality_info(
                     request, prediction.adm_2_geocode
@@ -314,6 +469,11 @@ class PredictTableView(View):
                 df = get_score(ids).summary
                 df = df.reset_index()
                 score_info = df.to_dict(orient="records")
+                for x in score_info:
+                    if "log_score" in x:
+                        if x["log_score"] == np.float64("-inf"):
+                            x["log_score"] = "-"
+
                 labels = []
                 for score in score_info:
                     labels.extend([k for k in score.keys() if k != "id"])
@@ -410,8 +570,8 @@ def get_score(prediction_ids: list[int]) -> Scorer:
                 f"Prediction with id {prediction.id} is not visualizable"
             )
 
-        s = prediction.prediction_df.dates.min()
-        e = prediction.prediction_df.dates.max()
+        s = prediction.to_dataframe().date.min()
+        e = prediction.to_dataframe().date.max()
 
         if not start:
             start = s
@@ -444,8 +604,8 @@ def get_score(prediction_ids: list[int]) -> Scorer:
 
     data = Sprint202425.objects.using("infodengue").filter(
         geocode__in=geocodes,
-        date__gte=dt.fromisoformat(start).date(),
-        date__lte=dt.fromisoformat(end).date(),
+        date__gte=dt.fromisoformat(str(start)).date(),
+        date__lte=dt.fromisoformat(str(end)).date(),
     )
 
     df: pd.DataFrame = pd.concat([obj_to_dataframe(o) for o in data])
@@ -456,8 +616,7 @@ def get_score(prediction_ids: list[int]) -> Scorer:
         )
         df = pd.DataFrame(list(data))
 
-    df = df.rename(columns={"date": "dates"})
-    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)), preds=None)
+    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)))
     return score
 
 

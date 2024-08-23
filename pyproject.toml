@@ -46,7 +46,7 @@ django-cors-headers = "^4.3.1"
 epiweeks = "^2.3.0"
 duckdb = "^0.10.0"
 dask = {extras = ["dataframe"], version = "^2024.7.0"}
-mosqlient = ">=1.5.2"
+mosqlient = ">=1.6.3"
 
 
 [tool.poetry.group.pre-commit.dependencies]

@@ -121,7 +121,7 @@ POST requests require [User API Token](uid-key.md) to be called.
 
 The mosqlient is a Python package created to facilitate the use of API. 
 
-In the package, there is a function called `upload_prediction` that can be used to send the predictions to the platform. The function accepts the parameters described above, but the `prediction` parameter, instead of json, must be filled with a pandas DataFrame containing the following columns: [dates, lower, preds, upper, adm_{adm_level}]. When registering your model, you must provide the output predictions' ADM Level. If your model has an ADM level—1, state level, then your predictions must contain the adm_1 column.
+In the package, there is a function called `upload_prediction` that can be used to send the predictions to the platform. The function accepts the parameters described above, but the `prediction` parameter, instead of json, must be filled with a pandas DataFrame containing the following columns: [date, lower, pred, upper, adm_{adm_level}]. When registering your model, you must provide the output predictions' ADM Level. If your model has an ADM level—1, state level, then your predictions must contain the adm_1 column.
 
 Below is a usable example of the function for a model that predicts a horizon of 10 weeks for adm 1 level.
 ```py
@@ -131,9 +131,9 @@ from mosqlient import upload_prediction
 
 df_preds = pd.DataFrame()
 
-df_preds['dates'] = pd.date_range(start='2024-08-04', periods=10)
+df_preds['date'] = pd.date_range(start='2024-08-04', periods=10)
 df_preds['lower'] = np.arange(100, 200, 10)
-df_preds['preds'] = np.arange(150, 250, 10)
+df_preds['pred'] = np.arange(150, 250, 10)
 df_preds['upper'] = np.arange(200, 300, 10)
 df_preds['adm_1'] = 10*['PR']
 

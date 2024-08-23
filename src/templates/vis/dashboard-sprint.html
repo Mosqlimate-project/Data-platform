@@ -196,7 +196,7 @@
       <div class="prediction-search-div">
         <center>
           <center>
-            <label for="predictionSearch">{% trans "Select Predictions" %}</label>
+            <label for="predictionSearch">{% trans "Select Sprint 2024/25 Predictions" %}</label>
           </center>
           <select id="predictionSearch" multiple>
             {% for id, model_name, metadata, city in predictions %}
@@ -353,7 +353,6 @@
       let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
       let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
       let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
-      let selectedSprint = {{ selectedSprint|default_if_none:'0' }};
 
       var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
 
@@ -470,6 +469,7 @@
         }
       });
 
+
       outputFormat.forEach(function (format) {
         format.addEventListener("change", function () {
           selectedOutputFormat = this.value;
@@ -490,15 +490,6 @@
         }
         selectedGeocode = geocode;
         filterPredictions();
-      });
-
-      $('#sprint').on("change", function () {
-          let sprint = $(this).is(':checked') ? '1' : '0';
-          if (String(sprint) !== String(selectedSprint)) {
-              $('#predictionSearch').val([]).trigger('change');
-          }
-          selectedSprint = sprint;
-          filterPredictions();
       });
 
       $('#geocode').on("change", function () {
@@ -694,7 +685,7 @@
 
           if (outputFormat != null) {
             if (
-              (outputFormat === "C" && hash.charAt(8) !== "C") ||
+              (outputFormat === "C" && hash.charAt(8) !== "C") || 
               (outputFormat === "Q" && hash.charAt(8) !== "Q")
             ) {
               return false;

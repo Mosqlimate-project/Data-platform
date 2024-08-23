@@ -77,8 +77,8 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
     """
 
     required_keys = [
-        "dates",
-        "preds",
+        "date",
+        "pred",
         "lower",
         "upper",
         f"adm_{adm_model}",
@@ -88,7 +88,13 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
     try:
         df = pd.DataFrame(json.loads(obj))
     except ValueError:
-        return "json object can not be transformed in DataFrame."
+        return (
+            "JSON object can not be transformed in DataFrame. To upload the "
+            + "Prediction using a DataFrame, please use "
+            + "[mosqlient](https://github.com/Mosqlimate-project/mosqlimate-client)"
+        )
+
+    df = df.rename(columns={"dates": "date", "preds": "pred"})
 
     # Check if any key is missing
     if not set(required_keys).issubset(set(list(df.columns))):
@@ -103,30 +109,28 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
 
     # date validation
     try:
-        for value in df["dates"]:
+        for value in df["date"]:
             isoparse(value)
 
     except ValueError:
         return "Date values must be in the YYYY-MM-DD format."
 
-    if min(pd.to_datetime(df.dates).dt.year) < 2010:
-        return "Invalid 'dates' year. Should be equal to or bigger than 2010."
+    if min(pd.to_datetime(df.date).dt.year) < 2010:
+        return "Invalid 'date' year. Should be equal to or bigger than 2010."
 
-    # preds validation
-    for field in ["preds", "lower", "upper"]:
+    # pred validation
+    for field in ["pred", "lower", "upper"]:
         if not (
             pd.api.types.is_integer_dtype(df[field])
             or pd.api.types.is_float_dtype(df[field])
         ):
             return f"Invalid data type for '{field}' field."
 
-    condition_preds = (df["lower"] <= df["preds"]) & (
-        df["preds"] <= df["upper"]
-    )
+    condition_preds = (df["lower"] <= df["pred"]) & (df["pred"] <= df["upper"])
     if not condition_preds.all():
         return (
             "Invalid predictions, the predictions must follow:"
-            + "lower <= preds <= upper for all values."
+            + "lower <= pred <= upper for all values."
         )
 
     if adm_model == 2:

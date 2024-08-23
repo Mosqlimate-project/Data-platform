@@ -1,6 +1,8 @@
 import datetime
-from typing import List, Literal
+import json
+from typing import List, Literal, Optional
 
+import pandas as pd
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Count
@@ -20,7 +22,13 @@ from ninja.pagination import paginate
 from ninja.security import django_auth
 from users.auth import UidKeyAuth
 
-from .models import Author, ImplementationLanguage, Model, Prediction
+from .models import (
+    Author,
+    ImplementationLanguage,
+    Model,
+    Prediction,
+    PredictionDataRow,
+)
 from .pagination import PagesPagination
 from .schema import (
     AuthorFilterSchema,
@@ -177,7 +185,7 @@ def list_models(
 ):
     models = Model.objects.all()
     models = filters.filter(models)
-    return list(set(models.order_by("-updated")))
+    return models.order_by("-updated")
 
 
 @router.get(
@@ -339,7 +347,7 @@ class PredictionIn(Schema):
     description: str = None
     commit: str
     predict_date: datetime.date  # YYYY-mm-dd
-    prediction: AnyObject
+    prediction: Optional[AnyObject] = None
 
 
 @router.get(
@@ -356,7 +364,7 @@ def list_predictions(
 ):
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
-    return list(set(predictions.order_by("-updated")))
+    return predictions.order_by("-updated")
 
 
 @router.get(
@@ -401,17 +409,58 @@ def create_prediction(request, payload: PredictionIn):
     if validation_result is not None:
         return validation_result
 
-    prediction = Prediction(**payload.dict())
+    def parse_data(predict: Prediction, df: pd.DataFrame):
+        df = df.rename(columns={"dates": "date", "preds": "pred"})
+
+        for _, row in df.iterrows():  # noqa
+            adm_0 = "BRA"
+            try:
+                adm_1 = (
+                    None
+                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
+                    else row.adm_1
+                )
+            except AttributeError:
+                adm_1 = None
+            try:
+                adm_2 = (
+                    None
+                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
+                    else row.adm_2
+                )
+            except AttributeError:
+                adm_2 = None
+            try:
+                adm_3 = (
+                    None
+                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
+                    else row.adm_3
+                )
+            except AttributeError:
+                adm_3 = None
+
+            if not calling_via_swagger(request):
+                PredictionDataRow.objects.get_or_create(
+                    predict=predict,
+                    date=pd.to_datetime(row.date).date(),
+                    pred=float(row.pred),
+                    upper=float(row.upper),
+                    lower=float(row.lower),
+                    adm_0=adm_0,
+                    adm_1=adm_1,
+                    adm_2=adm_2,
+                    adm_3=adm_3,
+                )
+
+    df = pd.DataFrame(json.loads(payload.prediction))
+    payload_dict = payload.dict()
+    del payload_dict["prediction"]
+    prediction = Prediction(**payload_dict)
 
     if not calling_via_swagger(request):
-        prediction.parse_metadata()
         prediction.save()
-        try:
-            prediction.parse_prediction()
-        except Exception as e:
-            return 422, {
-                "message" f"Could not parse prediction data. Error: {e}"
-            }
+        parse_data(prediction, df)
+        prediction.parse_metadata()
 
     return 201, prediction
 

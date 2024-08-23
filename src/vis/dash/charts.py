@@ -60,8 +60,8 @@ def predictions_df_by_geocode(predictions_ids: list[int]):
     dfs = []
     for p in predicts:
         if p.visualizable:
-            df_flat = p.prediction_df
-            df_flat.dates = pd.to_datetime(df_flat.dates)
+            df_flat = p.to_dataframe()
+            df_flat.date = pd.to_datetime(df_flat.date)
             df_flat["model_id"] = p.model.id
             df_flat["prediction"] = p.id
             dfs.append(df_flat)
@@ -86,7 +86,7 @@ def dataframe_by_geocode(
     adm_1_geocode: int = None,
     adm_2_geocode: int = None,
     width="container",
-    x: str = "dates",
+    x: str = "date",
     y: str = "target",
     legend: str = "Data",
     sprint: bool = False,
@@ -164,7 +164,7 @@ def dataframe_by_geocode(
 
     df = pd.DataFrame(res)
     df["legend"] = "Data"
-    df.dates = pd.to_datetime(df.dates)
+    df.date = pd.to_datetime(df.date)
 
     chart = (
         alt.Chart(df)
@@ -189,7 +189,7 @@ def line_charts_by_geocode(
     disease: str = "dengue",
     request=None,
 ):
-    x = "dates"
+    x = "date"
     y = "target"
 
     adm_1_geocode: int = None
@@ -269,8 +269,8 @@ def line_charts_by_geocode(
         disease=disease,
         adm_1_geocode=adm_1_geocode,
         adm_2_geocode=adm_2_geocode,
-        start=min(predicts_df.dates),
-        end=max(predicts_df.dates),
+        start=min(predicts_df.date),
+        end=max(predicts_df.date),
         width=width,
         x=x,
         y=y,
@@ -302,7 +302,7 @@ def line_charts_by_geocode(
                 alt.Color("prediction:N", scale=custom_color_scale),
                 alt.value("lightgray"),
             ),
-            tooltip=["prediction:N", "preds"],
+            tooltip=["prediction:N", "pred"],
         )
         .properties(
             title=alt.TitleParams(
@@ -329,7 +329,7 @@ def line_charts_by_geocode(
     # here we create the area that represent the confidence interval of the predictions
     timeseries_conf = (
         base.mark_area(opacity=0.5)
-        .encode(x="dates:T", y="lower:Q", y2="upper:Q")
+        .encode(x="date:T", y="lower:Q", y2="upper:Q")
         .transform_filter(highlight)
     ).properties(
         title=alt.TitleParams(
@@ -357,9 +357,9 @@ def line_charts_by_geocode(
 
 def base_model_chart(
     data: pd.DataFrame,
-    x: str = "dates",
+    x: str = "date",
     x_title: str = "Dates",
-    y: str = "preds",
+    y: str = "pred",
     y_title="New cases",
 ) -> alt.Chart:
     return alt.Chart(data).encode(

@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from io import StringIO
+import json
 from typing import Literal
 from datetime import datetime
 from random import randrange as rr
@@ -224,7 +224,6 @@ class Prediction(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
-    prediction = models.JSONField(null=False, blank=True)
     # Metadata
     visualizable = models.BooleanField(default=False)
     metadata = models.CharField(null=True, default=None)
@@ -238,17 +237,16 @@ class Prediction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    prediction_df: pd.DataFrame = pd.DataFrame()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        try:
-            self.prediction_df = pd.read_json(StringIO(self.prediction))
-        except (TypeError, AttributeError):
-            self.prediction_df = pd.DataFrame()
-        except Exception as e:
-            raise errors.VisualizationError(e)
+    fields = [
+        "date",
+        "pred",
+        "lower",
+        "upper",
+        "adm_0",
+        "adm_1",
+        "adm_2",
+        "adm_3",
+    ]
 
     def __str__(self):
         return f"{self.id}"
@@ -259,85 +257,39 @@ class Prediction(models.Model):
         if not rows:
             return pd.DataFrame()
 
-        fields = [
-            "dates",
-            "preds",
-            "lower",
-            "upper",
-            "adm_0",
-            "adm_1",
-            "adm_2",
-            "adm_3",
-        ]
+        data = list(rows.values(*self.fields))
 
-        data = list(rows.values(*fields))
-
-        return pd.DataFrame(data, columns=fields)
+        return pd.DataFrame(data, columns=self.fields)
 
     def to_json(self) -> str:
-        return self.to_dataframe().to_json(orient="records", date_format="iso")
+        rows = self.data.all()
+
+        if not rows:
+            return "[]"
+
+        data = json.loads(
+            self.to_dataframe().to_json(orient="records", date_format="iso")
+        )
+
+        for row in data:
+            row["date"] = str(datetime.fromisoformat(row["date"]).date())
+
+        return json.dumps(data)
 
     def parse_metadata(self):
-        if not self.prediction_df.empty:
+        if not self.to_dataframe().empty:
             self._add_adm_geocode()
             self._add_ini_end_prediction_dates()
             self.visualizable = True
             self.metadata = compose_prediction_metadata(self)
             self.save()
 
-    def parse_prediction(self):
-        df = self.prediction_df
-
-        data = []
-        for _, row in df.iterrows():  # noqa
-            adm_0 = "BRA"
-            try:
-                adm_1 = (
-                    None
-                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
-                    else row.adm_1
-                )
-            except AttributeError:
-                adm_1 = None
-            try:
-                adm_2 = (
-                    None
-                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
-                    else row.adm_2
-                )
-            except AttributeError:
-                adm_2 = None
-            try:
-                adm_3 = (
-                    None
-                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
-                    else row.adm_3
-                )
-            except AttributeError:
-                adm_3 = None
-
-            obj, c = PredictionDataRow.objects.get_or_create(
-                predict=self,
-                dates=pd.to_datetime(row.dates).date(),
-                preds=float(row.preds),
-                upper=float(row.upper),
-                lower=float(row.lower),
-                adm_0=adm_0,
-                adm_1=adm_1,
-                adm_2=adm_2,
-                adm_3=adm_3,
-            )
-
-            data.append(obj)
-
-        return data
-
     def _add_adm_geocode(self):
         level = self.model.ADM_level
         column = f"adm_{level}"
 
         try:
-            code = self.prediction_df[column].unique()
+            code = self.to_dataframe()[column].unique()
         except KeyError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError(f"{column} column not found")
@@ -372,19 +324,19 @@ class Prediction(models.Model):
 
     def _add_ini_end_prediction_dates(self):
         try:
-            ini_date = min(self.prediction_df["dates"])
-            end_date = max(self.prediction_df["dates"])
+            ini_date = min(self.to_dataframe()["date"])
+            end_date = max(self.to_dataframe()["date"])
         except KeyError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError("dates column not found")
+            raise errors.VisualizationError("date column not found")
 
         try:
-            self.date_ini_prediction = datetime.fromisoformat(ini_date)
-            self.date_end_prediction = datetime.fromisoformat(end_date)
+            self.date_ini_prediction = datetime.fromisoformat(str(ini_date))
+            self.date_end_prediction = datetime.fromisoformat(str(end_date))
         except ValueError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError(
-                "Incorrect date format on column dates"
+                "Incorrect date format on column date"
             )
 
     def _parse_uf_geocode(self, uf: str):
@@ -400,10 +352,10 @@ class Prediction(models.Model):
 
 class PredictionDataRow(models.Model):
     predict = models.ForeignKey(
-        Prediction, on_delete=models.CASCADE, related_name="data"
+        Prediction, on_delete=models.CASCADE, related_name="data", null=True
     )
-    dates = models.DateField(null=False)
-    preds = models.FloatField(null=False)
+    date = models.DateField(null=False)
+    pred = models.FloatField(null=False)
     lower = models.FloatField(null=False)
     upper = models.FloatField(null=False)
     adm_0 = models.CharField(max_length=3, null=True)

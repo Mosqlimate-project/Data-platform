@@ -287,6 +287,8 @@ variables = {
     "EPISCANNER_HOST_DATA_DIR": os.path.join(
         os.path.expanduser("~"), "episcanner"
     ),
+    # [Mosqlient]
+    "MOSQLIENT_API_URL": "http://0.0.0.0:8042/api/",
 }
 
 if not CI:
