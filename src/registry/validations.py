@@ -88,7 +88,13 @@ def validate_prediction_obj(obj, adm_model, validation_regions) -> str:
     try:
         df = pd.DataFrame(json.loads(obj))
     except ValueError:
-        return "json object can not be transformed in DataFrame."
+        return (
+            "JSON object can not be transformed in DataFrame. To upload the "
+            + "Prediction using a DataFrame, please use "
+            + "[mosqlient](https://github.com/Mosqlimate-project/mosqlimate-client)"
+        )
+
+    df = df.rename(columns={"dates": "date", "preds": "pred"})
 
     # Check if any key is missing
     if not set(required_keys).issubset(set(list(df.columns))):

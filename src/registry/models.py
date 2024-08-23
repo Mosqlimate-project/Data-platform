@@ -284,53 +284,6 @@ class Prediction(models.Model):
             self.metadata = compose_prediction_metadata(self)
             self.save()
 
-    def parse_prediction(self):
-        df = self.to_dataframe()
-
-        data = []
-        for _, row in df.iterrows():  # noqa
-            adm_0 = "BRA"
-            try:
-                adm_1 = (
-                    None
-                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
-                    else row.adm_1
-                )
-            except AttributeError:
-                adm_1 = None
-            try:
-                adm_2 = (
-                    None
-                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
-                    else row.adm_2
-                )
-            except AttributeError:
-                adm_2 = None
-            try:
-                adm_3 = (
-                    None
-                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
-                    else row.adm_3
-                )
-            except AttributeError:
-                adm_3 = None
-
-            obj, c = PredictionDataRow.objects.get_or_create(
-                predict=self,
-                date=pd.to_datetime(row.date).date(),
-                pred=float(row.pred),
-                upper=float(row.upper),
-                lower=float(row.lower),
-                adm_0=adm_0,
-                adm_1=adm_1,
-                adm_2=adm_2,
-                adm_3=adm_3,
-            )
-
-            data.append(obj)
-
-        return data
-
     def _add_adm_geocode(self):
         level = self.model.ADM_level
         column = f"adm_{level}"
@@ -378,8 +331,8 @@ class Prediction(models.Model):
             raise errors.VisualizationError("date column not found")
 
         try:
-            self.date_ini_prediction = datetime.fromisoformat(ini_date)
-            self.date_end_prediction = datetime.fromisoformat(end_date)
+            self.date_ini_prediction = datetime.fromisoformat(str(ini_date))
+            self.date_end_prediction = datetime.fromisoformat(str(end_date))
         except ValueError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError(
@@ -399,7 +352,7 @@ class Prediction(models.Model):
 
 class PredictionDataRow(models.Model):
     predict = models.ForeignKey(
-        Prediction, on_delete=models.CASCADE, related_name="data"
+        Prediction, on_delete=models.CASCADE, related_name="data", null=True
     )
     date = models.DateField(null=False)
     pred = models.FloatField(null=False)

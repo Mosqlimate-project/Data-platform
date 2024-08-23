@@ -572,16 +572,6 @@
               $("#submunicipal").prop("checked", true);
             };
 
-            if (prediction.charAt(7) === "0") {
-              selectedTemporal = false;
-              temporal.indeterminate = false;
-              temporal.checked = false;
-            } else if (prediction.charAt(7) === "1") {
-              selectedTemporal = true;
-              temporal.indeterminate = false;
-              temporal.checked = true;
-            };
-
             if (prediction.charAt(8) === "C") {
               selectedOutputFormat = "C";
               outputFormat.forEach(function (radio) {
