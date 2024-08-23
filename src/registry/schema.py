@@ -87,8 +87,8 @@ class ModelFilterSchema(FilterSchema):
 
 
 class PredictionDataRowSchema(Schema):
-    dates: date
-    preds: float
+    date: date
+    pred: float
     lower: float
     upper: float
     adm_0: str = "BRA"

@@ -33,8 +33,8 @@ class TestValidCreatePrediction(TestCase):
 
         self.data = [
             {
-                "dates": "2022-01-02",
-                "preds": 23.4811749402,
+                "date": "2022-01-02",
+                "pred": 23.4811749402,
                 "lower": 0.0,
                 "upper": 42.6501866267,
                 "adm_2": 2704302,
@@ -56,8 +56,8 @@ class TestValidCreatePrediction(TestCase):
 
     def validate_prediction_data(self, data: dict) -> None:
         # Check data types
-        self.assertIsInstance(data["dates"], str)
-        self.assertIsInstance(data["preds"], float)
+        self.assertIsInstance(data["date"], str)
+        self.assertIsInstance(data["pred"], float)
         self.assertIsInstance(data["lower"], float)
         self.assertIsInstance(data["upper"], float)
         self.assertIsInstance(data["adm_2"], int)
@@ -65,20 +65,20 @@ class TestValidCreatePrediction(TestCase):
         self.assertIsInstance(data["adm_0"], str)
 
         # Check data values
-        self.assertEqual(data["dates"], "2022-01-02")
-        self.assertAlmostEqual(data["preds"], 23.4811749402)
+        self.assertEqual(data["date"], "2022-01-02")
+        self.assertAlmostEqual(data["pred"], 23.4811749402)
         self.assertAlmostEqual(data["lower"], 0.0)
         self.assertAlmostEqual(data["upper"], 42.6501866267)
         self.assertEqual(data["adm_1"], "AL")
         self.assertEqual(data["adm_0"], "BR")
 
         # Check string field lengths
-        self.assertLessEqual(len(data["dates"]), 10)
+        self.assertLessEqual(len(data["date"]), 10)
         self.assertLessEqual(len(data["adm_1"]), 2)
         self.assertLessEqual(len(data["adm_0"]), 2)
 
         # Check date format using datetime
-        parsed_date = datetime.strptime(data["dates"], "%Y-%m-%d").date()
+        parsed_date = datetime.strptime(data["date"], "%Y-%m-%d").date()
         self.assertIsInstance(parsed_date, date)
 
         # Verify if the geocode is within the range for the Brazilian IBGE code

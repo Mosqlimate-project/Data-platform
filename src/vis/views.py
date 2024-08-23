@@ -570,8 +570,8 @@ def get_score(prediction_ids: list[int]) -> Scorer:
                 f"Prediction with id {prediction.id} is not visualizable"
             )
 
-        s = prediction.to_dataframe().dates.min()
-        e = prediction.to_dataframe().dates.max()
+        s = prediction.to_dataframe().date.min()
+        e = prediction.to_dataframe().date.max()
 
         if not start:
             start = s
@@ -616,7 +616,6 @@ def get_score(prediction_ids: list[int]) -> Scorer:
         )
         df = pd.DataFrame(list(data))
 
-    df = df.rename(columns={"date": "dates"})
     score = Scorer(df_true=df, ids=list(map(int, prediction_ids)), preds=None)
     return score
 

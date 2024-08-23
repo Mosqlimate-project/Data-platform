@@ -238,8 +238,8 @@ class Prediction(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     fields = [
-        "dates",
-        "preds",
+        "date",
+        "pred",
         "lower",
         "upper",
         "adm_0",
@@ -272,7 +272,7 @@ class Prediction(models.Model):
         )
 
         for row in data:
-            row["dates"] = str(datetime.fromisoformat(row["dates"]).date())
+            row["date"] = str(datetime.fromisoformat(row["date"]).date())
 
         return json.dumps(data)
 
@@ -317,8 +317,8 @@ class Prediction(models.Model):
 
             obj, c = PredictionDataRow.objects.get_or_create(
                 predict=self,
-                dates=pd.to_datetime(row.dates).date(),
-                preds=float(row.preds),
+                date=pd.to_datetime(row.date).date(),
+                pred=float(row.pred),
                 upper=float(row.upper),
                 lower=float(row.lower),
                 adm_0=adm_0,
@@ -371,11 +371,11 @@ class Prediction(models.Model):
 
     def _add_ini_end_prediction_dates(self):
         try:
-            ini_date = min(self.to_dataframe()["dates"])
-            end_date = max(self.to_dataframe()["dates"])
+            ini_date = min(self.to_dataframe()["date"])
+            end_date = max(self.to_dataframe()["date"])
         except KeyError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError("dates column not found")
+            raise errors.VisualizationError("date column not found")
 
         try:
             self.date_ini_prediction = datetime.fromisoformat(ini_date)
@@ -383,7 +383,7 @@ class Prediction(models.Model):
         except ValueError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError(
-                "Incorrect date format on column dates"
+                "Incorrect date format on column date"
             )
 
     def _parse_uf_geocode(self, uf: str):
@@ -401,8 +401,8 @@ class PredictionDataRow(models.Model):
     predict = models.ForeignKey(
         Prediction, on_delete=models.CASCADE, related_name="data"
     )
-    dates = models.DateField(null=False)
-    preds = models.FloatField(null=False)
+    date = models.DateField(null=False)
+    pred = models.FloatField(null=False)
     lower = models.FloatField(null=False)
     upper = models.FloatField(null=False)
     adm_0 = models.CharField(max_length=3, null=True)

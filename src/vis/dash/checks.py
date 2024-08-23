@@ -9,8 +9,8 @@ def contains_correlated_dates(
     dates2 = set()
 
     try:
-        dates1 = set(df1.dates)
-        dates2 = set(df2.dates)
+        dates1 = set(df1.date)
+        dates2 = set(df2.date)
     except AttributeError:
         return False
 
@@ -43,8 +43,8 @@ def _line_chart_adm_2_df_columns(df: pd.DataFrame) -> bool:
     # TODO: These are the columns for the first models for visualization, it
     # will require a better handling in the future
     required_columns = [
-        "dates",
-        "preds",
+        "date",
+        "pred",
         "lower",
         "upper",
         "adm_2",
