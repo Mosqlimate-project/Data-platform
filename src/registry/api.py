@@ -185,7 +185,7 @@ def list_models(
 ):
     models = Model.objects.all()
     models = filters.filter(models)
-    return list(set(models.order_by("-updated")))
+    return models.order_by("-updated")
 
 
 @router.get(
@@ -364,7 +364,7 @@ def list_predictions(
 ):
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
-    return list(set(predictions.order_by("-updated")))
+    return predictions.order_by("-updated")
 
 
 @router.get(
