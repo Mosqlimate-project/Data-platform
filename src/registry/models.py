@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from io import StringIO
+import json
 from typing import Literal
 from datetime import datetime
 from random import randrange as rr
@@ -224,7 +224,6 @@ class Prediction(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
-    prediction = models.JSONField(null=False, blank=True)
     # Metadata
     visualizable = models.BooleanField(default=False)
     metadata = models.CharField(null=True, default=None)
@@ -238,17 +237,16 @@ class Prediction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    prediction_df: pd.DataFrame = pd.DataFrame()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        try:
-            self.prediction_df = pd.read_json(StringIO(self.prediction))
-        except (TypeError, AttributeError):
-            self.prediction_df = pd.DataFrame()
-        except Exception as e:
-            raise errors.VisualizationError(e)
+    fields = [
+        "dates",
+        "preds",
+        "lower",
+        "upper",
+        "adm_0",
+        "adm_1",
+        "adm_2",
+        "adm_3",
+    ]
 
     def __str__(self):
         return f"{self.id}"
@@ -259,26 +257,27 @@ class Prediction(models.Model):
         if not rows:
             return pd.DataFrame()
 
-        fields = [
-            "dates",
-            "preds",
-            "lower",
-            "upper",
-            "adm_0",
-            "adm_1",
-            "adm_2",
-            "adm_3",
-        ]
+        data = list(rows.values(*self.fields))
 
-        data = list(rows.values(*fields))
-
-        return pd.DataFrame(data, columns=fields)
+        return pd.DataFrame(data, columns=self.fields)
 
     def to_json(self) -> str:
-        return self.to_dataframe().to_json(orient="records", date_format="iso")
+        rows = self.data.all()
+
+        if not rows:
+            return "[]"
+
+        data = json.loads(
+            self.to_dataframe().to_json(orient="records", date_format="iso")
+        )
+
+        for row in data:
+            row["dates"] = str(datetime.fromisoformat(row["dates"]).date())
+
+        return json.dumps(data)
 
     def parse_metadata(self):
-        if not self.prediction_df.empty:
+        if not self.to_dataframe().empty:
             self._add_adm_geocode()
             self._add_ini_end_prediction_dates()
             self.visualizable = True
@@ -286,7 +285,7 @@ class Prediction(models.Model):
             self.save()
 
     def parse_prediction(self):
-        df = self.prediction_df
+        df = self.to_dataframe()
 
         data = []
         for _, row in df.iterrows():  # noqa
@@ -337,7 +336,7 @@ class Prediction(models.Model):
         column = f"adm_{level}"
 
         try:
-            code = self.prediction_df[column].unique()
+            code = self.to_dataframe()[column].unique()
         except KeyError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError(f"{column} column not found")
@@ -372,8 +371,8 @@ class Prediction(models.Model):
 
     def _add_ini_end_prediction_dates(self):
         try:
-            ini_date = min(self.prediction_df["dates"])
-            end_date = max(self.prediction_df["dates"])
+            ini_date = min(self.to_dataframe()["dates"])
+            end_date = max(self.to_dataframe()["dates"])
         except KeyError:
             # TODO: Improve error handling -> InsertionError
             raise errors.VisualizationError("dates column not found")

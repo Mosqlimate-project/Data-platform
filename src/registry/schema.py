@@ -3,7 +3,6 @@ from typing import Optional, Literal, List
 from pydantic import validator
 
 from ninja import Field, FilterSchema
-from ninja.orm.fields import AnyObject
 
 from main.schema import Schema
 from users.schema import UserSchema
@@ -104,7 +103,6 @@ class PredictionSchema(Schema):
     description: str | None = None
     commit: str
     predict_date: date  # YYYY-mm-dd
-    prediction: AnyObject
     data: List[PredictionDataRowSchema]
 
 
@@ -141,4 +139,5 @@ class PredictionFilterSchema(FilterSchema):
     predict_date: Optional[date] = Field(None, q="predict_date")
     start: Optional[date] = Field(None, q="predict_date__gte")
     end: Optional[date] = Field(None, q="predict_date__lte")
+    tags: Optional[List[int]] = Field(None, q="model__tags__id__in")
     sprint: Optional[bool] = Field(None, q="model__sprint")

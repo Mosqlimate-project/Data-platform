@@ -570,8 +570,8 @@ def get_score(prediction_ids: list[int]) -> Scorer:
                 f"Prediction with id {prediction.id} is not visualizable"
             )
 
-        s = prediction.prediction_df.dates.min()
-        e = prediction.prediction_df.dates.max()
+        s = prediction.to_dataframe().dates.min()
+        e = prediction.to_dataframe().dates.max()
 
         if not start:
             start = s
@@ -604,8 +604,8 @@ def get_score(prediction_ids: list[int]) -> Scorer:
 
     data = Sprint202425.objects.using("infodengue").filter(
         geocode__in=geocodes,
-        date__gte=dt.fromisoformat(start).date(),
-        date__lte=dt.fromisoformat(end).date(),
+        date__gte=dt.fromisoformat(str(start)).date(),
+        date__lte=dt.fromisoformat(str(end)).date(),
     )
 
     df: pd.DataFrame = pd.concat([obj_to_dataframe(o) for o in data])
