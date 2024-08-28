@@ -148,10 +148,11 @@ async function getScoreInfo(predictionIDs) {
         updateScoreTds();
     } catch (error) {
         console.log(error.message);
+        const message = encodeURIComponent(error.message);
         allTds.forEach(td => {
             td.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                    <i class="fa-solid fa-circle-exclamation text-danger" title='${error.message}'></i>
+                    <i class="fa-solid fa-circle-exclamation text-danger" title=${decodeURIComponent(message)}></i>
                 </div>`;
         });
     }
