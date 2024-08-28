@@ -463,29 +463,38 @@ class PredictTableView(View):
             info["color"] = next(colors)
             infos.append(info)
 
-        if predictions:
-            try:
-                ids = [p.id for p in predictions]
-                df = get_score(ids).summary
-                df = df.reset_index()
-                score_info = df.to_dict(orient="records")
-                for x in score_info:
-                    if "log_score" in x:
-                        if x["log_score"] == np.float64("-inf"):
-                            x["log_score"] = "-"
-
-                labels = []
-                for score in score_info:
-                    labels.extend([k for k in score.keys() if k != "id"])
-                context["score_info"] = score_info
-                context["score_labels"] = list(set(labels))
-            except Exception as err:
-                logging.error(err)
-                context["score_error"] = err
-                context["score_info"] = {}
-
+        context["prediction_ids"] = prediction_ids
         context["prediction_infos"] = infos
         return render(request, self.template_name, context)
+
+
+class FetchScoreView(View):
+    def get(self, request) -> JsonResponse:
+        prediction_ids = request.GET.getlist("id") or []
+
+        if not prediction_ids:
+            return JsonResponse(
+                {"error": "No Prediction selected"}, status=500
+            )
+
+        try:
+            df = get_score(prediction_ids).summary
+            df = df.reset_index()
+            score = df.to_dict(orient="records")
+
+            labels = []
+            for s in score:
+                labels.extend([k for k in s.keys() if k != "id"])
+
+                if "log_score" in s and s["log_score"] == np.float64("-inf"):
+                    s["log_score"] = "-"
+
+            return JsonResponse(
+                {"score": score, "score_labels": list(set(labels))}
+            )
+        except Exception as err:
+            logging.error(err)
+            return JsonResponse({"score_error": str(err)}, status=500)
 
 
 class MacroForecastMap(View):

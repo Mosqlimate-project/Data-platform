@@ -26,6 +26,11 @@ urlpatterns = [
         name="predict_table",
     ),
     path(
+        "predictions-score/",
+        views.FetchScoreView.as_view(),
+        name="predictions_score",
+    ),
+    path(
         "get-model-item/<int:model_id>/",
         views.get_model_selector_item,
         name="get_model_selector_item",
