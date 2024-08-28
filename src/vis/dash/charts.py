@@ -166,20 +166,7 @@ def dataframe_by_geocode(
     df["legend"] = "Data"
     df.date = pd.to_datetime(df.date)
 
-    chart = (
-        alt.Chart(df)
-        .mark_circle(size=60)
-        .encode(
-            x=f"{x}:T",
-            y=f"{y}:Q",
-            color=alt.value("black"),
-            opacity=alt.Opacity("legend", legend=alt.Legend(title=None)),
-            tooltip=f"{y}:Q",
-        )
-        .properties(width=width)
-    )
-
-    return chart
+    return df
 
 
 def line_charts_by_geocode(
@@ -202,7 +189,6 @@ def line_charts_by_geocode(
         try:
             prediction = Prediction.objects.get(pk=prediction_id)
         except Prediction.DoesNotExist:
-            # TODO: Improve error handling
             raise VisualizationError("Prediction not found")
 
         adm_level = prediction.model.ADM_level
@@ -257,7 +243,6 @@ def line_charts_by_geocode(
         domain=list(predict_id_values), range=colors
     )
 
-    # here is loaded the element that allows the selection by the mouse
     highlight = alt.selection_point(
         on="mouseover",
         value=predicts_df.model_id.values[0],
@@ -265,7 +250,7 @@ def line_charts_by_geocode(
         nearest=True,
     )
 
-    data_chart = dataframe_by_geocode(
+    data_df = dataframe_by_geocode(
         disease=disease,
         adm_1_geocode=adm_1_geocode,
         adm_2_geocode=adm_2_geocode,
@@ -278,7 +263,20 @@ def line_charts_by_geocode(
         sprint=sprint,
     )
 
-    # here is created the base element for the time series
+    if not data_df.empty:
+        data_chart = (
+            alt.Chart(data_df)
+            .mark_circle(size=60)
+            .encode(
+                x=f"{x}:T",
+                y=f"{y}:Q",
+                color=alt.value("black"),
+                opacity=alt.Opacity("legend", legend=alt.Legend(title=None)),
+                tooltip=f"{y}:Q",
+            )
+            .properties(width=width)
+        )
+
     base = (
         base_model_chart(
             data=predicts_df,
@@ -291,12 +289,9 @@ def line_charts_by_geocode(
         base.mark_circle().encode(opacity=alt.value(0)).add_params(highlight)
     )
 
-    # here we create the multiline plot and use the alt.condition
-    # to highlight only one curve
     lines = (
         base.mark_line()
         .encode(
-            # size=alt.condition(~highlight, alt.value(1), alt.value(3))
             color=alt.condition(
                 highlight,
                 alt.Color("prediction:N", scale=custom_color_scale),
@@ -315,18 +310,12 @@ def line_charts_by_geocode(
         )
     )
 
-    # here we define the plot of the right figure
     timeseries = (
         base.mark_line()
         .encode(color=alt.Color("prediction:N", scale=custom_color_scale))
-        .transform_filter(
-            highlight  # this function transform filter will just filter the element
-            # in highlight from the column model N of the df_for
-            # (defined in the base element)
-        )
+        .transform_filter(highlight)
     )
 
-    # here we create the area that represent the confidence interval of the predictions
     timeseries_conf = (
         base.mark_area(opacity=0.5)
         .encode(x="date:T", y="lower:Q", y2="upper:Q")
@@ -345,12 +334,13 @@ def line_charts_by_geocode(
         request, opacity=0.25, ini_x=150, end_x=300, ini_y=60, end_y=230
     )
 
-    # here we concatenate the layers, the + put one layer above the other
-    # the | put them syde by syde (as columns), and & put them side by side as lines
-    final = (
-        points + lines + data_chart + wk
-        | timeseries + timeseries_conf + data_chart + wk
-    )
+    if not data_df.empty:
+        final = (
+            points + lines + data_chart + wk
+            | timeseries + timeseries_conf + data_chart + wk
+        )
+    else:
+        final = points + lines + wk | timeseries + timeseries_conf + wk
 
     return final
 
