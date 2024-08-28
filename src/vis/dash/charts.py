@@ -95,6 +95,8 @@ def dataframe_by_geocode(
         data = Sprint202425.objects.using("infodengue").all()
     else:
         data = historico_alerta_data_for(disease)
+    start = date(2025, 1, 1)
+    end = date(2025, 2, 1)
 
     codes_uf = {v: k for k, v in UF_CODES.items()}
     res = {x: [], y: []}
