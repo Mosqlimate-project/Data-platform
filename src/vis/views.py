@@ -18,6 +18,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
+from django.urls import reverse
 from django.db.models import CharField, functions, Sum
 
 from registry.models import Model, Prediction
@@ -37,6 +38,37 @@ from .plots.forecast_map import macro_forecast_map_table
 from .utils import merge_uri_params, obj_to_dataframe
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
+
+
+class DashboardMenuView(View):
+    template_name = "vis/dashboard-menu.html"
+
+    def get(self, request):
+        context = {}
+
+        model_ids = request.GET.getlist("model") or (
+            Model.objects.all().values_list("id", flat=True)
+        )
+
+        prediction_ids = request.GET.getlist("predict") or (
+            Prediction.objects.all().values_list("id", flat=True)
+        )
+
+        context["dashboards"] = {
+            "Predictions": reverse("dashboard"),
+            "Sprint 2024/25": reverse("dashboard_sprint"),
+            "Forecast Map": reverse("dashboard_forecast_map"),
+        }
+
+        context["model_ids"] = list(model_ids)
+        context["prediction_ids"] = list(prediction_ids)
+
+        context["start_date"] = "2000-01-01"
+        context["end_date"] = "2001-01-01"
+        context["start_window_date"] = "2000-01-01"
+        context["end_window_date"] = "2001-01-01"
+
+        return render(request, self.template_name, context)
 
 
 class DashboardView(View):

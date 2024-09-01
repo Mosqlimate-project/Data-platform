@@ -178,12 +178,30 @@
   </div>
 
   <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light">
+    <div class="container">
+      <div id="predictDatePicker">
+        <input type="text" name="start">
+        <span> - </span>
+        <input type="text" name="end">  
+      </div>
+      <br>
+      <div id="predictWindowDatePicker">
+        <input type="text" name="start">
+        <span> - </span>
+        <input type="text" name="end">  
+      </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
     <div id="search-container" class="d-flex relative-container">
       <div id="uf-geocode-div" class="absolute-uf-search">
         <label for="uf-geocode" style="padding-bottom: 5px;">{% trans "Select a state:" %}</label>
         <br>
         <select name="uf-geocode" style="width: 100%;" id="uf-geocode">
-          <option value="" selected disabled>Select a state</option>
         </select>
       </div>
 
@@ -243,11 +261,22 @@
   </div>
 
 
-  <style>
+<style>
+
+.navbar-brand {
+  display: none;
+}
 
 .vis-sidebar {
   width: 280px;
   min-height: calc(100vh - 211px);
+}
+
+#predictDatePicker input, #predictWindowDatePicker input {
+    max-width: 100px;
+    height: 30px;
+    font-size: 14px;
+    padding: 4px 8px;
 }
 
 .vis-content {
@@ -292,30 +321,138 @@
 #predictionSearch {
   width: 62%;
 }
-  </style>
+</style>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
-  <script>
-    function resizeIframe(iframe) {
-      iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+<script>
+const dateFormat = 'yyyy-mm-dd';
+
+function resizeIframe(iframe) {
+  iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+}
+
+
+$(document).ready(function () {
+
+  const userLang = navigator.language || navigator.userLanguage;
+
+  const predictDatePicker = document.getElementById('predictDatePicker');
+  const predictDateRangePicker = new DateRangePicker(predictDatePicker, {
+    buttonClass: 'btn',
+    format: dateFormat,
+    clearButton: true,
+    language: userLang,
+  }); 
+
+  const predictWindowDatePicker = document.getElementById('predictWindowDatePicker');
+  const predictWindowDateRangePicker = new DateRangePicker(predictWindowDatePicker, {
+    buttonClass: 'btn',
+    format: dateFormat,
+    clearButton: true,
+    language: userLang,
+  }); 
+
+  function handleDatesChange(event) {
+    const [startDate, endDate] = predictDateRangePicker.getDates(dateFormat);
+    console.log(`${startDate} - ${endDate}`);
+  }
+
+  function handleWindowDatesChange(event) {
+    const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
+    console.log(`${startDate} - ${endDate}`);
+  }
+
+  predictDatePicker.addEventListener('changeDate', handleDatesChange);
+  predictWindowDatePicker.addEventListener('changeDate', handleWindowDatesChange);
+
+  $('#predictionSearch').select2({
+    placeholder: 'Search',
+    allowClear: true,
+    closeOnSelect: true,
+  });
+
+  $('#geocode').select2({
+    placeholder: 'Nothing Selected',
+    allowClear: true,
+    closeOnSelect: true,
+  });
+
+  $('#predictionSearch').val([]).trigger('change');
+  $('#uf-geocode').trigger('change');
+  console.log($('#uf-geocode').val())
+
+  const DISEASES = {
+    "dengue": "01",
+    "zika": "02",
+    "chik": "03"
+  };
+
+  const TIME_RESOLUTIONS = {
+    "day": "D",
+    "week": "W",
+    "month": "M",
+    "year": "Y",
+  };
+
+  const ADM_LEVELS = {
+    0: "NA",
+    1: "ST",
+    2: "MU",
+    3: "SM",
+  };
+
+  $('#predictionSearch').on('select2:unselect', function (e) {
+    selectedPredictions = $(this).val()
+    if (selectedPredictions.length === 0) {
+      clearSelectors()
+    }
+  });
+
+  var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
+  var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
+  var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
+  var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
+  let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
+  let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
+  let selectedAdmLevel = {{ selectedADMLevel|default_if_none:1 }};
+  let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
+  let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
+
+  var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
+
+  var lineChartContainer = $('#lineChartContainer');
+  var predictTableContainer = $('#predictTableContainer');
+
+  lineChartContainer.load('{% url "line_charts" %}{{ line_charts_default_uri }}');
+  predictTableContainer.load('{% url "predict_table" %}{{ line_charts_default_uri }}');
+
+  function displayADMDiv(adm_level) {
+    if (String(adm_level) === "1") {
+      document.getElementById("uf-geocode-div").style.display = "block";
+    } else {
+      document.getElementById("uf-geocode-div").style.display = "none";
     }
 
-    $(document).ready(function () {
-      $('#predictionSearch').select2({
-        placeholder: 'Search',
-        allowClear: true,
-        closeOnSelect: true,
-      });
+    if (String(adm_level) === "2") {
+      document.getElementById("geocode-div").style.display = "block";
+    } else {
+      document.getElementById("geocode-div").style.display = "none";
+    }
+  }
 
-      $('#geocode').select2({
-        placeholder: 'Nothing Selected',
-        allowClear: true,
-        closeOnSelect: true,
-      });
+  const initialPredictions = [
+    {% for id, model_name, metadata, city in predictions %}
+    "{{ metadata }}",
+    {% endfor %}
+  ];
 
-      $('#predictionSearch').val([]).trigger('change');
+  const initialPredictionsMap = {
+    {% for id, model_name, metadata, city in predictions %}
+    "{{ id }}": "{{ metadata }}",
+    {% endfor %}
+  };
 
       const DISEASES = {
         "dengue": "01",
@@ -323,86 +460,19 @@
         "chikungunya": "03"
       };
 
-      const TIME_RESOLUTIONS = {
-        "day": "D",
-        "week": "W",
-        "month": "M",
-        "year": "Y",
-      };
-
-      const ADM_LEVELS = {
-        0: "NA",
-        1: "ST",
-        2: "MU",
-        3: "SM",
-      };
-
-      $('#predictionSearch').on('select2:unselect', function (e) {
-        selectedPredictions = $(this).val()
-        if (selectedPredictions.length === 0) {
-          clearSelectors()
-        }
-      });
-
-      var diseases = document.querySelectorAll('input[name="diseaseRadio"]');
-      var timeRes = document.querySelectorAll('input[name="timeResRadio"]');
-      var admLevel = document.querySelectorAll('input[name="admLevelRadio"]');
-      var outputFormat = document.querySelectorAll('input[name="outputFormat"]');
-      let selectedDisease = {{ selectedDisease|default_if_none:'null' }};
-      let selectedTimeResolution = {{ selectedTimeResolution|default_if_none:'null' }};
-      let selectedAdmLevel = {{ selectedADMLevel|default_if_none:'null' }};
-      let selectedOutputFormat = {% if selectedOutputFormat %}'C'{% elif selectedOutputFormat is not None %}'Q'{% else %}null{% endif %};
-      let selectedGeocode = {{ selectedGeocode|default_if_none:'null' }};
-
-      var selectedPredictions = {{ selectedPredictions|default_if_none:'null' }};
-
-      var lineChartContainer = $('#lineChartContainer');
-      var predictTableContainer = $('#predictTableContainer');
-
-      lineChartContainer.load('{% url "line_charts" %}{{ line_charts_default_uri }}');
-      predictTableContainer.load('{% url "predict_table" %}{{ line_charts_default_uri }}');
-
-      function displayADMDiv(adm_level) {
-        if (String(adm_level) === "1") {
-          document.getElementById("uf-geocode-div").style.display = "block";
-        } else {
-          document.getElementById("uf-geocode-div").style.display = "none";
-        }
-
-        if (String(adm_level) === "2") {
-          document.getElementById("geocode-div").style.display = "block";
-        } else {
-          document.getElementById("geocode-div").style.display = "none";
-        }
-      }
-
-      const initialPredictions = [
-        {% for id, model_name, metadata, city in predictions %}
-        "{{ metadata }}",
-        {% endfor %}
-      ];
-
-      const initialPredictionsMap = {
-        {% for id, model_name, metadata, city in predictions %}
-        "{{ id }}": "{{ metadata }}",
-        {% endfor %}
-      };
-
-      displayADMDiv(selectedAdmLevel);
-
-      const extractedGeocodes = initialPredictions.map(hash => {
-        const parts = hash.split('-');
-        return parts[2];
-      });
+  const extractedGeocodes = initialPredictions.map(hash => {
+    const parts = hash.split('-');
+    return parts[2];
+  });
 
 
 
-      const geocodes = [...new Set(extractedGeocodes)];
+  const geocodes = [...new Set(extractedGeocodes)];
 
-      geocodes.forEach(geocode => {
-        if (geocode.length === 2) {
-          var opt = document.createElement('option');
-          opt.value = geocode;
+  geocodes.forEach(geocode => {
+    if (geocode.length === 2) {
+      var opt = document.createElement('option');
+      opt.value = geocode;
 
           getStateName(geocode)
             .then(cityString => {
@@ -610,142 +680,343 @@
         admLevel.forEach(level => {
           level.checked = false;
         });
+    }
 
-        outputFormat.forEach(format => {
-          format.checked = false;
+    if (geocode.length === 7) {
+      var opt = document.createElement('option');
+      opt.value = geocode;
+
+      getCityName(geocode)
+        .then(cityString => {
+          opt.innerHTML = cityString;
+          $("#geocode").append(opt).selectpicker('refresh');
+        })
+        .catch(error => {
+          console.error(`Error fetching city information for geocode ${geocode}:`, error.message);
         });
+    }
+  });
 
-        $('#predictionSearch').val([]).trigger('change');
-        filterPredictions();
-      }
-
-      function updatePredictions(predictions, selectedPredict = []) {
-        let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];
-        $("#predictionSearch option").each(function () {
-          const metadata = $(this).data("metadata");
-          if (!selectedPredictMetadata.includes(metadata)) {
-            if (predictions.includes(metadata)) {
-              $(this).prop("disabled", false);
-            } else {
-              $(this).prop("disabled", true);
-              $(this).detach().appendTo("#predictionSearch");
-            }
-          }
-        });
-      };
-
-      function updateLineChart(selectedPredictIds = null) {
-        var lineChartIframe = $('#lineChartIframe');
-        var predictTableIframe = $('#predictTableIframe');
-        var lineChartUrl = '{% url "line_charts" %}?';
-        var predictTableUrl = '{% url "predict_table" %}?';
-
-        if (selectedPredictIds !== null) {
-          selectedPredictIds = selectedPredictIds.filter(function(predictId) {
-            return predictId !== null;
-          });
-
-          if (selectedPredictIds.length > 0) {
-            selectedPredictIds.forEach(function(predictId) {
-              if (predictId !== false) {
-                lineChartUrl += 'predict=' + predictId + '&';
-                predictTableUrl += 'predict=' + predictId + '&';
-              }
-            });
-
-            lineChartUrl = lineChartUrl.slice(0, -1);
-            predictTableUrl = predictTableUrl.slice(0, -1);
-          }
-        }
-
-        lineChartIframe.attr('src', lineChartUrl);
-        predictTableIframe.attr('src', predictTableUrl);
-      }
-
-      function filterPredictions() {
-        var predictions = initialPredictions;
-        var disease = selectedDisease;
-        var timeResolution = selectedTimeResolution;
-        var admLevel = selectedAdmLevel;
-        var outputFormat = selectedOutputFormat;
-        var geocode = selectedGeocode;
-
-        var filteredPredictions = predictions.filter(hash => {
-          if (disease != null && !hash.startsWith(DISEASES[disease])) {
-            return false;
-          }
-
-          if (timeResolution != null && hash.charAt(2) !== TIME_RESOLUTIONS[timeResolution]) {
-            return false;
-          }
-
-          if (admLevel != null && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
-            return false;
-          }
-
-          if (outputFormat != null) {
-            if (
-              (outputFormat === "C" && hash.charAt(8) !== "C") || 
-              (outputFormat === "Q" && hash.charAt(8) !== "Q")
-            ) {
-              return false;
-            }
-          }
-
-          if (geocode != null) {
-            const parts = hash.split('-');
-            let hash_geocode = parts[2];
-            if (hash_geocode !== geocode) {
-              return false;
-            }
-          }
-
-          return true;
-        });
-
-        updatePredictions(filteredPredictions);
-      }
-
-      function getStateName(geocode) {
-        return fetch(`/api/state_info/?geocode=${geocode}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data && data.name && data.uf) {
-              return `${data.name} - ${data.uf}`;
-            } else {
-              throw new Error('Invalid data format or missing information');
-            }
-          })
-          .catch(error => {
-            console.error(error, error.message);
-          });
-      }
-
-      function getCityName(geocode) {
-        return fetch(`/api/city_info/?geocode=${geocode}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data && data.municipio && data.uf) {
-              return `${data.municipio} - ${data.uf}`;
-            } else {
-              throw new Error('Invalid data format or missing information');
-            }
-          })
-          .catch(error => {
-            console.error(error, error.message);
-          });
-      }
+  diseases.forEach(function (disease) {
+    disease.addEventListener("change", function () {
+      selectedDisease = this.id;
+      $('#predictionSearch').val([]).trigger('change');
+      filterPredictions();
     });
 
-  </script>
-  {% endblock %}
+    if (disease === selectedDisease) {
+      disease.checked = true;
+      disease.dispatchEvent(new Event('change'));
+    }
+  });
+
+  timeRes.forEach(function (time) {
+    time.addEventListener("change", function () {
+      selectedTimeResolution = this.id;
+      $('#predictionSearch').val([]).trigger('change');
+      filterPredictions();
+    });
+
+    if (time === selectedTimeResolution) {
+      time.checked = true;
+      time.dispatchEvent(new Event('change'));
+    }
+  });
+
+  admLevel.forEach(function (level) {
+    level.addEventListener("change", function () {
+      selectedAdmLevel = this.value;
+      displayADMDiv(selectedAdmLevel);
+      $('#predictionSearch').val([]).trigger('change');
+      filterPredictions();
+    });
+
+    if (String(level.value) === String(selectedAdmLevel)) {
+      level.checked = true;
+      level.dispatchEvent(new Event('change'));
+    }
+  });
+
+
+  outputFormat.forEach(function (format) {
+    format.addEventListener("change", function () {
+      selectedOutputFormat = this.value;
+      $('#predictionSearch').val([]).trigger('change');
+      filterPredictions();
+    });
+
+    if (format.value === selectedOutputFormat) {
+      format.checked = true;
+      format.dispatchEvent(new Event('change'));
+    }
+  });
+
+  $('#uf-geocode').on("change", function () {
+    let geocode = $(this).val();
+    if (String(geocode) !== String(selectedGeocode)) {
+      $('#predictionSearch').val([]).trigger('change');
+    }
+    selectedGeocode = geocode;
+    filterPredictions();
+  });
+
+  $('#geocode').on("change", function () {
+    let geocode = $(this).val();
+    if (String(geocode) !== String(selectedGeocode)) {
+      $('#predictionSearch').val([]).trigger('change');
+    }
+    selectedGeocode = geocode;
+    filterPredictions();
+  });
+
+  setTimeout(function() {
+    $("#geocode").val(selectedGeocode).trigger("change");
+  }, 50);
+
+  $('#predictionSearch').on("change", function () {
+    selectedPredictions = $(this).val();
+
+    selectedPredictions.forEach(predictionId => {
+      if (predictionId) {
+        prediction = initialPredictionsMap[predictionId];
+
+        if (prediction.startsWith("01")) {
+          selectedDisease = "dengue";
+          $("#dengue").prop("checked", true);
+        } else if (prediction.startsWith("02")) {
+          selectedDisease = "zika";
+          $("#zika").prop("checked", true);
+        } else if (prediction.startsWith("03")) {
+          selectedDisease = "chik";
+          $("#chik").prop("checked", true);
+        };
+
+        if (prediction.charAt(2) === "D") {
+          selectedTimeResolution = "day";
+          $("#day").prop("checked", true);
+        } else if (prediction.charAt(2) === "W") {
+          selectedTimeResolution = "week";
+          $("#week").prop("checked", true);
+        } else if (prediction.charAt(2) === "M") {
+          selectedTimeResolution = "month";
+          $("#month").prop("checked", true);
+        } else if (prediction.charAt(2) === "Y") {
+          selectedTimeResolution = "year";
+          $("#year").prop("checked", true);
+        };
+
+        if (prediction.substr(3, 2) === "NA") {
+          selectedAdmLevel = 0;
+          selectedGeocode = null;
+          $("#national").prop("checked", true);
+        } else if (prediction.substr(3, 2) === "ST") {
+          const parts = prediction.split('-');
+          let uf_geocode = parts[2];
+          selectedAdmLevel = 1;
+          selectedGeocode = uf_geocode;
+          displayADMDiv(selectedAdmLevel);
+          $("#state").prop("checked", true);
+          $("#uf-geocode").val(selectedGeocode).trigger("change");
+          $("#uf-geocode").selectpicker('refresh');
+        } else if (prediction.substr(3, 2) === "MU") {
+          displayADMDiv(selectedAdmLevel);
+          selectedAdmLevel = 2;
+          selectedGeocode = prediction.substr(10, 7);
+          $("#municipal").prop("checked", true);
+          $("#geocode").val(selectedGeocode).trigger("change");
+        } else if (prediction.substr(3, 2) === "SM") {
+          displayADMDiv(selectedAdmLevel);
+          selectedAdmLevel = 3;
+          selectedGeocode = null;
+          $("#submunicipal").prop("checked", true);
+        };
+
+        if (prediction.charAt(8) === "C") {
+          selectedOutputFormat = "C";
+          outputFormat.forEach(function (radio) {
+            if (radio.value === "C") {
+              radio.checked = true;
+            }
+          });
+        } else if (prediction.charAt(8) === "Q") {
+          selectedOutputFormat = "Q";
+          outputFormat.forEach(function (radio) {
+            if (radio.value === "Q") {
+              radio.checked = true;
+            }
+          });
+        };
+
+        filterPredictions();
+      }
+    })
+
+    updateLineChart(selectedPredictions);
+  });
+
+  setTimeout(function() {
+    $("#predictionSearch").val(selectedPredictions).trigger("change");
+  }, 100);
+
+  function clearSelectors() {
+    selectedDisease = null;
+    selectedPredictions = [];
+    selectedTimeResolution = null;
+    selectedAdmLevel = null;
+    selectedOutputFormat = null;
+    selectedGeocode = null;
+
+    document.getElementById("geocode-div").style.display = "none";
+    document.getElementById("uf-geocode-div").style.display = "none";
+    $("#uf-geocode").val(selectedGeocode).trigger("change");
+    $("#uf-geocode").selectpicker('refresh');
+
+    $("#dengue, #zika, #chik").prop("checked", false);
+
+    $("#day, #week, #month, #year").prop("checked", false);
+
+    admLevel.forEach(level => {
+      level.checked = false;
+    });
+
+    outputFormat.forEach(format => {
+      format.checked = false;
+    });
+
+    $('#predictionSearch').val([]).trigger('change');
+    filterPredictions();
+  }
+
+  function updatePredictions(predictions, selectedPredict = []) {
+    let selectedPredictMetadata = selectedPredict ? selectedPredict.map(id => initialPredictionsMap[id]) : [];
+    $("#predictionSearch option").each(function () {
+      const metadata = $(this).data("metadata");
+      if (!selectedPredictMetadata.includes(metadata)) {
+        if (predictions.includes(metadata)) {
+          $(this).prop("disabled", false);
+        } else {
+          $(this).prop("disabled", true);
+          $(this).detach().appendTo("#predictionSearch");
+        }
+      }
+    });
+  };
+
+  function updateLineChart(selectedPredictIds = null) {
+    var lineChartIframe = $('#lineChartIframe');
+    var predictTableIframe = $('#predictTableIframe');
+    var lineChartUrl = '{% url "line_charts" %}?';
+    var predictTableUrl = '{% url "predict_table" %}?';
+
+    if (selectedPredictIds !== null) {
+      selectedPredictIds = selectedPredictIds.filter(function(predictId) {
+        return predictId !== null;
+      });
+
+      if (selectedPredictIds.length > 0) {
+        selectedPredictIds.forEach(function(predictId) {
+          if (predictId !== false) {
+            lineChartUrl += 'predict=' + predictId + '&';
+            predictTableUrl += 'predict=' + predictId + '&';
+          }
+        });
+
+        lineChartUrl = lineChartUrl.slice(0, -1);
+        predictTableUrl = predictTableUrl.slice(0, -1);
+      }
+    }
+
+    lineChartIframe.attr('src', lineChartUrl);
+    predictTableIframe.attr('src', predictTableUrl);
+  }
+
+  function filterPredictions() {
+    var predictions = initialPredictions;
+    var disease = selectedDisease;
+    var timeResolution = selectedTimeResolution;
+    var admLevel = selectedAdmLevel;
+    var outputFormat = selectedOutputFormat;
+    var geocode = selectedGeocode;
+
+    var filteredPredictions = predictions.filter(hash => {
+      if (disease != null && !hash.startsWith(DISEASES[disease])) {
+        return false;
+      }
+
+      if (timeResolution != null && hash.charAt(2) !== TIME_RESOLUTIONS[timeResolution]) {
+        return false;
+      }
+
+      if (admLevel != null && hash.substr(3, 2) !== ADM_LEVELS[admLevel]) {
+        return false;
+      }
+
+      if (outputFormat != null) {
+        if (
+          (outputFormat === "C" && hash.charAt(8) !== "C") || 
+          (outputFormat === "Q" && hash.charAt(8) !== "Q")
+        ) {
+          return false;
+        }
+      }
+
+      if (geocode != null) {
+        const parts = hash.split('-');
+        let hash_geocode = parts[2];
+        if (hash_geocode !== geocode) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    updatePredictions(filteredPredictions);
+  }
+
+  function getStateName(geocode) {
+    return fetch(`/api/state_info/?geocode=${geocode}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.name && data.uf) {
+          return `${data.name} - ${data.uf}`;
+        } else {
+          throw new Error('Invalid data format or missing information');
+        }
+      })
+      .catch(error => {
+        console.error(error, error.message);
+      });
+  }
+
+  function getCityName(geocode) {
+    return fetch(`/api/city_info/?geocode=${geocode}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error fetching geocode ${geocode}: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.municipio && data.uf) {
+          return `${data.municipio} - ${data.uf}`;
+        } else {
+          throw new Error('Invalid data format or missing information');
+        }
+      })
+      .catch(error => {
+        console.error(error, error.message);
+      });
+  }
+});
+
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+<script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/pt-BR.js"></script>
+{% endblock %}

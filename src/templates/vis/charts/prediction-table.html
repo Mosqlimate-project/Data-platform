@@ -11,7 +11,7 @@
       <thead>
           <tr>
               <th scope="col">{% trans "Model" %}</th>
-              <th scope="col">{% trans "Prediction" %}</th>
+              <th scope="col">{% trans "Prediction ID" %}</th>
               <th scope="col">{% trans "Disease" %}</th>
               <th scope="col">{% trans "Locality" %}</th>
               <th scope="col">{% trans "Prediction Date" %}</th>
@@ -29,7 +29,7 @@
           {% for info in prediction_infos %}
           <tr class="{{ info.color }}">
               <td class="model-name"><a href="{% url 'model' model_id=info.model_id %}" target="_blank" style="text-decoration:none">{{info.model}}</a></td>
-              <td>{{info.prediction_id}}</td>
+              <td id="prediction-id"><a href="/api/registry/predictions/{{info.prediction_id}}" target="_blank" style="text-decoration:none">{{info.prediction_id}}</a></td>
               <td>{{info.disease}}</td>
               <td>{{info.locality}}</td>
               <td>{{info.prediction_date}}</td>
@@ -118,6 +118,10 @@ function updateScoreTds() {
 }
 
 async function getScoreInfo(predictionIDs) {
+    if (!Array.isArray(predictionIDs) || predictionIDs.length === 0) {
+        return;
+    }
+
     const uri = "/vis/predictions-score/?" + predictionIDs.map(id => `id=${id}`).join("&");
 
     const allTds = document.querySelectorAll('td[id^="score-"]');
