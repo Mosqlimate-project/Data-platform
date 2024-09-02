@@ -40,8 +40,8 @@ from .utils import merge_uri_params, obj_to_dataframe
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
 
-class DashboardMenuView(View):
-    template_name = "vis/dashboard-menu.html"
+class DashboardView(View):
+    template_name = "vis/dashboard/index.html"
 
     def get(self, request):
         context = {}
@@ -67,12 +67,11 @@ class DashboardMenuView(View):
         context["end_date"] = "2001-01-01"
         context["start_window_date"] = "2000-01-01"
         context["end_window_date"] = "2001-01-01"
-
         return render(request, self.template_name, context)
 
 
-class DashboardView(View):
-    template_name = "vis/dashboard.html"
+class DashboardOldView(View):
+    template_name = "vis/dashboard-old.html"
 
     def get(self, request):
         codes_uf = {v: k for k, v in UF_CODES.items()}

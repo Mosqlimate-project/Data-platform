@@ -1,0 +1,10 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{% load plotly_dash %}
+{% load filters %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  {% include 'vis/dashboard/menu.html' %}
+{% endblock %}
