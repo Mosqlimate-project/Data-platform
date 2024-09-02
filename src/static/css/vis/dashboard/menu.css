@@ -2,6 +2,12 @@ body {
   margin: 0px;
 }
 
+:root {
+  --menu-width-expanded: 200px;
+  --menu-width-retracted: 50px;
+  --menu-transition: all 0.2s ease;
+}
+
 .btn:focus,.btn:active {
    outline: none !important;
    box-shadow: none;
@@ -11,18 +17,12 @@ body {
   opacity: 0;
   display: none !important;
   visibility: hidden !important;
-  transition: all 0.2s ease;
-}
-
-.visible {
-  opacity: 1;
-  display: block !important;
-  visibility: visible !important;
-  transition: all 0.2s ease;
+  transition: var(--menu-transition);
 }
 
 #menu {
-  transition: all 0.2s ease;
+  transition: var(--menu-transition);
+  position: fixed;
   height: 100%;
   padding: 5px;
   box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
@@ -39,12 +39,36 @@ body {
 }
 
 #menu.expanded {
-  max-width: 200px;
+  width: var(--menu-width-expanded);
 }
 
 #menu.retracted {
-  max-width: 50px;
+  width: var(--menu-width-retracted);
 }
+
+#content {
+  margin-left: var(--menu-width-expanded);
+  transition: margin-left var(--menu-transition);
+}
+
+#menu.expanded + #content {
+  margin-left: var(--menu-width-expanded);
+}
+
+#menu.retracted + #content {
+  margin-left: var(--menu-width-retracted);
+}
+
+#menu.expanded + #navbar {
+  margin-left: var(--menu-width-expanded);
+  width: var(--navbar-width-expanded);
+}
+
+#menu.retracted ~ #navbar {
+  margin-left: var(--menu-width-retracted);
+  width: var(--navbar-width-retracted);
+}
+
 
 #menuTitle {
   font-size: 20px;
@@ -61,14 +85,11 @@ body {
   height: 0;
 }
 
-.menu-btn {
-  transition: all 0.3s ease;
-}
-
 .menu-txt {
   transition: max-width 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   transform: translateX(0);
   transform-origin: right center;
+  text-align: left;
 }
 
 #menu.retracted #menuTitle {
@@ -108,28 +129,19 @@ body {
   align-items: flex-start;
 }
 
-#dsRetracted, #dsExpanded {
-  transition: none;
-}
-
 #dsExpanded {
-  display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
-#dsOptions.collapsing {
-  height: 0;
+#dsOptions {
   overflow: hidden;
-  transition: height 0.3s ease;
+  height: 0;
+  transition: all 0.3s ease;
 }
 
 #dsOptions.show {
   height: auto;
-}
-
-#dsOptions.expanding {
-  overflow: hidden;
-  transition: height 0.3s ease;
 }
 
 .ds-toggle-btn {
@@ -143,7 +155,6 @@ body {
 
 .fa-chevron-down, .fa-chevron-up {
   font-size: 0.75rem;
-
 }
 
 .expanded-icon {
