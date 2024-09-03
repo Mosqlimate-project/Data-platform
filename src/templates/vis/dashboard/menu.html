@@ -24,14 +24,15 @@
 
   <hr style="color:white;">
 
-  <div id="dsSelect" class="d-flex flex-column">
-    <button id="dsRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
-      <i class="fa-regular fa-chart-line me-2"></i>
-    </button>
-
-    <button id="dsExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
-      <span id="dsTitle" class="menu-txt text-start">Dashboard</span>
-      <i id="dsArrow" class="fa-solid"></i>
+  <div id="dsSelect">
+    <button id="dsBtn" class="btn menu-btn ds-toggle-btn align-items-center">
+      <div class="menu-btn-retracted">
+        <i class="fa-regular fa-chart-line me-2"></i>
+      </div>
+      <div class="menu-btn-expanded justify-content-between">
+        <span id="dsTitle" class="menu-txt text-start">Dashboard</span>
+        <i id="dsArrow" class="fa-solid menu-btn-arrow"></i>
+      </div>
     </button>
 
     <div id="dsOptions" class="collapse">
@@ -45,37 +46,40 @@
 
   {% for name, url in dashboards.items %}
   <div id="ds-{{ name }}">
-    <div id="disease-{{ name }}">
-      <button id="diseaseRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
-        <i class="fa-solid fa-vial-virus me-2"></i>
-      </button>
-
-      <button id="diseaseExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
-        <span id="diseaseTitle" class="menu-txt text-start">{% trans "Disease" %}</span>
-        <i id="diseaseArrow" class="fa-solid"></i>
+    <div id="disease-{{ name }}" class="mb-2">
+      <button id="diseaseBtn-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <div class="menu-btn-retracted">
+          <i class="fa-solid fa-vial-virus me-2"></i>
+        </div>
+        <div class="menu-btn-expanded justify-content-between">
+          <span id="diseaseTitle" class="menu-txt text-start">{% trans "Disease" %}</span>
+          <i id="diseaseArrow" class="fa-solid menu-btn-arrow"></i>
+        </div>
       </button>
     </div>
 
     {% if name == "Predictions" or name == "Sprint 2024/25" %}
-    <div id="admLevel-{{ name }}">
-      <button id="admLevelRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
-        <i class="fa-solid fa-earth-americas me-2"></i>
-      </button>
-
-      <button id="admLevelExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
-        <span id="admLevelTitle" class="menu-txt text-start">{% trans "Administrative Level" %}</span>
-        <i id="admLevelArrow" class="fa-solid"></i>
+    <div id="admLevel-{{ name }}" class="mb-2">
+      <button id="admLevelBtn-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <div class="menu-btn-retracted">
+          <i class="fa-solid fa-earth-americas me-2"></i>
+        </div>
+        <div class="menu-btn-expanded justify-content-between">
+          <span id="admLevelTitle" class="menu-txt text-start">{% trans "Administrative Level" %}</span>
+          <i id="admLevelArrow" class="fa-solid menu-btn-arrow"></i>
+        </div>
       </button>
     </div>
 
-    <div id="timeRes-{{ name }}">
-      <button id="timeResRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
-        <i class="fa-solid fa-hourglass-end"></i>
-      </button>
-
-      <button id="timeResExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
-        <span id="timeResTitle" class="menu-txt text-start">{% trans "Time Resolution" %}</span>
-        <i id="timeResArrow" class="fa-solid"></i>
+    <div id="timeRes-{{ name }}" class="mb-2">
+      <button id="timeRes-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <div class="menu-btn-retracted">
+          <i class="fa-solid fa-hourglass-end"></i>
+        </div>
+        <div class="menu-btn-expanded justify-content-between">
+          <span id="timeResTitle" class="menu-txt text-start">{% trans "Time Resolution" %}</span>
+          <i id="timeResArrow" class="fa-solid menu-btn-arrow"></i>
+        </div>
       </button>
     </div>
     {% endif %}
@@ -138,7 +142,7 @@ let adm3 = `{{ adm_3 }}`;
 let modelIds = {{ model_ids }};
 let predictionIds = {{ prediction_ids }};
 
-console.log(dashboard);
+// console.log(dashboard);
 
 // Elements
 const menu = document.getElementById('menu');
@@ -146,32 +150,59 @@ const menuTitle = document.getElementById('menuTitle');
 const expandMenuBtn = document.getElementById('expandMenu');
 const retractMenuBtn = document.getElementById('retractMenu');
 
-const dsRetracted = document.getElementById('dsRetracted');
-const dsExpanded = document.getElementById('dsExpanded');
+const dsBtn = document.getElementById('dsBtn');
 const dsOptions = document.getElementById('dsOptions');
 
 // Functions
 function setVisibility(elements, visibility) {
   elements.forEach(element => {
-    if (visibility === 'visible') {
-      element.classList.remove('hidden');
-    } else {
-      element.classList.add('hidden');
+    if (element) {
+      if (visibility === 'visible') {
+        console.log(element);
+        element.classList.remove('hidden');
+      } else {
+        element.classList.add('hidden');
+      }
     }
   });
 }
 
-function setDsOptions() {
-  var dsArrow = document.getElementById('dsArrow');
-  if (dsOptions.classList.contains('show')) {
-    dsArrow.classList.remove('fa-chevron-down');
-    dsArrow.classList.add('fa-chevron-up');
-    dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
-  } else {
-    dsArrow.classList.remove('fa-chevron-up');
-    dsArrow.classList.add('fa-chevron-down');
-    dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
+function toggleMenuBtn(btn) {
+  if (btn && btn.classList) {
+    const arrow = btn.querySelector('.menu-btn-arrow');
+    const options = document.getElementById(btn.id.replace('Btn', 'Options'));
+
+    if (options) {
+      if (options.classList.contains('show')) {
+        arrow.classList.remove('fa-chevron-down');
+        arrow.classList.add('fa-chevron-up');
+        options.style.height = options.scrollHeight + 'px';
+      } else {
+        arrow.classList.remove('fa-chevron-up');
+        arrow.classList.add('fa-chevron-down');
+        options.style.height = '0px';
+      }
+    }
   }
+}
+
+function initializeMenu() {
+  document.querySelectorAll('[id^="diseaseBtn-"], #dsBtn').forEach(btn => {
+    const options = document.getElementById(btn.id.replace('Btn', 'Options'));
+
+    if (options && options.classList.contains('show')) {
+      btn.querySelector('.menu-btn-arrow').classList.add('fa-chevron-up');
+      btn.querySelector('.menu-btn-arrow').classList.remove('fa-chevron-down');
+    } else {
+      btn.querySelector('.menu-btn-arrow').classList.add('fa-chevron-down');
+      btn.querySelector('.menu-btn-arrow').classList.remove('fa-chevron-up');
+    }
+
+    btn.addEventListener('click', function() {
+      options.classList.toggle('show');
+      toggleMenuBtn(btn);
+    });
+  });
 }
 
 let context = {
@@ -199,21 +230,24 @@ document.addEventListener('DOMContentLoaded', function() {
   const footer = document.querySelector('footer');
   const navbar = document.getElementById('navbar');
 
+  const expandeds = document.querySelectorAll('.menu-btn-expanded');
+  const retracteds = document.querySelectorAll('.menu-btn-retracted');
+  // console.log(expandeds);
+
   function updateMenuState() {
     if (menuState === "retracted") {
       menuTitle.classList.remove('show');
       dsOptions.classList.remove('show');
 
-      setVisibility([expandMenuBtn, dsRetracted], 'visible')
-      setVisibility([retractMenuBtn, dsExpanded, dsOptions], 'hidden')
-      setDsOptions();
+      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'visible')
+      setVisibility([retractMenuBtn, dsOptions].concat(Array.from(expandeds)), 'hidden')
     } else if (menuState === "expanded") {
       menuTitle.classList.add('show');
 
-      setVisibility([retractMenuBtn, dsExpanded, dsOptions], 'visible')
-      setVisibility([expandMenuBtn, dsRetracted], 'hidden')
-      setDsOptions();
+      setVisibility([retractMenuBtn, dsOptions].concat(Array.from(expandeds)), 'visible')
+      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'hidden')
     }
+
     if (menu.classList.contains('expanded')) {
       footer.style.marginLeft = 'var(--menu-width-expanded)';
       navbar.style.marginLeft = 'var(--menu-width-expanded)';
@@ -279,14 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   setMenuState();
+  initializeMenu();
 
   expandMenuBtn.addEventListener('click', toggleMenu);
   retractMenuBtn.addEventListener('click', toggleMenu);
-
-  dsExpanded.addEventListener('click', function () {
-    dsOptions.classList.toggle('show');
-    setDsOptions();
-  });
 
   window.addEventListener('resize', setMenuState);
 
@@ -306,6 +336,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (initialDiv) {
       initialDiv.classList.remove('ds-hidden');
       initialDiv.classList.add('ds-slide-down');
+    }
+
+    if (option.id === dashboard) {
+      option.classList.add('selected');
     }
 
     option.addEventListener('click', (event) => {

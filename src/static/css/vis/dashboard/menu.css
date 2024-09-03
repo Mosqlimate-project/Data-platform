@@ -235,6 +235,12 @@ footer, .footer {
   transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
 
+.menu-btn-expanded {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 @keyframes slideUp {
   from {
     opacity: 1;
