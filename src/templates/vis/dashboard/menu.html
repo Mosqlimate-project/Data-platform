@@ -87,7 +87,6 @@
       <div id="datePicker-{{ name }}" class="d-flex flex-column">
         <input type="text" name="start-{{ name }}"><span> - </span><input type="text" name="end-{{ name }}">
       </div>
-      <br>
       <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
         <input type="text" name="windowStart-{{ name }}"><span> - </span><input type="text" name="windowEnd-{{ name }}">
       </div>
@@ -99,11 +98,6 @@
     <hr style="color:white;">
 
   </div>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
   {% endfor %}
 
 </div>
@@ -168,18 +162,15 @@ function setVisibility(elements, visibility) {
 }
 
 function setDsOptions() {
-  var arrow = document.getElementById('dsArrow');
+  var dsArrow = document.getElementById('dsArrow');
   if (dsOptions.classList.contains('show')) {
-    arrow.classList.remove('fa-chevron-down');
-    arrow.classList.add('fa-chevron-up');
+    dsArrow.classList.remove('fa-chevron-down');
+    dsArrow.classList.add('fa-chevron-up');
     dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
   } else {
-    arrow.classList.remove('fa-chevron-up');
-    arrow.classList.add('fa-chevron-down');
+    dsArrow.classList.remove('fa-chevron-up');
+    dsArrow.classList.add('fa-chevron-down');
     dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
-    requestAnimationFrame(() => {
-      dsOptions.style.height = '0px';
-    });
   }
 }
 
@@ -208,16 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const footer = document.querySelector('footer');
   const navbar = document.getElementById('navbar');
 
-  function updateLayoutAccordingToMenu() {
-    if (menu.classList.contains('expanded')) {
-      footer.style.marginLeft = 'var(--menu-width-expanded)';
-      navbar.style.marginLeft = 'var(--menu-width-expanded)';
-    } else {
-      footer.style.marginLeft = 'var(--menu-width-retracted)';
-      navbar.style.marginLeft = 'var(--menu-width-retracted)';
-    }
-  }
-
   function updateMenuState() {
     if (menuState === "retracted") {
       menuTitle.classList.remove('show');
@@ -233,7 +214,13 @@ document.addEventListener('DOMContentLoaded', function() {
       setVisibility([expandMenuBtn, dsRetracted], 'hidden')
       setDsOptions();
     }
-    updateLayoutAccordingToMenu();
+    if (menu.classList.contains('expanded')) {
+      footer.style.marginLeft = 'var(--menu-width-expanded)';
+      navbar.style.marginLeft = 'var(--menu-width-expanded)';
+    } else {
+      footer.style.marginLeft = 'var(--menu-width-retracted)';
+      navbar.style.marginLeft = 'var(--menu-width-retracted)';
+    }
   }
 
   function setMenuState() {
@@ -310,18 +297,49 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.querySelectorAll('#dsOptions a').forEach(option => {
-    if (option.id === dashboard) {
-      option.classList.add('selected');
+    document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {
+      dsDiv.classList.add('ds-hidden');
+      dsDiv.classList.add('ds-container');
+    });
+
+    const initialDiv = document.getElementById(`ds-${dashboard}`);
+    if (initialDiv) {
+      initialDiv.classList.remove('ds-hidden');
+      initialDiv.classList.add('ds-slide-down');
     }
 
     option.addEventListener('click', (event) => {
       event.preventDefault();
 
-      document.querySelectorAll('#dsOptions a').forEach(
-        opt => opt.classList.remove('selected')
-      );
+      document.querySelectorAll('#dsOptions a').forEach(opt => opt.classList.remove('selected'));
+
       option.classList.add('selected');
+
+      const previousDashboard = dashboard;
       dashboard = option.id;
+
+      const previousDiv = document.getElementById(`ds-${previousDashboard}`);
+      const newDiv = document.getElementById(`ds-${dashboard}`);
+
+      if (previousDiv) {
+        previousDiv.classList.remove('ds-slide-down');
+        previousDiv.classList.add('ds-slide-up');
+
+        previousDiv.addEventListener('transitionend', () => {
+          previousDiv.classList.add('ds-hidden');
+          previousDiv.classList.remove('ds-slide-up');
+
+          if (newDiv) {
+            newDiv.classList.remove('ds-hidden');
+            newDiv.classList.add('ds-slide-down');
+          }
+        }, { once: true });
+      } else {
+        if (newDiv) {
+          newDiv.classList.remove('ds-hidden');
+          newDiv.classList.add('ds-slide-down');
+        }
+      }
     });
   });
 
