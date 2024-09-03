@@ -1,14 +1,48 @@
-body {
-  margin: 0px;
-}
-
 :root {
   --menu-width-expanded: 200px;
   --menu-width-retracted: 50px;
   --menu-transition: all 0.2s ease;
 }
 
-.btn:focus,.btn:active {
+body {
+  margin: 0px;
+}
+
+.navbar {
+  height: 50px;
+}
+
+.navbar .navbar-brand {
+  width: 30px;
+}
+
+.navbar .navbar-user {
+  display: none;
+}
+
+footer, .footer {
+  height: 50px;
+}
+
+.fa-github, .funding-text, .partner-text, .funding, .partners {
+  display: none;
+}
+
+.menu-btn {
+  color: #222;
+  background-color: #C3E5D5;
+  border: none;
+  opacity: 0.3;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.menu-btn:hover {
+  opacity: 1;
+  color: #fff;
+  background-color: #6976B7;
+}
+
+.btn, .btn:focus, .btn:active {
    outline: none !important;
    box-shadow: none;
 }
@@ -26,6 +60,7 @@ body {
   height: 100%;
   padding: 5px;
   box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
 }
 
 #menu hr {
@@ -140,8 +175,30 @@ body {
   transition: all 0.3s ease;
 }
 
+#dsOptions a {
+  margin-top: 2px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 #dsOptions.show {
   height: auto;
+}
+
+.ds-btn {
+  font-size: 0.875rem;
+  height: 30px;
+  padding: 2px;
+}
+
+.ds-btn:hover {
+  background-color: #6976B7;
+  transition: background-color 0.3s ease;
+}
+
+.ds-btn.selected {
+  background-color: #6976B7;
+  color: #fff;
 }
 
 .ds-toggle-btn {

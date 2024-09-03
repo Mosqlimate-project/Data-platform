@@ -54,11 +54,20 @@ class DashboardView(View):
             Prediction.objects.all().values_list("id", flat=True)
         )
 
-        context["dashboards"] = {
+        dashboards = {
             "Predictions": reverse("dashboard"),
             "Sprint 2024/25": reverse("dashboard_sprint"),
             "Forecast Map": reverse("dashboard_forecast_map"),
         }
+
+        dashboard = request.GET.get("dashboard")
+
+        if dashboard not in dashboards:
+            _d = {v: k for k, v in dashboards.items()}
+            dashboard = _d.get(reverse("dashboard"))
+
+        context["dashboards"] = dashboards
+        context["dashboard"] = dashboard
 
         context["model_ids"] = list(model_ids)
         context["prediction_ids"] = list(prediction_ids)
@@ -67,6 +76,7 @@ class DashboardView(View):
         context["end_date"] = "2001-01-01"
         context["start_window_date"] = "2000-01-01"
         context["end_window_date"] = "2001-01-01"
+
         return render(request, self.template_name, context)
 
 

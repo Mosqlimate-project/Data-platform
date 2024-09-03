@@ -14,10 +14,10 @@
 <div id="menu" class="font-golos d-flex flex-column flex-shrink-0 bg-dark">
   <div id="menuHeader" class="align-items-center">
     <p id="menuTitle" class="menu-txt text-white text-start show">Mosqlimate</p>
-    <button id="expandMenu" class="btn menu-btn menu-toggle-btn btn-primary">
+    <button id="expandMenu" class="btn menu-btn menu-toggle-btn">
       <i class="fa-regular fa-bars rectracted-icon"></i>
     </button>
-    <button id="retractMenu" class="btn menu-btn menu-toggle-btn btn-primary">
+    <button id="retractMenu" class="btn menu-btn menu-toggle-btn">
       <i class="fa-solid fa-caret-down expanded-icon"></i>
     </button>
   </div>
@@ -25,18 +25,18 @@
   <hr style="color:white;">
 
   <div id="dsSelect" class="d-flex flex-column">
-    <button id="dsRetracted" class="btn menu-btn ds-toggle-btn btn-primary d-flex align-items-center">
+    <button id="dsRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
       <i class="fa-regular fa-chart-line me-2"></i>
     </button>
 
-    <button id="dsExpanded" class="btn menu-btn ds-toggle-btn btn-primary d-flex align-items-center justify-content-between">
-      <span id="dsTitle" class="menu-txt text-white text-start">Dashboard</span>
-      <i class="fa-solid"></i>
+    <button id="dsExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
+      <span id="dsTitle" class="menu-txt text-start">Dashboard</span>
+      <i id="dsArrow" class="fa-solid"></i>
     </button>
 
     <div id="dsOptions" class="collapse">
       {% for name, url in dashboards.items %}
-      <a href="{{ url }}" id="{{ name }}" class="btn btn-secondary text-white text-start w-100">{{ name }}</a>
+      <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">{{ name }}</a>
       {% endfor %}
     </div>
   </div>
@@ -96,6 +96,7 @@ const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
 
 const dashboards = {{ dashboards|safe }};
+let dashboard = `{{ dashboard }}`;
 
 let startDate = `{{ start_date }}`;
 let endDate = `{{ end_date }}`;
@@ -115,6 +116,7 @@ let adm3 = `{{ adm_3 }}`;
 let modelIds = {{ model_ids }};
 let predictionIds = {{ prediction_ids }};
 
+console.log(dashboard);
 
 // Elements
 const menu = document.getElementById('menu');
@@ -138,14 +140,14 @@ function setVisibility(elements, visibility) {
 }
 
 function setDsOptions() {
-  var icon = dsExpanded.querySelector('i');
+  var arrow = document.getElementById('dsArrow');
   if (dsOptions.classList.contains('show')) {
-    icon.classList.remove('fa-chevron-down');
-    icon.classList.add('fa-chevron-up');
+    arrow.classList.remove('fa-chevron-down');
+    arrow.classList.add('fa-chevron-up');
     dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
   } else {
-    icon.classList.remove('fa-chevron-up');
-    icon.classList.add('fa-chevron-down');
+    arrow.classList.remove('fa-chevron-up');
+    arrow.classList.add('fa-chevron-down');
     dsOptions.style.height = dsOptions.scrollHeight + 'px'; 
     requestAnimationFrame(() => {
       dsOptions.style.height = '0px';
@@ -271,6 +273,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (menuState === "retracted") {
       toggleMenu();
     }
+  });
+
+  document.querySelectorAll('#dsOptions a').forEach(option => {
+    if (option.id === dashboard) {
+      option.classList.add('selected');
+    }
+
+    option.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      document.querySelectorAll('#dsOptions a').forEach(
+        opt => opt.classList.remove('selected')
+      );
+      option.classList.add('selected');
+      dashboard = option.id;
+    });
   });
 
   try {
