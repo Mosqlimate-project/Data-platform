@@ -15,7 +15,7 @@
   <div id="menuHeader" class="align-items-center">
     <p id="menuTitle" class="menu-txt text-white text-start show">Mosqlimate</p>
     <button id="expandMenu" class="btn menu-btn menu-toggle-btn">
-      <i class="fa-regular fa-bars rectracted-icon"></i>
+      <i class="fa-regular fa-bars retracted-icon"></i>
     </button>
     <button id="retractMenu" class="btn menu-btn menu-toggle-btn">
       <i class="fa-solid fa-caret-down expanded-icon"></i>
@@ -43,41 +43,69 @@
 
   <hr style="color:white;">
 
-  <div>
-    <div id="predictDatePicker" class="d-flex flex-column">
-      <input type="text" name="start"><span> - </span><input type="text" name="end">
+  {% for name, url in dashboards.items %}
+  <div id="ds-{{ name }}">
+    <div id="disease-{{ name }}">
+      <button id="diseaseRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <i class="fa-solid fa-vial-virus me-2"></i>
+      </button>
+
+      <button id="diseaseExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
+        <span id="diseaseTitle" class="menu-txt text-start">{% trans "Disease" %}</span>
+        <i id="diseaseArrow" class="fa-solid"></i>
+      </button>
     </div>
-    <br>
-    <div id="predictWindowDatePicker" class="d-flex flex-column">
-      <input type="text" name="windowStart"><span> - </span><input type="text" name="windowEnd">
+
+    {% if name == "Predictions" or name == "Sprint 2024/25" %}
+    <div id="admLevel-{{ name }}">
+      <button id="admLevelRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <i class="fa-solid fa-earth-americas me-2"></i>
+      </button>
+
+      <button id="admLevelExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
+        <span id="admLevelTitle" class="menu-txt text-start">{% trans "Administrative Level" %}</span>
+        <i id="admLevelArrow" class="fa-solid"></i>
+      </button>
     </div>
+
+    <div id="timeRes-{{ name }}">
+      <button id="timeResRetracted" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+        <i class="fa-solid fa-hourglass-end"></i>
+      </button>
+
+      <button id="timeResExpanded" class="btn menu-btn ds-toggle-btn d-flex align-items-center justify-content-between">
+        <span id="timeResTitle" class="menu-txt text-start">{% trans "Time Resolution" %}</span>
+        <i id="timeResArrow" class="fa-solid"></i>
+      </button>
+    </div>
+    {% endif %}
+
+    <hr style="color:white;">
+
+    {% if name == "Predictions" or name == "Sprint 2024/25" %}
+    <div>
+      <div id="datePicker-{{ name }}" class="d-flex flex-column">
+        <input type="text" name="start-{{ name }}"><span> - </span><input type="text" name="end-{{ name }}">
+      </div>
+      <br>
+      <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
+        <input type="text" name="windowStart-{{ name }}"><span> - </span><input type="text" name="windowEnd-{{ name }}">
+      </div>
+    </div>
+    {% endif %}
+
+    <hr style="color:white;">
+
+    <hr style="color:white;">
+
   </div>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  {% endfor %}
 
-  <div>
-    <div class="p-3">
-      <center><b>
-        <label for="diseaseRadio" class="text-white">{% trans "Disease" %}</label>
-      </b></center>
-      <hr style="color:white;">
-
-      <center><b>
-        <label for="timeResRadio" class="text-white">{% trans "Temporal Resolution" %}</label>
-      </b></center>
-
-      <hr style="color:white;">
-
-      <center><b>
-        <label for="admLevelRadio" class="text-white">{% trans "Administrative Level" %}</label>
-      </b></center>
-
-      <hr style="color:white;">
-
-      <center><b>
-        <label for="outputFormat" class="text-white">{% trans "Output Format" %}</label>
-      </b></center>
-      <hr style="color:white;">
-    </div>
-  </div>
 </div>
 
 
@@ -256,6 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   observer.observe(menu, { attributes: true });
+
+  if (menuState === "expanded") {
+    dsOptions.classList.add('show');
+  } else {
+    dsOptions.classList.remove('show');
+  }
 
   setMenuState();
 

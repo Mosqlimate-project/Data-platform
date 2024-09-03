@@ -28,16 +28,19 @@
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{% url 'api-1:openapi-view' %}">{% trans 'API Demo' %}</a>
           </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {% trans 'Dashboards' %}
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdownDashboard">
-              <li><a class="dropdown-item" href="{% url 'dashboard_old' %}">{% trans 'Predictions' %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'dashboard_sprint' %}">{% trans 'Sprint 2024/25' %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'dashboard_forecast_map' %}">{% trans 'Forecast Map' %}</a></li>
-            </ul>
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="{% url 'dashboard' %}">Dashboard</a>
           </li>
+          <!-- <li class="nav-item dropdown"> -->
+          <!--   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-bs-toggle="dropdown" aria-expanded="false"> -->
+          <!--     {% trans 'Dashboards' %} -->
+          <!--   </a> -->
+          <!--   <ul class="dropdown-menu" aria-labelledby="navbarDropdownDashboard"> -->
+          <!--     <li><a class="dropdown-item" href="{% url 'dashboard_old' %}">{% trans 'Predictions' %}</a></li> -->
+          <!--     <li><a class="dropdown-item" href="{% url 'dashboard_sprint' %}">{% trans 'Sprint 2024/25' %}</a></li> -->
+          <!--     <li><a class="dropdown-item" href="{% url 'dashboard_forecast_map' %}">{% trans 'Forecast Map' %}</a></li> -->
+          <!--   </ul> -->
+          <!-- </li> -->
           <li class="nav-item">
             <div class="nav-link disabled">|</div>
           </li>
