@@ -68,7 +68,7 @@ footer, .footer {
   display: none;
 }
 
-#menu hr {
+hr {
   width: calc(100% + 10px);
   margin-left: -5px;
   margin-right: -5px;
@@ -222,23 +222,25 @@ footer, .footer {
   transition: max-height 0.5s ease-in-out;
 }
 
-.ds-slide-up {
-  max-height: 0;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.ds-slide-down {
-  max-height: 500px;
-  opacity: 1;
-  transform: translateY(0);
-  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-}
-
 .menu-btn-expanded {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+[id^="ds1-"], [id^="ds2-"], [id^="ds3-"] {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-20px);
+  overflow: hidden;
+  transition: max-height 0.2s ease-in-out, transform 0.2s ease-in-out 0.2s, opacity 0.2s ease-in-out 0.2s;
+}
+
+[id^="ds1-"].active, [id^="ds2-"].active, [id^="ds3-"].active {
+  opacity: 1;
+  max-height: 500px;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.5s ease-in-out 0.3s;
 }
 
 @keyframes slideUp {
@@ -248,14 +250,14 @@ footer, .footer {
   }
   to {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px);
   }
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
