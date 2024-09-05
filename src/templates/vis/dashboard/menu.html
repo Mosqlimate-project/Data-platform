@@ -231,7 +231,8 @@ function initializeMenu() {
     handleMenuBtnClick(btn);
 
     const options = document.getElementById(btn.id.replace('Btn', 'Options'));
-       if (options && options.id === 'dsOptions') {
+    
+    if (options && options.id === 'dsOptions') {
       options.querySelectorAll('a').forEach(option => {
         option.addEventListener('click', () => {
           activateDivs(option.id);
@@ -241,13 +242,15 @@ function initializeMenu() {
     } else if (options) {
       options.querySelectorAll('a').forEach(option => {
         option.addEventListener('click', () => {
-          document.querySelectorAll(`#${options.id} a`).forEach(opt => opt.classList.remove('selected'));
+          document.querySelectorAll(`#${CSS.escape(options.id)} a`)
+            .forEach(opt => opt.classList.remove('selected'));
           option.classList.add('selected');
         });
       });
     }
   });
 }
+
 
 function initializeDivs() {
   document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {
