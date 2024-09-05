@@ -47,7 +47,7 @@
   {% for name, url in dashboards.items %}
   <div id="ds1-{{ name }}">
     <div id="disease-{{ name }}">
-      <button id="diseaseBtn-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+      <button id="diseaseBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mb-1">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-vial-virus me-2"></i>
         </div>
@@ -56,11 +56,15 @@
           <i id="diseaseArrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
+
+      <div id="diseaseOptions-{{name}}" class="collapse">
+        --
+      </div>
     </div>
 
     {% if name == "Predictions" or name == "Sprint 2024/25" %}
     <div id="timeRes-{{ name }}">
-      <button id="timeRes-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+      <button id="timeResBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mb-1">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-hourglass-end"></i>
         </div>
@@ -69,19 +73,27 @@
           <i id="timeResArrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
+
+      <div id="timeResOptions-{{name}}" class="collapse">
+        --
+      </div>
     </div>
     {% endif %}
 
     <div id="admLevel-{{ name }}">
-      <button id="admLevelBtn-{{name}}" class="btn menu-btn ds-toggle-btn d-flex align-items-center">
+      <button id="admLevelBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mb-1">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-earth-americas me-2"></i>
         </div>
         <div class="menu-btn-expanded justify-content-between">
-          <span id="admLevelTitle" class="menu-txt text-start">{% trans "Administrative Level" %}</span>
+          <span id="admLevelTitle" class="menu-txt text-nowrap text-start" style="font-size: 15px;">{% trans "Administrative Level" %}</span>
           <i id="admLevelArrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
+
+      <div id="admLevelOptions-{{name}}" class="collapse">
+        --
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -192,10 +204,6 @@ function toggleMenuBtn(btn) {
       if (options.classList.contains('show')) {
         arrow.classList.remove('fa-chevron-down');
         arrow.classList.add('fa-chevron-up');
-        // setTimeout(() => {
-        //   options.style.height = '0px';
-        //   // options.classList.remove('show');
-        // }, 10);
         options.style.height = options.scrollHeight + 'px';
       } else {
         arrow.classList.remove('fa-chevron-up');
@@ -230,7 +238,7 @@ function initializeMenu() {
     });
   });
 
-  document.querySelectorAll('[id^="diseaseBtn-"], #dsBtn').forEach(btn => {
+  document.querySelectorAll('[id^="diseaseBtn-"], [id^="timeResBtn-"], [id^="admLevelBtn-"], #dsBtn').forEach(btn => {
     const options = document.getElementById(btn.id.replace('Btn', 'Options'));
 
     if (options && options.classList.contains('show')) {
@@ -274,22 +282,26 @@ console.log(context);
 document.addEventListener('DOMContentLoaded', function() {
   const footer = document.querySelector('footer');
   const navbar = document.getElementById('navbar');
-
   const expandeds = document.querySelectorAll('.menu-btn-expanded');
   const retracteds = document.querySelectorAll('.menu-btn-retracted');
 
   function updateMenuState() {
     if (menuState === "retracted") {
       menuTitle.classList.remove('show');
-      dsOptions.classList.remove('show');
+      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'visible');
+      setVisibility([retractMenuBtn].concat(Array.from(expandeds)), 'hidden');
 
-      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'visible')
-      setVisibility([retractMenuBtn, dsOptions].concat(Array.from(expandeds)), 'hidden')
+      document.querySelectorAll('[id^="diseaseOptions-"], [id^="timeResOptions-"], [id^="admLevelOptions-"], #dsOptions').forEach(option => {
+        option.classList.add('hidden');
+      });
     } else if (menuState === "expanded") {
       menuTitle.classList.add('show');
+      setVisibility([retractMenuBtn].concat(Array.from(expandeds)), 'visible');
+      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'hidden');
 
-      setVisibility([retractMenuBtn, dsOptions].concat(Array.from(expandeds)), 'visible')
-      setVisibility([expandMenuBtn].concat(Array.from(retracteds)), 'hidden')
+      document.querySelectorAll('[id^="diseaseOptions-"], [id^="timeResOptions-"], [id^="admLevelOptions-"], #dsOptions').forEach(option => {
+        option.classList.remove('hidden');
+      });
     }
 
     if (menu.classList.contains('expanded')) {
@@ -370,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // slide up and down effect
   document.querySelectorAll('#dsOptions a').forEach(option => {
     document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {
       dsDiv.classList.add('ds-hidden');
