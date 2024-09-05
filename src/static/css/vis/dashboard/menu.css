@@ -2,6 +2,7 @@
   --menu-width-expanded: 200px;
   --menu-width-retracted: 50px;
   --menu-transition: all 0.2s ease;
+  --navbar-height: 50px;
 }
 
 body {
@@ -9,7 +10,7 @@ body {
 }
 
 .navbar {
-  height: 50px;
+  height: var(--navbar-height);
 }
 
 .navbar .navbar-brand {
@@ -188,12 +189,12 @@ hr {
 
 .options a:hover {
   transition: background-color 0.3s ease;
-  background-color: #6976B1;
+  background-color: #697DDD;
 }
 
 .options a.selected {
   transition: background-color 0.3s ease;
-  background-color: #6976B1;
+  background-color: #697DDD;
 }
 
 .options.show {
@@ -204,16 +205,6 @@ hr {
   font-size: 0.875rem;
   height: 30px;
   padding: 2px;
-}
-
-.ds-btn:hover {
-  background-color: #697DDD;
-  transition: background-color 0.3s ease;
-}
-
-.ds-btn.selected {
-  background-color: #697DDD;
-  color: #fff;
 }
 
 .ds-toggle-btn {

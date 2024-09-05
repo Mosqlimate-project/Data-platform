@@ -56,8 +56,12 @@ class DashboardView(View):
 
         _defaults = {
             "disease": None,
-            "adm_level": None,
             "time_resolution": None,
+            "adm_level": None,
+            "adm_0": "BRA",
+            "adm_1": None,
+            "adm_2": None,
+            "adm_3": None,
             "start_date": None,
             "end_date": None,
             "start_window_date": None,
@@ -80,8 +84,10 @@ class DashboardView(View):
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", False
                 ),
+                "date_range": [],
+                "window_date_range": [],
                 "adm_levels": _get_distinct_values("model__ADM_level", False),
-                "defaults": _defaults,
+                "query": _defaults,
             },
             "Sprint 2024/25": {
                 "url": reverse("dashboard_sprint"),
@@ -89,15 +95,17 @@ class DashboardView(View):
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", True
                 ),
+                "date_range": [],
+                "window_date_range": [],
                 "adm_levels": _get_distinct_values("model__ADM_level", True),
-                "defaults": _defaults,
+                "query": _defaults,
             },
             "Forecast Map": {
                 "url": reverse("dashboard_forecast_map"),
                 "diseases": [],
                 "adm_levels": [],
                 "time_resolutions": [],
-                "defaults": _defaults,
+                "query": _defaults,
             },
         }
 
@@ -117,11 +125,6 @@ class DashboardView(View):
 
         context["model_ids"] = list(model_ids)
         context["prediction_ids"] = list(prediction_ids)
-
-        context["start_date"] = "2000-01-01"
-        context["end_date"] = "2001-01-01"
-        context["start_window_date"] = "2000-01-01"
-        context["end_window_date"] = "2001-01-01"
 
         return render(request, self.template_name, context)
 

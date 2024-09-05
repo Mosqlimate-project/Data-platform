@@ -157,27 +157,6 @@ let isTransitioning = false;
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
 
-const dashboards = {{ dashboards|parse_nones|safe }};
-let dashboard = `{{ dashboard }}`;
-
-let startDate = `{{ start_date }}`;
-let endDate = `{{ end_date }}`;
-let startWindowDate = `{{ start_window_date }}`;
-let endWindowDate = `{{ end_window_date }}`;
-
-let disease = `{{ disease }}`;
-let timeResolution = `{{ time_resolution }}`;
-let outputFormat = `{{ output_format }}`;
-let sprint = `{{ sprint }}`;
-let admLevel = `{{ adm_level }}`;
-let adm0 = `{{ adm_0 }}`;
-let adm1 = `{{ adm_1 }}`;
-let adm2 = `{{ adm_2 }}`;
-let adm3 = `{{ adm_3 }}`;
-
-let modelIds = {{ model_ids }};
-let predictionIds = {{ prediction_ids }};
-
 console.log(dashboards);
 
 // Elements
@@ -320,27 +299,6 @@ function updateDashboard(option) {
   }
 }
 
-let context = {
-  "sprint": sprint !== `` ? sprint : null,
-
-  "startDate": startDate,
-  "endDate": endDate,
-  "startWindowDate": startWindowDate !== `` ? startWindowDate : startDate,
-  "endWindowDate": endWindowDate !== `` ? endWindowDate : endDate,
-
-  "disease": disease !== `` ? disease : "dengue",
-  "timeResolution": timeResolution !== `` ? timeResolution : "week",
-  "outputFormat": outputFormat !== `` ? outputFormat : null,
-
-  "admLevel": admLevel !== `` ? admLevel : 2,
-  "adm0": adm0 !== `` ? adm0 : null,
-  "adm1": adm1 !== `` ? adm1 : null,
-  "adm2": adm2 !== `` ? adm2 : null,
-  "adm3": adm3 !== `` ? adm3 : null,
-}
-
-console.log(context);
-
 document.addEventListener('DOMContentLoaded', function() {
   const footer = document.querySelector('footer');
   const navbar = document.getElementById('navbar');
@@ -453,44 +411,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   } catch {}
 
-
-  const predictDatePicker = document.getElementById('predictDatePicker');
-  const predictDateRangePicker = new DateRangePicker(predictDatePicker, {
-    buttonClass: 'btn',
-    format: dateFormat,
-    clearButton: true,
-    language: useri18n,
-  }); 
-
-  const predictWindowDatePicker = document.getElementById('predictWindowDatePicker');
-  const predictWindowDateRangePicker = new DateRangePicker(predictWindowDatePicker, {
-    buttonClass: 'btn',
-    format: dateFormat,
-    clearButton: true,
-    language: useri18n,
-  }); 
-
-  predictDatePicker.addEventListener('changeDate', handleDatesChange);
-  predictWindowDatePicker.addEventListener('changeDate', handleWindowDatesChange);
-  predictDateRangePicker.setDates(
-    Datepicker.parseDate(startDate, dateFormat), 
-    Datepicker.parseDate(endDate, dateFormat), 
-  );
-  predictWindowDateRangePicker.setDates(
-    Datepicker.parseDate(startDate, dateFormat), 
-    Datepicker.parseDate(endDate, dateFormat), 
-  );
-
-
-  function handleDatesChange(event) {
-    const [startDate, endDate] = predictDateRangePicker.getDates(dateFormat);
-    // console.log(`${startDate} - ${endDate}`);
-  }
-
-  function handleWindowDatesChange(event) {
-    const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
-    // console.log(`${startDate} - ${endDate}`);
-  }
+  //
+  // const predictDatePicker = document.getElementById('predictDatePicker');
+  // const predictDateRangePicker = new DateRangePicker(predictDatePicker, {
+  //   buttonClass: 'btn',
+  //   format: dateFormat,
+  //   clearButton: true,
+  //   language: useri18n,
+  // }); 
+  //
+  // const predictWindowDatePicker = document.getElementById('predictWindowDatePicker');
+  // const predictWindowDateRangePicker = new DateRangePicker(predictWindowDatePicker, {
+  //   buttonClass: 'btn',
+  //   format: dateFormat,
+  //   clearButton: true,
+  //   language: useri18n,
+  // }); 
+  //
+  // predictDatePicker.addEventListener('changeDate', handleDatesChange);
+  // predictWindowDatePicker.addEventListener('changeDate', handleWindowDatesChange);
+  // predictDateRangePicker.setDates(
+  //   Datepicker.parseDate(startDate, dateFormat), 
+  //   Datepicker.parseDate(endDate, dateFormat), 
+  // );
+  // predictWindowDateRangePicker.setDates(
+  //   Datepicker.parseDate(startDate, dateFormat), 
+  //   Datepicker.parseDate(endDate, dateFormat), 
+  // );
+  //
+  //
+  // function handleDatesChange(event) {
+  //   const [startDate, endDate] = predictDateRangePicker.getDates(dateFormat);
+  //   // console.log(`${startDate} - ${endDate}`);
+  // }
+  //
+  // function handleWindowDatesChange(event) {
+  //   const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
+  //   // console.log(`${startDate} - ${endDate}`);
+  // }
 
 })
 </script>

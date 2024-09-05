@@ -6,6 +6,62 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-  {% include 'vis/dashboard/menu.html' %}
-  <div id="content"></div>
+
+<script>
+const dashboards = {{ dashboards|parse_nones|safe }};
+let dashboard = `{{ dashboard }}`;
+</script>
+
+{% include 'vis/dashboard/menu.html' %}
+<div id="dsContent" class="container-fluid shadow">
+{% for name, data in dashboards.items %}
+  <div id="dsContent-{{name}}">
+  {{name}}
+  </div>
+{% endfor %}
+</div>
+
+<style>
+#dsContent.expanded {
+  margin-left: calc(var(--menu-width-expanded) + 5px);
+  margin-top: calc(var(--navbar-height) + 5px);
+  padding: 10px;
+  transition: margin-left 0.2s ease;
+}
+
+#dsContent.retracted {
+  margin-left: calc(var(--menu-width-retracted) + 5px);
+  margin-top: calc(var(--navbar-height) + 5px);
+  padding: 10px;
+  transition: margin-left 0.2s ease;
+}
+</style>
+
+<script>
+const dsContent = document.getElementById('dsContent'); 
+
+const observer2 = new MutationObserver(function (mutationsList) {
+  mutationsList.forEach(function (mutation) {
+    if (mutation.attributeName === 'class') {
+      updateContentState();
+    }
+  });
+});
+
+function updateContentState() {
+  if (!menu.classList.contains('retracted')) {
+    dsContent.classList.add('expanded');
+    dsContent.classList.remove('retracted');
+  } else {
+    dsContent.classList.add('retracted');
+    dsContent.classList.remove('expanded');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateContentState();
+  observer2.observe(menu, { attributes: true });
+});
+</script>
+
 {% endblock %}
