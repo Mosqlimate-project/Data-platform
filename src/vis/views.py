@@ -54,17 +54,63 @@ class DashboardView(View):
             Prediction.objects.all().values_list("id", flat=True)
         )
 
+        _defaults = {
+            "disease": None,
+            "adm_level": None,
+            "time_resolution": None,
+            "start_date": None,
+            "end_date": None,
+            "start_window_date": None,
+            "end_window_date": None,
+        }
+
+        def _get_distinct_values(field: str, sprint: bool) -> list:
+            return sorted(
+                list(
+                    Prediction.objects.filter(model__sprint=sprint)
+                    .values_list(field, flat=True)
+                    .distinct()
+                )
+            )
+
         dashboards = {
-            "Predictions": reverse("dashboard"),
-            "Sprint 2024/25": reverse("dashboard_sprint"),
-            "Forecast Map": reverse("dashboard_forecast_map"),
+            "Predictions": {
+                "url": reverse("dashboard"),
+                "diseases": _get_distinct_values("model__disease", False),
+                "time_resolutions": _get_distinct_values(
+                    "model__time_resolution", False
+                ),
+                "adm_levels": _get_distinct_values("model__ADM_level", False),
+                "defaults": _defaults,
+            },
+            "Sprint 2024/25": {
+                "url": reverse("dashboard_sprint"),
+                "diseases": _get_distinct_values("model__disease", True),
+                "time_resolutions": _get_distinct_values(
+                    "model__time_resolution", True
+                ),
+                "adm_levels": _get_distinct_values("model__ADM_level", True),
+                "defaults": _defaults,
+            },
+            "Forecast Map": {
+                "url": reverse("dashboard_forecast_map"),
+                "diseases": [],
+                "adm_levels": [],
+                "time_resolutions": [],
+                "defaults": _defaults,
+            },
         }
 
         dashboard = request.GET.get("dashboard")
 
         if dashboard not in dashboards:
-            _d = {v: k for k, v in dashboards.items()}
-            dashboard = _d.get(reverse("dashboard"))
+            for name in dashboards:
+                dashboard = name
+                break
+
+        from pprint import pprint
+
+        pprint(dashboards)
 
         context["dashboards"] = dashboards
         context["dashboard"] = dashboard

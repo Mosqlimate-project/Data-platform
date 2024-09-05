@@ -174,19 +174,29 @@ hr {
   align-items: center;
 }
 
-#dsOptions {
+.options {
   overflow: hidden;
   height: 0;
   transition: all 0.3s ease;
 }
 
-#dsOptions a {
+.options a {
   margin-top: 2px;
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#dsOptions.show {
+.options a:hover {
+  transition: background-color 0.3s ease;
+  background-color: #6976B1;
+}
+
+.options a.selected {
+  transition: background-color 0.3s ease;
+  background-color: #6976B1;
+}
+
+.options.show {
   height: auto;
 }
 
@@ -197,12 +207,12 @@ hr {
 }
 
 .ds-btn:hover {
-  background-color: #6976B7;
+  background-color: #697DDD;
   transition: background-color 0.3s ease;
 }
 
 .ds-btn.selected {
-  background-color: #6976B7;
+  background-color: #697DDD;
   color: #fff;
 }
 

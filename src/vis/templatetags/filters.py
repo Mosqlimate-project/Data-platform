@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import get_object_or_404
 from django import template
 
@@ -40,3 +42,19 @@ def is_empty(iter):
         return True
     if iter:
         return False
+
+
+@register.filter(name="get_adm_level_name")
+def get_adm_level_name(adm_level: int):
+    adm_levels = {
+        0: "national",
+        1: "state",
+        2: "municipality",
+        3: "sub municipality",
+    }
+    return adm_levels[adm_level]
+
+
+@register.filter(name="parse_nones")
+def nones_to_null(value):
+    return json.dumps(value).replace("None", "null")
