@@ -1,54 +1,20 @@
 {% extends 'main/base.html' %}
 {% load i18n %}
 {% load plotly_dash %}
+{% load static %}
 {% load filters %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
 
 <script>
 const dashboards = {{ dashboards|parse_nones|safe }};
 let dashboard = `{{ dashboard }}`;
-</script>
-
-{% include 'vis/dashboard/menu.html' %}
-<div id="dsContent" class="container-fluid shadow">
-{% for name, data in dashboards.items %}
-  <div id="dsContent-{{name}}">
-  {{name}}
-  </div>
-{% endfor %}
-</div>
-
-<style>
-#dsContent.expanded {
-  margin-left: calc(var(--menu-width-expanded) + 5px);
-  margin-top: calc(var(--navbar-height) + 5px);
-  padding: 10px;
-  transition: margin-left 0.2s ease;
-}
-
-#dsContent.retracted {
-  margin-left: calc(var(--menu-width-retracted) + 5px);
-  margin-top: calc(var(--navbar-height) + 5px);
-  padding: 10px;
-  transition: margin-left 0.2s ease;
-}
-</style>
-
-<script>
-const dsContent = document.getElementById('dsContent'); 
-
-const observer2 = new MutationObserver(function (mutationsList) {
-  mutationsList.forEach(function (mutation) {
-    if (mutation.attributeName === 'class') {
-      updateContentState();
-    }
-  });
-});
 
 function updateContentState() {
+  const dsContent = document.getElementById('dsContent'); 
   if (!menu.classList.contains('retracted')) {
     dsContent.classList.add('expanded');
     dsContent.classList.remove('retracted');
@@ -58,8 +24,42 @@ function updateContentState() {
   }
 }
 
+function changeContent(selectedDashboard) {
+  Object.keys(dashboards).forEach(dashboard => {
+    const contentDiv = document.getElementById(`dsContent-${dashboard}`);
+    if (contentDiv) {
+      contentDiv.classList.add('hidden');
+    }
+  });
+
+  const contentDiv = document.getElementById(`dsContent-${selectedDashboard}`);
+  if (contentDiv) {
+    contentDiv.classList.remove('hidden');
+  }
+}
+</script>
+
+{% include 'vis/dashboard/menu.html' %}
+<div id="dsContent" class="container shadow">
+{% for name, data in dashboards.items %}
+  <div id="dsContent-{{name}}">
+  {{name}}
+  </div>
+{% endfor %}
+</div>
+
+<script>
+const observer2 = new MutationObserver(function (mutationsList) {
+  mutationsList.forEach(function (mutation) {
+    if (mutation.attributeName === 'class') {
+      updateContentState();
+    }
+  });
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   updateContentState();
+  changeContent(dashboard);
   observer2.observe(menu, { attributes: true });
 });
 </script>

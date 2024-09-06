@@ -237,6 +237,8 @@ function initializeMenu() {
         option.addEventListener('click', () => {
           activateDivs(option.id);
           dashboard = option.id;
+          changeContent(dashboard);
+
         });
       });
     } else if (options) {
@@ -250,7 +252,6 @@ function initializeMenu() {
     }
   });
 }
-
 
 function initializeDivs() {
   document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {

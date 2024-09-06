@@ -48,13 +48,6 @@ footer, .footer {
    box-shadow: none;
 }
 
-.hidden {
-  opacity: 0;
-  display: none !important;
-  visibility: hidden !important;
-  transition: var(--menu-transition);
-}
-
 #menu {
   transition: var(--menu-transition);
   position: fixed;
@@ -86,30 +79,6 @@ hr {
 #menu.retracted {
   width: var(--menu-width-retracted);
 }
-
-#content {
-  margin-left: var(--menu-width-expanded);
-  transition: margin-left var(--menu-transition);
-}
-
-#menu.expanded + #content {
-  margin-left: var(--menu-width-expanded);
-}
-
-#menu.retracted + #content {
-  margin-left: var(--menu-width-retracted);
-}
-
-#menu.expanded + #navbar {
-  margin-left: var(--menu-width-expanded);
-  width: var(--navbar-width-expanded);
-}
-
-#menu.retracted ~ #navbar {
-  margin-left: var(--menu-width-retracted);
-  width: var(--navbar-width-retracted);
-}
-
 
 #menuTitle {
   font-size: 20px;
