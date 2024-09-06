@@ -50,4 +50,5 @@ urlpatterns = [
         views.get_geocode_info,
         name="get_geocode_info",
     ),
+    path("ibge/city/", views.get_city_info, name="get_city_info"),
 ]

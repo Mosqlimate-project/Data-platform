@@ -57,6 +57,39 @@ const observer2 = new MutationObserver(function (mutationsList) {
   });
 });
 
+async function getBrowserCity() {
+  try {
+    const ipApi = await fetch('http://ip-api.com/json');
+    const location = await ipApi.json();
+
+    if (location.countryCode === 'BR') {
+      const uf = location.region;
+      const city = location.city;
+
+      if (uf && city) {
+        const cityInfoResponse = await fetch(`/vis/ibge/city/?name=${encodeURIComponent(city)}&uf=${encodeURIComponent(uf)}`);
+        const cityInfo = await cityInfoResponse.json();
+
+        if (cityInfo.geocode) {
+          return cityInfo;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching geocode:', error);
+    return null;
+  }
+  return null;
+}
+
+getBrowserCity().then(geocode => {
+  console.log(geocode);
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   updateContentState();
   changeContent(dashboard);

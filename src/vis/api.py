@@ -2,11 +2,12 @@ from datetime import date
 
 from ninja import Router
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from main.schema import UnprocessableContentSchema, ForbiddenSchema
 from users.auth import UidKeyAuth
-from .models import ResultsProbForecast, GeoMacroSaude
+from .models import ResultsProbForecast, GeoMacroSaude, City
 from .schema import ResultsProbForecastSchema
 
 
@@ -118,3 +119,41 @@ def post_results_prob_forecast(request, payload: ResultsProbForecastSchema):
     data["geocode"] = data["geocode"].geocode
 
     return 201, data
+
+
+def get_city_info(request):
+    geocode = request.GET.get("geocode")
+    name = request.GET.get("name")
+    uf = request.GET.get("uf")
+
+    if geocode:
+        city = City.objects.filter(geocode=geocode).first()
+    elif uf and name:
+        city = City.objects.filter(
+            microregion__mesoregion__state__uf=uf, name__icontains=name
+        ).first()
+    else:
+        return JsonResponse(
+            {
+                "message": (
+                    "Either geocode or name and uf must be provided "
+                    + "to get the city information"
+                )
+            },
+            status=422,
+        )
+
+    if not city:
+        return JsonResponse({"message": "City not found"}, status=404)
+
+    return JsonResponse(
+        {
+            "geocode": city.geocode,
+            "name": city.name,
+            "state": {
+                "geocode": city.microregion.mesoregion.state.geocode,
+                "name": city.microregion.mesoregion.state.name,
+                "uf": city.microregion.mesoregion.state.uf,
+            },
+        }
+    )

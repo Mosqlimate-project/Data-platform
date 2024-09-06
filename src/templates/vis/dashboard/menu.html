@@ -386,12 +386,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   observer.observe(menu, { attributes: true });
 
-  if (menuState === "expanded") {
-    dsOptions.classList.add('show');
-  } else {
-    dsOptions.classList.remove('show');
-  }
-
   setMenuState();
   initializeMenu();
   initializeDivs();
@@ -406,14 +400,6 @@ document.addEventListener('DOMContentLoaded', function() {
       toggleMenu();
     }
   });
-
-  try {
-    navigator.geolocation.getCurrentPosition(function(location) {
-      console.log(location.coords.latitude);
-      console.log(location.coords.longitude);
-      console.log(location.coords.accuracy);
-    });
-  } catch {}
 
   //
   // const predictDatePicker = document.getElementById('predictDatePicker');

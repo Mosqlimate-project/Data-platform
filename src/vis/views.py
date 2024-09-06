@@ -109,6 +109,9 @@ class DashboardView(View):
             },
         }
 
+        # for dashboard, data in dashboards.items():
+        #     if
+
         dashboard = request.GET.get("dashboard")
 
         if dashboard not in dashboards:
