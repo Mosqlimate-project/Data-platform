@@ -98,8 +98,14 @@
 
       <div id="admLevelOptions-{{name}}" class="collapse options">
         {% for adm_level in data.adm_levels %}
-          <a class="btn ds-btn text-white text-start w-100" data-value="{{ adm_level }}">{{ adm_level|get_adm_level_name|title }}</a>
+        <a class="btn ds-btn text-white text-start w-100" data-value="{{ adm_level }}">{{ adm_level|get_adm_level_name|title }}</a>
         {% endfor %}
+        {% if name == "Forecast Map" %}
+          <a class="btn ds-btn text-white text-start w-100" data-value="0">{% trans "National" %}</a>
+          <a class="btn ds-btn text-white text-start w-100" data-value="1">{% trans "Macroregion" %}</a>
+          <a class="btn ds-btn text-white text-start w-100" data-value="2">{% trans "State" %}</a>
+          <a class="btn ds-btn text-white text-start w-100" data-value="3">{% trans "Macro Health" %}</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -156,8 +162,6 @@ let isTransitioning = false;
 
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
-
-console.log(dashboards);
 
 // Elements
 const menu = document.getElementById('menu');

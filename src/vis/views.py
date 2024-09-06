@@ -21,17 +21,13 @@ from django.views import View
 from django.urls import reverse
 from django.db.models import CharField, functions, Sum
 
-from registry.models import Model, Prediction
+from epiweeks import Week
+from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
 from main.api import get_municipality_info
 from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
-from .models import (
-    UFs,
-    Macroregion,
-    GeoMacroSaude,
-    ResultsProbForecast,
-)
+from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
@@ -46,24 +42,29 @@ class DashboardView(View):
     def get(self, request):
         context = {}
 
-        model_ids = request.GET.getlist("model") or (
-            Model.objects.all().values_list("id", flat=True)
-        )
-
-        prediction_ids = request.GET.getlist("predict") or (
-            Prediction.objects.all().values_list("id", flat=True)
-        )
-
         _defaults = {
-            "disease": None,
-            "time_resolution": None,
-            "adm_level": None,
+            "disease": (
+                request.GET.get("disease") or str(Model.Diseases.DENGUE)
+            ),
+            "time_resolution": (
+                request.GET.get("time-resolution")
+                or str(Model.Periodicities.WEEK)
+            ),
+            "adm_level": (
+                request.GET.get("adm-level")
+                or int(Model.ADM_levels.MUNICIPALITY)
+            ),
             "adm_0": "BRA",
-            "adm_1": None,
-            "adm_2": None,
-            "adm_3": None,
-            "start_date": None,
-            "end_date": None,
+            "adm_1": request.GET.get("adm-1") or "RJ",
+            "adm_2": request.GET.get("adm-2") or 3304557,
+            "adm_3": request.GET.get("adm-3") or None,
+            "start_date": (
+                request.GET.get("start-date")
+                or str(Week.thisweek().startdate())
+            ),
+            "end_date": (
+                request.GET.get("end-date") or str(Week.thisweek().enddate())
+            ),
             "start_window_date": None,
             "end_window_date": None,
         }
@@ -84,8 +85,6 @@ class DashboardView(View):
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", False
                 ),
-                "date_range": [],
-                "window_date_range": [],
                 "adm_levels": _get_distinct_values("model__ADM_level", False),
                 "query": _defaults,
             },
@@ -95,29 +94,51 @@ class DashboardView(View):
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", True
                 ),
-                "date_range": [],
-                "window_date_range": [],
                 "adm_levels": _get_distinct_values("model__ADM_level", True),
                 "query": _defaults,
             },
             "Forecast Map": {
                 "url": reverse("dashboard_forecast_map"),
-                "diseases": [],
-                "adm_levels": [],
-                "time_resolutions": [],
+                "diseases": sorted(
+                    list(
+                        (
+                            ResultsProbForecast.objects.values_list(
+                                "disease", flat=True
+                            ).distinct()
+                        )
+                    )
+                ),
                 "query": _defaults,
             },
         }
 
-        # for dashboard, data in dashboards.items():
-        #     if
+        for dashboard, data in dashboards.items():
+            if dashboard == "Predictions":
+                predict_dates = (
+                    PredictionDataRow.objects.filter(
+                        predict__model__sprint=False
+                    )
+                    .values_list("date", flat=True)
+                    .distinct()
+                )
+                data["query"]["start_window_date"] = str(min(predict_dates))
+                data["query"]["end_window_date"] = str(max(predict_dates))
+
+            if dashboard == "Sprint 2024/25":
+                predict_dates = (
+                    PredictionDataRow.objects.filter(
+                        predict__model__sprint=True
+                    )
+                    .values_list("date", flat=True)
+                    .distinct()
+                )
+                data["query"]["start_window_date"] = str(min(predict_dates))
+                data["query"]["end_window_date"] = str(max(predict_dates))
 
         dashboard = request.GET.get("dashboard")
 
         if dashboard not in dashboards:
-            for name in dashboards:
-                dashboard = name
-                break
+            dashboard = "Predictions"
 
         from pprint import pprint
 
@@ -125,9 +146,6 @@ class DashboardView(View):
 
         context["dashboards"] = dashboards
         context["dashboard"] = dashboard
-
-        context["model_ids"] = list(model_ids)
-        context["prediction_ids"] = list(prediction_ids)
 
         return render(request, self.template_name, context)
 
@@ -758,3 +776,41 @@ def get_geocode_info(request, geocode: Union[str, int]):
         return JsonResponse(data)
     else:
         return JsonResponse({"error": "Geocode not found"}, status=404)
+
+
+def get_city_info(request):
+    geocode = request.GET.get("geocode")
+    name = request.GET.get("name")
+    uf = request.GET.get("uf")
+
+    if geocode:
+        city = City.objects.filter(geocode=geocode).first()
+    elif uf and name:
+        city = City.objects.filter(
+            microregion__mesoregion__state__uf=uf, name__icontains=name
+        ).first()
+    else:
+        return JsonResponse(
+            {
+                "message": (
+                    "Either geocode or name and uf must be provided "
+                    + "to get the city information"
+                )
+            },
+            status=422,
+        )
+
+    if not city:
+        return JsonResponse({"message": "City not found"}, status=404)
+
+    return JsonResponse(
+        {
+            "geocode": city.geocode,
+            "name": city.name,
+            "state": {
+                "geocode": city.microregion.mesoregion.state.geocode,
+                "name": city.microregion.mesoregion.state.name,
+                "uf": city.microregion.mesoregion.state.uf,
+            },
+        }
+    )

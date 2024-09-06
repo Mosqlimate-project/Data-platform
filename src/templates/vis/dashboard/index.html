@@ -13,6 +13,8 @@
 const dashboards = {{ dashboards|parse_nones|safe }};
 let dashboard = `{{ dashboard }}`;
 
+console.log(dashboards);
+
 function updateContentState() {
   const dsContent = document.getElementById('dsContent'); 
   if (!menu.classList.contains('retracted')) {
@@ -39,6 +41,7 @@ function changeContent(selectedDashboard) {
 }
 </script>
 
+
 {% include 'vis/dashboard/menu.html' %}
 <div id="dsContent" class="container shadow">
 {% for name, data in dashboards.items %}
@@ -47,6 +50,7 @@ function changeContent(selectedDashboard) {
   </div>
 {% endfor %}
 </div>
+
 
 <script>
 const observer2 = new MutationObserver(function (mutationsList) {
@@ -80,7 +84,6 @@ async function getBrowserCity() {
       }
     }
   } catch (error) {
-    console.error('Error fetching geocode:', error);
     return null;
   }
   return null;
