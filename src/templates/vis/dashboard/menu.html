@@ -98,14 +98,8 @@
 
       <div id="admLevelOptions-{{name}}" class="collapse options">
         {% for adm_level in data.adm_levels %}
-        <a class="btn ds-btn text-white text-start w-100" data-value="{{ adm_level }}">{{ adm_level|get_adm_level_name|title }}</a>
+        <a id="adm{{adm_level}}Btn-{{name}}" class="btn ds-btn admlvl-btn text-white text-start w-100" data-value="{{ adm_level }}">{% get_adm_level_name name adm_level %}</a>
         {% endfor %}
-        {% if name == "Forecast Map" %}
-          <a class="btn ds-btn text-white text-start w-100" data-value="0">{% trans "National" %}</a>
-          <a class="btn ds-btn text-white text-start w-100" data-value="1">{% trans "Macroregion" %}</a>
-          <a class="btn ds-btn text-white text-start w-100" data-value="2">{% trans "State" %}</a>
-          <a class="btn ds-btn text-white text-start w-100" data-value="3">{% trans "Macro Health" %}</a>
-        {% endif %}
       </div>
     </div>
   </div>
@@ -115,6 +109,11 @@
 
   {% for name, data in dashboards.items %}
   <div id="ds2-{{ name }}">
+    {% for adm_level in data.adm_levels %}
+      {% if adm_level != 0 %}
+      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">
+      {% endif %}
+    {% endfor %}
   </div>
   {% endfor %}
 
@@ -156,12 +155,14 @@
 <script src="https://cdn.jsdelivr.net/gh/farhadmammadli/bootstrap-select@main/js/bootstrap-select.min.js"></script>
 
 <script>
+console.log(dashboards);
+// Consts
+const useri18n = navigator.language || navigator.userLanguage;
+const dateFormat = 'yyyy-mm-dd';
+
 // Vars
 let menuState = "expanded";
 let isTransitioning = false;
-
-const useri18n = navigator.language || navigator.userLanguage;
-const dateFormat = 'yyyy-mm-dd';
 
 // Elements
 const menu = document.getElementById('menu');
@@ -234,28 +235,45 @@ function initializeMenu() {
     btn.addEventListener('click', () => handleMenuBtnClick(btn));
     handleMenuBtnClick(btn);
 
+    const name = btn.id.split('-')[1];
+    const data = dashboards[name];
+
     const options = document.getElementById(btn.id.replace('Btn', 'Options'));
-    
+
     if (options && options.id === 'dsOptions') {
       options.querySelectorAll('a').forEach(option => {
         option.addEventListener('click', () => {
           activateDivs(option.id);
           dashboard = option.id;
           changeContent(dashboard);
-
         });
       });
     } else if (options) {
       options.querySelectorAll('a').forEach(option => {
+        const optionValue = option.getAttribute('data-value');
+
+        let queryValue;
+        if (options.id.startsWith('diseaseOptions')) {
+          queryValue = data.query.disease.toLowerCase();
+        } else if (options.id.startsWith('timeResOptions')) {
+          queryValue = data.query.time_resolution.toLowerCase();
+        } else if (options.id.startsWith('admLevelOptions')) {
+          queryValue = data.query.adm_level.toString();
+        }
+
+        if (String(optionValue) === String(queryValue)) {
+          option.classList.add('selected');
+        }
+
         option.addEventListener('click', () => {
-          document.querySelectorAll(`#${CSS.escape(options.id)} a`)
-            .forEach(opt => opt.classList.remove('selected'));
+          document.querySelectorAll(`#${CSS.escape(options.id)} a`).forEach(opt => opt.classList.remove('selected'));
           option.classList.add('selected');
         });
       });
     }
   });
 }
+
 
 function initializeDivs() {
   document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {
@@ -305,6 +323,42 @@ function updateDashboard(option) {
     newDiv.classList.remove('ds-hidden');
     newDiv.classList.add('ds-slide-down');
   }
+}
+
+function adm2Menu(buttonId, optionsArray) {
+    const button = document.getElementById(buttonId);
+
+    const menu = document.createElement('div');
+    menu.className = 'adm2-menu';
+
+    const list = document.createElement('ul');
+    optionsArray.forEach(option => {
+        const listItem = document.createElement('li');
+        listItem.textContent = option;
+        listItem.addEventListener('click', () => {
+            console.log(`Selected: ${option}`);
+            menu.style.display = 'none'
+        });
+        list.appendChild(listItem);
+    });
+    menu.appendChild(list);
+    document.body.appendChild(menu);
+
+    button.addEventListener('click', (e) => {
+        const rect = button.getBoundingClientRect();
+        menu.style.top = `${rect.bottom + window.scrollY}px`;
+        menu.style.left = `${rect.left + window.scrollX}px`;
+        menu.style.display = 'block';
+        e.stopPropagation();
+    });
+
+    document.addEventListener('click', () => {
+        menu.style.display = 'none';
+    });
+
+    menu.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -404,6 +458,23 @@ document.addEventListener('DOMContentLoaded', function() {
       toggleMenu();
     }
   });
+
+  document.querySelectorAll('.admlvl-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const admLevel = this.getAttribute('data-value');
+      const dashboard = this.id.split('-')[1];
+
+      document.querySelectorAll(`#ds2-${dashboard} .ds-toggle-btn`).forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      const toggleButton = document.getElementById(`adm${admLevel}Select-${dashboard}`);
+      if (toggleButton) {
+        toggleButton.classList.add('active');
+      }
+    });
+  });
+  // adm2Menu('adm1Select-Predictions', ['Option 1', 'Option 2', 'Option 3']);
 
   //
   // const predictDatePicker = document.getElementById('predictDatePicker');

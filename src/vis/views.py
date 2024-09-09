@@ -101,13 +101,12 @@ class DashboardView(View):
                 "url": reverse("dashboard_forecast_map"),
                 "diseases": sorted(
                     list(
-                        (
-                            ResultsProbForecast.objects.values_list(
-                                "disease", flat=True
-                            ).distinct()
-                        )
+                        ResultsProbForecast.objects.values_list(
+                            "disease", flat=True
+                        ).distinct()
                     )
                 ),
+                "adm_levels": [0, 1, 2, 3],
                 "query": _defaults,
             },
         }

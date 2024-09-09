@@ -54,7 +54,7 @@ footer, .footer {
   height: 100%;
   padding: 5px;
   box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
-  z-index: 9999;
+  z-index: 9990;
   overflow-y: auto;
 }
 
@@ -242,4 +242,30 @@ hr {
 
 .expanded-icon {
   transform: rotate(90deg);
+}
+
+
+.adm2-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 9991;
+}
+
+.adm2-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.adm2-menu ul li {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.adm2-menu ul li:hover {
+  background-color: #f0f0f0;
 }

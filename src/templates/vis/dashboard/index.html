@@ -13,8 +13,6 @@
 const dashboards = {{ dashboards|parse_nones|safe }};
 let dashboard = `{{ dashboard }}`;
 
-console.log(dashboards);
-
 function updateContentState() {
   const dsContent = document.getElementById('dsContent'); 
   if (!menu.classList.contains('retracted')) {
