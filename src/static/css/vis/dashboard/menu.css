@@ -244,6 +244,26 @@ hr {
   transform: rotate(90deg);
 }
 
+.adm-select {
+  opacity: 1;
+  height: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.adm-select.hidden {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.adm-select.show {
+  opacity: 1;
+  height: auto;
+  transition: all 0.3s ease-in-out;
+}
 
 .adm2-menu {
   display: none;

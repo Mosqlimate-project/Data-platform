@@ -38,7 +38,9 @@
 
     <div id="dsOptions" class="collapse options">
       {% for name, data in dashboards.items %}
-      <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">{{ name }}</a>
+      <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">
+        {{ name|dashboard_name }}
+      </a>
       {% endfor %}
     </div>
   </div>
@@ -65,7 +67,7 @@
       </div>
     </div>
 
-    {% if name == "Predictions" or name == "Sprint 2024/25" %}
+    {% if name == "predictions" or name == "sprint" %}
     <div id="timeRes-{{ name }}">
       <button id="timeResBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mt-1">
         <div class="menu-btn-retracted">
@@ -108,10 +110,12 @@
   <hr style="color:white;">
 
   {% for name, data in dashboards.items %}
-  <div id="ds2-{{ name }}">
+  <div id="ds2-{{ name }}" class="d-flex flex-column">
     {% for adm_level in data.adm_levels %}
       {% if adm_level != 0 %}
-      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">
+      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center">
+        adm{{adm_level}}
+      </button>
       {% endif %}
     {% endfor %}
   </div>
@@ -121,7 +125,7 @@
 
   {% for name, data in dashboards.items %}
   <div id="ds3-{{ name }}">
-    {% if name == "Predictions" or name == "Sprint 2024/25" %}
+    {% if name == "predictions" or name == "sprint" %}
     <div>
       <div id="datePicker-{{ name }}" class="d-flex flex-column">
         <input type="text" name="start-{{ name }}">
@@ -253,27 +257,56 @@ function initializeMenu() {
         const optionValue = option.getAttribute('data-value');
 
         let queryValue;
-        if (options.id.startsWith('diseaseOptions')) {
+        if (options.id.startsWith('disease')) {
           queryValue = data.query.disease.toLowerCase();
-        } else if (options.id.startsWith('timeResOptions')) {
+        } else if (options.id.startsWith('timeRes')) {
           queryValue = data.query.time_resolution.toLowerCase();
-        } else if (options.id.startsWith('admLevelOptions')) {
+        } else if (options.id.startsWith('admLevel')) {
           queryValue = data.query.adm_level.toString();
         }
 
         if (String(optionValue) === String(queryValue)) {
           option.classList.add('selected');
+          if (options.id.startsWith('admLevel')) {
+            displayAdmSelect(name, optionValue);
+          }
         }
 
         option.addEventListener('click', () => {
           document.querySelectorAll(`#${CSS.escape(options.id)} a`).forEach(opt => opt.classList.remove('selected'));
           option.classList.add('selected');
+          if (options.id.startsWith('admLevel')) {
+            console.log(options.id);
+            const admSelect = document.querySelector(`#adm${optionValue}Select-${name}`);
+            if (String(optionValue) !== "0") {
+              admSelect.classList.toggle('show');
+            }
+            displayAdmSelect(name, optionValue);
+          }
         });
       });
     }
   });
 }
 
+function displayAdmSelect(name, selectedAdmLevel) {
+  const admSelectButtons = document.querySelectorAll(`[id^="adm"][id$="Select-${name}"]`);
+
+  admSelectButtons.forEach(btn => {
+    btn.classList.remove('show');
+    btn.classList.add('hidden');
+  });
+
+  if (String(selectedAdmLevel) === "0") {
+    return;
+  }
+
+  const selectedAdmBtn = document.getElementById(`adm${selectedAdmLevel}Select-${name}`);
+  if (selectedAdmBtn) {
+    selectedAdmBtn.classList.remove('hidden');
+    selectedAdmBtn.classList.add('show');
+  }
+} 
 
 function initializeDivs() {
   document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {

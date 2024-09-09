@@ -45,6 +45,16 @@ def is_empty(iter):
         return False
 
 
+@register.filter(name="dashboard_name")
+def dashboard_name_display(name: str):
+    _d = {
+        "predictions": "Predictions",
+        "sprint": "Sprint 2024/25",
+        "forecast_map": "Forecast Map",
+    }
+    return _d[name]
+
+
 @register.simple_tag
 def get_adm_level_name(dashboard: str, adm_level: int):
     adm_levels = {

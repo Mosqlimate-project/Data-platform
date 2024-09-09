@@ -79,7 +79,7 @@ class DashboardView(View):
             )
 
         dashboards = {
-            "Predictions": {
+            "predictions": {
                 "url": reverse("dashboard"),
                 "diseases": _get_distinct_values("model__disease", False),
                 "time_resolutions": _get_distinct_values(
@@ -88,7 +88,7 @@ class DashboardView(View):
                 "adm_levels": _get_distinct_values("model__ADM_level", False),
                 "query": _defaults,
             },
-            "Sprint 2024/25": {
+            "sprint": {
                 "url": reverse("dashboard_sprint"),
                 "diseases": _get_distinct_values("model__disease", True),
                 "time_resolutions": _get_distinct_values(
@@ -97,7 +97,7 @@ class DashboardView(View):
                 "adm_levels": _get_distinct_values("model__ADM_level", True),
                 "query": _defaults,
             },
-            "Forecast Map": {
+            "forecast_map": {
                 "url": reverse("dashboard_forecast_map"),
                 "diseases": sorted(
                     list(
@@ -112,7 +112,7 @@ class DashboardView(View):
         }
 
         for dashboard, data in dashboards.items():
-            if dashboard == "Predictions":
+            if dashboard == "predictions":
                 predict_dates = (
                     PredictionDataRow.objects.filter(
                         predict__model__sprint=False
@@ -123,7 +123,7 @@ class DashboardView(View):
                 data["query"]["start_window_date"] = str(min(predict_dates))
                 data["query"]["end_window_date"] = str(max(predict_dates))
 
-            if dashboard == "Sprint 2024/25":
+            if dashboard == "sprint":
                 predict_dates = (
                     PredictionDataRow.objects.filter(
                         predict__model__sprint=True
@@ -137,7 +137,7 @@ class DashboardView(View):
         dashboard = request.GET.get("dashboard")
 
         if dashboard not in dashboards:
-            dashboard = "Predictions"
+            dashboard = "predictions"
 
         from pprint import pprint
 
