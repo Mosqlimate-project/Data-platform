@@ -2,12 +2,13 @@ import os
 import json
 import logging
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional, Literal, List
 from itertools import cycle
 from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
 from datetime import datetime as dt
+from datetime import date
 
 import pandas as pd
 import numpy as np
@@ -18,20 +19,18 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.urls import reverse
 from django.db.models import CharField, functions, Sum
 
 from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
-from main.api import get_municipality_info
 from main.utils import UF_CODES
 from vis.dash.errors import VisualizationError
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
-from .utils import merge_uri_params, obj_to_dataframe
+from .utils import obj_to_dataframe
 
 code_to_state = {v: k for k, v in UF_CODES.items()}
 
@@ -55,8 +54,8 @@ class DashboardView(View):
                 or int(Model.ADM_levels.MUNICIPALITY)
             ),
             "adm_0": "BRA",
-            "adm_1": request.GET.get("adm-1") or "RJ",
-            "adm_2": request.GET.get("adm-2") or 3304557,
+            "adm_1": request.GET.get("adm-1") or None,
+            "adm_2": request.GET.get("adm-2") or None,
             "adm_3": request.GET.get("adm-3") or None,
             "start_date": (
                 request.GET.get("start-date")
@@ -80,7 +79,7 @@ class DashboardView(View):
 
         dashboards = {
             "predictions": {
-                "url": reverse("dashboard"),
+                # "url": reverse("dashboard"),
                 "diseases": _get_distinct_values("model__disease", False),
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", False
@@ -89,7 +88,7 @@ class DashboardView(View):
                 "query": _defaults,
             },
             "sprint": {
-                "url": reverse("dashboard_sprint"),
+                # "url": reverse("dashboard_sprint"),
                 "diseases": _get_distinct_values("model__disease", True),
                 "time_resolutions": _get_distinct_values(
                     "model__time_resolution", True
@@ -98,7 +97,7 @@ class DashboardView(View):
                 "query": _defaults,
             },
             "forecast_map": {
-                "url": reverse("dashboard_forecast_map"),
+                # "url": reverse("dashboard_forecast_map"),
                 "diseases": sorted(
                     list(
                         ResultsProbForecast.objects.values_list(
@@ -148,303 +147,88 @@ class DashboardView(View):
 
         return render(request, self.template_name, context)
 
+    @staticmethod
+    def filter_predictions(
+        sprint: bool,
+        disease: str,
+        time_resolution: Literal["year", "month", "week", "day"],
+        adm_level: Optional[Literal[0, 1, 2, 3]] = None,
+        adm_1: Optional[Union[int, str]] = None,
+        adm_2: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        start_window_date: Optional[date] = None,
+        end_window_date: Optional[date] = None,
+    ) -> List[int]:
+        data = PredictionDataRow.objects.all()
+        data = data.filter(predict__model__sprint=sprint)
+        data = data.filter(predict__model__disease=disease)
+        data = data.filter(predict__model__time_resolution=time_resolution)
 
-class DashboardOldView(View):
-    template_name = "vis/dashboard-old.html"
+        if adm_level:
+            data = data.filter(predict__model__ADM_level=adm_level)
 
-    def get(self, request):
-        codes_uf = {v: k for k, v in UF_CODES.items()}
-        context = {}
+        if adm_1:
+            if isinstance(adm_1, str):
+                adm_1 = UF_CODES[adm_1.upper()]
 
-        context["selectedDisease"] = None
-        context["selectedTimeResolution"] = None
-        context["selectedADMLevel"] = None
-        context["selectedSpatial"] = None
-        context["selectedTemporal"] = None
-        context["selectedOutputFormat"] = None
-        context["selectedGeocode"] = None
-        context["selectedSprint"] = None
-        selected_prediction_ids = set()
+            data = data.filter(predict__adm_1_geocode=adm_1)
 
-        selected_model = request.GET.get("model", None)
-        selected_predictions = request.GET.getlist("predict", None)
+        if adm_2:
+            data = data.filter(predict__adm_2_geocode=adm_2)
 
-        if selected_model:
-            model = Model.objects.get(pk=selected_model)
-            context["selectedDisease"] = model.disease or None
-            context["selectedTimeResolution"] = model.time_resolution or None
-            context["selectedADMLevel"] = model.ADM_level
-            context["selectedSpatial"] = model.spatial
-            context["selectedTemporal"] = model.temporal
-            context["selectedOutputFormat"] = model.categorical
-            context["selectedSprint"] = "0" if not model.sprint else "1"
+        if start_date and end_date:
+            data = data.filter(
+                predict__predict_date__range=(start_date, end_date)
+            )
 
-        if selected_predictions:
-            for id in selected_predictions:
-                prediction = Prediction.objects.get(pk=id)
-                context["selectedDisease"] = prediction.model.disease or None
-                context["selectedTimeResolution"] = (
-                    prediction.model.time_resolution or None
-                )
-                context["selectedADMLevel"] = prediction.model.ADM_level
-                context["selectedSpatial"] = prediction.model.spatial
-                context["selectedTemporal"] = prediction.model.temporal
-                context["selectedOutputFormat"] = prediction.model.categorical
-                context["selectedGeocode"] = prediction.adm_2_geocode or None
-                context["selectedSprint"] = (
-                    "0" if not prediction.model.sprint else "1"
-                )
-                selected_prediction_ids.add(prediction.id)
+        if start_window_date and end_window_date:
+            data = data.filter(
+                date__range=(start_window_date, end_window_date)
+            )
 
         context["selectedPredictions"] = list(selected_prediction_ids)
 
-        models = Model.objects.filter(sprint=False)
-        predictions = Prediction.objects.filter(
-            visualizable=True, model__sprint=False
+
+def get_adm_1_menu_options(request) -> JsonResponse:
+    dashboard = request.GET.get("dashboard")
+    disease = request.GET.get("disease")
+    time_resolution = request.GET.get("time-resolution")
+    # start_date = request.GET.get("start-date")
+    # end_date = request.GET.get("end-date")
+    # start_window_date = request.GET.get("start-window-date")
+    # end_window_date = request.GET.get("end-window-date")
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    data = PredictionDataRow.objects.filter(
+        id__in=DashboardView.filter_predictions(
+            sprint,
+            disease,
+            time_resolution,
         )
-        predictions_data = []
+    )
 
-        for prediction in predictions.filter(model__ADM_level=1):
-            if prediction.adm_1_geocode:
-                predictions_data.append(
-                    tuple(
-                        [
-                            prediction.id,
-                            prediction.model.name,
-                            prediction.metadata,
-                            codes_uf[prediction.adm_1_geocode],
-                        ]
-                    )
-                )
-
-        for prediction in predictions.filter(model__ADM_level=2):
-            if prediction.adm_2_geocode:
-                _, info = get_municipality_info(
-                    request, prediction.adm_2_geocode
-                )
-                predictions_data.append(
-                    tuple(
-                        [
-                            prediction.id,
-                            prediction.model.name,
-                            prediction.metadata,
-                            f"{info['municipio']} - {info['uf']}",
-                        ]
-                    )
-                )
-
-        context["predictions"] = predictions_data
-
-        model_types = set()
-        output_formats = set()
-        for model in models:
-            if model.categorical:
-                output_formats.add("C")
-            else:
-                output_formats.add("Q")
-
-            if model.spatial:
-                model_types.add("spatial")
-
-            if model.temporal:
-                model_types.add("temporal")
-
-        context["model_types"] = list(model_types)
-        context["output_formats"] = list(output_formats)
-
-        context["diseases"] = list(
-            set(models.values_list("disease", flat=True))
-        )
-
-        context["adm_levels"] = list(
-            set(models.values_list("ADM_level", flat=True))
-        )
-
-        context["time_resolutions"] = list(
-            set(models.values_list("time_resolution", flat=True))
-        )
-
-        adm_2_geocodes = set(
-            predictions.values_list("adm_2_geocode", flat=True)
-        )
-
-        geocode_cities = set()
-        municipios_file = os.path.join("static", "data/geo/BR/municipios.json")
-        if os.path.isfile(municipios_file):
-            uf_codes = dict()
-            for uf, info in uf_ibge_mapping.items():
-                uf_codes[int(info["code"])] = uf
-
-            with open(municipios_file, "rb") as f:
-                geocodes = json.load(f)
-
-            for geocode in geocodes:
-                if int(geocode) in adm_2_geocodes:
-                    data = geocodes[geocode]
-                    geocode_cities.add(
-                        (
-                            geocode,
-                            data["municipio"],
-                            uf_codes[int(data["codigo_uf"])],
-                        )
-                    )
-
-        context["selected_predictions_uri"] = merge_uri_params(
-            selected_predictions, "predict"
-        )
-
-        context["adm_2_geocodes"] = list(geocode_cities)
-
-        return render(request, self.template_name, context)
+    ufs = list(data.values_list("adm_1", flat=True).distinct())
+    print(ufs)
+    return JsonResponse({})
 
 
-class DashboardSprintView(View):
-    template_name = "vis/dashboard-sprint.html"
-
-    def get(self, request):
-        codes_uf = {v: k for k, v in UF_CODES.items()}
-        context = {}
-
-        context["selectedDisease"] = None
-        context["selectedTimeResolution"] = None
-        context["selectedADMLevel"] = None
-        context["selectedSpatial"] = None
-        context["selectedTemporal"] = None
-        context["selectedOutputFormat"] = None
-        context["selectedGeocode"] = None
-        context["selectedSprint"] = None
-        selected_prediction_ids = set()
-
-        selected_model = request.GET.get("model", None)
-        selected_predictions = request.GET.getlist("predict", None)
-
-        if selected_model:
-            model = Model.objects.get(pk=selected_model)
-            context["selectedDisease"] = model.disease or None
-            context["selectedTimeResolution"] = model.time_resolution or None
-            context["selectedADMLevel"] = model.ADM_level
-            context["selectedSpatial"] = model.spatial
-            context["selectedTemporal"] = model.temporal
-            context["selectedOutputFormat"] = model.categorical
-            context["selectedSprint"] = "0" if not model.sprint else "1"
-
-        if selected_predictions:
-            for id in selected_predictions:
-                prediction = Prediction.objects.get(pk=id)
-                context["selectedDisease"] = prediction.model.disease or None
-                context["selectedTimeResolution"] = (
-                    prediction.model.time_resolution or None
-                )
-                context["selectedADMLevel"] = prediction.model.ADM_level
-                context["selectedSpatial"] = prediction.model.spatial
-                context["selectedTemporal"] = prediction.model.temporal
-                context["selectedOutputFormat"] = prediction.model.categorical
-                context["selectedGeocode"] = prediction.adm_2_geocode or None
-                context["selectedSprint"] = (
-                    "0" if not prediction.model.sprint else "1"
-                )
-                selected_prediction_ids.add(prediction.id)
-
-        context["selectedPredictions"] = list(selected_prediction_ids)
-
-        models = Model.objects.filter(sprint=True)
-        predictions = Prediction.objects.filter(
-            visualizable=True, model__sprint=True
-        )
-        predictions_data = []
-
-        for prediction in predictions.filter(model__ADM_level=1):
-            if prediction.adm_1_geocode:
-                predictions_data.append(
-                    tuple(
-                        [
-                            prediction.id,
-                            prediction.model.name,
-                            prediction.metadata,
-                            codes_uf[prediction.adm_1_geocode],
-                        ]
-                    )
-                )
-
-        for prediction in predictions.filter(model__ADM_level=2):
-            if prediction.adm_2_geocode:
-                _, info = get_municipality_info(
-                    request, prediction.adm_2_geocode
-                )
-                predictions_data.append(
-                    tuple(
-                        [
-                            prediction.id,
-                            prediction.model.name,
-                            prediction.metadata,
-                            f"{info['municipio']} - {info['uf']}",
-                        ]
-                    )
-                )
-
-        context["predictions"] = predictions_data
-
-        model_types = set()
-        output_formats = set()
-        for model in models:
-            if model.categorical:
-                output_formats.add("C")
-            else:
-                output_formats.add("Q")
-
-            if model.spatial:
-                model_types.add("spatial")
-
-            if model.temporal:
-                model_types.add("temporal")
-
-        context["model_types"] = list(model_types)
-        context["output_formats"] = list(output_formats)
-
-        context["diseases"] = list(
-            set(models.values_list("disease", flat=True))
-        )
-
-        context["adm_levels"] = list(
-            set(models.values_list("ADM_level", flat=True))
-        )
-
-        context["time_resolutions"] = list(
-            set(models.values_list("time_resolution", flat=True))
-        )
-
-        adm_2_geocodes = set(
-            predictions.values_list("adm_2_geocode", flat=True)
-        )
-
-        geocode_cities = set()
-        municipios_file = os.path.join("static", "data/geo/BR/municipios.json")
-        if os.path.isfile(municipios_file):
-            uf_codes = dict()
-            for uf, info in uf_ibge_mapping.items():
-                uf_codes[int(info["code"])] = uf
-
-            with open(municipios_file, "rb") as f:
-                geocodes = json.load(f)
-
-            for geocode in geocodes:
-                if int(geocode) in adm_2_geocodes:
-                    data = geocodes[geocode]
-                    geocode_cities.add(
-                        (
-                            geocode,
-                            data["municipio"],
-                            uf_codes[int(data["codigo_uf"])],
-                        )
-                    )
-
-        context["selected_predictions_uri"] = merge_uri_params(
-            selected_predictions, "predict"
-        )
-
-        context["adm_2_geocodes"] = list(geocode_cities)
-
-        return render(request, self.template_name, context)
+# def get_adm_2_menu_options(request) -> JsonResponse:
+#     dashboard = request.GET.get("dashboard")
+#     disease = request.GET.get("disease")
+#     time_resolution = request.GET.get("time-resolution")
+#     adm_level = request.GET.get("adm-level")
+#     adm_1 = request.GET.get("adm-1")
+#     # start_date = request.GET.get("start-date")
+#     # end_date = request.GET.get("end-date")
+#     # start_window_date = request.GET.get("start-window-date")
+#     # end_window_date = request.GET.get("end-window-date")
 
 
 class DashboardForecastMacroView(View):

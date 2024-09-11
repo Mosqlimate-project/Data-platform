@@ -68,7 +68,7 @@
     <div class="icons">
       {% if prediction|is_prediction_visualizable %}
         {% if prediction.model.sprint %}
-          <a href="{% url 'dashboard_sprint' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
+          <!-- <a href="{% url 'dashboard_sprint' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a> -->
         {% else %}
           <a href="{% url 'dashboard' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
         {% endif %}

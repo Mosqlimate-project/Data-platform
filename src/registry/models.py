@@ -358,7 +358,7 @@ class PredictionDataRow(models.Model):
     pred = models.FloatField(null=False)
     lower = models.FloatField(null=False)
     upper = models.FloatField(null=False)
-    adm_0 = models.CharField(max_length=3, null=True)
+    adm_0 = models.CharField(max_length=3, null=False, default="BRA")
     adm_1 = models.CharField(max_length=2, null=True)
     adm_2 = models.IntegerField(null=True)
     adm_3 = models.IntegerField(null=True)

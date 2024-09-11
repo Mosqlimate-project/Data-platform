@@ -62,7 +62,7 @@
 
       <div id="diseaseOptions-{{name}}" class="collapse options">
         {% for disease in data.diseases %}
-          <a class="btn ds-btn text-white text-start w-100" data-value="{{ disease }}">{{ disease|title }}</a>
+        <a class="btn ds-btn text-white text-start w-100" data-value="{{ disease }}">{{ disease|title }}</a>
         {% endfor %}
       </div>
     </div>
@@ -81,7 +81,7 @@
 
       <div id="timeResOptions-{{name}}" class="collapse options">
         {% for time_res in data.time_resolutions %}
-          <a class="btn ds-btn text-white text-start w-100" data-value="{{ time_res }}">{{ time_res|title }}</a>
+        <a class="btn ds-btn text-white text-start w-100" data-value="{{ time_res }}">{{ time_res|title }}</a>
         {% endfor %}
       </div>
     </div>
@@ -110,41 +110,43 @@
   <hr style="color:white;">
 
   {% for name, data in dashboards.items %}
-  <div id="ds2-{{ name }}" class="d-flex flex-column">
-    {% for adm_level in data.adm_levels %}
-      {% if adm_level != 0 %}
-      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center">
-        adm{{adm_level}}
-      </button>
-      {% endif %}
-    {% endfor %}
-  </div>
-  {% endfor %}
-
-  <hr style="color:white;">
-
-  {% for name, data in dashboards.items %}
-  <div id="ds3-{{ name }}">
     {% if name == "predictions" or name == "sprint" %}
-    <div>
-      <div id="datePicker-{{ name }}" class="d-flex flex-column">
-        <input type="text" name="start-{{ name }}">
-        <input type="text" name="end-{{ name }}">
-      </div>
-      <br>
-      <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
-        <input type="text" name="windowStart-{{ name }}">
-        <input type="text" name="windowEnd-{{ name }}">
-      </div>
+    <div id="ds2-{{ name }}" class="d-flex flex-column">
+      {% for adm_level in data.adm_levels %}
+      {% if adm_level != 0 %}
+      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center"></button>
+      {% endif %}
+      {% endfor %}
     </div>
-    {% else %}
-    <div>
+    {% elif name == "forecast_map" %}
+    <div id="ds3-{{ name }}" class="d-flex flex-column">
       <div id="datePicker-{{ name }}" class="d-flex flex-column">
         <input type="text" name="start-{{ name }}">
       </div>
     </div>
     {% endif %}
-  </div>
+  {% endfor %}
+
+  <hr style="color:white;">
+
+  {% for name, data in dashboards.items %}
+    {% if name == "predictions" or name == "sprint" %}
+    <div id="ds3-{{ name }}">
+      <div>
+        <div id="datePicker-{{ name }}" class="d-flex flex-column">
+          <input type="text" name="start-{{ name }}">
+          <input type="text" name="end-{{ name }}">
+        </div>
+        <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
+          <input type="text" name="windowStart-{{ name }}">
+          <input type="text" name="windowEnd-{{ name }}">
+        </div>
+      </div>
+    </div>
+    {% elif name == "forecast_map" %}
+    <div id="ds2-{{ name }}" class="d-flex flex-column">
+    </div>
+    {% endif %}
   {% endfor %}
 
   <hr style="color:white;">
@@ -152,7 +154,6 @@
 </div>
 
 
-<script src="{% static 'js/external/jquery.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/pt-BR.js"></script>
@@ -358,40 +359,88 @@ function updateDashboard(option) {
   }
 }
 
-function adm2Menu(buttonId, optionsArray) {
-    const button = document.getElementById(buttonId);
+function ds2Menu(dashboard, admLevel, buttonId, optionsArray) {
+  const button = document.getElementById(buttonId);
 
-    const menu = document.createElement('div');
-    menu.className = 'adm2-menu';
+  const menu = document.createElement('div');
+  menu.className = 'adm2-menu';
 
-    const list = document.createElement('ul');
-    optionsArray.forEach(option => {
-        const listItem = document.createElement('li');
-        listItem.textContent = option;
-        listItem.addEventListener('click', () => {
-            console.log(`Selected: ${option}`);
-            menu.style.display = 'none'
-        });
-        list.appendChild(listItem);
-    });
-    menu.appendChild(list);
-    document.body.appendChild(menu);
-
-    button.addEventListener('click', (e) => {
-        const rect = button.getBoundingClientRect();
-        menu.style.top = `${rect.bottom + window.scrollY}px`;
-        menu.style.left = `${rect.left + window.scrollX}px`;
-        menu.style.display = 'block';
-        e.stopPropagation();
+  const list = document.createElement('ul');
+  optionsArray.forEach(([name, value]) => {
+    const listItem = document.createElement('li');
+    listItem.value = value;
+    listItem.textContent = name;
+    
+    listItem.addEventListener('click', () => {
+      const admCol = `adm_${admLevel}`;
+      dashboards[dashboard].query[admCol] = Number(value);
+      console.log(dashboards[dashboard].query);
+      button.innerText = name;
+      menu.style.display = 'none';
     });
 
-    document.addEventListener('click', () => {
-        menu.style.display = 'none';
-    });
+    list.appendChild(listItem);
+  });
 
-    menu.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+  menu.appendChild(list);
+  document.body.appendChild(menu);
+
+  button.addEventListener('click', (e) => {
+    const rect = button.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + window.scrollY}px`;
+    menu.style.left = `${rect.left + window.scrollX}px`;
+    menu.style.display = 'block';
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    menu.style.display = 'none';
+  });
+
+  menu.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  return button;
+}
+
+async function getAdm1MenuOptions(dashboard) {
+  const data = dashboards[dashboard];
+  const query = data.query;
+
+  const url = new URL("{% url 'get_adm_1_menu_options' %}", window.location.origin);
+  console.log(url);
+
+  url.searchParams.append('dashboard', dashboard);
+  url.searchParams.append('disease', query.disease);
+  url.searchParams.append('time-resolution', query.time_resolution);
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("ADM 1 Menu Options:", data);
+
+    // populateAdm1Dropdown(data);
+  } catch (error) {
+    console.error("Error fetching ADM 1 options:", error);
+  }
+}
+
+function populateDs2Menu(dashboard, admLevel, options) {
+  const select = document.getElementById(`adm${admLevel}Select-${dashboard}`);
+  select.innerHTML = '';
+
+  options.forEach(option => {
+    const opt = document.createElement('option');
+    opt.value = option.id;
+    opt.innerText = option.name;
+    select.appendChild(opt);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -507,7 +556,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-  // adm2Menu('adm1Select-Predictions', ['Option 1', 'Option 2', 'Option 3']);
+
+  ds2Menu('predictions', 1, 'adm1Select-predictions', [['Option 1', '1'], ['Option 2', '2'], ['Option 3', '3']]);
+
+  getBrowserCity().then(location => {
+    Object.keys(dashboards).forEach(key => {
+      dashboards[key].query.adm_1 = Number(location.state.geocode);
+      dashboards[key].query.adm_2 = Number(location.geocode);
+    });
+  });
+
+  console.log(dashboards);
 
   //
   // const predictDatePicker = document.getElementById('predictDatePicker');
@@ -547,6 +606,6 @@ document.addEventListener('DOMContentLoaded', function() {
   //   const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
   //   // console.log(`${startDate} - ${endDate}`);
   // }
-
+  getAdm1MenuOptions("predictions");
 })
 </script>
