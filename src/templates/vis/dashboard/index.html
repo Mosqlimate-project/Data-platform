@@ -8,10 +8,39 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
+<input type="hidden" id="dashboardsEl" value='{{ dashboards|parse_nones|safe }}'>
 
 <script>
-const dashboards = {{ dashboards|parse_nones|safe }};
+const dashboardsEl = document.getElementById('dashboardsEl');
+let dashboards = JSON.parse(dashboardsEl.value);
 let dashboard = `{{ dashboard }}`;
+let local = null;
+
+function dashboardsDataGetter(dashboard) {
+  const dashboards = JSON.parse(dashboardsEl.value);
+  return dashboards[dashboard];
+}
+
+function dashboardsQuerySetter(dashboard, queryKey, queryValue) {
+  const dashboardsPrev = dashboardsEl.value;
+
+  dashboards[dashboard].query[queryKey] = queryValue;
+
+  const dashboardsNew = JSON.stringify(dashboards);
+
+  if (dashboardsPrev !== dashboardsNew) {
+    dashboardsEl.value = dashboardsNew;
+    dashboardsEl.dispatchEvent(new Event('change'));
+  }
+}
+
+dashboardsEl.addEventListener('change', () => {
+  console.log("change");
+  console.log(JSON.parse(dashboardsEl.value));
+  Object.keys(dashboards).forEach(dashboard => {
+    getAdm1MenuOptions(dashboard);
+  });
+});
 
 function updateContentState() {
   const dsContent = document.getElementById('dsContent'); 
@@ -37,6 +66,34 @@ function changeContent(selectedDashboard) {
     contentDiv.classList.remove('hidden');
   }
 }
+
+async function getBrowserCity() {
+  try {
+    const ipApi = await fetch('http://ip-api.com/json');
+    const loc = await ipApi.json();
+
+    if (loc.countryCode === 'BR') {
+      const uf = loc.region;
+      const city = loc.city;
+
+      if (uf && city) {
+        const cityInfoResponse = await fetch(`/vis/ibge/city/?name=${encodeURIComponent(city)}&uf=${encodeURIComponent(uf)}`);
+        const cityInfo = await cityInfoResponse.json();
+
+        if (cityInfo.geocode) {
+          return cityInfo;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
 </script>
 
 
@@ -57,38 +114,6 @@ const observer2 = new MutationObserver(function (mutationsList) {
       updateContentState();
     }
   });
-});
-
-async function getBrowserCity() {
-  try {
-    const ipApi = await fetch('http://ip-api.com/json');
-    const location = await ipApi.json();
-
-    if (location.countryCode === 'BR') {
-      const uf = location.region;
-      const city = location.city;
-
-      if (uf && city) {
-        const cityInfoResponse = await fetch(`/vis/ibge/city/?name=${encodeURIComponent(city)}&uf=${encodeURIComponent(uf)}`);
-        const cityInfo = await cityInfoResponse.json();
-
-        if (cityInfo.geocode) {
-          return cityInfo;
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    }
-  } catch (error) {
-    return null;
-  }
-  return null;
-}
-
-getBrowserCity().then(geocode => {
-  console.log(geocode);
 });
 
 document.addEventListener('DOMContentLoaded', function() {

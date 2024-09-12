@@ -25,6 +25,8 @@ from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
 from main.utils import UF_CODES
+from main.utils import UFs as UF_name
+from main.api import MUN_DATA
 from vis.dash.errors import VisualizationError
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .dash.charts import line_charts_by_geocode
@@ -133,14 +135,7 @@ class DashboardView(View):
                 data["query"]["start_window_date"] = str(min(predict_dates))
                 data["query"]["end_window_date"] = str(max(predict_dates))
 
-        dashboard = request.GET.get("dashboard")
-
-        if dashboard not in dashboards:
-            dashboard = "predictions"
-
-        from pprint import pprint
-
-        pprint(dashboards)
+        dashboard = request.GET.get("dashboard") or "predictions"
 
         context["dashboards"] = dashboards
         context["dashboard"] = dashboard
@@ -206,29 +201,59 @@ def get_adm_1_menu_options(request) -> JsonResponse:
     if dashboard == "sprint":
         sprint = True
 
-    data = PredictionDataRow.objects.filter(
-        id__in=DashboardView.filter_predictions(
-            sprint,
-            disease,
-            time_resolution,
-        )
+    ids = DashboardView.filter_predictions(
+        sprint=sprint,
+        disease=disease,
+        time_resolution=time_resolution,
     )
 
+    data = PredictionDataRow.objects.filter(id__in=ids)
+
     ufs = list(data.values_list("adm_1", flat=True).distinct())
-    print(ufs)
-    return JsonResponse({})
+    uf_names = []
+    for uf in ufs:
+        uf_names.append(UF_name[uf])
+    options = list(tuple(zip(ufs, uf_names)))
+    print(f"{dashboard}")
+    print(f"{disease}")
+    print(f"{time_resolution}")
+    print(f"{sprint}")
+    print(f"{options}")
+    return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
-# def get_adm_2_menu_options(request) -> JsonResponse:
-#     dashboard = request.GET.get("dashboard")
-#     disease = request.GET.get("disease")
-#     time_resolution = request.GET.get("time-resolution")
-#     adm_level = request.GET.get("adm-level")
-#     adm_1 = request.GET.get("adm-1")
-#     # start_date = request.GET.get("start-date")
-#     # end_date = request.GET.get("end-date")
-#     # start_window_date = request.GET.get("start-window-date")
-#     # end_window_date = request.GET.get("end-window-date")
+def get_adm_2_menu_options(request) -> JsonResponse:
+    dashboard = request.GET.get("dashboard")
+    disease = request.GET.get("disease")
+    time_resolution = request.GET.get("time-resolution")
+    adm_1 = request.GET.get("adm-1")
+    # start_date = request.GET.get("start-date")
+    # end_date = request.GET.get("end-date")
+    # start_window_date = request.GET.get("start-window-date")
+    # end_window_date = request.GET.get("end-window-date")
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    ids = DashboardView.filter_predictions(
+        sprint=sprint,
+        disease=disease,
+        time_resolution=time_resolution,
+        adm_1=adm_1,
+    )
+
+    data = PredictionDataRow.objects.filter(id__in=ids)
+
+    geocodes = list(data.values_list("adm_2", flat=True).distinct())
+    mun_names = []
+    for geocode in geocodes:
+        mun_names.append(MUN_DATA[str(geocode)]["municipio"])
+    options = list(tuple(zip(geocodes, mun_names)))
+    return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
 class DashboardForecastMacroView(View):

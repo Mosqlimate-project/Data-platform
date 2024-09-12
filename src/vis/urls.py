@@ -10,6 +10,11 @@ urlpatterns = [
         name="get_adm_1_menu_options",
     ),
     path(
+        "get-adm-2-menu-options/",
+        views.get_adm_2_menu_options,
+        name="get_adm_2_menu_options",
+    ),
+    path(
         "dashboard/macro-forecast-map/",
         views.DashboardForecastMacroView.as_view(),
         name="dashboard_forecast_map",

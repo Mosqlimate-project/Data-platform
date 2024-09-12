@@ -245,29 +245,18 @@ hr {
 }
 
 .adm-select {
-  opacity: 1;
-  height: auto;
-  transition: all 0.3s ease-in-out;
-}
-
-.adm-select.hidden {
-  opacity: 0;
-  height: 0;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
+  max-height: auto;
   transition: all 0.3s ease-in-out;
 }
 
 .adm-select.show {
-  opacity: 1;
-  height: auto;
+  max-height: auto;
   transition: all 0.3s ease-in-out;
 }
 
-.adm2-menu {
+.ds2-menu {
+  /* margin-left: calc(var(--menu-width-expanded) - 2.5px); */
   display: none;
-  position: absolute;
   background-color: white;
   border: 1px solid #ccc;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -275,17 +264,17 @@ hr {
   z-index: 9991;
 }
 
-.adm2-menu ul {
+.ds2-menu ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.adm2-menu ul li {
+.ds2-menu ul li {
   padding: 5px;
   cursor: pointer;
 }
 
-.adm2-menu ul li:hover {
+.ds2-menu ul li:hover {
   background-color: #f0f0f0;
 }

@@ -160,10 +160,10 @@
 <script src="https://cdn.jsdelivr.net/gh/farhadmammadli/bootstrap-select@main/js/bootstrap-select.min.js"></script>
 
 <script>
-console.log(dashboards);
 // Consts
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
+const local = getBrowserCity();
 
 // Vars
 let menuState = "expanded";
@@ -241,7 +241,7 @@ function initializeMenu() {
     handleMenuBtnClick(btn);
 
     const name = btn.id.split('-')[1];
-    const data = dashboards[name];
+    const data = dashboardsDataGetter(name);
 
     const options = document.getElementById(btn.id.replace('Btn', 'Options'));
 
@@ -276,12 +276,20 @@ function initializeMenu() {
         option.addEventListener('click', () => {
           document.querySelectorAll(`#${CSS.escape(options.id)} a`).forEach(opt => opt.classList.remove('selected'));
           option.classList.add('selected');
+          if (options.id.startsWith('disease')) {
+            dashboardsQuerySetter(name, "disease", optionValue);
+          }
+
+          if (options.id.startsWith('timeRes')) {
+            dashboardsQuerySetter(name, "time_resolution", optionValue);
+          }
+
           if (options.id.startsWith('admLevel')) {
-            console.log(options.id);
             const admSelect = document.querySelector(`#adm${optionValue}Select-${name}`);
             if (String(optionValue) !== "0") {
               admSelect.classList.toggle('show');
             }
+            dashboardsQuerySetter(name, "adm_level", Number(optionValue));
             displayAdmSelect(name, optionValue);
           }
         });
@@ -295,7 +303,6 @@ function displayAdmSelect(name, selectedAdmLevel) {
 
   admSelectButtons.forEach(btn => {
     btn.classList.remove('show');
-    btn.classList.add('hidden');
   });
 
   if (String(selectedAdmLevel) === "0") {
@@ -304,7 +311,6 @@ function displayAdmSelect(name, selectedAdmLevel) {
 
   const selectedAdmBtn = document.getElementById(`adm${selectedAdmLevel}Select-${name}`);
   if (selectedAdmBtn) {
-    selectedAdmBtn.classList.remove('hidden');
     selectedAdmBtn.classList.add('show');
   }
 } 
@@ -327,12 +333,12 @@ function initializeDivs() {
 
     option.addEventListener('click', (event) => {
       event.preventDefault();
-      updateDashboard(option);
+      updateDs(option);
     });
   });
 }
 
-function updateDashboard(option) {
+function updateDs(option) {
   document.querySelectorAll('#dsOptions a').forEach(opt => opt.classList.remove('selected'));
   option.classList.add('selected');
 
@@ -359,23 +365,26 @@ function updateDashboard(option) {
   }
 }
 
-function ds2Menu(dashboard, admLevel, buttonId, optionsArray) {
+function ds2Menu(dashboard, admLevel, buttonId, options) {
   const button = document.getElementById(buttonId);
 
   const menu = document.createElement('div');
-  menu.className = 'adm2-menu';
+  menu.className = 'ds2-menu';
 
   const list = document.createElement('ul');
-  optionsArray.forEach(([name, value]) => {
+
+  options.forEach(option => {
     const listItem = document.createElement('li');
+    const value = option[0];
+    const name = option[1];
+
     listItem.value = value;
     listItem.textContent = name;
-    
+
     listItem.addEventListener('click', () => {
       const admCol = `adm_${admLevel}`;
-      dashboards[dashboard].query[admCol] = Number(value);
-      console.log(dashboards[dashboard].query);
-      button.innerText = name;
+      dashboardsQuerySetter(dashboard, admCol, value);
+      selectAdmLevelOption(dashboard, admLevel, value, name);
       menu.style.display = 'none';
     });
 
@@ -401,15 +410,29 @@ function ds2Menu(dashboard, admLevel, buttonId, optionsArray) {
     e.stopPropagation();
   });
 
+  button.insertAdjacentElement('afterend', menu);
+
   return button;
 }
 
+function populateDs2Menu(dashboard, admLevel, options) {
+  const buttonId = `adm${admLevel}Select-${dashboard}`;
+  const selectButton = document.getElementById(buttonId);
+
+  let existingMenu = selectButton.nextElementSibling;
+  if (existingMenu && existingMenu.className === 'ds2-menu') {
+    existingMenu.remove();
+  }
+
+  ds2Menu(dashboard, admLevel, buttonId, options);
+}
+
 async function getAdm1MenuOptions(dashboard) {
-  const data = dashboards[dashboard];
+  const data = dashboardsDataGetter(dashboard);
   const query = data.query;
+  const admLevel = 1;
 
   const url = new URL("{% url 'get_adm_1_menu_options' %}", window.location.origin);
-  console.log(url);
 
   url.searchParams.append('dashboard', dashboard);
   url.searchParams.append('disease', query.disease);
@@ -422,25 +445,132 @@ async function getAdm1MenuOptions(dashboard) {
       throw new Error(`Error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    console.log("ADM 1 Menu Options:", data);
+    const responseData = await response.json();
 
-    // populateAdm1Dropdown(data);
+    if (responseData.options && responseData.options.length > 0) {
+      populateDs2Menu(dashboard, admLevel, responseData.options);
+
+      const uf = local.state.uf;
+      const name = local.state.name;
+
+      const optionExists = responseData.options.some(option => option[0] === uf);
+
+      if (optionExists) {
+        selectAdmLevelOption(dashboard, admLevel, uf, name);
+      } else {
+        selectAdmLevelOption(
+          dashboard,
+          admLevel,
+          responseData.options[0][0],
+          responseData.options[0][1]
+        );
+      }
+    }
   } catch (error) {
-    console.error("Error fetching ADM 1 options:", error);
+    console.error(error);
   }
 }
 
-function populateDs2Menu(dashboard, admLevel, options) {
-  const select = document.getElementById(`adm${admLevel}Select-${dashboard}`);
-  select.innerHTML = '';
+async function getAdm2MenuOptions(dashboard) {
+  const data = dashboardsDataGetter(dashboard);
+  const query = data.query;
+  const admLevel = 2;
 
-  options.forEach(option => {
-    const opt = document.createElement('option');
-    opt.value = option.id;
-    opt.innerText = option.name;
-    select.appendChild(opt);
-  });
+  const url = new URL("{% url 'get_adm_2_menu_options' %}", window.location.origin);
+
+  url.searchParams.append('dashboard', dashboard);
+  url.searchParams.append('disease', query.disease);
+  url.searchParams.append('time-resolution', query.time_resolution);
+  url.searchParams.append('adm-1', query.adm_1);
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+
+    if (responseData.options && responseData.options.length > 0) {
+      populateDs2Menu(dashboard, admLevel, responseData.options);
+
+      const geocode = local.geocode;
+      const name = local.state.name;
+
+      const optionExists = responseData.options.some(option => option[0] === uf);
+
+      if (optionExists) {
+        selectAdmLevelOption(dashboard, admLevel, uf, name);
+      } else {
+        selectAdmLevelOption(
+          dashboard,
+          admLevel,
+          responseData.options[0][0],
+          responseData.options[0][1]
+        );
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function getAdm2MenuOptions(dashboard) {
+  const data = dashboardsDataGetter(dashboard);
+  const query = data.query;
+  const admLevel = 2;
+
+  const url = new URL("{% url 'get_adm_2_menu_options' %}", window.location.origin);
+
+  console.log(dashboard);
+  console.log(query.disease);
+  console.log(query.time_resolution);
+  console.log(query.adm_1);
+  url.searchParams.append('dashboard', dashboard);
+  url.searchParams.append('disease', query.disease);
+  url.searchParams.append('time-resolution', query.time_resolution);
+  url.searchParams.append('adm-1', query.adm_1);
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+
+    if (responseData.options && responseData.options.length > 0) {
+      populateDs2Menu(dashboard, admLevel, responseData.options);
+
+      const uf = local.state.uf;
+      const name = local.state.name;
+
+      const optionExists = responseData.options.some(option => option[0] === uf);
+
+      if (optionExists) {
+        selectAdmLevelOption(dashboard, admLevel, uf, name);
+      } else {
+        selectAdmLevelOption(
+          dashboard,
+          admLevel,
+          responseData.options[0][0],
+          responseData.options[0][1]
+        );
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function selectAdmLevelOption(dashboard, admLevel, value, name) {
+  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`)
+  const admCol = `adm_${admLevel}`;
+  dashboardsQuerySetter(dashboard, admCol, value);
+  button.textContent = name;
+  button.value = value;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -557,16 +687,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  ds2Menu('predictions', 1, 'adm1Select-predictions', [['Option 1', '1'], ['Option 2', '2'], ['Option 3', '3']]);
-
-  getBrowserCity().then(location => {
-    Object.keys(dashboards).forEach(key => {
-      dashboards[key].query.adm_1 = Number(location.state.geocode);
-      dashboards[key].query.adm_2 = Number(location.geocode);
-    });
+  Object.keys(dashboards).forEach(dashboard => {
+    getAdm1MenuOptions(dashboard);
   });
-
-  console.log(dashboards);
 
   //
   // const predictDatePicker = document.getElementById('predictDatePicker');
@@ -606,6 +729,5 @@ document.addEventListener('DOMContentLoaded', function() {
   //   const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
   //   // console.log(`${startDate} - ${endDate}`);
   // }
-  getAdm1MenuOptions("predictions");
 })
 </script>
