@@ -21,7 +21,7 @@ from django.http import JsonResponse, FileResponse
 from django.views import View
 from django.db.models import CharField, functions, Sum
 
-from epiweeks import Week
+# from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
 from main.utils import UF_CODES
@@ -44,30 +44,17 @@ class DashboardView(View):
         context = {}
 
         _defaults = {
-            "disease": (
-                request.GET.get("disease") or str(Model.Diseases.DENGUE)
-            ),
-            "time_resolution": (
-                request.GET.get("time-resolution")
-                or str(Model.Periodicities.WEEK)
-            ),
-            "adm_level": (
-                request.GET.get("adm-level")
-                or int(Model.ADM_levels.MUNICIPALITY)
-            ),
+            "disease": request.GET.get("disease") or None,
+            "time_resolution": request.GET.get("time-resolution") or None,
+            "adm_level": request.GET.get("adm-level") or None,
             "adm_0": "BRA",
             "adm_1": request.GET.get("adm-1") or None,
             "adm_2": request.GET.get("adm-2") or None,
             "adm_3": request.GET.get("adm-3") or None,
-            "start_date": (
-                request.GET.get("start-date")
-                or str(Week.thisweek().startdate())
-            ),
-            "end_date": (
-                request.GET.get("end-date") or str(Week.thisweek().enddate())
-            ),
-            "start_window_date": None,
-            "end_window_date": None,
+            "start_date": request.GET.get("start-date") or None,
+            "end_date": request.GET.get("end-date") or None,
+            "start_window_date": request.GET.get("start-window-date") or None,
+            "end_window_date": request.GET.get("end-window-date") or None,
         }
 
         def _get_distinct_values(field: str, sprint: bool) -> list:
@@ -107,7 +94,7 @@ class DashboardView(View):
                         ).distinct()
                     )
                 ),
-                "adm_levels": [0, 1, 2, 3],
+                "adm_levels": [0, 1, 2],
                 "query": _defaults,
             },
         }
@@ -134,6 +121,30 @@ class DashboardView(View):
                 )
                 data["query"]["start_window_date"] = str(min(predict_dates))
                 data["query"]["end_window_date"] = str(max(predict_dates))
+
+            if not data["query"]["disease"]:
+                if Model.Diseases.DENGUE in data["diseases"]:
+                    data["query"]["disease"] = Model.Diseases.DENGUE
+                else:
+                    data["query"]["disease"] = data["diseases"][0]
+
+            if not data["query"]["time_resolution"]:
+                if Model.Periodicities.WEEK in data["time_resolutions"]:
+                    data["query"]["time_resolution"] = Model.Periodicities.WEEK
+                else:
+                    data["query"]["time_resolution"] = data[
+                        "time_resolutions"
+                    ][0]
+
+            if dashboard != "forecast_map":
+                if not data["query"]["adm_level"]:
+                    if Model.ADM_levels.STATE in data["adm_levels"]:
+                        data["query"]["adm_level"] = Model.ADM_levels.STATE
+                    else:
+                        data["query"]["adm_level"] = data["adm_levels"][0]
+            else:
+                if not data["query"]["adm_level"]:
+                    data["query"]["adm_level"] = 0
 
         dashboard = request.GET.get("dashboard") or "predictions"
 
@@ -205,6 +216,7 @@ def get_adm_1_menu_options(request) -> JsonResponse:
         sprint=sprint,
         disease=disease,
         time_resolution=time_resolution,
+        adm_level=1,
     )
 
     data = PredictionDataRow.objects.filter(id__in=ids)
@@ -214,11 +226,11 @@ def get_adm_1_menu_options(request) -> JsonResponse:
     for uf in ufs:
         uf_names.append(UF_name[uf])
     options = list(tuple(zip(ufs, uf_names)))
-    print(f"{dashboard}")
-    print(f"{disease}")
-    print(f"{time_resolution}")
-    print(f"{sprint}")
-    print(f"{options}")
+    print(options)
+    print(options)
+    print(options)
+    print(options)
+    print(options)
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
@@ -227,6 +239,7 @@ def get_adm_2_menu_options(request) -> JsonResponse:
     disease = request.GET.get("disease")
     time_resolution = request.GET.get("time-resolution")
     adm_1 = request.GET.get("adm-1")
+    adm_1 = None if str(adm_1).upper() == "NULL" else adm_1
     # start_date = request.GET.get("start-date")
     # end_date = request.GET.get("end-date")
     # start_window_date = request.GET.get("start-window-date")
@@ -243,8 +256,11 @@ def get_adm_2_menu_options(request) -> JsonResponse:
         sprint=sprint,
         disease=disease,
         time_resolution=time_resolution,
+        adm_level=2,
         adm_1=adm_1,
     )
+    print("adm_2")
+    print(ids)
 
     data = PredictionDataRow.objects.filter(id__in=ids)
 

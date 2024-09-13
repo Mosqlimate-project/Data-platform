@@ -35,10 +35,9 @@ function dashboardsQuerySetter(dashboard, queryKey, queryValue) {
 }
 
 dashboardsEl.addEventListener('change', () => {
-  console.log("change");
-  console.log(JSON.parse(dashboardsEl.value));
   Object.keys(dashboards).forEach(dashboard => {
     getAdm1MenuOptions(dashboard);
+    getAdm2MenuOptions(dashboard);
   });
 });
 
@@ -68,6 +67,10 @@ function changeContent(selectedDashboard) {
 }
 
 async function getBrowserCity() {
+  if (local) {
+    return local;
+  }
+
   try {
     const ipApi = await fetch('http://ip-api.com/json');
     const loc = await ipApi.json();
@@ -81,16 +84,13 @@ async function getBrowserCity() {
         const cityInfo = await cityInfoResponse.json();
 
         if (cityInfo.geocode) {
+          local = cityInfo;
           return cityInfo;
-        } else {
-          return null;
         }
-      } else {
-        return null;
       }
     }
   } catch (error) {
-    return null;
+    console.error('Error fetching location:', error);
   }
   return null;
 }
