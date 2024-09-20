@@ -19,13 +19,13 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.db.models import CharField, functions, Sum
+from django.db.models import CharField, functions, Sum, Max, Min
 
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
-from main.utils import UF_CODES
-from main.utils import UFs as UF_name
+from main.utils import CODES_UF, UF_CODES
+from main.utils import UFs as UF_NAME
 from main.api import MUN_DATA
 from vis.dash.errors import VisualizationError
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
@@ -33,8 +33,7 @@ from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
 from .utils import obj_to_dataframe
-
-code_to_state = {v: k for k, v in UF_CODES.items()}
+from .dash.line_chart import base_chart, data_chart, predictions_chart
 
 
 class DashboardView(View):
@@ -184,29 +183,58 @@ class DashboardView(View):
             data = data.filter(predict__adm_2_geocode=adm_2)
 
         if start_date and end_date:
-            data = data.filter(
-                predict__predict_date__range=(start_date, end_date)
-            )
+            data = data.filter(date__range=(start_date, end_date))
 
         if start_window_date and end_window_date:
             data = data.filter(
                 date__range=(start_window_date, end_window_date)
             )
 
-        context["selectedPredictions"] = list(selected_prediction_ids)
+        return list(data.values_list("predict__id", flat=True).distinct())
+
+    @staticmethod
+    def parse_query_request(request) -> dict:
+        disease = request.GET.get("disease")
+        time_resolution = request.GET.get("time-resolution")
+        adm_level = request.GET.get("adm-level")
+        adm_0 = request.GET.get("adm-0", "BRA")
+        adm_1 = request.GET.get("adm-1", None)
+        adm_2 = request.GET.get("adm-2", None)
+        adm_3 = request.GET.get("adm-3", None)
+        start_date = request.GET.get("start-date", None)
+        end_date = request.GET.get("end-date", None)
+        start_window_date = request.GET.get("start-window-date", None)
+        end_window_date = request.GET.get("end-window-date", None)
+
+        dates = [start_date, end_date, start_window_date, end_window_date]
+        dates = [date.fromisoformat(d) if d else None for d in dates]
+        start_date, end_date, start_window_date, end_window_date = dates
+
+        query = {
+            "disease": disease,
+            "time_resolution": time_resolution,
+            "adm_level": int(adm_level),
+            "adm_0": adm_0,
+            "adm_1": adm_1,
+            "adm_2": adm_2,
+            "adm_3": adm_3,
+            "start_date": start_date,
+            "end_date": end_date,
+            "start_window_date": start_window_date,
+            "end_window_date": end_window_date,
+        }
+
+        print(request)
+        print(query)
+        return query
 
 
-def get_adm_1_menu_options(request) -> JsonResponse:
+def get_predict_ids(request) -> JsonResponse:
     dashboard = request.GET.get("dashboard")
-    disease = request.GET.get("disease")
-    time_resolution = request.GET.get("time-resolution")
-    # start_date = request.GET.get("start-date")
-    # end_date = request.GET.get("end-date")
-    # start_window_date = request.GET.get("start-window-date")
-    # end_window_date = request.GET.get("end-window-date")
+    query = DashboardView.parse_query_request(request)
+
     if dashboard == "forecast_map":
         return JsonResponse({})
-
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -214,39 +242,94 @@ def get_adm_1_menu_options(request) -> JsonResponse:
 
     ids = DashboardView.filter_predictions(
         sprint=sprint,
-        disease=disease,
-        time_resolution=time_resolution,
-        adm_level=1,
+        disease=query["disease"],
+        time_resolution=query["time_resolution"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
     )
 
-    data = PredictionDataRow.objects.filter(id__in=ids)
+    return JsonResponse({"predicts": ids})
 
-    ufs = list(data.values_list("adm_1", flat=True).distinct())
-    uf_names = []
-    for uf in ufs:
-        uf_names.append(UF_name[uf])
-    options = list(tuple(zip(ufs, uf_names)))
-    print(options)
-    print(options)
-    print(options)
-    print(options)
-    print(options)
+
+def get_predicts_start_end_window_date(request) -> JsonResponse:
+    dashboard = request.GET.get("dashboard")
+    query = DashboardView.parse_query_request(request)
+
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    ids = DashboardView.filter_predictions(
+        sprint=sprint,
+        disease=query["disease"],
+        time_resolution=query["time_resolution"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+    )
+
+    data = PredictionDataRow.objects.filter(predict__id__in=ids).aggregate(
+        start_window_date=Min("date"), end_window_date=Max("date")
+    )
+
+    return JsonResponse(
+        {
+            "start_window_date": (
+                data["start_window_date"].isoformat()
+                if data["start_window_date"]
+                else None
+            ),
+            "end_window_date": (
+                data["end_window_date"].isoformat()
+                if data["end_window_date"]
+                else None
+            ),
+        }
+    )
+
+
+def get_adm_1_menu_options(request) -> JsonResponse:
+    dashboard = request.GET.get("dashboard")
+    query = DashboardView.parse_query_request(request)
+
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    ids = DashboardView.filter_predictions(
+        sprint=sprint,
+        disease=query["disease"],
+        time_resolution=query["time_resolution"],
+        adm_level=query["adm_level"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+    )
+
+    data = Prediction.objects.filter(id__in=ids)
+
+    uf_codes = list(data.values_list("adm_1_geocode", flat=True).distinct())
+    options = []
+    for code in uf_codes:
+        if code:
+            options.append((CODES_UF[code], UF_NAME[CODES_UF[code]]))
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
 def get_adm_2_menu_options(request) -> JsonResponse:
     dashboard = request.GET.get("dashboard")
-    disease = request.GET.get("disease")
-    time_resolution = request.GET.get("time-resolution")
-    adm_1 = request.GET.get("adm-1")
-    adm_1 = None if str(adm_1).upper() == "NULL" else adm_1
-    # start_date = request.GET.get("start-date")
-    # end_date = request.GET.get("end-date")
-    # start_window_date = request.GET.get("start-window-date")
-    # end_window_date = request.GET.get("end-window-date")
+    query = DashboardView.parse_query_request(request)
+
     if dashboard == "forecast_map":
         return JsonResponse({})
-
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -254,22 +337,103 @@ def get_adm_2_menu_options(request) -> JsonResponse:
 
     ids = DashboardView.filter_predictions(
         sprint=sprint,
-        disease=disease,
-        time_resolution=time_resolution,
+        disease=query["disease"],
+        time_resolution=query["time_resolution"],
         adm_level=2,
-        adm_1=adm_1,
+        adm_1=query["adm_1"],
     )
-    print("adm_2")
-    print(ids)
 
-    data = PredictionDataRow.objects.filter(id__in=ids)
+    data = Prediction.objects.filter(id__in=ids)
 
-    geocodes = list(data.values_list("adm_2", flat=True).distinct())
+    geocodes = list(data.values_list("adm_2_geocode", flat=True).distinct())
     mun_names = []
     for geocode in geocodes:
         mun_names.append(MUN_DATA[str(geocode)]["municipio"])
     options = list(tuple(zip(geocodes, mun_names)))
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
+
+
+def line_chart_base_view(request):
+    width = request.GET.get("width", 450)
+    title = request.GET.get("title")
+    query = DashboardView.parse_query_request(request)
+
+    chart = base_chart(
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+        width=int(width),
+        title=title,
+    )
+    return JsonResponse(chart.to_dict(), safe=False)
+
+
+def line_chart_data_view(request):
+    width = request.GET.get("width", 450)
+    dashboard = request.GET.get("dashboard")
+    query = DashboardView.parse_query_request(request)
+
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    chart = data_chart(
+        width=int(width),
+        sprint=sprint,
+        disease=query["disease"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+    )
+
+    return JsonResponse(chart.to_dict(), safe=False)
+
+
+def line_chart_predicts_view(request):
+    title = request.GET.get("title")
+    colors = request.GET.getlist("colors")
+    width = request.GET.get("width", 450)
+    dashboard = request.GET.get("dashboard")
+    query = DashboardView.parse_query_request(request)
+
+    if dashboard == "forecast_map":
+        return JsonResponse({})
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    colors = [
+        "#A6BCD4",
+        "#FAC28C",
+        "#F2ABAB",
+        "#B9DBD9",
+        "#AAD1A5",
+        "#F7E59D",
+        "#D9BCD1",
+        "#FFCED3",
+        "#CEBAAE",
+    ]
+
+    chart = predictions_chart(
+        title=title,
+        colors=colors,
+        width=int(width),
+        sprint=sprint,
+        disease=query["disease"],
+        time_resolution=query["time_resolution"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+    )
+
+    return JsonResponse(chart.to_dict(), safe=False)
 
 
 class DashboardForecastMacroView(View):

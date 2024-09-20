@@ -132,15 +132,9 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <div>
-        <div id="datePicker-{{ name }}" class="d-flex flex-column">
-          <input type="text" name="start-{{ name }}">
-          <input type="text" name="end-{{ name }}">
-        </div>
-        <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
-          <input type="text" name="windowStart-{{ name }}">
-          <input type="text" name="windowEnd-{{ name }}">
-        </div>
+      <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
+        <input type="text" name="windowStart-{{ name }}">
+        <input type="text" name="windowEnd-{{ name }}">
       </div>
     </div>
     {% elif name == "forecast_map" %}
@@ -235,67 +229,120 @@ function handleMenuBtnClick(btn) {
 function initializeMenu() {
   activateDivs(dashboard);
 
+  function toggleVisibility(elements, shouldShow) {
+    elements.forEach(el => {
+      setTimeout(() => {
+        el.classList.toggle('hidden', !shouldShow);
+      }, 400);
+    });
+  }
+
+  const allDashboardElements = document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`);
+  const visibleElements = Array.from(allDashboardElements).filter(el => el.id.includes(dashboard));
+  const hiddenElements = Array.from(allDashboardElements).filter(el => !el.id.includes(dashboard));
+
+  toggleVisibility(visibleElements, true);
+  toggleVisibility(hiddenElements, false);
+
   document.querySelectorAll('[id^="diseaseBtn-"], [id^="timeResBtn-"], [id^="admLevelBtn-"], #dsBtn').forEach(btn => {
     btn.addEventListener('click', () => handleMenuBtnClick(btn));
     handleMenuBtnClick(btn);
 
     const name = btn.id.split('-')[1];
-    const data = dashboardsDataGetter(name);
-
     const options = document.getElementById(btn.id.replace('Btn', 'Options'));
 
-    if (options && options.id === 'dsOptions') {
-      options.querySelectorAll('a').forEach(option => {
+    if (options) {
+      if (options.id === 'dsOptions') {
+        initializeOptionClick(options, name, true);
+      } else {
+        const data = dashboardsDataGetter(name);
+        initializeOptionClick(options, name, false, data);
+      }
+    }
+  });
+
+  function initializeOptionClick(options, name, isDashboardSelector, data = null) {
+    options.querySelectorAll('a').forEach(option => {
+      if (isDashboardSelector) {
         option.addEventListener('click', () => {
           activateDivs(option.id);
           dashboard = option.id;
           changeContent(dashboard);
         });
-      });
-    } else if (options) {
-      options.querySelectorAll('a').forEach(option => {
-        const optionValue = option.getAttribute('data-value');
+      } else {
+        setOptionListeners(option, options, name, data);
+      }
+    });
 
-        let queryValue;
-        if (options.id.startsWith('disease')) {
-          queryValue = data.query.disease.toLowerCase();
-        } else if (options.id.startsWith('timeRes')) {
-          queryValue = data.query.time_resolution.toLowerCase();
-        } else if (options.id.startsWith('admLevel')) {
-          queryValue = data.query.adm_level.toString();
-        }
-
-        if (String(optionValue) === String(queryValue)) {
-          option.classList.add('selected');
-          if (options.id.startsWith('admLevel')) {
-            displayAdmSelect(name, optionValue);
-          }
-        }
-
-        option.addEventListener('click', () => {
-          document.querySelectorAll(`#${CSS.escape(options.id)} a`).forEach(opt => opt.classList.remove('selected'));
-          option.classList.add('selected');
-          if (options.id.startsWith('disease')) {
-            dashboardsQuerySetter(name, "disease", optionValue);
-          }
-
-          if (options.id.startsWith('timeRes')) {
-            dashboardsQuerySetter(name, "time_resolution", optionValue);
-          }
-
-          if (options.id.startsWith('admLevel')) {
-            const admSelect = document.querySelector(`#adm${optionValue}Select-${name}`);
-            if (String(optionValue) !== "0") {
-              admSelect.classList.toggle('show');
-            }
-            dashboardsQuerySetter(name, "adm_level", Number(optionValue));
-            displayAdmSelect(name, optionValue);
-          }
-        });
-      });
+    if (options.id.startsWith('admLevel')) {
+      const selectedOption = options.querySelector('a.selected');
+      if (selectedOption) {
+        const optionValue = selectedOption.getAttribute('data-value');
+        toggleAdministrativeDivs(optionValue, name);
+      }
     }
-  });
+  }
+
+  function setOptionListeners(option, options, name, data) {
+    const optionValue = option.getAttribute('data-value');
+    const queryValue = getQueryValue(options.id, data);
+
+    if (String(optionValue) === String(queryValue)) {
+      option.classList.add('selected');
+      if (options.id.startsWith('admLevel')) {
+        displayAdmSelect(name, optionValue);
+      }
+    }
+
+    option.addEventListener('click', () => {
+      setSelectedOption(options.id, option);
+      handleOptionClick(options.id, optionValue, name);
+    });
+  }
+
+  function setSelectedOption(optionsId, option) {
+    document.querySelectorAll(`#${CSS.escape(optionsId)} a`).forEach(opt => opt.classList.remove('selected'));
+    option.classList.add('selected');
+  }
+
+  function getQueryValue(optionsId, data) {
+    if (optionsId.startsWith('disease')) {
+      return data.query.disease.toLowerCase();
+    } else if (optionsId.startsWith('timeRes')) {
+      return data.query.time_resolution.toLowerCase();
+    } else if (optionsId.startsWith('admLevel')) {
+      return data.query.adm_level.toString();
+    }
+  }
+
+  function handleOptionClick(optionsId, optionValue, name) {
+    if (optionsId.startsWith('admLevel')) {
+      toggleAdministrativeDivs(optionValue, name);
+      dashboardsQuerySetter(name, { "adm_level": Number(optionValue) });
+    } else if (optionsId.startsWith('disease')) {
+      dashboardsQuerySetter(name, { "disease": optionValue });
+    } else if (optionsId.startsWith('timeRes')) {
+      dashboardsQuerySetter(name, { "time_resolution": optionValue });
+    }
+  }
+
+  function toggleAdministrativeDivs(optionValue, name) {
+    const admSelect = document.querySelector(`#adm${optionValue}Select-${name}`);
+
+    if (String(optionValue) === "0") {
+      document.querySelectorAll('[id^="ds2-"]').forEach(div => div.classList.add('hidden'));
+    } else if (String(optionValue) === "1") {
+      admSelect?.classList.toggle('show');
+      document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
+      document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.add('hidden'));
+    } else if (String(optionValue) === "2") {
+      document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
+      document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.remove('hidden'));
+      admSelect.style.height = 'auto';
+    }
+  }
 }
+
 
 function displayAdmSelect(name, selectedAdmLevel) {
   const admSelectButtons = document.querySelectorAll(`[id^="adm"][id$="Select-${name}"]`);
@@ -333,6 +380,17 @@ function initializeDivs() {
     option.addEventListener('click', (event) => {
       event.preventDefault();
       updateDs(option);
+      document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`).forEach((el) => {
+        if (!el.id.includes(dashboard)) {
+          setTimeout(() => {
+            el.classList.add('hidden');
+          }, 400);
+        } else {
+          setTimeout(() => {
+            el.classList.remove('hidden');
+          }, 400);
+        }
+      });
     });
   });
 }
@@ -368,7 +426,7 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
   const button = document.getElementById(buttonId);
 
   const menu = document.createElement('div');
-  menu.className = 'ds2-menu';
+  menu.className = 'ds2-menu bg-dark text-white';
 
   const list = document.createElement('ul');
 
@@ -381,8 +439,6 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
     listItem.textContent = name;
 
     listItem.addEventListener('click', () => {
-      const admCol = `adm_${admLevel}`;
-      dashboardsQuerySetter(dashboard, admCol, value);
       selectAdmLevelOption(dashboard, admLevel, value, name);
       menu.style.display = 'none';
     });
@@ -395,11 +451,12 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
 
   button.addEventListener('click', (e) => {
     const rect = button.getBoundingClientRect();
-    menu.style.top = `${rect.bottom + window.scrollY}px`;
-    menu.style.left = `${rect.left + window.scrollX}px`;
+    const menu = document.querySelector('.ds2-menu');
+    menu.style.height = `${window.innerHeight - rect.bottom}px`;
     menu.style.display = 'block';
     e.stopPropagation();
   });
+
 
   document.addEventListener('click', () => {
     menu.style.display = 'none';
@@ -419,7 +476,6 @@ function populateDs2Menu(dashboard, admLevel, options) {
   const selectButton = document.getElementById(buttonId);
 
   if (!selectButton) {
-    console.error(`Button with id ${buttonId} not found`);
     return;
   }
 
@@ -434,12 +490,14 @@ function populateDs2Menu(dashboard, admLevel, options) {
 async function getAdm1MenuOptions(dashboard) {
   const data = dashboardsDataGetter(dashboard);
   const query = data.query;
-  const admLevel = 1;
 
   const url = new URL("{% url 'get_adm_1_menu_options' %}", window.location.origin);
   url.searchParams.append('dashboard', dashboard);
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
+  url.searchParams.append('adm-level', query.adm_level);
+  if (query.start_window_date) url.searchParams.append('start-window-date', query.start_window_date);
+  if (query.end_window_date) url.searchParams.append('end-window-date', query.end_window_date);
 
   try {
     const response = await fetch(url);
@@ -450,33 +508,43 @@ async function getAdm1MenuOptions(dashboard) {
     const responseData = await response.json();
 
     if (responseData.options && responseData.options.length > 0) {
-      populateDs2Menu(dashboard, admLevel, responseData.options);
+      populateDs2Menu(dashboard, 1, responseData.options);
 
-      if (!local) {
-        local = await getBrowserCity();
-      }
+      let uf, name;
 
-      const uf = local.state.uf;
-      const name = local.state.name;
-
-      const optionExists = responseData.options.some(option => option[0] === uf);
-
-      if (optionExists) {
-        selectAdmLevelOption(dashboard, admLevel, uf, name);
-        dashboardsQuerySetter(dashboard, 'adm_1', uf);
+      if (query.adm_1) {
+        uf = query.adm_1;
+        const selectedOption = responseData.options.find(option => option[0] === uf);
+        if (selectedOption) {
+          name = selectedOption[1];
+        }
       } else {
-        const firstOption = responseData.options[0];
-        selectAdmLevelOption(dashboard, admLevel, firstOption[0], firstOption[1]);
-        dashboardsQuerySetter(dashboard, 'adm_1', firstOption[0]);
+        if (!local) {
+          local = await getBrowserCity();
+        }
+
+        const userUf = local.state.uf;
+        const userLocationOption = responseData.options.find(option => option[0] === userUf);
+
+        if (userLocationOption) {
+          uf = userLocationOption[0];
+          name = userLocationOption[1];
+        } else {
+          uf = responseData.options[0][0];
+          name = responseData.options[0][1];
+        }
       }
+
+      selectAdmLevelOption(dashboard, 1, uf, name);
     } else {
-      populateDs2Menu(dashboard, admLevel, []);
+      populateDs2Menu(dashboard, 1, []);
     }
   } catch (error) {
-    populateDs2Menu(dashboard, admLevel, []);
+    populateDs2Menu(dashboard, 1, []);
     console.error(error);
   }
 }
+
 
 async function getAdm2MenuOptions(dashboard) {
   const data = dashboardsDataGetter(dashboard);
@@ -487,9 +555,7 @@ async function getAdm2MenuOptions(dashboard) {
   url.searchParams.append('dashboard', dashboard);
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
-  if (query.adm_1) {
-    url.searchParams.append('adm-1', query.adm_1);
-  }
+  if (query.adm_1) url.searchParams.append('adm-1', query.adm_1);
 
   try {
     const response = await fetch(url);
@@ -533,8 +599,7 @@ async function getAdm2MenuOptions(dashboard) {
 
 function selectAdmLevelOption(dashboard, admLevel, value, name) {
   const button = document.getElementById(`adm${admLevel}Select-${dashboard}`)
-  const admCol = `adm_${admLevel}`;
-  dashboardsQuerySetter(dashboard, admCol, value);
+  dashboardsQuerySetter(dashboard, {[`adm_${admLevel}`]: value});
   button.textContent = name;
   button.value = value;
 }
@@ -637,11 +702,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  Object.keys(dashboards).forEach(dashboard => {
-    getAdm1MenuOptions(dashboard);
-    getAdm2MenuOptions(dashboard);
-  })
-
   document.querySelectorAll('.admlvl-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const admLevel = this.getAttribute('data-value');
@@ -658,43 +718,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  //
-  // const predictDatePicker = document.getElementById('predictDatePicker');
-  // const predictDateRangePicker = new DateRangePicker(predictDatePicker, {
-  //   buttonClass: 'btn',
-  //   format: dateFormat,
-  //   clearButton: true,
-  //   language: useri18n,
-  // }); 
-  //
-  // const predictWindowDatePicker = document.getElementById('predictWindowDatePicker');
-  // const predictWindowDateRangePicker = new DateRangePicker(predictWindowDatePicker, {
-  //   buttonClass: 'btn',
-  //   format: dateFormat,
-  //   clearButton: true,
-  //   language: useri18n,
-  // }); 
-  //
-  // predictDatePicker.addEventListener('changeDate', handleDatesChange);
-  // predictWindowDatePicker.addEventListener('changeDate', handleWindowDatesChange);
-  // predictDateRangePicker.setDates(
-  //   Datepicker.parseDate(startDate, dateFormat), 
-  //   Datepicker.parseDate(endDate, dateFormat), 
-  // );
-  // predictWindowDateRangePicker.setDates(
-  //   Datepicker.parseDate(startDate, dateFormat), 
-  //   Datepicker.parseDate(endDate, dateFormat), 
-  // );
-  //
-  //
-  // function handleDatesChange(event) {
-  //   const [startDate, endDate] = predictDateRangePicker.getDates(dateFormat);
-  //   // console.log(`${startDate} - ${endDate}`);
-  // }
-  //
-  // function handleWindowDatesChange(event) {
-  //   const [startDate, endDate] = predictWindowDateRangePicker.getDates(dateFormat);
-  //   // console.log(`${startDate} - ${endDate}`);
-  // }
+  function handleWindowDatesChange(datePicker, dashboard) {
+    const [startDate, endDate] = datePicker.getDates(dateFormat);
+    dashboardsQuerySetter(dashboard, {'start_window_date': startDate, 'end_window_date': endDate});
+  }
+
+  ["predictions", "sprint"].forEach(dashboard => {
+    const windowDatePicker = document.getElementById(`windowDatePicker-${dashboard}`);
+    const windowDateRangePicker = new DateRangePicker(windowDatePicker, {
+      buttonClass: 'btn',
+      format: dateFormat,
+      clearButton: true,
+      language: useri18n,
+    });
+
+    windowDateRangePicker.setDates(
+      Datepicker.parseDate(dashboardsDataGetter(dashboard).query.start_window_date, dateFormat), 
+      Datepicker.parseDate(dashboardsDataGetter(dashboard).query.end_window_date, dateFormat), 
+    );
+
+    windowDatePicker.addEventListener('hide', async function () {
+      handleWindowDatesChange(windowDateRangePicker, dashboard);
+      const data = dashboardsDataGetter(dashboard).query;
+
+      if (data.start_window_date === undefined && data.end_window_date === undefined) {
+        const [startWindowDate, endWindowDate] = await fetchStartEndWindowDate(dashboard);
+        dashboardsQuerySetter(dashboard, {'start_window_date': startWindowDate, 'end_window_date': endWindowDate});
+        windowDateRangePicker.setDates(startWindowDate, endWindowDate);
+      }
+    });
+  });
 })
 </script>

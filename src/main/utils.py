@@ -57,3 +57,5 @@ UF_CODES = {
     "SP": 35,
     "TO": 17,
 }
+
+CODES_UF = {v: k for k, v in UF_CODES.items()}

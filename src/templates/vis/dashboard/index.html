@@ -8,38 +8,45 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
-<input type="hidden" id="dashboardsEl" value='{{ dashboards|parse_nones|safe }}'>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+{% for dashboard, data in dashboards.items %}
+  <input type="hidden" id="dashboardEl-{{ dashboard }}" value='{{ data|parse_nones|safe }}'>
+{% endfor %}
 
 <script>
-const dashboardsEl = document.getElementById('dashboardsEl');
-let dashboards = JSON.parse(dashboardsEl.value);
 let dashboard = `{{ dashboard }}`;
 let local = null;
 
-function dashboardsDataGetter(dashboard) {
-  const dashboards = JSON.parse(dashboardsEl.value);
-  return dashboards[dashboard];
+function getDashboardEl(dashboard) {
+  return document.getElementById(`dashboardEl-${dashboard}`);
 }
 
-function dashboardsQuerySetter(dashboard, queryKey, queryValue) {
-  const dashboardsPrev = dashboardsEl.value;
+function dashboardsDataGetter(dashboard) {
+  const dashboardEl = getDashboardEl(dashboard);
+  return JSON.parse(dashboardEl.value);
+}
 
-  dashboards[dashboard].query[queryKey] = queryValue;
+function dashboardsQuerySetter(dashboard, updates) {
+  const dashboardEl = getDashboardEl(dashboard);
+  const dashboardsPrev = dashboardEl.value;
 
-  const dashboardsNew = JSON.stringify(dashboards);
+  let dashboardData = JSON.parse(dashboardEl.value);
+
+  Object.keys(updates).forEach(key => {
+    dashboardData.query[key] = updates[key];
+  });
+
+  const dashboardsNew = JSON.stringify(dashboardData);
 
   if (dashboardsPrev !== dashboardsNew) {
-    dashboardsEl.value = dashboardsNew;
-    dashboardsEl.dispatchEvent(new Event('change'));
+    dashboardEl.value = dashboardsNew;
+    dashboardEl.dispatchEvent(new Event('change'));
+    console.log(dashboardData.query);
   }
 }
-
-dashboardsEl.addEventListener('change', () => {
-  Object.keys(dashboards).forEach(dashboard => {
-    getAdm1MenuOptions(dashboard);
-    getAdm2MenuOptions(dashboard);
-  });
-});
 
 function updateContentState() {
   const dsContent = document.getElementById('dsContent'); 
@@ -53,7 +60,7 @@ function updateContentState() {
 }
 
 function changeContent(selectedDashboard) {
-  Object.keys(dashboards).forEach(dashboard => {
+  ["predictions", "sprint", "forecast_map"].forEach(dashboard => {
     const contentDiv = document.getElementById(`dsContent-${dashboard}`);
     if (contentDiv) {
       contentDiv.classList.add('hidden');
@@ -63,6 +70,38 @@ function changeContent(selectedDashboard) {
   const contentDiv = document.getElementById(`dsContent-${selectedDashboard}`);
   if (contentDiv) {
     contentDiv.classList.remove('hidden');
+  }
+}
+
+async function fetchStartEndWindowDate(dashboard) {
+  try {
+    const data = dashboardsDataGetter(dashboard).query;
+
+    if (
+      isValid(data.disease) &&
+      isValid(data.time_resolution) &&
+      isValid(data.adm_level)
+    ) {
+      const url = new URL("{% url 'get_predicts_start_end_window_date' %}", window.location.origin);
+      url.searchParams.append('dashboard', dashboard);
+      url.searchParams.append('disease', data.disease);
+      url.searchParams.append('time-resolution', data.time_resolution);
+      url.searchParams.append('adm-level', data.adm_level);
+      if (data.adm_1) url.searchParams.append('adm-1', data.adm_1);
+      if (data.adm_2) url.searchParams.append('adm-2', data.adm_2);
+
+      const response = await fetch(url);
+      const result = await response.json();
+
+      return result?.start_window_date && result?.end_window_date
+        ? [result.start_window_date, result.end_window_date]
+        : [];
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }
 
@@ -101,13 +140,168 @@ async function getBrowserCity() {
 <div id="dsContent" class="container shadow">
 {% for name, data in dashboards.items %}
   <div id="dsContent-{{name}}">
-  {{name}}
+    {% if name != "forecast_map" %}
+    <div id="chart-container-{{name}}"></div>
+    <div id="predict-ids-{{name}}"></div>
+    {% endif %}
   </div>
 {% endfor %}
+
 </div>
 
-
 <script>
+function isValid(value) {
+  return value !== null && value !== undefined;
+}
+
+async function fetchPredictIds(dashboard) {
+  try {
+    const data = dashboardsDataGetter(dashboard).query;
+
+    if (
+      isValid(data.disease) &&
+      isValid(data.time_resolution) &&
+      isValid(data.adm_level) &&
+      isValid(data.start_window_date) &&
+      isValid(data.end_window_date)
+    ) {
+      const url = new URL("{% url 'get_predict_ids' %}", window.location.origin);
+      url.searchParams.append('dashboard', dashboard);
+      url.searchParams.append('disease', data.disease);
+      url.searchParams.append('time-resolution', data.time_resolution);
+      url.searchParams.append('adm-level', data.adm_level);
+      if (data.adm_1) url.searchParams.append('adm-1', data.adm_1);
+      if (data.adm_2) url.searchParams.append('adm-2', data.adm_2);
+      url.searchParams.append('start-window-date', data.start_window_date);
+      url.searchParams.append('end-window-date', data.end_window_date);
+
+      console.log(url.toString());
+      const response = await fetch(url);
+      const result = await response.json();
+
+      return result.predicts || [];
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchPredictIds:", error);
+    return [];
+  }
+}
+
+async function fetchBaseLineChart(dashboard, title, width) {
+  try {
+    const data = dashboardsDataGetter(dashboard).query;
+
+    if (isValid(data.start_window_date) && isValid(data.end_window_date)) {
+      const url = new URL("{% url 'line_charts_base' %}", window.location.origin);
+      url.searchParams.append('start-window-date', data.start_window_date);
+      url.searchParams.append('end-window-date', data.end_window_date);
+      url.searchParams.append('width', width);
+      url.searchParams.append('title', title);
+
+      const response = await fetch(url);
+      const result = await response.json();
+
+      await vegaEmbed(`#chart-container-${dashboard}`, result);
+    } else {
+      console.warn("Invalid parameters for fetchBaseLineChart.");
+    }
+  } catch (error) {
+    console.error("fetchBaseLineChart:", error);
+  }
+}
+
+async function fetchDataChart(dashboard, width) {
+  try {
+    const data = dashboardsDataGetter(dashboard).query;
+
+    if (
+      isValid(data.disease) &&
+      isValid(data.adm_level) &&
+      isValid(data.start_window_date) &&
+      isValid(data.end_window_date)
+    ) {
+      const url = new URL("{% url 'line_charts_data' %}", window.location.origin);
+      url.searchParams.append('width', width);
+      url.searchParams.append('dashboard', dashboard);
+      url.searchParams.append('disease', data.disease);
+      url.searchParams.append('adm-level', data.adm_level);
+      if (data.adm_1) url.searchParams.append('adm-1', data.adm_1);
+      if (data.adm_2) url.searchParams.append('adm-2', data.adm_2);
+      url.searchParams.append('start-window-date', data.start_window_date);
+      url.searchParams.append('end-window-date', data.end_window_date);
+
+      const response = await fetch(url);
+      const result = await response.json();
+
+      await vegaEmbed(`#chart-container-${dashboard}`, result);
+    } else {
+      console.warn("Invalid parameters for fetchDataChart.");
+    }
+  } catch (error) {
+    console.error("fetchDataChart:", error);
+  }
+}
+
+async function fetchPredictsChart(dashboard, title, width) {
+  try {
+    const data = dashboardsDataGetter(dashboard).query;
+
+    if (
+      isValid(data.disease) &&
+      isValid(data.adm_level) &&
+      isValid(data.time_resolution) &&
+      isValid(data.start_window_date) &&
+      isValid(data.end_window_date)
+    ) {
+      const url = new URL("{% url 'line_charts_predicts' %}", window.location.origin);
+      url.searchParams.append('title', title);
+      url.searchParams.append('width', width);
+      url.searchParams.append('dashboard', dashboard);
+      url.searchParams.append('disease', data.disease);
+      url.searchParams.append('adm-level', data.adm_level);
+      url.searchParams.append('time-resolution', data.time_resolution);
+      if (data.adm_1) url.searchParams.append('adm-1', data.adm_1);
+      if (data.adm_2) url.searchParams.append('adm-2', data.adm_2);
+      url.searchParams.append('start-window-date', data.start_window_date);
+      url.searchParams.append('end-window-date', data.end_window_date);
+
+      const response = await fetch(url);
+      const result = await response.json();
+
+      await vegaEmbed(`#chart-container-${dashboard}`, result);
+    } else {
+      console.warn("Invalid parameters for fetchPredictsChart.");
+    }
+  } catch (error) {
+    console.error("fetchPredictsChart:", error);
+  }
+}
+
+
+function renderPredictIds(predictIds, dashboard) {
+  const predictIdsContainer = document.getElementById(`predict-ids-${dashboard}`);
+
+  if (predictIds.length > 0) {
+    predictIdsContainer.innerHTML = `<p>${predictIds.join(", ")}</p>`;
+  } else {
+    predictIdsContainer.innerHTML = '<p>No predictions found</p>';
+  }
+}
+
+async function updateDashboard(dashboard) {
+  const predictIds = await fetchPredictIds(dashboard);
+  renderPredictIds(predictIds, dashboard);
+
+  const width = 600;
+  const title = 'New cases';
+
+  await fetchBaseLineChart(dashboard, title, width);
+  await fetchDataChart(dashboard, width);
+  await fetchPredictsChart(dashboard, title, width);
+}
+
 const observer2 = new MutationObserver(function (mutationsList) {
   mutationsList.forEach(function (mutation) {
     if (mutation.attributeName === 'class') {
@@ -119,7 +313,20 @@ const observer2 = new MutationObserver(function (mutationsList) {
 document.addEventListener('DOMContentLoaded', function() {
   updateContentState();
   changeContent(dashboard);
+  updateDashboard(dashboard);
   observer2.observe(menu, { attributes: true });
+});
+
+["predictions", "sprint", "forecast_map"].forEach(dashboard => {
+  const dashboardEl = getDashboardEl(dashboard);
+  getAdm1MenuOptions(dashboard);
+  getAdm2MenuOptions(dashboard);
+
+  dashboardEl.addEventListener('change', () => {
+    getAdm1MenuOptions(dashboard);
+    getAdm2MenuOptions(dashboard);
+    updateDashboard(dashboard);
+  });
 });
 </script>
 

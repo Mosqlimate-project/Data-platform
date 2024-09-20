@@ -9,6 +9,10 @@ body {
   margin: 0px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .navbar {
   height: var(--navbar-height);
 }
@@ -55,7 +59,6 @@ footer, .footer {
   padding: 5px;
   box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
   z-index: 9990;
-  overflow-y: auto;
 }
 
 #menu::-webkit-scrollbar {
@@ -84,7 +87,6 @@ hr {
   font-size: 20px;
   flex-grow: 1;
   text-align: center;
-  overflow: hidden;
   white-space: nowrap;
   max-width: 0;
   opacity: 1;
@@ -146,7 +148,6 @@ hr {
 
 .options {
   max-height: 500px;
-  overflow: hidden;
   height: 0;
   transition: all 0.3s ease;
 }
@@ -187,8 +188,6 @@ hr {
 }
 
 .ds-container {
-  position: relative;
-  overflow: hidden;
   max-height: 0;
   transition: max-height 0.5s ease-in-out;
 }
@@ -203,9 +202,14 @@ hr {
   opacity: 0;
   max-height: 0;
   transform: translateY(-20px);
-  overflow: hidden;
   transition: max-height 0.2s ease-in-out, transform 0.2s ease-in-out 0.2s, opacity 0.2s ease-in-out 0.2s;
 }
+
+/* #test { */
+/*   position: absolute; */
+/*   bottom: 0; */
+/*   left: 150px; */
+/* } */
 
 [id^="ds1-"].active, [id^="ds2-"].active, [id^="ds3-"].active {
   opacity: 1;
@@ -255,13 +259,39 @@ hr {
 }
 
 .ds2-menu {
-  /* margin-left: calc(var(--menu-width-expanded) - 2.5px); */
   display: none;
   background-color: white;
   border: 1px solid #ccc;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 10px;
   z-index: 9991;
+  position: absolute;
+  bottom: 0;
+  max-height: 500px;
+  overflow-y: scroll;
+  left: calc(var(--menu-width-expanded) - 2.5px);
+  border-radius: 10px; 
+  color: #333; 
+}
+
+.ds2-menu::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.ds2-menu::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.ds2-menu::-webkit-scrollbar-thumb {
+  background: #6976B7;
+  border-radius: 12px;
+}
+
+.ds2-menu::-webkit-scrollbar-thumb:hover {
+  background: #6976B7;
+  border-radius: 12px;
 }
 
 .ds2-menu ul {
@@ -271,10 +301,32 @@ hr {
 }
 
 .ds2-menu ul li {
-  padding: 5px;
+  padding: 10px; 
   cursor: pointer;
+  border-radius: 5px; 
 }
 
 .ds2-menu ul li:hover {
-  background-color: #f0f0f0;
+  background-color: #C3E5D5;
+  color: #000; 
+}
+
+[id^="windowDatePicker-"] input:nth-of-type(2) {
+  margin-top: 5px;
+}
+
+.datepicker {
+  position: absolute;
+}
+
+.datepicker:nth-of-type(1) {
+  left: 200px !important;
+  top: unset !important;
+  bottom: 50px !important;
+}
+
+.datepicker:nth-of-type(2) {
+  left: 200px !important;
+  top: unset !important;
+  bottom: 0 !important;
 }
