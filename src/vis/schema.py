@@ -6,7 +6,7 @@ from main.schema import Schema
 
 
 class ResultsProbForecastSchema(Schema):
-    disease: Literal["dengue", "chikungunya", "zika"]
+    disease: Literal["dengue", "chik", "chikungunya", "zika"]
     date: date
     geocode: int
     lower_2_5: float

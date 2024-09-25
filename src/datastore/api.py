@@ -50,7 +50,7 @@ paginator.max_per_page = 300
 @csrf_exempt
 def get_infodengue(
     request,
-    disease: Literal["dengue", "zika", "chikungunya"],
+    disease: Literal["dengue", "zika", "chik", "chikungunya"],
     filters: HistoricoAlertaFilterSchema = Query(...),
     # fmt: off
     uf: Optional[Literal[
