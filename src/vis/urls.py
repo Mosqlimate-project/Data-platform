@@ -42,6 +42,11 @@ urlpatterns = [
         name="line_charts_predicts",
     ),
     path(
+        "get-predicts-score/",
+        views.get_predicts_score,
+        name="get_predicts_score",
+    ),
+    path(
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
         name="macro_forecast_map",

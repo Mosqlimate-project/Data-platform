@@ -425,6 +425,9 @@ function updateDs(option) {
 function ds2Menu(dashboard, admLevel, buttonId, options) {
   const button = document.getElementById(buttonId);
 
+  button.innerHTML = '';
+  button.disabled = false;
+
   const menu = document.createElement('div');
   menu.className = 'ds2-menu bg-dark text-white';
 
@@ -479,6 +482,8 @@ function populateDs2Menu(dashboard, admLevel, options) {
     return;
   }
 
+  selectButton.innerHTML = '';
+
   let existingMenu = selectButton.nextElementSibling;
   if (existingMenu && existingMenu.className === 'ds2-menu') {
     existingMenu.remove();
@@ -495,9 +500,15 @@ async function getAdm1MenuOptions(dashboard) {
   url.searchParams.append('dashboard', dashboard);
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
-  url.searchParams.append('adm-level', query.adm_level);
+  url.searchParams.append('adm-level', 1);
   if (query.start_window_date) url.searchParams.append('start-window-date', query.start_window_date);
   if (query.end_window_date) url.searchParams.append('end-window-date', query.end_window_date);
+  console.log(dashboard);
+  console.log(query.disease);
+  console.log(query.time_resolution);
+  console.log(query.adm_level);
+  console.log(query.start_window_date);
+  console.log(query.end_window_date);
 
   try {
     const response = await fetch(url);
@@ -506,6 +517,8 @@ async function getAdm1MenuOptions(dashboard) {
     }
 
     const responseData = await response.json();
+
+    console.log(responseData.options);
 
     if (responseData.options && responseData.options.length > 0) {
       populateDs2Menu(dashboard, 1, responseData.options);
@@ -555,6 +568,7 @@ async function getAdm2MenuOptions(dashboard) {
   url.searchParams.append('dashboard', dashboard);
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
+  url.searchParams.append('adm-level', admLevel);
   if (query.adm_1) url.searchParams.append('adm-1', query.adm_1);
 
   try {

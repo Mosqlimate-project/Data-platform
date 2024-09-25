@@ -6,7 +6,7 @@ import pandas as pd
 from django.db import models
 
 from .charts import watermark
-from main.utils import UFs
+from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from datastore.models import DengueGlobal, Sprint202425
 from registry.models import Prediction, PredictionDataRow
@@ -30,14 +30,19 @@ def hist_alerta_data(
         date_field = "data_iniSE"
         geocode_field = "municipio_geocodigo"
 
-    if int(adm_level) == 1:
+    if str(adm_level) == "1":
+        if str(adm_1).isdigit():
+            adm_1 = CODES_UF[int(adm_1)]
+
         geocodes = (
             DengueGlobal.objects.using("infodengue")
             .filter(uf=UFs[adm_1])
             .values_list("geocodigo", flat=True)
         )
-    if int(adm_level) == 2:
+    elif str(adm_level) == "2":
         geocodes = [int(adm_2)]
+    else:
+        raise ValueError("Incorrect adm_level value. Expecting: [1, 2]")
 
     data = (
         hist_alerta.filter(

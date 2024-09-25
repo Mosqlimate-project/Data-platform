@@ -2,8 +2,8 @@ import os
 import json
 import logging
 from pathlib import Path
-from typing import Union, Optional, Literal, List
-from itertools import cycle
+from typing import Union, Optional, Literal
+from itertools import cycle, chain
 from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
@@ -13,13 +13,14 @@ from datetime import date
 import pandas as pd
 import numpy as np
 from mosqlient.models.score import Scorer
+from mosqlient.registry import Prediction as Pred
 
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.db.models import CharField, functions, Sum, Max, Min
+from django.db.models import CharField, functions, Sum, Max, Min, QuerySet
 
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
@@ -29,11 +30,35 @@ from main.utils import UFs as UF_NAME
 from main.api import MUN_DATA
 from vis.dash.errors import VisualizationError
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
-from .dash.charts import line_charts_by_geocode
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
 from .utils import obj_to_dataframe
-from .dash.line_chart import base_chart, data_chart, predictions_chart
+from .dash.line_chart import (
+    base_chart,
+    data_chart,
+    predictions_chart,
+    hist_alerta_data,
+)
+
+
+def is_null(val) -> bool:
+    return str(val).upper() in ["", "NONE", "NULL", "UNDEFINED"]
+
+
+def check_adm_level(adm_level, adm_1, adm_2) -> JsonResponse | None:
+    if str(adm_level) == "1":
+        if is_null(adm_1):
+            return JsonResponse({"error": "adm_1 is required"}, status=422)
+        return None
+    elif str(adm_level) == "2":
+        if is_null(adm_2):
+            return JsonResponse({"error": "adm_2 is required"}, status=422)
+        return None
+    else:
+        return JsonResponse(
+            {"error": f"incorrect value for adm_level: {adm_level}"},
+            status=422,
+        )
 
 
 class DashboardView(View):
@@ -164,14 +189,17 @@ class DashboardView(View):
         end_date: Optional[date] = None,
         start_window_date: Optional[date] = None,
         end_window_date: Optional[date] = None,
-    ) -> List[int]:
+        score: str = "log_score",
+    ) -> QuerySet:
         data = PredictionDataRow.objects.all()
         data = data.filter(predict__model__sprint=sprint)
         data = data.filter(predict__model__disease=disease)
         data = data.filter(predict__model__time_resolution=time_resolution)
 
-        if adm_level:
+        if str(adm_level) in ["1", "2"]:
             data = data.filter(predict__model__ADM_level=adm_level)
+        else:
+            raise ValueError("Incorrect adm_level value. Expecting: [1, 2]")
 
         if adm_1:
             if isinstance(adm_1, str):
@@ -190,7 +218,51 @@ class DashboardView(View):
                 date__range=(start_window_date, end_window_date)
             )
 
-        return list(data.values_list("predict__id", flat=True).distinct())
+        print(data)
+        print(not data)
+        if (
+            data
+            and adm_level
+            and (adm_1 or adm_2)
+            and start_window_date
+            and end_window_date
+        ):
+            print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
+            hist_alerta = hist_alerta_data(
+                sprint=sprint,
+                disease=disease,
+                start_window_date=start_window_date,
+                end_window_date=end_window_date,
+                adm_level=adm_level,
+                adm_1=adm_1,
+                adm_2=adm_2,
+            )
+
+            hist_alerta.rename(columns={"target": "casos"}, inplace=True)
+
+            # scores = {}
+
+            for _id in data.values_list("predict__id", flat=True).distinct():
+                predict_data = data.filter(predict__id=_id)
+                df = pd.DataFrame.from_records(
+                    predict_data.values(*Prediction.fields),
+                    columns=Prediction.fields,
+                )
+                if df.empty:
+                    print(predict_data)
+                    print(_id)
+                else:
+                    print(f"{hist_alerta}" + "\n" + f"{df}")
+                    print(f"{start_window_date} - {end_window_date}")
+                    print(f"{min(df.date)} - {max(df.date)}")
+                    print(f"{min(hist_alerta.date)} - {max(hist_alerta.date)}")
+                # scores[_id] = pred.calculate_score(hist_alerta)
+
+            # prediction_ids = sorted(
+            #     prediction_ids, key=lambda _id: scores[_id][score]
+            # )
+
+        return data
 
     @staticmethod
     def parse_query_request(request) -> dict:
@@ -213,7 +285,7 @@ class DashboardView(View):
         query = {
             "disease": disease,
             "time_resolution": time_resolution,
-            "adm_level": int(adm_level),
+            "adm_level": adm_level,
             "adm_0": adm_0,
             "adm_1": adm_1,
             "adm_2": adm_2,
@@ -234,7 +306,7 @@ def get_predict_ids(request) -> JsonResponse:
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -259,7 +331,7 @@ def get_predicts_start_end_window_date(request) -> JsonResponse:
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -299,7 +371,7 @@ def get_adm_1_menu_options(request) -> JsonResponse:
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -321,6 +393,17 @@ def get_adm_1_menu_options(request) -> JsonResponse:
     for code in uf_codes:
         if code:
             options.append((CODES_UF[code], UF_NAME[CODES_UF[code]]))
+    print(
+        f"ADM 1 - {dashboard}"
+        + "\n\n\n"
+        + "_" * 80
+        + "\n\n\n"
+        + f"{query}"
+        + "\n\n\n"
+        + f"{options}"
+        + "\n\n\n"
+        + "_" * 80
+    )
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
@@ -329,7 +412,7 @@ def get_adm_2_menu_options(request) -> JsonResponse:
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
@@ -350,6 +433,17 @@ def get_adm_2_menu_options(request) -> JsonResponse:
     for geocode in geocodes:
         mun_names.append(MUN_DATA[str(geocode)]["municipio"])
     options = list(tuple(zip(geocodes, mun_names)))
+    print(
+        f"ADM 2 - {dashboard}"
+        + "\n\n\n"
+        + "_" * 80
+        + "\n\n\n"
+        + f"{query}"
+        + "\n\n\n"
+        + f"{options}"
+        + "\n\n\n"
+        + "_" * 80
+    )
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
@@ -373,11 +467,18 @@ def line_chart_data_view(request):
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
         sprint = True
+
+    invalid_adm_level = check_adm_level(
+        query["adm_level"], query["adm_1"], query["adm_2"]
+    )
+
+    if invalid_adm_level:
+        return invalid_adm_level
 
     chart = data_chart(
         width=int(width),
@@ -401,11 +502,18 @@ def line_chart_predicts_view(request):
     query = DashboardView.parse_query_request(request)
 
     if dashboard == "forecast_map":
-        return JsonResponse({})
+        return JsonResponse({"message": "not applied"}, status=204)
     if dashboard == "predictions":
         sprint = False
     if dashboard == "sprint":
         sprint = True
+
+    invalid_adm_level = check_adm_level(
+        query["adm_level"], query["adm_1"], query["adm_2"]
+    )
+
+    if invalid_adm_level:
+        return invalid_adm_level
 
     colors = [
         "#A6BCD4",
@@ -433,7 +541,47 @@ def line_chart_predicts_view(request):
         end_window_date=query["end_window_date"],
     )
 
-    return JsonResponse(chart.to_dict(), safe=False)
+    return JsonResponse(chart.to_dict(), safe=False, status=200)
+
+
+def get_predicts_score(request) -> JsonResponse:
+    predict_ids = request.GET.getlist("predict")
+    dashboard = request.GET.get("dashboard")
+    query = DashboardView.parse_query_request(request)
+
+    if dashboard == "forecast_map":
+        return JsonResponse({"message": "not applied"}, status=204)
+    if dashboard == "predictions":
+        sprint = False
+    if dashboard == "sprint":
+        sprint = True
+
+    predictions: list[Pred] = list(
+        chain(*[Pred.get(id=_id) for _id in predict_ids])
+    )
+
+    invalid_adm_level = check_adm_level(
+        query["adm_level"], query["adm_1"], query["adm_2"]
+    )
+
+    if invalid_adm_level:
+        return invalid_adm_level
+
+    data = hist_alerta_data(
+        sprint=sprint,
+        disease=query["disease"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+    )
+
+    scores = {}
+    for prediction in predictions:
+        scores[prediction.id] = prediction.calculate_score(data)
+
+    return JsonResponse(scores)
 
 
 class DashboardForecastMacroView(View):
@@ -463,49 +611,6 @@ class DashboardForecastMacroView(View):
                 "geocode", "name", "state__uf"
             ).order_by("geocode")
         )
-
-        return render(request, self.template_name, context)
-
-
-class LineChartsView(View):
-    template_name = "vis/charts/line-charts.html"
-
-    @xframe_options_exempt
-    def get(self, request):
-        context = {}
-
-        prediction_ids = request.GET.getlist("predict")
-
-        diseases: set[str] = set()
-        for id in prediction_ids:
-            predict = get_object_or_404(Prediction, pk=id)
-            diseases.add(predict.model.disease)
-
-        if len(diseases) > 1:
-            raise VisualizationError(
-                "Multiple diseases were selected to be visualized"
-            )
-
-        if not prediction_ids:
-            # Show "Please select Predictions"
-            return render(request, "vis/errors/no-prediction.html", context)
-
-        try:
-            line_chart = line_charts_by_geocode(
-                title="Forecast of dengue new cases",
-                predictions_ids=list(set(prediction_ids)),
-                disease=diseases.pop(),
-                width=450,
-                request=request,
-            )
-            line_chart = line_chart.to_html().replace(
-                "</head>",
-                "<style>#vis.vega-embed {width: 100%;}</style></head>",
-            )
-            context["line_chart"] = line_chart
-        except Exception as e:
-            # TODO: ADD HERE ERRORING PAGES TO BE RETURNED
-            context["error"] = e
 
         return render(request, self.template_name, context)
 
