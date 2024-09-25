@@ -15,6 +15,8 @@ import numpy as np
 from mosqlient.models.score import Scorer
 from mosqlient.registry import Prediction as Pred
 
+# from loguru import logger
+
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
@@ -25,7 +27,7 @@ from django.db.models import CharField, functions, Sum, Max, Min, QuerySet
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from datastore.models import DengueGlobal, Sprint202425
-from main.utils import CODES_UF, UF_CODES
+from main.utils import CODES_UF
 from main.utils import UFs as UF_NAME
 from main.api import MUN_DATA
 from vis.dash.errors import VisualizationError
@@ -38,6 +40,7 @@ from .dash.line_chart import (
     data_chart,
     predictions_chart,
     hist_alerta_data,
+    calculate_score,
 )
 
 
@@ -190,7 +193,8 @@ class DashboardView(View):
         start_window_date: Optional[date] = None,
         end_window_date: Optional[date] = None,
         score: str = "log_score",
-    ) -> QuerySet:
+        confidence_level: float = 0.9,
+    ) -> QuerySet[PredictionDataRow]:
         data = PredictionDataRow.objects.all()
         data = data.filter(predict__model__sprint=sprint)
         data = data.filter(predict__model__disease=disease)
@@ -202,24 +206,22 @@ class DashboardView(View):
             raise ValueError("Incorrect adm_level value. Expecting: [1, 2]")
 
         if adm_1:
-            if isinstance(adm_1, str):
-                adm_1 = UF_CODES[adm_1.upper()]
+            if str(adm_1).isdigit():
+                adm_1 = CODES_UF[int(adm_1)]
 
-            data = data.filter(predict__adm_1_geocode=adm_1)
+            data = data.filter(adm_1=adm_1)
 
         if adm_2:
-            data = data.filter(predict__adm_2_geocode=adm_2)
+            data = data.filter(adm_2=int(adm_2))
 
-        if start_date and end_date:
-            data = data.filter(date__range=(start_date, end_date))
+        # if start_date and end_date:
+        #     data = data.filter(date__range=(start_date, end_date))
 
         if start_window_date and end_window_date:
             data = data.filter(
                 date__range=(start_window_date, end_window_date)
             )
 
-        print(data)
-        print(not data)
         if (
             data
             and adm_level
@@ -227,7 +229,6 @@ class DashboardView(View):
             and start_window_date
             and end_window_date
         ):
-            print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
             hist_alerta = hist_alerta_data(
                 sprint=sprint,
                 disease=disease,
@@ -240,27 +241,11 @@ class DashboardView(View):
 
             hist_alerta.rename(columns={"target": "casos"}, inplace=True)
 
-            # scores = {}
-
-            for _id in data.values_list("predict__id", flat=True).distinct():
-                predict_data = data.filter(predict__id=_id)
-                df = pd.DataFrame.from_records(
-                    predict_data.values(*Prediction.fields),
-                    columns=Prediction.fields,
-                )
-                if df.empty:
-                    print(predict_data)
-                    print(_id)
-                else:
-                    print(f"{hist_alerta}" + "\n" + f"{df}")
-                    print(f"{start_window_date} - {end_window_date}")
-                    print(f"{min(df.date)} - {max(df.date)}")
-                    print(f"{min(hist_alerta.date)} - {max(hist_alerta.date)}")
-                # scores[_id] = pred.calculate_score(hist_alerta)
-
-            # prediction_ids = sorted(
-            #     prediction_ids, key=lambda _id: scores[_id][score]
-            # )
+            data = calculate_score(
+                queryset=data,
+                data=hist_alerta,
+                confidence_level=confidence_level,
+            ).order_by(score)
 
         return data
 
@@ -296,8 +281,6 @@ class DashboardView(View):
             "end_window_date": end_window_date,
         }
 
-        print(request)
-        print(query)
         return query
 
 
@@ -312,7 +295,7 @@ def get_predict_ids(request) -> JsonResponse:
     if dashboard == "sprint":
         sprint = True
 
-    ids = DashboardView.filter_predictions(
+    data = DashboardView.filter_predictions(
         sprint=sprint,
         disease=query["disease"],
         time_resolution=query["time_resolution"],
@@ -323,7 +306,13 @@ def get_predict_ids(request) -> JsonResponse:
         end_window_date=query["end_window_date"],
     )
 
-    return JsonResponse({"predicts": ids})
+    return JsonResponse(
+        {
+            "predicts": list(
+                data.values_list("predict__id", flat=True).distinct()
+            )
+        }
+    )
 
 
 def get_predicts_start_end_window_date(request) -> JsonResponse:
@@ -337,18 +326,14 @@ def get_predicts_start_end_window_date(request) -> JsonResponse:
     if dashboard == "sprint":
         sprint = True
 
-    ids = DashboardView.filter_predictions(
+    data = DashboardView.filter_predictions(
         sprint=sprint,
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=query["adm_level"],
         adm_1=query["adm_1"],
         adm_2=query["adm_2"],
-    )
-
-    data = PredictionDataRow.objects.filter(predict__id__in=ids).aggregate(
-        start_window_date=Min("date"), end_window_date=Max("date")
-    )
+    ).aggregate(start_window_date=Min("date"), end_window_date=Max("date"))
 
     return JsonResponse(
         {
@@ -377,7 +362,7 @@ def get_adm_1_menu_options(request) -> JsonResponse:
     if dashboard == "sprint":
         sprint = True
 
-    ids = DashboardView.filter_predictions(
+    data = DashboardView.filter_predictions(
         sprint=sprint,
         disease=query["disease"],
         time_resolution=query["time_resolution"],
@@ -386,24 +371,11 @@ def get_adm_1_menu_options(request) -> JsonResponse:
         end_window_date=query["end_window_date"],
     )
 
-    data = Prediction.objects.filter(id__in=ids)
-
-    uf_codes = list(data.values_list("adm_1_geocode", flat=True).distinct())
+    ufs = list(data.values_list("adm_1", flat=True).distinct())
     options = []
-    for code in uf_codes:
-        if code:
-            options.append((CODES_UF[code], UF_NAME[CODES_UF[code]]))
-    print(
-        f"ADM 1 - {dashboard}"
-        + "\n\n\n"
-        + "_" * 80
-        + "\n\n\n"
-        + f"{query}"
-        + "\n\n\n"
-        + f"{options}"
-        + "\n\n\n"
-        + "_" * 80
-    )
+    for uf in ufs:
+        if uf:
+            options.append((uf, UF_NAME[uf]))
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
@@ -418,7 +390,7 @@ def get_adm_2_menu_options(request) -> JsonResponse:
     if dashboard == "sprint":
         sprint = True
 
-    ids = DashboardView.filter_predictions(
+    data = DashboardView.filter_predictions(
         sprint=sprint,
         disease=query["disease"],
         time_resolution=query["time_resolution"],
@@ -426,24 +398,11 @@ def get_adm_2_menu_options(request) -> JsonResponse:
         adm_1=query["adm_1"],
     )
 
-    data = Prediction.objects.filter(id__in=ids)
-
-    geocodes = list(data.values_list("adm_2_geocode", flat=True).distinct())
+    geocodes = list(data.values_list("adm_2", flat=True).distinct())
     mun_names = []
     for geocode in geocodes:
         mun_names.append(MUN_DATA[str(geocode)]["municipio"])
     options = list(tuple(zip(geocodes, mun_names)))
-    print(
-        f"ADM 2 - {dashboard}"
-        + "\n\n\n"
-        + "_" * 80
-        + "\n\n\n"
-        + f"{query}"
-        + "\n\n\n"
-        + f"{options}"
-        + "\n\n\n"
-        + "_" * 80
-    )
     return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 

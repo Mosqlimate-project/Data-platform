@@ -25,7 +25,6 @@ urlpatterns = [
         views.get_predicts_start_end_window_date,
         name="get_predicts_start_end_window_date",
     ),
-    path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
     path(
         "line-charts-base/",
         views.line_chart_base_view,

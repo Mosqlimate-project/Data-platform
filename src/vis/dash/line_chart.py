@@ -3,13 +3,110 @@ from typing import Literal, List, Optional
 
 import altair as alt
 import pandas as pd
+import numpy as np
+import scipy.stats as stats
 from django.db import models
+from scoringrules import crps_normal, logs_normal
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from loguru import logger
 
 from .charts import watermark
 from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from datastore.models import DengueGlobal, Sprint202425
 from registry.models import Prediction, PredictionDataRow
+
+
+def calculate_score(
+    queryset: models.QuerySet[PredictionDataRow],
+    data: pd.DataFrame,
+    confidence_level: float = 0.9,
+) -> models.QuerySet[PredictionDataRow]:
+    data_df = data[["date", "casos"]]
+    data_df.date = pd.to_datetime(data_df.date)
+
+    z_value = stats.norm.ppf((1 + confidence_level) / 2)
+
+    def dt_range(df):
+        return (df.date >= min_date) & (df.date <= max_date)
+
+    logger.info(
+        list(queryset.values_list("predict__id", flat=True).distinct())
+    )
+    for _id in queryset.values_list("predict__id", flat=True).distinct():
+        pred_data = queryset.filter(predict__id=int(_id))
+
+        pred_df = pd.DataFrame.from_records(
+            pred_data.values(*Prediction.fields),
+            columns=Prediction.fields,
+        )
+
+        if pred_df.empty:
+            logger.warning(
+                f"[LINE-CHART]: not data found for Prediction '{_id}'"
+            )
+            continue
+
+        pred_df = pred_df.sort_values(by="date")
+        pred_df.date = pd.to_datetime(pred_df.date)
+
+        min_date = max(min(data_df.date), min(pred_df.date))
+        max_date = min(max(data_df.date), max(pred_df.date))
+
+        _data_df = data_df.loc[dt_range(data_df)].reset_index(drop=True)
+        _pred_df = pred_df.loc[dt_range(pred_df)].reset_index(drop=True)
+
+        if _data_df.empty or _pred_df.empty:
+            logger.warning(
+                "[LINE-CHART]: couldn't calculate score for Prediction "
+                + f"'{_id}'. Ignoring"
+            )
+            continue
+
+        mae = mean_absolute_error(_data_df.casos, _pred_df.pred)
+        mse = mean_squared_error(_data_df.casos, _pred_df.pred)
+
+        crps = np.mean(
+            crps_normal(
+                _data_df.casos,
+                _pred_df.pred,
+                (_pred_df.upper - _pred_df.lower) / (2 * z_value),
+            )
+        )
+
+        log_score = logs_normal(
+            _data_df.casos,
+            _pred_df.pred,
+            (_pred_df.upper - _pred_df.lower) / (2 * z_value),
+            negative=False,
+        )
+
+        log_score_mean = np.mean(
+            np.maximum(log_score, np.repeat(-100, len(log_score)))
+        )
+
+        alpha = 1 - confidence_level
+        upper_bound = _pred_df.upper.values
+        lower_bound = _pred_df.lower.values
+
+        penalty = (
+            2 / alpha * np.maximum(0, lower_bound - _data_df.casos.values)
+        ) + (2 / alpha * np.maximum(0, _data_df.casos.values - upper_bound))
+        interval_score = np.mean((upper_bound - lower_bound) + penalty)
+
+        queryset = queryset.filter(predict__id=_id).annotate(
+            mae=models.Value(mae, output_field=models.FloatField()),
+            mse=models.Value(mse, output_field=models.FloatField()),
+            crps=models.Value(crps, output_field=models.FloatField()),
+            log_score=models.Value(
+                log_score_mean, output_field=models.FloatField()
+            ),
+            interval_score=models.Value(
+                interval_score, output_field=models.FloatField()
+            ),
+        )
+
+    return queryset
 
 
 def hist_alerta_data(

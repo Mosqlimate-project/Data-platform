@@ -47,6 +47,7 @@ epiweeks = "^2.3.0"
 duckdb = "^0.10.0"
 dask = {extras = ["dataframe"], version = "^2024.7.0"}
 mosqlient = { git = "https://github.com/luabida/mosqlimate-client", branch = "add-prediction-score" }
+loguru = "^0.7.2"
 
 
 [tool.poetry.group.pre-commit.dependencies]
