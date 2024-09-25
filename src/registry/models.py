@@ -82,7 +82,7 @@ class Tag(models.Model):
 
     @staticmethod
     def get_tag_id_by_disease(
-        disease: Literal["dengue", "zika", "chik"]
+        disease: Literal["dengue", "zika", "chikungunya"]
     ) -> int:
         disease = "chikungunya" if disease == "chik" else disease
         try:

@@ -86,9 +86,6 @@ class DashboardView(View):
                 )
                 selected_prediction_ids.add(prediction.id)
 
-        if context["selectedDisease"] == "chikungunya":
-            context["selectedDisease"] = "chik"
-
         context["selectedPredictions"] = list(selected_prediction_ids)
 
         models = Model.objects.filter(sprint=False)
@@ -237,9 +234,6 @@ class DashboardSprintView(View):
                     "0" if not prediction.model.sprint else "1"
                 )
                 selected_prediction_ids.add(prediction.id)
-
-        if context["selectedDisease"] == "chikungunya":
-            context["selectedDisease"] = "chik"
 
         context["selectedPredictions"] = list(selected_prediction_ids)
 

@@ -39,7 +39,7 @@ class UFs(models.TextChoices):
 
 class Diseases(models.TextChoices):
     DENGUE = "dengue", "Dengue"
-    CHIK = "chik", "Chigungunya"
+    CHIKUNGUNYA = "chikungunya", "Chigungunya"
     ZIKA = "zika", "Zika"
 
 

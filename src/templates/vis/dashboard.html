@@ -38,10 +38,10 @@
             class="form-check-input" 
             type="radio" 
             name="diseaseRadio" 
-            id="chik"
+            id="chikungunya"
             {% if "chikungunya" not in diseases %}disabled{% endif %}
             >
-            <label class="form-check-label text-white" for="chik">Chikungunya</label>
+            <label class="form-check-label text-white" for="chikungunya">Chikungunya</label>
           </div>
 
           <hr style="color:white;">
@@ -320,7 +320,7 @@
       const DISEASES = {
         "dengue": "01",
         "zika": "02",
-        "chik": "03"
+        "chikungunya": "03"
       };
 
       const TIME_RESOLUTIONS = {
@@ -528,8 +528,8 @@
               selectedDisease = "zika";
               $("#zika").prop("checked", true);
             } else if (prediction.startsWith("03")) {
-              selectedDisease = "chik";
-              $("#chik").prop("checked", true);
+              selectedDisease = "chikungunya";
+              $("#chikungunya").prop("checked", true);
             };
 
             if (prediction.charAt(2) === "D") {
@@ -612,7 +612,7 @@
         $("#uf-geocode").val(selectedGeocode).trigger("change");
         $("#uf-geocode").selectpicker('refresh');
 
-        $("#dengue, #zika, #chik").prop("checked", false);
+        $("#dengue, #zika, #chikungunya").prop("checked", false);
 
         $("#day, #week, #month, #year").prop("checked", false);
 
