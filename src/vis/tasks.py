@@ -47,7 +47,7 @@ def update_total_cases_task():
     """
     Updates TotalCases for the current year
     """
-    diseases = ["dengue", "chik", "zika"]
+    diseases = ["dengue", "chikungunya", "zika"]
 
     for disease in diseases:
         for uf in uf_ibge_mapping:
@@ -59,7 +59,7 @@ def update_total_cases_100k_hab_task():
     """
     Updates TotalCases100kHab for the current year
     """
-    diseases = ["dengue", "chik", "zika"]
+    diseases = ["dengue", "chikungunya", "zika"]
 
     for disease in diseases:
         for uf in uf_ibge_mapping:
@@ -77,7 +77,7 @@ def populate_total_cases_task(t100k_hab: bool, year: Optional[int] = None):
                 "populate_total_cases_task reached its year limit"
             )
 
-    diseases = ["dengue", "chik", "zika"]
+    diseases = ["dengue", "chikungunya", "zika"]
 
     for disease in diseases:
         for uf in uf_ibge_mapping:

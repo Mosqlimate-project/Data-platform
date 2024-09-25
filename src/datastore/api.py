@@ -50,7 +50,7 @@ paginator.max_per_page = 300
 @csrf_exempt
 def get_infodengue(
     request,
-    disease: Literal["dengue", "zika", "chik"],
+    disease: Literal["dengue", "zika", "chikungunya"],
     filters: HistoricoAlertaFilterSchema = Query(...),
     # fmt: off
     uf: Optional[Literal[
@@ -72,7 +72,7 @@ def get_infodengue(
             data = HistoricoAlertaZika.objects.using("infodengue").all()
         else:
             return 404, {
-                "message": "Unknown disease. Options: dengue, zika, chik"
+                "message": "Unknown disease. Options: dengue, zika, chikungunya"
             }
     except OperationalError:
         return 500, {"message": "Server error. Please contact the moderation"}
@@ -176,7 +176,7 @@ def get_contaovos(request, key: str, page: int):
 def get_episcanner(
     request,
     # fmt: off
-    disease: Literal["dengue", "zika", "chik"],
+    disease: Literal["dengue", "zika", "chikungunya"],
     uf: Literal[
         "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
         "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
@@ -201,6 +201,9 @@ def get_episcanner(
         return 500, {
             "message": "Internal error. Please contact the moderation"
         }
+
+    if disease == "chikungunya":
+        disease = "chik"
 
     sql = f"SELECT * FROM '{uf}' WHERE disease = '{disease}' AND year = {year}"
 

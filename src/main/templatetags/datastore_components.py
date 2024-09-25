@@ -11,7 +11,7 @@ def infodengue():
     diseases = [
         ("dengue", "Dengue"),
         ("zika", "Zika"),
-        ("chik", "Chikungunya"),
+        ("chikungunya", "Chikungunya"),
     ]
 
     context = {"diseases": diseases, "UFs": UFs.items()}
@@ -36,7 +36,7 @@ def episcanner():
     diseases = [
         ("dengue", "Dengue"),
         ("zika", "Zika"),
-        ("chik", "Chikungunya"),
+        ("chikungunya", "Chikungunya"),
     ]
 
     context = {

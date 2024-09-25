@@ -81,9 +81,14 @@ uidkey = UidKeyAuth()
 )
 @csrf_exempt
 def post_results_prob_forecast(request, payload: ResultsProbForecastSchema):
-    if payload.disease not in ["dengue", "zika", "chik"]:
+    if payload.disease == "chik":
+        payload.disease = "chikungunya"
+
+    if payload.disease not in ["dengue", "zika", "chikungunya"]:
         return 422, {
-            "message": "Incorrect disease, options: ['dengue', 'zika', 'chik']"
+            "message": (
+                "Incorrect disease, options: ['dengue', 'zika', 'chikungunya']"
+            )
         }
 
     try:

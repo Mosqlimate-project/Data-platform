@@ -19,7 +19,7 @@ code_to_state = {v: k for k, v in UF_CODES.items()}
 
 
 def macro_forecast_map_table(
-    disease: Literal["dengue", "zika", "chik"],
+    disease: Literal["dengue", "zika", "chikungunya"],
     date: datetime.date,
     request: HttpRequest,
     macroregion: Optional[Literal[1, 2, 3, 4, 5]] = None,
@@ -40,9 +40,9 @@ def macro_forecast_map_table(
     height: int = 350,
     table_width: int = int(450 * 0.25),
 ):
-    if disease not in ["dengue", "zika", "chik"]:
+    if disease not in ["dengue", "zika", "chikungunya"]:
         raise VisualizationError(
-            "diseases options: ['dengue', 'zika', 'chik']"
+            "diseases options: ['dengue', 'zika', 'chikungunya']"
         )
 
     if not isinstance(date, datetime.date):

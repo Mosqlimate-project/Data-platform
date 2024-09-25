@@ -13,7 +13,7 @@ def vis_echarts(context):
     default_uf = "RJ"
     default_disease = "dengue"
 
-    disease_name = ["dengue", "chik", "zika"]
+    disease_name = ["dengue", "chikungunya", "zika"]
 
     br_info_data = {}
 
