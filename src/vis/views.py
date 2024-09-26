@@ -250,10 +250,19 @@ class DashboardView(View):
         return data
 
     @staticmethod
-    def parse_query_request(request) -> dict:
-        disease = request.GET.get("disease")
-        time_resolution = request.GET.get("time-resolution")
-        adm_level = request.GET.get("adm-level")
+    def parse_query_request(
+        request,
+        required: list[str] = [
+            "dashboard",
+            "disease",
+            "time_resolution",
+            "adm_level",
+        ],
+    ) -> dict:
+        dashboard = request.GET.get("dashboard", None)
+        disease = request.GET.get("disease", None)
+        time_resolution = request.GET.get("time-resolution", None)
+        adm_level = request.GET.get("adm-level", None)
         adm_0 = request.GET.get("adm-0", "BRA")
         adm_1 = request.GET.get("adm-1", None)
         adm_2 = request.GET.get("adm-2", None)
@@ -267,7 +276,16 @@ class DashboardView(View):
         dates = [date.fromisoformat(d) if d else None for d in dates]
         start_date, end_date, start_window_date, end_window_date = dates
 
+        if dashboard == "predictions":
+            sprint = False
+        elif dashboard == "sprint":
+            sprint = True
+        else:
+            sprint = None
+
         query = {
+            "dashboard": dashboard,
+            "sprint": sprint,
             "disease": disease,
             "time_resolution": time_resolution,
             "adm_level": adm_level,
@@ -281,22 +299,20 @@ class DashboardView(View):
             "end_window_date": end_window_date,
         }
 
+        for field in required:
+            if not query[field]:
+                raise ValueError(f"'{field}' value is required")
+
         return query
 
 
 def get_predict_ids(request) -> JsonResponse:
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request, required=["dashboard", "disease"]
+    )
 
     data = DashboardView.filter_predictions(
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=query["adm_level"],
@@ -316,18 +332,13 @@ def get_predict_ids(request) -> JsonResponse:
 
 
 def get_predicts_start_end_window_date(request) -> JsonResponse:
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request,
+        required=["dashboard", "disease", "time_resolution", "adm_level"],
+    )
 
     data = DashboardView.filter_predictions(
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=query["adm_level"],
@@ -352,23 +363,21 @@ def get_predicts_start_end_window_date(request) -> JsonResponse:
 
 
 def get_adm_1_menu_options(request) -> JsonResponse:
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request,
+        required=[
+            "dashboard",
+            "disease",
+            "time_resolution",
+            "adm_level",
+        ],
+    )
 
     data = DashboardView.filter_predictions(
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=query["adm_level"],
-        start_window_date=query["start_window_date"],
-        end_window_date=query["end_window_date"],
     )
 
     ufs = list(data.values_list("adm_1", flat=True).distinct())
@@ -380,18 +389,18 @@ def get_adm_1_menu_options(request) -> JsonResponse:
 
 
 def get_adm_2_menu_options(request) -> JsonResponse:
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request,
+        required=[
+            "dashboard",
+            "disease",
+            "time_resolution",
+            "adm_1",
+        ],
+    )
 
     data = DashboardView.filter_predictions(
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=2,
@@ -409,7 +418,9 @@ def get_adm_2_menu_options(request) -> JsonResponse:
 def line_chart_base_view(request):
     width = request.GET.get("width", 450)
     title = request.GET.get("title")
-    query = DashboardView.parse_query_request(request)
+    query = DashboardView.parse_query_request(
+        request, required=["start_window_date", "end_window_date"]
+    )
 
     chart = base_chart(
         start_window_date=query["start_window_date"],
@@ -422,15 +433,16 @@ def line_chart_base_view(request):
 
 def line_chart_data_view(request):
     width = request.GET.get("width", 450)
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request,
+        required=[
+            "dashboard",
+            "disease",
+            "adm_level",
+            "start_window_date",
+            "end_window_date",
+        ],
+    )
 
     invalid_adm_level = check_adm_level(
         query["adm_level"], query["adm_1"], query["adm_2"]
@@ -441,7 +453,7 @@ def line_chart_data_view(request):
 
     chart = data_chart(
         width=int(width),
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         adm_level=query["adm_level"],
         adm_1=query["adm_1"],
@@ -457,15 +469,17 @@ def line_chart_predicts_view(request):
     title = request.GET.get("title")
     colors = request.GET.getlist("colors")
     width = request.GET.get("width", 450)
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
+    query = DashboardView.parse_query_request(
+        request,
+        required=[
+            "dashboard",
+            "disease",
+            "adm_level",
+            "time_resolution",
+            "start_window_date",
+            "end_window_date",
+        ],
+    )
 
     invalid_adm_level = check_adm_level(
         query["adm_level"], query["adm_1"], query["adm_2"]
@@ -490,7 +504,7 @@ def line_chart_predicts_view(request):
         title=title,
         colors=colors,
         width=int(width),
-        sprint=sprint,
+        sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
         adm_level=query["adm_level"],

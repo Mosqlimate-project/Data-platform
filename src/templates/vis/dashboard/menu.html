@@ -501,14 +501,6 @@ async function getAdm1MenuOptions(dashboard) {
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
   url.searchParams.append('adm-level', 1);
-  if (query.start_window_date) url.searchParams.append('start-window-date', query.start_window_date);
-  if (query.end_window_date) url.searchParams.append('end-window-date', query.end_window_date);
-  console.log(dashboard);
-  console.log(query.disease);
-  console.log(query.time_resolution);
-  console.log(query.adm_level);
-  console.log(query.start_window_date);
-  console.log(query.end_window_date);
 
   try {
     const response = await fetch(url);
@@ -569,7 +561,13 @@ async function getAdm2MenuOptions(dashboard) {
   url.searchParams.append('disease', query.disease);
   url.searchParams.append('time-resolution', query.time_resolution);
   url.searchParams.append('adm-level', admLevel);
-  if (query.adm_1) url.searchParams.append('adm-1', query.adm_1);
+  url.searchParams.append('adm-1', query.adm_1);
+
+  if (query.adm_1 === null || query.adm_1 === undefined) {
+    console.error("adm-1 is required");
+    populateDs2Menu(dashboard, admLevel, []);
+    return;
+  }
 
   try {
     const response = await fetch(url);

@@ -30,22 +30,10 @@ def calculate_score(
     def dt_range(df):
         return (df.date >= min_date) & (df.date <= max_date)
 
-    logger.info(
-        list(queryset.values_list("predict__id", flat=True).distinct())
-    )
-    for _id in queryset.values_list("predict__id", flat=True).distinct():
-        pred_data = queryset.filter(predict__id=int(_id))
+    scores = {}
 
-        pred_df = pd.DataFrame.from_records(
-            pred_data.values(*Prediction.fields),
-            columns=Prediction.fields,
-        )
-
-        if pred_df.empty:
-            logger.warning(
-                f"[LINE-CHART]: not data found for Prediction '{_id}'"
-            )
-            continue
+    for _id in queryset.values_list("predict_id", flat=True).distinct():
+        pred_df = Prediction.objects.get(pk=_id).to_dataframe()
 
         pred_df = pred_df.sort_values(by="date")
         pred_df.date = pd.to_datetime(pred_df.date)
@@ -94,17 +82,85 @@ def calculate_score(
         ) + (2 / alpha * np.maximum(0, _data_df.casos.values - upper_bound))
         interval_score = np.mean((upper_bound - lower_bound) + penalty)
 
-        queryset = queryset.filter(predict__id=_id).annotate(
-            mae=models.Value(mae, output_field=models.FloatField()),
-            mse=models.Value(mse, output_field=models.FloatField()),
-            crps=models.Value(crps, output_field=models.FloatField()),
-            log_score=models.Value(
-                log_score_mean, output_field=models.FloatField()
-            ),
-            interval_score=models.Value(
-                interval_score, output_field=models.FloatField()
-            ),
+        scores[_id] = dict(
+            mae=mae,
+            mse=mse,
+            crps=crps,
+            log_score=log_score_mean,
+            interval_score=interval_score,
         )
+
+    mae_c, mse_c, crps_c, log_score_c, interval_score_c = [], [], [], [], []
+
+    for _id, score in scores.items():
+        mae_c.append(
+            models.When(
+                predict_id=_id,
+                then=models.Value(
+                    score["mae"], output_field=models.FloatField()
+                ),
+            )
+        )
+        mse_c.append(
+            models.When(
+                predict_id=_id,
+                then=models.Value(
+                    score["mse"], output_field=models.FloatField()
+                ),
+            )
+        )
+        crps_c.append(
+            models.When(
+                predict_id=_id,
+                then=models.Value(
+                    score["crps"], output_field=models.FloatField()
+                ),
+            )
+        )
+        log_score_c.append(
+            models.When(
+                predict_id=_id,
+                then=models.Value(
+                    score["log_score"], output_field=models.FloatField()
+                ),
+            )
+        )
+        interval_score_c.append(
+            models.When(
+                predict_id=_id,
+                then=models.Value(
+                    score["interval_score"], output_field=models.FloatField()
+                ),
+            )
+        )
+
+    queryset = queryset.annotate(
+        mae=models.Case(
+            *mae_c,
+            default=models.Value(None, output_field=models.FloatField()),
+            output_field=models.FloatField(),
+        ),
+        mse=models.Case(
+            *mse_c,
+            default=models.Value(None, output_field=models.FloatField()),
+            output_field=models.FloatField(),
+        ),
+        crps=models.Case(
+            *crps_c,
+            default=models.Value(None, output_field=models.FloatField()),
+            output_field=models.FloatField(),
+        ),
+        log_score=models.Case(
+            *log_score_c,
+            default=models.Value(None, output_field=models.FloatField()),
+            output_field=models.FloatField(),
+        ),
+        interval_score=models.Case(
+            *interval_score_c,
+            default=models.Value(None, output_field=models.FloatField()),
+            output_field=models.FloatField(),
+        ),
+    )
 
     return queryset
 
