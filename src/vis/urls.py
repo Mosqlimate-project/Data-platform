@@ -41,11 +41,6 @@ urlpatterns = [
         name="line_charts_predicts",
     ),
     path(
-        "get-predicts-score/",
-        views.get_predicts_score,
-        name="get_predicts_score",
-    ),
-    path(
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
         name="macro_forecast_map",
@@ -54,11 +49,6 @@ urlpatterns = [
         "predict-table/",
         views.PredictTableView.as_view(),
         name="predict_table",
-    ),
-    path(
-        "predictions-score/",
-        views.FetchScoreView.as_view(),
-        name="predictions_score",
     ),
     path(
         "get-model-item/<int:model_id>/",

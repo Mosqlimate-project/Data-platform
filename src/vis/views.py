@@ -1,19 +1,12 @@
 import os
 import json
-import logging
 from pathlib import Path
 from typing import Union, Optional, Literal
-from itertools import cycle, chain
+from itertools import cycle
 from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
-from datetime import datetime as dt
 from datetime import date
-
-import pandas as pd
-import numpy as np
-from mosqlient.models.score import Scorer
-from mosqlient.registry import Prediction as Pred
 
 # from loguru import logger
 
@@ -22,19 +15,16 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.db.models import CharField, functions, Sum, Max, Min, QuerySet
+from django.db import models
 
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
-from datastore.models import DengueGlobal, Sprint202425
 from main.utils import CODES_UF
 from main.utils import UFs as UF_NAME
 from main.api import MUN_DATA
-from vis.dash.errors import VisualizationError
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
-from .utils import obj_to_dataframe
 from .dash.line_chart import (
     base_chart,
     data_chart,
@@ -71,18 +61,21 @@ class DashboardView(View):
         context = {}
 
         _defaults = {
-            "disease": request.GET.get("disease") or None,
-            "time_resolution": request.GET.get("time-resolution") or None,
-            "adm_level": request.GET.get("adm-level") or None,
+            "disease": request.GET.get("disease", None),
+            "time_resolution": request.GET.get("time-resolution", None),
+            "adm_level": request.GET.get("adm-level", None),
             "adm_0": "BRA",
-            "adm_1": request.GET.get("adm-1") or None,
-            "adm_2": request.GET.get("adm-2") or None,
-            "adm_3": request.GET.get("adm-3") or None,
-            "start_date": request.GET.get("start-date") or None,
-            "end_date": request.GET.get("end-date") or None,
-            "start_window_date": request.GET.get("start-window-date") or None,
-            "end_window_date": request.GET.get("end-window-date") or None,
+            "adm_1": request.GET.get("adm-1", None),
+            "adm_2": request.GET.get("adm-2", None),
+            "adm_3": request.GET.get("adm-3", None),
+            "start_date": request.GET.get("start-date", None),
+            "end_date": request.GET.get("end-date", None),
+            "start_window_date": request.GET.get("start-window-date", None),
+            "end_window_date": request.GET.get("end-window-date", None),
+            "score": request.GET.get("score", "log_score"),
         }
+
+        scores = ["mse", "mae", "crps", "log_score", "interval_score"]
 
         def _get_distinct_values(field: str, sprint: bool) -> list:
             return sorted(
@@ -102,6 +95,7 @@ class DashboardView(View):
                 ),
                 "adm_levels": _get_distinct_values("model__ADM_level", False),
                 "query": _defaults,
+                "scores": scores,
             },
             "sprint": {
                 # "url": reverse("dashboard_sprint"),
@@ -111,6 +105,7 @@ class DashboardView(View):
                 ),
                 "adm_levels": _get_distinct_values("model__ADM_level", True),
                 "query": _defaults,
+                "scores": scores,
             },
             "forecast_map": {
                 # "url": reverse("dashboard_forecast_map"),
@@ -173,7 +168,7 @@ class DashboardView(View):
                 if not data["query"]["adm_level"]:
                     data["query"]["adm_level"] = 0
 
-        dashboard = request.GET.get("dashboard") or "predictions"
+        dashboard = request.GET.get("dashboard", "predictions")
 
         context["dashboards"] = dashboards
         context["dashboard"] = dashboard
@@ -194,7 +189,7 @@ class DashboardView(View):
         end_window_date: Optional[date] = None,
         score: str = "log_score",
         confidence_level: float = 0.9,
-    ) -> QuerySet[PredictionDataRow]:
+    ) -> models.QuerySet[PredictionDataRow]:
         data = PredictionDataRow.objects.all()
         data = data.filter(predict__model__sprint=sprint)
         data = data.filter(predict__model__disease=disease)
@@ -271,6 +266,7 @@ class DashboardView(View):
         end_date = request.GET.get("end-date", None)
         start_window_date = request.GET.get("start-window-date", None)
         end_window_date = request.GET.get("end-window-date", None)
+        score = request.GET.get("score", None)
 
         dates = [start_date, end_date, start_window_date, end_window_date]
         dates = [date.fromisoformat(d) if d else None for d in dates]
@@ -297,6 +293,7 @@ class DashboardView(View):
             "end_date": end_date,
             "start_window_date": start_window_date,
             "end_window_date": end_window_date,
+            "score": score,
         }
 
         for field in required:
@@ -320,14 +317,11 @@ def get_predict_ids(request) -> JsonResponse:
         adm_2=query["adm_2"],
         start_window_date=query["start_window_date"],
         end_window_date=query["end_window_date"],
+        score=query["score"],
     )
 
     return JsonResponse(
-        {
-            "predicts": list(
-                data.values_list("predict__id", flat=True).distinct()
-            )
-        }
+        {"predicts": list(data.values_list("predict_id", "mse").distinct())}
     )
 
 
@@ -344,7 +338,10 @@ def get_predicts_start_end_window_date(request) -> JsonResponse:
         adm_level=query["adm_level"],
         adm_1=query["adm_1"],
         adm_2=query["adm_2"],
-    ).aggregate(start_window_date=Min("date"), end_window_date=Max("date"))
+    ).aggregate(
+        start_window_date=models.Min("date"),
+        end_window_date=models.Max("date"),
+    )
 
     return JsonResponse(
         {
@@ -500,10 +497,18 @@ def line_chart_predicts_view(request):
         "#CEBAAE",
     ]
 
-    chart = predictions_chart(
-        title=title,
-        colors=colors,
+    chart = data_chart(
         width=int(width),
+        sprint=query["sprint"],
+        disease=query["disease"],
+        adm_level=query["adm_level"],
+        adm_1=query["adm_1"],
+        adm_2=query["adm_2"],
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
+    )
+
+    data = DashboardView.filter_predictions(
         sprint=query["sprint"],
         disease=query["disease"],
         time_resolution=query["time_resolution"],
@@ -512,49 +517,24 @@ def line_chart_predicts_view(request):
         adm_2=query["adm_2"],
         start_window_date=query["start_window_date"],
         end_window_date=query["end_window_date"],
+        score=query["score"],
+    )
+
+    chart = predictions_chart(
+        title=title,
+        colors=colors,
+        width=int(width),
+        queryset=data.filter(
+            predict_id__in=(
+                data.values_list("predict_id", flat=True).distinct()[:5]
+            )
+        ),
+        data_chart=chart,
+        start_window_date=query["start_window_date"],
+        end_window_date=query["end_window_date"],
     )
 
     return JsonResponse(chart.to_dict(), safe=False, status=200)
-
-
-def get_predicts_score(request) -> JsonResponse:
-    predict_ids = request.GET.getlist("predict")
-    dashboard = request.GET.get("dashboard")
-    query = DashboardView.parse_query_request(request)
-
-    if dashboard == "forecast_map":
-        return JsonResponse({"message": "not applied"}, status=204)
-    if dashboard == "predictions":
-        sprint = False
-    if dashboard == "sprint":
-        sprint = True
-
-    predictions: list[Pred] = list(
-        chain(*[Pred.get(id=_id) for _id in predict_ids])
-    )
-
-    invalid_adm_level = check_adm_level(
-        query["adm_level"], query["adm_1"], query["adm_2"]
-    )
-
-    if invalid_adm_level:
-        return invalid_adm_level
-
-    data = hist_alerta_data(
-        sprint=sprint,
-        disease=query["disease"],
-        start_window_date=query["start_window_date"],
-        end_window_date=query["end_window_date"],
-        adm_level=query["adm_level"],
-        adm_1=query["adm_1"],
-        adm_2=query["adm_2"],
-    )
-
-    scores = {}
-    for prediction in predictions:
-        scores[prediction.id] = prediction.calculate_score(data)
-
-    return JsonResponse(scores)
 
 
 class DashboardForecastMacroView(View):
@@ -639,35 +619,6 @@ class PredictTableView(View):
         return render(request, self.template_name, context)
 
 
-class FetchScoreView(View):
-    def get(self, request) -> JsonResponse:
-        prediction_ids = request.GET.getlist("id") or []
-
-        if not prediction_ids:
-            return JsonResponse(
-                {"error": "No Prediction selected"}, status=500
-            )
-
-        try:
-            df = get_score(prediction_ids).summary
-            df = df.reset_index()
-            score = df.to_dict(orient="records")
-
-            labels = []
-            for s in score:
-                labels.extend([k for k in s.keys() if k != "id"])
-
-                if "log_score" in s and s["log_score"] == np.float64("-inf"):
-                    s["log_score"] = "-"
-
-            return JsonResponse(
-                {"score": score, "score_labels": list(set(labels))}
-            )
-        except Exception as err:
-            logging.error(err)
-            return JsonResponse({"score_error": str(err)}, status=500)
-
-
 class MacroForecastMap(View):
     def get(self, request):
         disease = request.GET.get("disease")
@@ -729,75 +680,6 @@ class MacroForecastMap(View):
         return FileResponse(
             open(macro_html_file, "rb"), content_type="text/html"
         )
-
-
-def get_score(prediction_ids: list[int]) -> Scorer:
-    if not prediction_ids:
-        raise VisualizationError("No Prediction selected")
-
-    try:
-        predictions = Prediction.objects.filter(id__in=prediction_ids)
-    except Prediction.DoesNotExist:
-        raise VisualizationError("No Prediction selected")
-
-    start: dt.date = None
-    end: dt.date = None
-    geocodes: set[int] = set()
-
-    for prediction in predictions:
-        if not prediction.visualizable:
-            raise VisualizationError(
-                f"Prediction with id {prediction.id} is not visualizable"
-            )
-
-        s = prediction.to_dataframe().date.min()
-        e = prediction.to_dataframe().date.max()
-
-        if not start:
-            start = s
-        if not end:
-            end = e
-
-        if s != start:
-            raise VisualizationError(
-                "Can't score Predictions with different start dates"
-            )
-        if e != end:
-            raise VisualizationError(
-                "Can't score Predictions with different end dates"
-            )
-
-        if prediction.model.ADM_level == 1:
-            geocodes |= set(
-                DengueGlobal.objects.using("infodengue")
-                .annotate(
-                    geocodigo_str=functions.Cast("geocodigo", CharField())
-                )
-                .filter(
-                    geocodigo_str__startswith=str(prediction.adm_1_geocode)
-                )
-                .values_list("geocodigo", flat=True)
-            )
-
-        if prediction.model.ADM_level == 2:
-            geocodes.add(int(prediction.adm_2_geocode))
-
-    data = Sprint202425.objects.using("infodengue").filter(
-        geocode__in=geocodes,
-        date__gte=dt.fromisoformat(str(start)).date(),
-        date__lte=dt.fromisoformat(str(end)).date(),
-    )
-
-    df: pd.DataFrame = pd.concat([obj_to_dataframe(o) for o in data])
-
-    if prediction.model.ADM_level == 1:
-        data = (
-            data.values("date").annotate(casos=Sum("casos")).order_by("date")
-        )
-        df = pd.DataFrame(list(data))
-
-    score = Scorer(df_true=df, ids=list(map(int, prediction_ids)))
-    return score
 
 
 def get_model_selector_item(request, model_id):

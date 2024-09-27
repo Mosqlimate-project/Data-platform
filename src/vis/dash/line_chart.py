@@ -217,49 +217,6 @@ def hist_alerta_data(
     return df
 
 
-def predictions_data(
-    adm_level: Literal[1, 2],
-    time_resolution: str,
-    predict_ids: List[int] = [],
-    start_window_date: Optional[date] = None,
-    end_window_date: Optional[date] = None,
-    adm_1: Optional[str] = None,
-    adm_2: Optional[int] = None,
-    sprint: Optional[bool] = None,
-    disease: Optional[str] = None,
-) -> pd.DataFrame:
-    if not predict_ids:
-        data = PredictionDataRow.objects.filter(
-            predict__model__time_resolution=time_resolution,
-            predict__model__sprint=sprint,
-            predict__model__disease=disease,
-            predict__model__ADM_level=adm_level,
-            date__range=(start_window_date, end_window_date),
-        )
-    else:
-        data = PredictionDataRow.objects.filter(predict__id__in=predict_ids)
-        if start_window_date and end_window_date:
-            data = data.filter(
-                date__range=(start_window_date, end_window_date)
-            )
-
-    if int(adm_level) == 1:
-        data = data.filter(adm_1=adm_1)
-
-    if int(adm_level) == 2:
-        data = data.filter(adm_2=int(adm_2))
-
-    data = data.annotate(
-        model_id=models.F("predict__model__id"),
-        prediction=models.F("predict__id"),
-    )
-
-    return pd.DataFrame.from_records(
-        data.values(*Prediction.fields, "model_id", "prediction"),
-        columns=Prediction.fields + ["model_id", "prediction"],
-    )
-
-
 def base_chart(
     title: str,
     width: int,
@@ -349,43 +306,27 @@ def data_chart(
 def predictions_chart(
     title: str,
     width: int,
-    colors: List[str],
-    sprint: bool,
-    disease: str,
-    adm_level: Literal[1, 2],
-    time_resolution: str,
-    adm_1: Optional[str] = None,
-    adm_2: Optional[int] = None,
-    start_window_date: Optional[date] = None,
-    end_window_date: Optional[date] = None,
-    predict_ids: Optional[List[int]] = None,
+    colors: list[str],
+    queryset: models.QuerySet[PredictionDataRow],
+    data_chart: alt.Chart,
+    start_window_date: date,
+    end_window_date: date,
 ) -> alt.Chart:
-    predicts_df = predictions_data(
-        adm_level=adm_level,
-        time_resolution=time_resolution,
-        predict_ids=predict_ids,
-        start_window_date=start_window_date,
-        end_window_date=end_window_date,
-        adm_1=adm_1,
-        adm_2=adm_2,
-        sprint=sprint,
-        disease=disease,
+    queryset = queryset.annotate(
+        model_id=models.F("predict__model__id"),
+        prediction=models.F("predict__id"),
     )
 
-    data = data_chart(
-        width=width,
-        sprint=sprint,
-        disease=disease,
-        adm_level=adm_level,
-        adm_1=adm_1,
-        adm_2=adm_2,
-        start_window_date=start_window_date,
-        end_window_date=end_window_date,
+    logger.info(queryset)
+
+    predicts_df = pd.DataFrame.from_records(
+        queryset.values(*Prediction.fields, "model_id", "prediction"),
+        columns=Prediction.fields + ["model_id", "prediction"],
     )
 
     wk = watermark(opacity=0.25, ini_x=150, end_x=300, ini_y=60, end_y=230)
 
-    final = data + wk
+    final = data_chart + wk
 
     if predicts_df.empty:
         base = base_chart(
@@ -414,7 +355,7 @@ def predictions_chart(
                 x=alt.X("date:T", axis=alt.Axis(format="%b/%Y")).title(
                     "Dates"
                 ),
-                y=alt.Y("target:Q").title("New cases"),
+                y=alt.Y("pred:Q").title("New cases"),
                 color="prediction:N",
             )
             .add_params(highlight)
