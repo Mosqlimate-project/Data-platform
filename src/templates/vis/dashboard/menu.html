@@ -38,7 +38,11 @@
 
     <div id="dsOptions" class="collapse options">
       {% for name, data in dashboards.items %}
-      <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">
+        {% if name == "forecast_map" %}
+        <a id="{{ name }}" href="/vis/dashboard/macro-forecast-map/" class="btn ds-btn text-white text-start w-100">
+        {% else %}
+        <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">
+        {% endif %}
         {{ name|dashboard_name }}
       </a>
       {% endfor %}
@@ -120,9 +124,10 @@
     </div>
     {% elif name == "forecast_map" %}
     <div id="ds3-{{ name }}" class="d-flex flex-column">
-      <div id="datePicker-{{ name }}" class="d-flex flex-column">
-        <input type="text" name="start-{{ name }}">
-      </div>
+      <button id="generate-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center">Update chart</button>
+    <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
+    <!--     <input type="text" name="start-{{ name }}"> -->
+    <!--   </div> -->
     </div>
     {% endif %}
   {% endfor %}
@@ -132,18 +137,17 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <div id="windowDatePicker-{{ name }}" class="d-flex flex-column">
-        <input type="text" name="windowStart-{{ name }}">
-        <input type="text" name="windowEnd-{{ name }}">
-      </div>
+      <button id="generate-{{name}}" class="btn menu-btn bg-white adm-select ds-toggle-btn align-items-center">Update Chart</button>
+    <!--   <div id="windowDatePicker-{{ name }}" class="d-flex flex-column"> -->
+    <!--     <input type="text" name="windowStart-{{ name }}"> -->
+    <!--     <input type="text" name="windowEnd-{{ name }}"> -->
+    <!--   </div> -->
     </div>
     {% elif name == "forecast_map" %}
     <div id="ds2-{{ name }}" class="d-flex flex-column">
     </div>
     {% endif %}
   {% endfor %}
-
-  <hr style="color:white;">
 
 </div>
 
@@ -157,6 +161,35 @@
 // Consts
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
+const ufs = {
+    "AC": "Acre",
+    "AL": "Alagoas",
+    "AP": "Amapá",
+    "AM": "Amazonas",
+    "BA": "Bahia",
+    "CE": "Ceará",
+    "DF": "Distrito Federal",
+    "ES": "Espírito Santo",
+    "GO": "Goiás",
+    "MA": "Maranhão",
+    "MT": "Mato Grosso",
+    "MS": "Mato Grosso do Sul",
+    "MG": "Minas Gerais",
+    "PA": "Pará",
+    "PB": "Paraíba",
+    "PR": "Paraná",
+    "PE": "Pernambuco",
+    "PI": "Piauí",
+    "RJ": "Rio de Janeiro",
+    "RN": "Rio Grande do Norte",
+    "RS": "Rio Grande do Sul",
+    "RO": "Rondônia",
+    "RR": "Roraima",
+    "SC": "Santa Catarina",
+    "SP": "São Paulo",
+    "SE": "Sergipe",
+    "TO": "Tocantins",
+}
 
 // Vars
 let menuState = "expanded";
@@ -318,11 +351,11 @@ function initializeMenu() {
   function handleOptionClick(optionsId, optionValue, name) {
     if (optionsId.startsWith('admLevel')) {
       toggleAdministrativeDivs(optionValue, name);
-      dashboardsQuerySetter(name, { "adm_level": Number(optionValue) });
+      dashboardsQuerySetter(name, { "adm_level": Number(optionValue), "prediction_ids": [] });
     } else if (optionsId.startsWith('disease')) {
-      dashboardsQuerySetter(name, { "disease": optionValue });
+      dashboardsQuerySetter(name, { "disease": optionValue, "prediction_ids": [] });
     } else if (optionsId.startsWith('timeRes')) {
-      dashboardsQuerySetter(name, { "time_resolution": optionValue });
+      dashboardsQuerySetter(name, { "time_resolution": optionValue, "prediction_ids": [] });
     }
   }
 
@@ -378,7 +411,9 @@ function initializeDivs() {
     }
 
     option.addEventListener('click', (event) => {
-      event.preventDefault();
+      if (dashboard !== "forecast_map") {
+        event.preventDefault();
+      }
       updateDs(option);
       document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`).forEach((el) => {
         if (!el.id.includes(dashboard)) {
@@ -460,7 +495,6 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
     e.stopPropagation();
   });
 
-
   document.addEventListener('click', () => {
     menu.style.display = 'none';
   });
@@ -474,7 +508,20 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
   return button;
 }
 
-function populateDs2Menu(dashboard, admLevel, options) {
+function updateAdmMenu(dashboard, admLevel, selectedValue = null) {
+  const data = dashboardsDataGetter(dashboard);
+  const admData = data["adm_data"][`${data.query.disease}`][`${data.query.time_resolution}`];
+  let options = [];
+
+  if (admLevel === 1) {
+    const adm1Options = Object.keys(admData);
+    options = adm1Options.map(adm1 => [adm1, ufs[adm1]]);
+  } else if (admLevel === 2 && selectedValue) {
+    const adm2Options = admData[selectedValue] || [];
+    options = adm2Options.map(adm2 => [adm2, adm2]);
+    console.log(options);
+  }
+
   const buttonId = `adm${admLevel}Select-${dashboard}`;
   const selectButton = document.getElementById(buttonId);
 
@@ -485,135 +532,33 @@ function populateDs2Menu(dashboard, admLevel, options) {
   selectButton.innerHTML = '';
 
   let existingMenu = selectButton.nextElementSibling;
-  if (existingMenu && existingMenu.className === 'ds2-menu') {
+  if (existingMenu && existingMenu.classList.contains('ds2-menu')) {
     existingMenu.remove();
   }
 
-  ds2Menu(dashboard, admLevel, buttonId, options);
-}
-
-async function getAdm1MenuOptions(dashboard) {
-  const data = dashboardsDataGetter(dashboard);
-  const query = data.query;
-
-  const url = new URL("{% url 'get_adm_1_menu_options' %}", window.location.origin);
-  url.searchParams.append('dashboard', dashboard);
-  url.searchParams.append('disease', query.disease);
-  url.searchParams.append('time-resolution', query.time_resolution);
-  url.searchParams.append('adm-level', 1);
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const responseData = await response.json();
-
-    console.log(responseData.options);
-
-    if (responseData.options && responseData.options.length > 0) {
-      populateDs2Menu(dashboard, 1, responseData.options);
-
-      let uf, name;
-
-      if (query.adm_1) {
-        uf = query.adm_1;
-        const selectedOption = responseData.options.find(option => option[0] === uf);
-        if (selectedOption) {
-          name = selectedOption[1];
-        }
-      } else {
-        if (!local) {
-          local = await getBrowserCity();
-        }
-
-        const userUf = local.state.uf;
-        const userLocationOption = responseData.options.find(option => option[0] === userUf);
-
-        if (userLocationOption) {
-          uf = userLocationOption[0];
-          name = userLocationOption[1];
-        } else {
-          uf = responseData.options[0][0];
-          name = responseData.options[0][1];
-        }
-      }
-
-      selectAdmLevelOption(dashboard, 1, uf, name);
-    } else {
-      populateDs2Menu(dashboard, 1, []);
-    }
-  } catch (error) {
-    populateDs2Menu(dashboard, 1, []);
-    console.error(error);
-  }
-}
-
-
-async function getAdm2MenuOptions(dashboard) {
-  const data = dashboardsDataGetter(dashboard);
-  const query = data.query;
-  const admLevel = 2;
-
-  const url = new URL("{% url 'get_adm_2_menu_options' %}", window.location.origin);
-  url.searchParams.append('dashboard', dashboard);
-  url.searchParams.append('disease', query.disease);
-  url.searchParams.append('time-resolution', query.time_resolution);
-  url.searchParams.append('adm-level', admLevel);
-  url.searchParams.append('adm-1', query.adm_1);
-
-  if (query.adm_1 === null || query.adm_1 === undefined) {
-    console.error("adm-1 is required");
-    populateDs2Menu(dashboard, admLevel, []);
-    return;
+  if (options && options.length > 0) {
+    ds2Menu(dashboard, admLevel, buttonId, options);
+    selectButton.disabled = false;
+  } else {
+    selectButton.disabled = true;
   }
 
-  try {
-    const response = await fetch(url);
+  console.log(options);
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const responseData = await response.json();
-
-    if (responseData.options && responseData.options.length > 0) {
-      populateDs2Menu(dashboard, admLevel, responseData.options);
-
-      if (!local) {
-        local = await getBrowserCity();
-      }
-
-      const geocode = local.geocode;
-      const name = local.name;
-
-      const optionExists = responseData.options.some(option => option[0] === geocode);
-
-      if (optionExists) {
-        selectAdmLevelOption(dashboard, admLevel, geocode, name);
-      } else {
-        selectAdmLevelOption(
-          dashboard,
-          admLevel,
-          responseData.options[0][0],
-          responseData.options[0][1]
-        );
-      }
-    } else {
-      populateDs2Menu(dashboard, admLevel, []);
-    }
-  } catch (error) {
-    populateDs2Menu(dashboard, admLevel, []);
-    console.error(error);
+  if (admLevel === 1 && options.length > 0) {
+    updateAdmMenu(dashboard, 2, options[0][0]);
   }
 }
 
 function selectAdmLevelOption(dashboard, admLevel, value, name) {
-  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`)
+  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
   dashboardsQuerySetter(dashboard, {[`adm_${admLevel}`]: value});
   button.textContent = name;
   button.value = value;
+
+  if (admLevel === 1) {
+    updateAdmMenu(dashboard, 2, value);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -726,37 +671,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const toggleButton = document.getElementById(`adm${admLevel}Select-${dashboard}`);
       if (toggleButton) {
         toggleButton.classList.add('active');
-      }
-    });
-  });
-
-  function handleWindowDatesChange(datePicker, dashboard) {
-    const [startDate, endDate] = datePicker.getDates(dateFormat);
-    dashboardsQuerySetter(dashboard, {'start_window_date': startDate, 'end_window_date': endDate});
-  }
-
-  ["predictions", "sprint"].forEach(dashboard => {
-    const windowDatePicker = document.getElementById(`windowDatePicker-${dashboard}`);
-    const windowDateRangePicker = new DateRangePicker(windowDatePicker, {
-      buttonClass: 'btn',
-      format: dateFormat,
-      clearButton: true,
-      language: useri18n,
-    });
-
-    windowDateRangePicker.setDates(
-      Datepicker.parseDate(dashboardsDataGetter(dashboard).query.start_window_date, dateFormat), 
-      Datepicker.parseDate(dashboardsDataGetter(dashboard).query.end_window_date, dateFormat), 
-    );
-
-    windowDatePicker.addEventListener('hide', async function () {
-      handleWindowDatesChange(windowDateRangePicker, dashboard);
-      const data = dashboardsDataGetter(dashboard).query;
-
-      if (data.start_window_date === undefined && data.end_window_date === undefined) {
-        const [startWindowDate, endWindowDate] = await fetchStartEndWindowDate(dashboard);
-        dashboardsQuerySetter(dashboard, {'start_window_date': startWindowDate, 'end_window_date': endWindowDate});
-        windowDateRangePicker.setDates(startWindowDate, endWindowDate);
       }
     });
   });
