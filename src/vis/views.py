@@ -20,7 +20,6 @@ from django.db import models
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from main.utils import CODES_UF
-from main.utils import UFs as UF_NAME
 from main.api import MUN_DATA
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .plots.home.vis_charts import uf_ibge_mapping
@@ -100,8 +99,11 @@ def get_adm_menu_options(
                     adm_data[disease][time_resolution][adm_1] = []
 
                 if adm_2:
-                    adm_data[disease][time_resolution][adm_1].append(adm_2)
+                    adm_data[disease][time_resolution][adm_1].append(
+                        (adm_2, MUN_DATA[str(adm_2)]["municipio"])
+                    )
 
+    print(adm_data)
     return adm_data
 
 
@@ -403,50 +405,6 @@ def get_predicts_start_end_window_date(request) -> JsonResponse:
             ),
         }
     )
-
-
-def get_adm_1_menu_options(request) -> JsonResponse:
-    query = DashboardView.parse_query_request(
-        request,
-        required=[
-            "dashboard",
-            "disease",
-            "time_resolution",
-            "adm_level",
-        ],
-    )
-
-    data = DashboardView.filter_predictions(**query)
-
-    ufs = list(data.values_list("adm_1", flat=True).distinct())
-    options = []
-    for uf in ufs:
-        if uf:
-            options.append((uf, UF_NAME[uf]))
-    return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
-
-
-def get_adm_2_menu_options(request) -> JsonResponse:
-    query = DashboardView.parse_query_request(
-        request,
-        required=[
-            "dashboard",
-            "disease",
-            "time_resolution",
-            "adm_1",
-        ],
-    )
-
-    query["adm_level"] = 2
-
-    data = DashboardView.filter_predictions(**query)
-
-    geocodes = list(data.values_list("adm_2", flat=True).distinct())
-    mun_names = []
-    for geocode in geocodes:
-        mun_names.append(MUN_DATA[str(geocode)]["municipio"])
-    options = list(tuple(zip(geocodes, mun_names)))
-    return JsonResponse({"options": sorted(options, key=lambda x: x[1])})
 
 
 def line_chart_base_view(request):

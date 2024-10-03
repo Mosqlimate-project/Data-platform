@@ -259,7 +259,8 @@ hr {
 }
 
 .ds2-menu {
-  display: none;
+  display: block;
+  visibility: hidden;
   background-color: white;
   border: 1px solid #ccc;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -304,6 +305,11 @@ hr {
   padding: 10px; 
   cursor: pointer;
   border-radius: 5px; 
+}
+
+.ds2-menu li.selected {
+  background-color: #C3E5D5;
+  color: #000;
 }
 
 .ds2-menu ul li:hover {

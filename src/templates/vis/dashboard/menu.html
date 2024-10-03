@@ -288,7 +288,7 @@ function initializeMenu() {
       if (options.id === 'dsOptions') {
         initializeOptionClick(options, name, true);
       } else {
-        const data = dashboardsDataGetter(name);
+        const data = dashboardsQueryGetter(name);
         initializeOptionClick(options, name, false, data);
       }
     }
@@ -348,30 +348,54 @@ function initializeMenu() {
     }
   }
 
-  function handleOptionClick(optionsId, optionValue, name) {
+  function handleOptionClick(optionsId, optionValue, dashboard) {
+    const options = document.querySelectorAll(`#${optionsId} li`);
+    options.forEach(option => option.classList.remove('selected'));
+    const selectedOption = document.querySelector(`#${optionsId} li[data-value="${optionValue}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('selected');
+    }
+
     if (optionsId.startsWith('admLevel')) {
-      toggleAdministrativeDivs(optionValue, name);
-      dashboardsQuerySetter(name, { "adm_level": Number(optionValue), "prediction_ids": [] });
+      const query = dashboardsQueryGetter(dashboard);
+      let adm1Value;
+
+      if (query["adm_1"] !== null) {
+        adm1Value = query["adm_1"];
+      } else if (local) {
+        adm1Value = local.state.uf;
+      }
+
+      if (!adm1Value) {
+        const adm1SelectOptions = document.querySelectorAll(`#adm1Select-${dashboard} li`);
+        adm1Value = adm1SelectOptions.length > 0 ? adm1SelectOptions[0].getAttribute('data-value') : null;
+      }
+
+      dashboardsQuerySetter(dashboard, { "adm_level": Number(optionValue), "adm_1": adm1Value, "prediction_ids": [] });
+      toggleAdministrativeDivs(optionValue, dashboard);
     } else if (optionsId.startsWith('disease')) {
-      dashboardsQuerySetter(name, { "disease": optionValue, "prediction_ids": [] });
+      dashboardsQuerySetter(dashboard, { "disease": optionValue, "prediction_ids": [] });
     } else if (optionsId.startsWith('timeRes')) {
-      dashboardsQuerySetter(name, { "time_resolution": optionValue, "prediction_ids": [] });
+      dashboardsQuerySetter(dashboard, { "time_resolution": optionValue, "prediction_ids": [] });
     }
   }
 
-  function toggleAdministrativeDivs(optionValue, name) {
-    const admSelect = document.querySelector(`#adm${optionValue}Select-${name}`);
+  function toggleAdministrativeDivs(optionValue, dashboard) {
+    const admSelect = document.querySelector(`#adm${optionValue}Select-${dashboard}`);
 
     if (String(optionValue) === "0") {
       document.querySelectorAll('[id^="ds2-"]').forEach(div => div.classList.add('hidden'));
+      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
     } else if (String(optionValue) === "1") {
       admSelect?.classList.toggle('show');
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.add('hidden'));
+      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
     } else if (String(optionValue) === "2") {
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.remove('hidden'));
       admSelect.style.height = 'auto';
+      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
     }
   }
 }
@@ -459,58 +483,69 @@ function updateDs(option) {
 
 function ds2Menu(dashboard, admLevel, buttonId, options) {
   const button = document.getElementById(buttonId);
+  const query = dashboardsQueryGetter(dashboard).query;
 
   button.innerHTML = '';
   button.disabled = false;
 
   const menu = document.createElement('div');
   menu.className = 'ds2-menu bg-dark text-white';
-
   const list = document.createElement('ul');
+  options.sort((a, b) => a[1].localeCompare(b[1]));
 
   options.forEach(option => {
     const listItem = document.createElement('li');
     const value = option[0];
     const name = option[1];
 
-    listItem.value = value;
+    listItem.setAttribute('data-value', value);
     listItem.textContent = name;
+
+    listItem.classList.remove('selected');
+
+    if (query["adm_1"] == value) {
+      listItem.classList.add('selected');
+    }
 
     listItem.addEventListener('click', () => {
       selectAdmLevelOption(dashboard, admLevel, value, name);
-      menu.style.display = 'none';
+
+      setTimeout(() => {
+        menu.style.visibility = 'hidden';
+      }, 100);
     });
 
     list.appendChild(listItem);
   });
 
   menu.appendChild(list);
-  document.body.appendChild(menu);
+  button.insertAdjacentElement('afterend', menu);
 
   button.addEventListener('click', (e) => {
     const rect = button.getBoundingClientRect();
-    const menu = document.querySelector('.ds2-menu');
-    menu.style.height = `${window.innerHeight - rect.bottom}px`;
-    menu.style.display = 'block';
+    menu.style.position = 'absolute';
+    menu.style.maxHeight = `${window.innerHeight - rect.bottom}px`;
+    menu.style.overflowY = 'auto';
+    menu.style.visibility = menu.style.visibility === 'visible' ? 'hidden' : 'visible';
     e.stopPropagation();
   });
 
   document.addEventListener('click', () => {
-    menu.style.display = 'none';
+    menu.style.visibility = 'hidden';
   });
 
   menu.addEventListener('click', (e) => {
     e.stopPropagation();
   });
-
-  button.insertAdjacentElement('afterend', menu);
-
-  return button;
 }
 
-function updateAdmMenu(dashboard, admLevel, selectedValue = null) {
-  const data = dashboardsDataGetter(dashboard);
-  const admData = data["adm_data"][`${data.query.disease}`][`${data.query.time_resolution}`];
+
+function updateAdmMenu(dashboard, selectedValue = null) {
+  const data = dashboardsQueryGetter(dashboard);
+  const disease = data.query.disease;
+  const timeRes = data.query.time_resolution;
+  const admLevel = data.query.adm_level;
+  const admData = data["adm_data"][disease][timeRes];
   let options = [];
 
   if (admLevel === 1) {
@@ -518,8 +553,7 @@ function updateAdmMenu(dashboard, admLevel, selectedValue = null) {
     options = adm1Options.map(adm1 => [adm1, ufs[adm1]]);
   } else if (admLevel === 2 && selectedValue) {
     const adm2Options = admData[selectedValue] || [];
-    options = adm2Options.map(adm2 => [adm2, adm2]);
-    console.log(options);
+    options = adm2Options.map(adm2 => [adm2[0], adm2[1]]);
   }
 
   const buttonId = `adm${admLevel}Select-${dashboard}`;
@@ -528,6 +562,9 @@ function updateAdmMenu(dashboard, admLevel, selectedValue = null) {
   if (!selectButton) {
     return;
   }
+
+  let currentText = selectButton.textContent;
+  let currentValue = selectButton.value;
 
   selectButton.innerHTML = '';
 
@@ -539,26 +576,21 @@ function updateAdmMenu(dashboard, admLevel, selectedValue = null) {
   if (options && options.length > 0) {
     ds2Menu(dashboard, admLevel, buttonId, options);
     selectButton.disabled = false;
+
+    if (currentValue) {
+      selectButton.textContent = currentText;
+      selectButton.value = currentValue;
+    }
   } else {
     selectButton.disabled = true;
-  }
-
-  console.log(options);
-
-  if (admLevel === 1 && options.length > 0) {
-    updateAdmMenu(dashboard, 2, options[0][0]);
   }
 }
 
 function selectAdmLevelOption(dashboard, admLevel, value, name) {
   const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
-  dashboardsQuerySetter(dashboard, {[`adm_${admLevel}`]: value});
+  dashboardsQuerySetter(dashboard, { [`adm_${admLevel}`]: value });
   button.textContent = name;
   button.value = value;
-
-  if (admLevel === 1) {
-    updateAdmMenu(dashboard, 2, value);
-  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
