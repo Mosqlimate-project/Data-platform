@@ -231,7 +231,7 @@ def base_chart(
         .mark_line()
         .encode(
             x=alt.X("date:T", axis=alt.Axis(format="%b/%Y")).title("Dates"),
-            y=alt.Y("target:Q").title("New cases"),
+            y=alt.Y("target:Q").title(title),
         )
         .properties(width=width, title=title)
     )
@@ -269,7 +269,7 @@ def data_chart(
                 x=alt.X("date:T", axis=alt.Axis(format="%b/%Y")).title(
                     "Dates"
                 ),
-                y=alt.Y("target:Q").title("New cases"),
+                y=alt.Y("target:Q"),
                 color=alt.value("black"),
                 tooltip="target:Q",
             )
@@ -317,8 +317,6 @@ def predictions_chart(
         prediction=models.F("predict__id"),
     )
 
-    logger.info(queryset)
-
     predicts_df = pd.DataFrame.from_records(
         queryset.values(*Prediction.fields, "model_id", "prediction"),
         columns=Prediction.fields + ["model_id", "prediction"],
@@ -355,7 +353,7 @@ def predictions_chart(
                 x=alt.X("date:T", axis=alt.Axis(format="%b/%Y")).title(
                     "Dates"
                 ),
-                y=alt.Y("pred:Q").title("New cases"),
+                y=alt.Y("pred:Q").title(title),
                 color="prediction:N",
             )
             .add_params(highlight)
@@ -413,7 +411,7 @@ def timeseries_chart(
         alt.Chart(predicts_df)
         .encode(
             x=alt.X("date:T", axis=alt.Axis(format="%b/%Y")).title("Dates"),
-            y=alt.Y("target:Q").title("New cases"),
+            y=alt.Y("target:Q"),
             color="prediction:N",
         )
         .properties(width=width)

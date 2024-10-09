@@ -11,6 +11,10 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 <link rel="stylesheet" href="{% static 'css/vis/dashboard/menu.css' %}">
 
+{% for dashboard, data in dashboards.items %}
+  <input type="hidden" id="menuEl-{{ dashboard }}" value='{{ data|parse_nones|safe }}'>
+{% endfor %}
+
 
 <div id="menu" class="font-golos d-flex flex-column flex-shrink-0 bg-dark">
   <div id="menuHeader" class="align-items-center">
@@ -124,7 +128,7 @@
     </div>
     {% elif name == "forecast_map" %}
     <div id="ds3-{{ name }}" class="d-flex flex-column">
-      <button id="generate-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center">Update chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">Update chart</button>
     <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="start-{{ name }}"> -->
     <!--   </div> -->
@@ -137,7 +141,7 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <button id="generate-{{name}}" class="btn menu-btn bg-white adm-select ds-toggle-btn align-items-center">Update Chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">Update chart</button>
     <!--   <div id="windowDatePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="windowStart-{{ name }}"> -->
     <!--     <input type="text" name="windowEnd-{{ name }}"> -->
@@ -191,6 +195,38 @@ const ufs = {
     "TO": "Tocantins",
 }
 
+const ufCodes = {
+    12: "AC",
+    27: "AL",
+    13: "AM",
+    16: "AP",
+    29: "BA",
+    23: "CE",
+    53: "DF",
+    32: "ES",
+    52: "GO",
+    21: "MA",
+    31: "MG",
+    50: "MS",
+    51: "MT",
+    15: "PA",
+    25: "PB",
+    26: "PE",
+    22: "PI",
+    41: "PR",
+    33: "RJ",
+    24: "RN",
+    11: "RO",
+    14: "RR",
+    43: "RS",
+    42: "SC",
+    28: "SE",
+    35: "SP",
+    17: "TO",
+}
+
+const codesUfs = Object.fromEntries(Object.entries(ufCodes).map(([k, v]) => [v, k]));
+
 // Vars
 let menuState = "expanded";
 let isTransitioning = false;
@@ -205,6 +241,29 @@ const dsBtn = document.getElementById('dsBtn');
 const dsOptions = document.getElementById('dsOptions');
 
 // Functions
+function getMenuEl(dashboard) {
+  return document.getElementById(`menuEl-${dashboard}`);
+}
+
+function menuDataGetter(dashboard) {
+  const menuEl = getMenuEl(dashboard);
+  return JSON.parse(menuEl.value);
+}
+
+function menuQuerySetter(dashboard, updates) {
+  const menuEl = getMenuEl(dashboard);
+  const data = JSON.parse(menuEl.value);
+  Object.keys(updates).forEach(k => { data["query"][k] = updates[k] });
+  menuEl.value = JSON.stringify(data);
+
+  const dashboardQuery = dashboardDataGetter(dashboard).query;
+  const menuQuery = menuDataGetter(dashboard).query;
+  const updateChartBtn = document.getElementById(`updateChartBtn-${dashboard}`);
+
+  const fields = ["disease", "adm_level", "time_resolution", "adm_1", "adm_2"];
+  updateChartBtn.disabled = fields.every(field => dashboardQuery[field] === menuQuery[field]);
+}
+
 function setVisibility(elements, visibility) {
   elements.forEach(element => {
     if (element) {
@@ -288,7 +347,7 @@ function initializeMenu() {
       if (options.id === 'dsOptions') {
         initializeOptionClick(options, name, true);
       } else {
-        const data = dashboardsQueryGetter(name);
+        const data = menuDataGetter(name);
         initializeOptionClick(options, name, false, data);
       }
     }
@@ -357,26 +416,25 @@ function initializeMenu() {
     }
 
     if (optionsId.startsWith('admLevel')) {
-      const query = dashboardsQueryGetter(dashboard);
       let adm1Value;
 
-      if (query["adm_1"] !== null) {
-        adm1Value = query["adm_1"];
-      } else if (local) {
-        adm1Value = local.state.uf;
-      }
+      if (menuDataGetter(dashboard)["adm_1"] !== null) {
+        adm1Value = menuDataGetter(dashboard)["adm_1"];
+      } // else if (local) {
+       // adm1Value = local.state.uf;
+      //}
 
       if (!adm1Value) {
         const adm1SelectOptions = document.querySelectorAll(`#adm1Select-${dashboard} li`);
         adm1Value = adm1SelectOptions.length > 0 ? adm1SelectOptions[0].getAttribute('data-value') : null;
       }
 
-      dashboardsQuerySetter(dashboard, { "adm_level": Number(optionValue), "adm_1": adm1Value, "prediction_ids": [] });
+      menuQuerySetter(dashboard, { "adm_level": Number(optionValue) });
       toggleAdministrativeDivs(optionValue, dashboard);
     } else if (optionsId.startsWith('disease')) {
-      dashboardsQuerySetter(dashboard, { "disease": optionValue, "prediction_ids": [] });
+      menuQuerySetter(dashboard, { "disease": optionValue });
     } else if (optionsId.startsWith('timeRes')) {
-      dashboardsQuerySetter(dashboard, { "time_resolution": optionValue, "prediction_ids": [] });
+      menuQuerySetter(dashboard, { "time_resolution": optionValue });
     }
   }
 
@@ -385,17 +443,18 @@ function initializeMenu() {
 
     if (String(optionValue) === "0") {
       document.querySelectorAll('[id^="ds2-"]').forEach(div => div.classList.add('hidden'));
-      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
+      ds2Menu(dashboard);
     } else if (String(optionValue) === "1") {
       admSelect?.classList.toggle('show');
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.add('hidden'));
-      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
+      ds2Menu(dashboard);
+      menuQuerySetter(dashboard, { "adm_2": null });
     } else if (String(optionValue) === "2") {
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.remove('hidden'));
       admSelect.style.height = 'auto';
-      dashboardsQuerySetter(dashboard, { "adm_1": null, "adm_2": null, "adm_3": null });
+      ds2Menu(dashboard);
     }
   }
 }
@@ -481,9 +540,24 @@ function updateDs(option) {
   }
 }
 
-function ds2Menu(dashboard, admLevel, buttonId, options) {
-  const button = document.getElementById(buttonId);
-  const query = dashboardsQueryGetter(dashboard).query;
+
+function ds2Menu(dashboard, admLevel = null, options = null) {
+  if (dashboard === "forecast_map") {
+    return
+  }
+  const query = menuDataGetter(dashboard).query;
+  const disease = menuDataGetter(dashboard).query.disease;
+  const timeRes = menuDataGetter(dashboard).query.time_resolution;
+  if (!admLevel) {
+    admLevel = menuDataGetter(dashboard).query.adm_level;
+  }
+  const admData = menuDataGetter(dashboard)["adm_data"][disease][timeRes];
+  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
+  const existingMenu = button.nextElementSibling;
+
+  if (existingMenu && existingMenu.classList.contains('ds2-menu')) {
+    existingMenu.remove();
+  }
 
   button.innerHTML = '';
   button.disabled = false;
@@ -491,32 +565,76 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
   const menu = document.createElement('div');
   menu.className = 'ds2-menu bg-dark text-white';
   const list = document.createElement('ul');
-  options.sort((a, b) => a[1].localeCompare(b[1]));
 
-  options.forEach(option => {
-    const listItem = document.createElement('li');
-    const value = option[0];
-    const name = option[1];
+  let selectedValue = false;
 
-    listItem.setAttribute('data-value', value);
-    listItem.textContent = name;
-
-    listItem.classList.remove('selected');
-
-    if (query["adm_1"] == value) {
-      listItem.classList.add('selected');
+  if (admLevel === 1) {
+    if (!options) {
+      options = menuDataGetter(dashboard)["adm_data"][disease][timeRes]["adm_1"].map(adm1 => [adm1, ufs[adm1]]);
     }
+  } else if (admLevel === 2) {
+    const adm2Data = menuDataGetter(dashboard)["adm_data"][disease][timeRes]["adm_2"]
+    const adm1Options = adm2Data.map(i => parseInt(String(i[0]).slice(0, 2), 10)).map(x => [ufCodes[x], ufs[ufCodes[x]]]);
+    ds2Menu(dashboard, 1, adm1Options);
+    options = adm2Data.filter(i => String(i[0]).startsWith(String(codesUfs[menuDataGetter(dashboard).query.adm_1])))
+  }
 
-    listItem.addEventListener('click', () => {
-      selectAdmLevelOption(dashboard, admLevel, value, name);
+  if (options) {
+    options.sort((a, b) => a[1].localeCompare(b[1]));
 
-      setTimeout(() => {
+    options.forEach(option => {
+      const listItem = document.createElement('li');
+      const value = option[0];
+      const name = option[1];
+
+      listItem.setAttribute('data-value', value);
+      listItem.textContent = name;
+
+      if (query["adm_1"] && query["adm_1"] === value || query["adm_2"] && query["adm_2"] === value) {
+        button.textContent = name;
+        listItem.classList.add('selected');
+        selectedValue = true;
+      }
+
+      listItem.addEventListener('click', () => {
+        button.textContent = name;
+        selectAdmLevelOption(dashboard, admLevel, value, name);
         menu.style.visibility = 'hidden';
-      }, 100);
-    });
 
-    list.appendChild(listItem);
-  });
+        if (admLevel == 1 && menuDataGetter(dashboard).query.adm_level == 2) {
+          ds2Menu(dashboard, 2);
+        }
+
+        list.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
+        listItem.classList.add('selected');
+      });
+
+      list.appendChild(listItem);
+    });
+  }
+
+  // if (!selectedValue && options && options.length > 0) {
+  //   if (local !== null) {
+  //     if (admLevel === 1 && local.state && Object.keys(admData).includes(local.state.uf)) {
+  //       button.textContent = local.state.name;
+  //       selectAdmLevelOption(dashboard, 1, local.state.uf, local.state.name);
+  //       selectedValue = true;
+  //     } else if (admLevel === 2 && query["adm_1"] && admData[query["adm_1"]].some(item => item[0] === local.geocode)) {
+  //       button.textContent = local.name;
+  //       selectAdmLevelOption(dashboard, 2, local.geocode, local.name);
+  //       selectedValue = true;
+  //     }
+  //   }
+  // }
+
+  if (!selectedValue) {
+    const firstOption = options[0];
+    const value = firstOption[0];
+    const name = firstOption[1];
+    button.textContent = name;
+    selectAdmLevelOption(dashboard, admLevel, value, name);
+    list.firstChild.classList.add('selected');
+  }
 
   menu.appendChild(list);
   button.insertAdjacentElement('afterend', menu);
@@ -528,6 +646,19 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
     menu.style.overflowY = 'auto';
     menu.style.visibility = menu.style.visibility === 'visible' ? 'hidden' : 'visible';
     e.stopPropagation();
+
+    document.querySelectorAll('.ds2-menu').forEach((m) => {
+      if (m !== menu) {
+        m.style.visibility = 'hidden';
+      }
+    });
+
+    if (selectedValue) {
+      const selectedItem = list.querySelector('.selected');
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
   });
 
   document.addEventListener('click', () => {
@@ -539,61 +670,15 @@ function ds2Menu(dashboard, admLevel, buttonId, options) {
   });
 }
 
-
-function updateAdmMenu(dashboard, selectedValue = null) {
-  const data = dashboardsQueryGetter(dashboard);
-  const disease = data.query.disease;
-  const timeRes = data.query.time_resolution;
-  const admLevel = data.query.adm_level;
-  const admData = data["adm_data"][disease][timeRes];
-  let options = [];
-
-  if (admLevel === 1) {
-    const adm1Options = Object.keys(admData);
-    options = adm1Options.map(adm1 => [adm1, ufs[adm1]]);
-  } else if (admLevel === 2 && selectedValue) {
-    const adm2Options = admData[selectedValue] || [];
-    options = adm2Options.map(adm2 => [adm2[0], adm2[1]]);
-  }
-
-  const buttonId = `adm${admLevel}Select-${dashboard}`;
-  const selectButton = document.getElementById(buttonId);
-
-  if (!selectButton) {
-    return;
-  }
-
-  let currentText = selectButton.textContent;
-  let currentValue = selectButton.value;
-
-  selectButton.innerHTML = '';
-
-  let existingMenu = selectButton.nextElementSibling;
-  if (existingMenu && existingMenu.classList.contains('ds2-menu')) {
-    existingMenu.remove();
-  }
-
-  if (options && options.length > 0) {
-    ds2Menu(dashboard, admLevel, buttonId, options);
-    selectButton.disabled = false;
-
-    if (currentValue) {
-      selectButton.textContent = currentText;
-      selectButton.value = currentValue;
-    }
-  } else {
-    selectButton.disabled = true;
-  }
-}
-
 function selectAdmLevelOption(dashboard, admLevel, value, name) {
   const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
-  dashboardsQuerySetter(dashboard, { [`adm_${admLevel}`]: value });
+  menuQuerySetter(dashboard, { [`adm_${admLevel}`]: value });
   button.textContent = name;
   button.value = value;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  getBrowserCity();
   const footer = document.querySelector('footer');
   const navbar = document.getElementById('navbar');
   const expandeds = document.querySelectorAll('.menu-btn-expanded');

@@ -86,22 +86,20 @@ def get_adm_menu_options(
                 "time_resolution": time_resolution,
             }
 
-            data = (
+            adm_data[disease][time_resolution]["adm_1"] = list(
                 DashboardView.filter_predictions(**query)
-                .values("adm_1", "adm_2")
+                .exclude(adm_1=None)
+                .values_list("adm_1", flat=True)
                 .distinct()
             )
 
-            for i in data:
-                adm_1, adm_2 = i["adm_1"], i["adm_2"]
-
-                if adm_1 not in adm_data[disease][time_resolution]:
-                    adm_data[disease][time_resolution][adm_1] = []
-
-                if adm_2:
-                    adm_data[disease][time_resolution][adm_1].append(
-                        (adm_2, MUN_DATA[str(adm_2)]["municipio"])
-                    )
+            adm_data[disease][time_resolution]["adm_2"] = [
+                (adm_2, MUN_DATA[str(adm_2)]["municipio"])
+                for adm_2 in DashboardView.filter_predictions(**query)
+                .exclude(adm_2=None)
+                .values_list("adm_2", flat=True)
+                .distinct()
+            ]
 
     print(adm_data)
     return adm_data
@@ -272,7 +270,7 @@ class DashboardView(View):
 
             data = data.filter(adm_1=adm_1)
 
-        if adm_2:
+        if adm_level == 2 and adm_2:
             data = data.filter(adm_2=int(adm_2))
 
         # if start_date and end_date:
@@ -302,11 +300,12 @@ class DashboardView(View):
 
             hist_alerta.rename(columns={"target": "casos"}, inplace=True)
 
-            data = calculate_score(
-                queryset=data,
-                data=hist_alerta,
-                confidence_level=confidence_level,
-            )
+            if not hist_alerta.empty:
+                data = calculate_score(
+                    queryset=data,
+                    data=hist_alerta,
+                    confidence_level=confidence_level,
+                )
 
         return data
 

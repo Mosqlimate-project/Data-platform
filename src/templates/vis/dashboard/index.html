@@ -7,7 +7,18 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
+<header>
+  <link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/jqrangeslider.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/jquery-ui.css' %}">
+</header>
+
+<script src="{% static 'js/external/jquery.js' %}"></script>
+<script
+  src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"
+  integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc="
+  crossorigin="anonymous"></script>
+<script src="{% static 'js/external/jQDateRangeSlider-withRuler-min.js' %}"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
@@ -29,14 +40,15 @@ function getDashboardEl(dashboard) {
   return document.getElementById(`dashboardEl-${dashboard}`);
 }
 
-function dashboardsQueryGetter(dashboard) {
+function dashboardDataGetter(dashboard) {
   const dashboardEl = getDashboardEl(dashboard);
   return JSON.parse(dashboardEl.value);
 }
 
-function dashboardsQuerySetter(dashboard, updates) {
+function dashboardQuerySetter(dashboard, updates) {
   const dashboardEl = getDashboardEl(dashboard);
   const dashboardsPrev = dashboardEl.value;
+  const updateChartBtn = document.getElementById(`updateChartBtn-${dashboard}`);
 
   let dashboardData = JSON.parse(dashboardEl.value);
 
@@ -44,15 +56,8 @@ function dashboardsQuerySetter(dashboard, updates) {
     dashboardData.query[key] = updates[key];
   });
 
-  const dashboardsNew = JSON.stringify(dashboardData);
-
-  if (dashboardsPrev !== dashboardsNew) {
-    console.log(dashboardsNew);
-    dashboardEl.value = dashboardsNew;
-    setTimeout(function() {
-      dashboardEl.dispatchEvent(new Event('change'));
-    }, 300);
-  }
+  dashboardEl.value = JSON.stringify(dashboardData);
+  dashboardEl.dispatchEvent(new Event('change'));
 }
 
 function updateContentState() {
@@ -82,7 +87,7 @@ function changeContent(selectedDashboard) {
 
 async function fetchStartEndWindowDate(dashboard) {
   try {
-    const query = dashboardsQueryGetter(dashboard).query;
+    const query = dashboardDataGetter(dashboard).query;
 
     if (
       isValid(query.disease) &&
@@ -135,7 +140,6 @@ async function getBrowserCity() {
         }
       }
     }
-    console.log(local);
   } catch (error) {
     console.error('Error fetching location:', error);
   }
@@ -143,19 +147,6 @@ async function getBrowserCity() {
 }
 </script>
 
-
-{% include 'vis/dashboard/menu.html' %}
-<div id="dsContent" class="container shadow">
-{% for name, data in dashboards.items %}
-  <div id="dsContent-{{name}}">
-    {% if name != "forecast_map" %}
-    <div id="chart-container-{{name}}"></div>
-    <div id="predict-ids-{{name}}"></div>
-    {% endif %}
-  </div>
-{% endfor %}
-
-</div>
 
 <script>
 function isValid(value) {
@@ -231,12 +222,10 @@ function renderPredictList(data, dashboard) {
     const ul = document.createElement('ul');
     ul.classList.add('list-group');
 
-    let selectionTimeout;
-
     sortedData.forEach(([predictionId, score]) => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-      li.id = `prediction-${predictionId}`;
+      li.id = `${predictionId}`;
       li.innerHTML = `${predictionId} <span class="badge bg-primary">${score !== null ? score : 'N/A'}</span>`;
 
       if (selectedPredictions[dashboard].includes(predictionId)) {
@@ -252,11 +241,7 @@ function renderPredictList(data, dashboard) {
           selectedPredictions[dashboard] = selectedPredictions[dashboard].filter(id => id !== predictionId);
         }
 
-        clearTimeout(selectionTimeout);
-
-        selectionTimeout = setTimeout(function() {
-          predictionItemOnChange(dashboard, selectedPredictions[dashboard]);
-        }, 500);
+        dashboardQuerySetter(dashboard, { "prediction_ids": selectedPredictions[dashboard] });
       });
 
       ul.appendChild(li);
@@ -268,12 +253,8 @@ function renderPredictList(data, dashboard) {
   }
 }
 
-function predictionItemOnChange(dashboard, selectedIds) {
-  dashboardsQuerySetter(dashboard, { "prediction_ids": Array.from(selectedIds) });
-}
-
 async function fetchPredictList(dashboard) {
-  const query = dashboardsQueryGetter(dashboard).query;
+  const query = dashboardDataGetter(dashboard).query;
   const requiredFields = [
     'disease',
     'time_resolution',
@@ -297,46 +278,8 @@ async function fetchPredictList(dashboard) {
   renderPredictList(result.predicts, dashboard);
 }
 
-async function fetchBaseLineChart(dashboard, title, width) {
-  const query = dashboardsQueryGetter(dashboard).query;
-  const requiredFields = ['start_window_date', 'end_window_date'];
-  const extraParams = { title, width };
-
-  const result = await fetchData(
-    "{% url 'line_charts_base' %}",
-    query,
-    requiredFields,
-    extraParams
-  );
-  await vegaEmbed(`#chart-container-${dashboard}`, result);
-}
-
-async function fetchDataChart(dashboard, width) {
-  const query = dashboardsQueryGetter(dashboard).query;
-  const requiredFields = [
-    'disease',
-    'adm_level',
-    'start_window_date',
-    'end_window_date'
-  ];
-  const extraParams = {
-    dashboard,
-    width,
-    'adm-1': query.adm_1,
-    'adm-2': query.adm_2
-  };
-
-  const result = await fetchData(
-    "{% url 'line_charts_data' %}",
-    query,
-    requiredFields,
-    extraParams
-  );
-  await vegaEmbed(`#chart-container-${dashboard}`, result);
-}
-
 async function fetchPredictsChart(dashboard, title, width) {
-  const query = dashboardsQueryGetter(dashboard).query;
+  const query = dashboardDataGetter(dashboard).query;
   const requiredFields = [
     'disease',
     'adm_level',
@@ -344,6 +287,7 @@ async function fetchPredictsChart(dashboard, title, width) {
     'start_window_date',
     'end_window_date'
   ];
+  title = query.adm_1;
   const extraParams = {
     dashboard,
     title,
@@ -361,18 +305,16 @@ async function fetchPredictsChart(dashboard, title, width) {
   await vegaEmbed(`#chart-container-${dashboard}`, result);
 }
 
-
-async function updateDashboard(dashboard) {
-  await getBrowserCity();
-  console.log(local);
+async function updateDashboard(dashboard, predictList = false) {
+  document.getElementById(`updateChartBtn-${dashboard}`).disabled = true;
   const container = document.getElementById('dsContent');
   const containerWidth = container.getBoundingClientRect().width - 200;
 
-  const title = 'New cases';
+  const title = `${dashboardDataGetter(dashboard).query.adm_1}`;
 
-  await fetchPredictList(dashboard);
-  await fetchBaseLineChart(dashboard, title, containerWidth);
-  await fetchDataChart(dashboard, containerWidth);
+  if (predictList) {
+    await fetchPredictList(dashboard);
+  }
   await fetchPredictsChart(dashboard, title, containerWidth);
 }
 
@@ -384,20 +326,101 @@ const observer2 = new MutationObserver(function (mutationsList) {
   });
 });
 
+async function updateDateWindowRange(dashboard) {
+  const [startDate, endDate] = await fetchStartEndWindowDate(dashboard);
+  const dateSlider = $(`#windowDatePicker-${dashboard}`)
+
+  try {
+    dateSlider.dateRangeSlider("destroy");
+  } catch (error) {
+    console.log(error);
+  }
+
+  dateSlider.dateRangeSlider({
+    bounds: {
+      min: new Date(startDate),
+      max: new Date(endDate)
+    },
+    defaultValues: {
+      min: new Date(startDate),
+      max: new Date(endDate)
+    },
+    range: {
+      min: { days: 90 }
+    }
+  }).bind("valuesChanged", function(e, data) {
+    dashboardQuerySetter(
+        dashboard,
+        {
+          "start_window_date": data.values.min.toISOString().slice(0, 10),
+          "end_window_date": data.values.max.toISOString().slice(0, 10)
+        }
+      );
+  });
+}
+
+</script>
+
+
+{% include 'vis/dashboard/menu.html' %}
+<div id="dsContent" class="container shadow">
+{% for name, data in dashboards.items %}
+  <div id="dsContent-{{name}}">
+    {% if name != "forecast_map" %}
+    <div id="chart-container-{{name}}" style="min-height:351px"></div>
+    <div id="windowDatePicker-{{name}}" style="margin-bottom:15px"></div>
+    <div id="predict-ids-{{name}}"></div>
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+
+
+<script>
 document.addEventListener('DOMContentLoaded', function() {
+  getBrowserCity().then(r => {console.log(r)});
   updateContentState();
   changeContent(dashboard);
-  updateDashboard(dashboard);
   observer2.observe(menu, { attributes: true });
-});
 
-["predictions", "sprint", "forecast_map"].forEach(dashboard => {
-  const dashboardEl = getDashboardEl(dashboard);
-  const data = dashboardsQueryGetter(dashboard);
-  const query = data.query;
+  ["predictions", "sprint"].forEach(dashboard => { //, "forecast_map"]
+    const dashboardEl = getDashboardEl(dashboard);
+    const menuEl = getMenuEl(dashboard);
+    const updateChartBtn = document.getElementById(`updateChartBtn-${dashboard}`);
+    const data = dashboardDataGetter(dashboard);
+    const query = data.query;
 
-  dashboardEl.addEventListener('change', () => {
-    updateAdmMenu(dashboard);
+    updateChartBtn.disabled = true;
+
+    updateChartBtn.addEventListener('click', () => {
+      dashboardQuerySetter(dashboard, menuDataGetter(dashboard).query);
+      updateDashboard(dashboard, true);
+      updateDateWindowRange(dashboard);
+    });
+
+    dashboardQuerySetter(dashboard, menuDataGetter(dashboard).query);
+    updateDashboard(dashboard, true);
+    updateChartBtn.dispatchEvent(new Event('click'));
+
+    menuEl.addEventListener('change', () => {
+      // console.log(menuDataGetter(dashboard).query);
+    })
+
+    dashboardEl.addEventListener('change', () => {
+      setTimeout(() => {
+        updateDashboard(dashboard, false); // TODO: should be true but it also updates the predict list when a list item is selected
+      }, 500);
+    })
+
+    // if (selectedPredictions[dashboard].length === 0) {
+    //   const predictions = [];
+    //   document.getElementById(`predict-ids-${dashboard}`).querySelectorAll('li').forEach((li, index) => {
+    //     console.log(li);
+    //     predictions.push(li.id)
+    //   })
+    //   console.log(predictions);
+    //   dashboardQuerySetter(dashboard, { "prediction_ids": predictions.slice(0, 5) });
+    // }
   });
 });
 </script>
