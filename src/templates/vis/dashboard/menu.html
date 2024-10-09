@@ -128,7 +128,7 @@
     </div>
     {% elif name == "forecast_map" %}
     <div id="ds3-{{ name }}" class="d-flex flex-column">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">Update chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn ds-toggle-btn align-items-center">Update chart</button>
     <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="start-{{ name }}"> -->
     <!--   </div> -->
@@ -141,7 +141,7 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">Update chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn ds-toggle-btn align-items-center">Update chart</button>
     <!--   <div id="windowDatePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="windowStart-{{ name }}"> -->
     <!--     <input type="text" name="windowEnd-{{ name }}"> -->
@@ -673,6 +673,7 @@ function ds2Menu(dashboard, admLevel = null, options = null) {
 function selectAdmLevelOption(dashboard, admLevel, value, name) {
   const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
   menuQuerySetter(dashboard, { [`adm_${admLevel}`]: value });
+  button.setAttribute('adm-name', name);
   button.textContent = name;
   button.value = value;
 }
@@ -693,6 +694,10 @@ document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('[id^="diseaseOptions-"], [id^="timeResOptions-"], [id^="admLevelOptions-"], #dsOptions').forEach(option => {
         option.classList.add('hidden');
       });
+
+      document.querySelectorAll('[id^="adm1Select-"]').forEach(option => {
+        option.innerHTML = option.value;
+      });
     } else if (menuState === "expanded") {
       menuTitle.classList.add('show');
       setVisibility([retractMenuBtn].concat(Array.from(expandeds)), 'visible');
@@ -700,6 +705,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       document.querySelectorAll('[id^="diseaseOptions-"], [id^="timeResOptions-"], [id^="admLevelOptions-"], #dsOptions').forEach(option => {
         option.classList.remove('hidden');
+      });
+      document.querySelectorAll('[id^="adm1Select-"]').forEach(option => {
+        option.innerHTML = option.getAttribute('adm-name');;
       });
     }
 

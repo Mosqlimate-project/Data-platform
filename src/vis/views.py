@@ -101,7 +101,6 @@ def get_adm_menu_options(
                 .distinct()
             ]
 
-    print(adm_data)
     return adm_data
 
 
@@ -242,6 +241,9 @@ class DashboardView(View):
         end_window_date: Optional[date] = None,
         confidence_level: float = 0.9,
         prediction_ids: List[int] = [],
+        score: Literal[
+            "mse", "mae", "crps", "log_score", "interval_score"
+        ] = "interval_score",
         **kwargs,
     ) -> models.QuerySet[PredictionDataRow]:
         data = PredictionDataRow.objects.all()
@@ -306,6 +308,9 @@ class DashboardView(View):
                     data=hist_alerta,
                     confidence_level=confidence_level,
                 )
+
+                if data.filter(**{f"{score}__isnull": False}).count() != 0:
+                    data = data.order_by(score)
 
         return data
 
@@ -386,6 +391,26 @@ def get_predict_ids(request) -> JsonResponse:
     )
 
 
+def get_predict_list_data(request) -> JsonResponse:
+    prediction_ids = request.GET.get("prediction-ids", [])
+    prediction_ids = prediction_ids.split(",") if prediction_ids else []
+
+    predictions = Prediction.objects.filter(
+        id__in=list(map(int, prediction_ids))
+    )
+
+    context = {"data": {}}
+
+    for prediction in predictions:
+        data = {}
+        data["model"] = f"{prediction.model.id} : {prediction.model.name}"
+        data["predict_date"] = str(prediction.predict_date)
+        context["data"][prediction.id] = data
+
+    print(context)
+    return JsonResponse(context)
+
+
 def get_predicts_start_end_window_date(request) -> JsonResponse:
     query = DashboardView.parse_query_request(
         request,
@@ -458,7 +483,8 @@ def line_chart_data_view(request):
 
 def line_chart_predicts_view(request):
     title = request.GET.get("title")
-    colors = request.GET.getlist("colors")
+    colors = request.GET.get("colors", "")
+    colors = colors.split(",") if colors else []
     width = request.GET.get("width", 450)
     query = DashboardView.parse_query_request(
         request,
@@ -478,18 +504,6 @@ def line_chart_predicts_view(request):
 
     if invalid_adm_level:
         return invalid_adm_level
-
-    colors = [
-        "#A6BCD4",
-        "#FAC28C",
-        "#F2ABAB",
-        "#B9DBD9",
-        "#AAD1A5",
-        "#F7E59D",
-        "#D9BCD1",
-        "#FFCED3",
-        "#CEBAAE",
-    ]
 
     chart = data_chart(
         width=int(width),
@@ -516,6 +530,13 @@ def line_chart_predicts_view(request):
 
     if data.filter(**{f"{query['score']}__isnull": False}).count() != 0:
         data = data.order_by(query["score"])
+
+    if not query["prediction_ids"]:
+        data = data.filter(
+            predict_id__in=data.values_list(
+                "predict__id", flat=True
+            ).distinct()[:5]
+        )
 
     line_chart = predictions_chart(
         title=title,

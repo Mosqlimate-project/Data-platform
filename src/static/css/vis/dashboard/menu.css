@@ -258,6 +258,14 @@ hr {
   transition: all 0.3s ease-in-out;
 }
 
+.adm-select {
+  margin-bottom: 2.5px;
+}
+
+.adm-select:not(:last-child) {
+  margin-bottom: 2.5px;
+}
+
 .ds2-menu {
   display: block;
   visibility: hidden;
@@ -335,4 +343,46 @@ hr {
   left: 200px !important;
   top: unset !important;
   bottom: 0 !important;
+}
+
+[id^="updateChartBtn-"] {
+  position: relative;
+  overflow: hidden;
+  background-color: #e8d530;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition: box-shadow 0.2s;
+}
+
+[id^="updateChartBtn-"]:hover {
+  background-color: golden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[id^="updateChartBtn-"]:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+[id^="updateChartBtn-"]:hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: skewX(-20deg);
+  animation: shine 0.5s forwards;
+}
+
+@keyframes shine {
+  100% {
+    left: 100%;
+  }
 }

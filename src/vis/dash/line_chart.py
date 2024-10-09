@@ -62,12 +62,16 @@ def calculate_score(
             )
         )
 
-        log_score = logs_normal(
-            _data_df.casos,
-            _pred_df.pred,
-            (_pred_df.upper - _pred_df.lower) / (2 * z_value),
-            negative=False,
-        )
+        log_score = [
+            abs(x)
+            for x in logs_normal(
+                _data_df.casos,
+                _pred_df.pred,
+                (_pred_df.upper - _pred_df.lower) / (2 * z_value),
+                negative=False,
+            )
+            if not np.isinf(x)
+        ]
 
         log_score_mean = np.mean(
             np.maximum(log_score, np.repeat(-100, len(log_score)))

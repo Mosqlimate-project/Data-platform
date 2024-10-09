@@ -11,6 +11,11 @@ urlpatterns = [
     ),
     path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
     path(
+        "get-predict-list-data/",
+        views.get_predict_list_data,
+        name="get_predict_list_data",
+    ),
+    path(
         "get-predicts-start-end-window-date/",
         views.get_predicts_start_end_window_date,
         name="get_predicts_start_end_window_date",
