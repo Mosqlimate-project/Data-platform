@@ -5,16 +5,36 @@ from . import views
 urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path(
-        "sprint/dashboard/",
-        views.DashboardSprintView.as_view(),
-        name="dashboard_sprint",
-    ),
-    path(
         "dashboard/macro-forecast-map/",
         views.DashboardForecastMacroView.as_view(),
         name="dashboard_forecast_map",
     ),
-    path("line-charts/", views.LineChartsView.as_view(), name="line_charts"),
+    path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
+    path(
+        "get-predict-list-data/",
+        views.get_predict_list_data,
+        name="get_predict_list_data",
+    ),
+    path(
+        "get-predicts-start-end-window-date/",
+        views.get_predicts_start_end_window_date,
+        name="get_predicts_start_end_window_date",
+    ),
+    path(
+        "line-charts-base/",
+        views.line_chart_base_view,
+        name="line_charts_base",
+    ),
+    path(
+        "line-charts-data-chart/",
+        views.line_chart_data_view,
+        name="line_charts_data",
+    ),
+    path(
+        "line-charts-predicts-chart/",
+        views.line_chart_predicts_view,
+        name="line_charts_predicts",
+    ),
     path(
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
@@ -24,11 +44,6 @@ urlpatterns = [
         "predict-table/",
         views.PredictTableView.as_view(),
         name="predict_table",
-    ),
-    path(
-        "predictions-score/",
-        views.FetchScoreView.as_view(),
-        name="predictions_score",
     ),
     path(
         "get-model-item/<int:model_id>/",
@@ -45,4 +60,5 @@ urlpatterns = [
         views.get_geocode_info,
         name="get_geocode_info",
     ),
+    path("ibge/city/", views.get_city_info, name="get_city_info"),
 ]

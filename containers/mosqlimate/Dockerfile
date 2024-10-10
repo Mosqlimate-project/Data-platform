@@ -12,20 +12,25 @@ ARG GID
 
 RUN apt-get update -y \
   && apt-get install -y \
-    apt-utils \
-    build-essential \
-    curl \
-    nginx \
-    tini \
-    sudo \
-    tzdata \
-    openssl \
-    binutils \
-    libproj-dev \
-    gdal-bin \
+  apt-utils \
+  build-essential \
+  curl \
+  nginx \
+  tini \
+  sudo \
+  tzdata \
+  openssl \
+  binutils \
+  libproj-dev \
+  gdal-bin \
+  software-properties-common \
   && rm -rf /var/lib/apt/lists/* \
-    /var/cache/apt/archives \
-    /tmp/*
+  /var/cache/apt/archives \
+  /tmp/*
+
+# Workaround for error: (OSError: /lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.30' not found)
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update -y && \
+  apt-get install -y gcc-13 g++-13 libstdc++6
 
 RUN addgroup --gid ${GID} mosqlimate \
   && useradd --uid ${UID} --gid ${GID} -ms /bin/bash mosqlimate \
@@ -46,7 +51,7 @@ RUN mamba env create -n $ENV_NAME -f /tmp/conda/base.yaml \
   && conda clean --all \
   && find /opt/conda/ -type f,l -name '*.pyc' -delete \
   && find /opt/conda/ -type f,l -name '*.js.map' -delete \
-  && rm -rf /opt/conda/pkgs /tmp/*
+  && rm -rf /opt/conda/pkgs
 
 ENV CONDA_PREFIX /opt/conda/envs/$ENV_NAME
 ENV PATH ${CONDA_PREFIX}/bin:$PATH

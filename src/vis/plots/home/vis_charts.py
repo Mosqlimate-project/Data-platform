@@ -176,7 +176,7 @@ def get_total_cases_100k_hab(
 
 
 def national_total_cases_data(
-    disease: str, year: int, per_100k_hab: bool = False
+    disease: str, per_100k_hab: bool = False
 ) -> Tuple[List[Dict[str, Union[str, int]]], int]:
     """
     Get total cases for a disease of all states in a year.
@@ -190,6 +190,7 @@ def national_total_cases_data(
     disease = disease.lower()
 
     for uf_abbv in uf_ibge_mapping:
+        year = get_last_available_year(uf_abbv, disease)
         state_name = uf_ibge_mapping[uf_abbv]["name"]
         if per_100k_hab:
             total_cases = get_total_cases_100k_hab(disease, uf_abbv, year)

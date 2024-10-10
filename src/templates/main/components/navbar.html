@@ -4,7 +4,7 @@
 
 <div id="predictions-url" data-base-url="{% url 'predictions' %}"></div>
 
-<nav class="navbar navbar-expand-lg navbar-light fixed-top bg-light" data-navbar-on-scroll="data-navbar-on-scroll">
+<nav id="navbar" class="navbar navbar-expand-lg navbar-light fixed-top bg-light" data-navbar-on-scroll="data-navbar-on-scroll">
   <div class="container-fluid">
     <!-- Navbar -->
     <a class="navbar-brand" href="{% url 'home' %}">
@@ -28,15 +28,8 @@
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{% url 'api-1:openapi-view' %}">{% trans 'API Demo' %}</a>
           </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {% trans 'Dashboards' %}
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdownDashboard">
-              <li><a class="dropdown-item" href="{% url 'dashboard' %}">{% trans 'Predictions' %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'dashboard_sprint' %}">{% trans 'Sprint 2024/25' %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'dashboard_forecast_map' %}">{% trans 'Forecast Map' %}</a></li>
-            </ul>
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="{% url 'dashboard' %}">Dashboard</a>
           </li>
           <li class="nav-item">
             <div class="nav-link disabled">|</div>
@@ -52,7 +45,7 @@
           </li>
         </ul>
       <!-- Navbar User & Login/out -->
-      <ul class="navbar-nav ms-auto mb-lg-0">
+      <ul class="navbar-nav navbar-user ms-auto mb-lg-0">
         <li class="nav-item">
           {% if user.is_authenticated %}
           <a href="{% url 'profile' user.username %}" class="nav-link" aria-current="page">{{user.username}}</a>
@@ -85,7 +78,7 @@
 <style>
   .navbar {
     background-image: none;
-    transition: none 0s ease 0s;
+    transition: all 0.2s ease;
     opacity: 0.9;
     height: 105.5px;
     padding: 16px;

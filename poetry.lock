@@ -2932,6 +2932,24 @@ files = [
 ]
 
 [[package]]
+name = "loguru"
+version = "0.7.2"
+description = "Python logging made (stupidly) simple"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "loguru-0.7.2-py3-none-any.whl", hash = "sha256:003d71e3d3ed35f0f8984898359d65b79e5b21943f78af86aa5491210429b8eb"},
+    {file = "loguru-0.7.2.tar.gz", hash = "sha256:e671a53522515f34fd406340ee968cb9ecafbc4b36c679da03c18fd8d0bd51ac"},
+]
+
+[package.dependencies]
+colorama = {version = ">=0.3.4", markers = "sys_platform == \"win32\""}
+win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptiongroup (==1.1.3)", "freezegun (==1.1.0)", "freezegun (==1.2.2)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v1.4.1)", "mypy (==v1.5.1)", "pre-commit (==3.4.0)", "pytest (==6.1.2)", "pytest (==7.4.0)", "pytest-cov (==2.12.1)", "pytest-cov (==4.1.0)", "pytest-mypy-plugins (==1.9.3)", "pytest-mypy-plugins (==3.0.0)", "sphinx-autobuild (==2021.3.14)", "sphinx-rtd-theme (==1.3.0)", "tox (==3.27.1)", "tox (==4.11.0)"]
+
+[[package]]
 name = "makim"
 version = "1.16.0"
 description = "Simplify the usage of containers"
@@ -3223,25 +3241,29 @@ name = "mosqlient"
 version = "1.6.3"
 description = "client library for the mosqlimate client library"
 optional = false
-python-versions = "<3.13,>=3.10"
-files = [
-    {file = "mosqlient-1.6.3-py3-none-any.whl", hash = "sha256:2b6bdacbdfa0141509e89e25787e3be5251ff2980a7d62affc50453734bc3730"},
-    {file = "mosqlient-1.6.3.tar.gz", hash = "sha256:5b484ca587cb9e0ac429bd8d4ee28ba222b0f4786315b48b8d5969321f62befd"},
-]
+python-versions = ">=3.10,<3.13"
+files = []
+develop = false
 
 [package.dependencies]
-aiohttp = ">=3.9.5,<4.0.0"
-altair = ">=5.3.0,<6.0.0"
-cffi = ">=1.17.0,<2.0.0"
-matplotlib = ">=3.9.0,<4.0.0"
-nest-asyncio = ">=1.6.0,<2.0.0"
-pandas = ">=2.2.2,<3.0.0"
-pmdarima = ">=2.0.4,<3.0.0"
-pydantic = ">=2.7.3,<3.0.0"
-requests = ">=2.32.2,<3.0.0"
-scikit-learn = ">=1.5.0,<2.0.0"
-scoringrules = ">=0.5.2,<0.6.0"
-types-requests = ">=2.32.0.20240523,<3.0.0.0"
+aiohttp = "^3.9.5"
+altair = "^5.3.0"
+cffi = "^1.17.0"
+matplotlib = "^3.9.0"
+nest-asyncio = "^1.6.0"
+pandas = "^2.2.2"
+pmdarima = "^2.0.4"
+pydantic = "^2.7.3"
+requests = "^2.32.2"
+scikit-learn = "^1.5.0"
+scoringrules = "^0.5.2"
+types-requests = "^2.32.0.20240523"
+
+[package.source]
+type = "git"
+url = "https://github.com/luabida/mosqlimate-client"
+reference = "add-prediction-score"
+resolved_reference = "cf232a8f5b7e4d786478fa084ce9e37fed480ec7"
 
 [[package]]
 name = "msgpack"
@@ -6107,6 +6129,20 @@ files = [
 brotli = ["brotli"]
 
 [[package]]
+name = "win32-setctime"
+version = "1.1.0"
+description = "A small Python utility to set file creation time on Windows"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "win32_setctime-1.1.0-py3-none-any.whl", hash = "sha256:231db239e959c2fe7eb1d7dc129f11172354f98361c4fa2d6d2d7e278baa8aad"},
+    {file = "win32_setctime-1.1.0.tar.gz", hash = "sha256:15cf5750465118d6929ae4de4eb46e8edae9a5634350c01ba582df868e932cb2"},
+]
+
+[package.extras]
+dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
+
+[[package]]
 name = "xonsh"
 version = "0.18.2"
 description = "Python-powered shell. Full-featured and cross-platform."
@@ -6307,4 +6343,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "fd3c9e22fcf3772a4dcba4ab75a196e531963ef1dcaee57f50d4731219ac0d97"
+content-hash = "22a19e325d300247e34aa256baaebd2c0534c28d0ad1ab28d3be71dd3e562020"
