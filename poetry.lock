@@ -488,6 +488,20 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "blacknoise"
+version = "1.1.0"
+description = "An ASGI app for static file serving inspired by whitenoise"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "blacknoise-1.1.0-py3-none-any.whl", hash = "sha256:789e7cb4c0354164738d001fee37622dd8d10df829b33a47ca2645dcfa76e9b0"},
+    {file = "blacknoise-1.1.0.tar.gz", hash = "sha256:20b96a452fe04d40bd69c3d939fb5e751ef56a835975d23fd4354af6e7a0c534"},
+]
+
+[package.dependencies]
+starlette = ">=0.39"
+
+[[package]]
 name = "bleach"
 version = "6.1.0"
 description = "An easy safelist-based HTML-sanitizing tool."
@@ -1568,6 +1582,17 @@ files = [
 
 [package.dependencies]
 Django = ">=3.2,<6.0"
+
+[[package]]
+name = "django-webpack-loader"
+version = "3.1.1"
+description = "Transparently use webpack with django"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-webpack-loader-3.1.1.tar.gz", hash = "sha256:f11b79700d1bfc1299131bdf4ba479c1ec200f83a1400e1a2feb5c2ba7b6f8c4"},
+    {file = "django_webpack_loader-3.1.1-py2.py3-none-any.whl", hash = "sha256:15c05cb685b113c5e6f947efa8ee3888a03c2969a2dd0da4c7610b3e695f67ba"},
+]
 
 [[package]]
 name = "dpd-components"
@@ -5602,6 +5627,23 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
+name = "starlette"
+version = "0.39.2"
+description = "The little ASGI library that shines."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "starlette-0.39.2-py3-none-any.whl", hash = "sha256:134dd6deb655a9775991d352312d53f1879775e5cc8a481f966e83416a2c3f71"},
+    {file = "starlette-0.39.2.tar.gz", hash = "sha256:caaa3b87ef8518ef913dac4f073dea44e85f73343ad2bdc17941931835b2a26a"},
+]
+
+[package.dependencies]
+anyio = ">=3.4.0,<5"
+
+[package.extras]
+full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7)", "pyyaml"]
+
+[[package]]
 name = "statsmodels"
 version = "0.14.2"
 description = "Statistical computations and models for Python"
@@ -6343,4 +6385,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "22a19e325d300247e34aa256baaebd2c0534c28d0ad1ab28d3be71dd3e562020"
+content-hash = "7ac77b610af552acbee6a2a37fdadeb321215bd3ba0e409729d8a7c1edbaf39c"

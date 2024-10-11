@@ -181,3 +181,5 @@ data/
 */staticfiles/
 */media/
 *cache/
+*/webpack-stats.json
+*/assets/webpack_bundles/
