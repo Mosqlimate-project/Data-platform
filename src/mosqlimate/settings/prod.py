@@ -1,4 +1,7 @@
-from .base import *  # noqa: F403
+from . import base
+
+from blacknoise import BlackNoise
+from django.core.asgi import get_asgi_application
 
 SESSION_COOKIE_SECURE = True
 
@@ -7,6 +10,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
+    "https://*",
+    "http://*",
     "https://api.mosqlimate.org",
     "http://localhost",
     "http://0.0.0.0:8042",
@@ -18,3 +23,6 @@ SECURE_HSTS_SECONDS = 3600
 
 # CORS_REPLACE_HTTPS_REFERER = False
 # SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+application = BlackNoise(get_asgi_application())
+application.add(base.BASE_DIR / "static", "/static")

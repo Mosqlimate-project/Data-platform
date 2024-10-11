@@ -59,6 +59,7 @@ footer, .footer {
   padding: 5px;
   box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
   z-index: 9990;
+  top: 0;
 }
 
 #menu::-webkit-scrollbar {

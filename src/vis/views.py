@@ -9,6 +9,7 @@ from dateutil import parser
 from datetime import date
 
 # from loguru import logger
+import numpy as np
 
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -380,15 +381,19 @@ def get_predict_ids(request) -> JsonResponse:
         request, required=["dashboard", "disease"]
     )
 
-    data = DashboardView.filter_predictions(**query)
+    data = [
+        (_id, (None if score is None or np.isnan(float(score)) else score))
+        for _id, score in DashboardView.filter_predictions(**query)
+        .values_list("predict_id", query["score"])
+        .distinct()
+    ]
 
-    return JsonResponse(
-        {
-            "predicts": list(
-                data.values_list("predict_id", query["score"]).distinct()
-            )
-        }
-    )
+    print(data)
+    print(data)
+    print(data)
+    print(data)
+
+    return JsonResponse({"predicts": data})
 
 
 def get_predict_list_data(request) -> JsonResponse:

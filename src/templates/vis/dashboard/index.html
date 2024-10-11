@@ -6,23 +6,17 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block head %}
+<link type="text/css" rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/external/jqrangeslider.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/external/jquery-ui.css' %}">
+<link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+{% endblock %}
+
 {% block content %}
-<header>
-  <link rel="stylesheet" href="{% static 'css/vis/dashboard/index.css' %}">
-  <link rel="stylesheet" href="{% static 'css/external/jqrangeslider.css' %}">
-  <link rel="stylesheet" href="{% static 'css/external/jquery-ui.css' %}">
-</header>
-
-<script src="{% static 'js/external/jquery.js' %}"></script>
-<script
-  src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"
-  integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc="
-  crossorigin="anonymous"></script>
-<script src="{% static 'js/external/jQDateRangeSlider-withRuler-min.js' %}"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-
 {% for dashboard, data in dashboards.items %}
   <input type="hidden" id="dashboardEl-{{ dashboard }}" value='{{ data|parse_nones|safe }}'>
 {% endfor %}
@@ -39,13 +33,13 @@ const colors = [
     "#A6BCD4", "#FAC28C", "#F2ABAB", "#B9DBD9", "#AAD1A5", "#F7E59D", "#D9BCD1", "#FFCED3", "#CEBAAE",
     "#B9A6D4", "#8CFAC2", "#ABF2D5", "#A6B9DB", "#A5D1AA", "#F7D99D", "#D9D1BC", "#D3FFCE", "#BACEAE",
     "#D4A6BC", "#8CFAE5", "#F2ABF1", "#DBB9A6", "#AACED1", "#9DF7A6", "#BCD9BC", "#FFCEB9", "#AECEBA",
-    "#A6D4A6", "#8CFAAB", "#F2E5AB", "#D9A5BC", "#B9CEAA", "#F7E59A", "#D1A6D9", "#CEBACE", "#FFD9E5",
-    "#A6D9F2", "#C28CFA", "#ABF2A6", "#A6DBB9", "#E59DAA", "#D1F7BC", "#BCBCD9", "#E5FFD3", "#A6B9CE",
-    "#D4BCA6", "#FAF28C", "#ABF2E5", "#A6AADB", "#9DF7CE", "#D9A5D9", "#BCF7AA", "#FFCECD", "#BAAED3",
-    "#D4A6D9", "#FAC28C", "#ABABF2", "#B9D9A6", "#AAD1D9", "#F7AB9D", "#D9BCF2", "#FFCED3", "#BAAACB",
-    "#A6F2BC", "#C28CFA", "#ABF2C2", "#A6D9B9", "#E5F7AA", "#D1CBA6", "#BCD9BC", "#FFD3FF", "#A6CEBA",
-    "#D4A6E5", "#FAC28C", "#ABF2A6", "#B9A6D9", "#E5D99D", "#D9AADD", "#CEBCD9", "#F7FFCE", "#AACBE5",
-    "#A6D4A6", "#FAC2A6", "#E5D9A6", "#A6F7CE", "#D99DAB", "#B9F2BC", "#FFCEA6", "#A6D9CE", "#C2BCAF"
+    // "#A6D4A6", "#8CFAAB", "#F2E5AB", "#D9A5BC", "#B9CEAA", "#F7E59A", "#D1A6D9", "#CEBACE", "#FFD9E5",
+    // "#A6D9F2", "#C28CFA", "#ABF2A6", "#A6DBB9", "#E59DAA", "#D1F7BC", "#BCBCD9", "#E5FFD3", "#A6B9CE",
+    // "#D4BCA6", "#FAF28C", "#ABF2E5", "#A6AADB", "#9DF7CE", "#D9A5D9", "#BCF7AA", "#FFCECD", "#BAAED3",
+    // "#D4A6D9", "#FAC28C", "#ABABF2", "#B9D9A6", "#AAD1D9", "#F7AB9D", "#D9BCF2", "#FFCED3", "#BAAACB",
+    // "#A6F2BC", "#C28CFA", "#ABF2C2", "#A6D9B9", "#E5F7AA", "#D1CBA6", "#BCD9BC", "#FFD3FF", "#A6CEBA",
+    // "#D4A6E5", "#FAC28C", "#ABF2A6", "#B9A6D9", "#E5D99D", "#D9AADD", "#CEBCD9", "#F7FFCE", "#AACBE5",
+    // "#A6D4A6", "#FAC2A6", "#E5D9A6", "#A6F7CE", "#D99DAB", "#B9F2BC", "#FFCEA6", "#A6D9CE", "#C2BCAF"
 ];
 
 function getDashboardEl(dashboard) {
@@ -73,7 +67,7 @@ function dashboardQuerySetter(dashboard, updates) {
 }
 
 function updateContentState() {
-  const dsContent = document.getElementById('dsContent'); 
+  const dsContent = document.getElementById('dsContent');
   if (!menu.classList.contains('retracted')) {
     dsContent.classList.add('expanded');
     dsContent.classList.remove('retracted');
@@ -191,7 +185,7 @@ async function fetchData(urlPath, query, required, extraParams = {}) {
 
     for (const [key, value] of Object.entries(query)) {
       const paramKey = params[key] || key;
-      
+
       if (Array.isArray(value)) {
         value.forEach(item => {
           if (isValid(item)) {
@@ -222,9 +216,11 @@ async function fetchData(urlPath, query, required, extraParams = {}) {
 function renderPredictList(data, dashboard) {
   const predictIdsContainer = document.getElementById(`predict-ids-${dashboard}`);
   const selectedScore = dashboardDataGetter(dashboard).query.score;
+  console.log(data);
   predictIdsContainer.innerHTML = '';
 
   const predictionIds = data.map(item => item[0]);
+  console.log(`prediction ids: ${predictionIds}`);
 
   fetchPredictListData(predictionIds).then(predictionData => {
     if (predictionData) {
@@ -275,7 +271,7 @@ function renderPredictList(data, dashboard) {
               <div class="col-1 text-center">${id}</div>
               <div class="col text-center" style="min-width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                 <a href="/registry/model/${model_id}" class="text-decoration-none" target="_blank">
-                  ${model_name} 
+                  ${model_name}
                 </a>
               </div>
               <div class="col-auto text-center" style="min-width: 100px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${predict_date}  </div>
@@ -310,7 +306,7 @@ function renderPredictList(data, dashboard) {
               <div class="col-1 text-center">${id}</div>
               <div class="col text-center" style="min-width: 200px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                 <a href="/registry/model/${model_id}" class="text-decoration-none">
-                  ${model_name} 
+                  ${model_name}
                 </a>
               </div>
               <div class="col-auto text-center" style="min-width: 100px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${predict_date}  </div>
@@ -348,7 +344,7 @@ function renderPredictList(data, dashboard) {
 
 function updateListColors(ul, dashboard) {
   const activeItems = ul.querySelectorAll('.active');
-  
+
   if (activeItems.length === 0) {
     ul.querySelectorAll('.list-group-item').forEach((item, index) => {
       // if (index < 5) {
@@ -361,7 +357,7 @@ function updateListColors(ul, dashboard) {
     activeItems.forEach((item, index) => {
       item.style.backgroundColor = colors[index % colors.length];
     });
-    
+
     ul.querySelectorAll('.list-group-item').forEach((item) => {
       if (!item.classList.contains('active')) {
         item.style.backgroundColor = '';
@@ -396,6 +392,7 @@ async function fetchPredictList(dashboard) {
 }
 
 function fetchPredictListData(predictionIds) {
+  console.log(predictionIds)
   const url = new URL("{% url 'get_predict_list_data' %}", window.location.origin);
   url.searchParams.append('prediction-ids', predictionIds.join(','));
 
@@ -521,7 +518,6 @@ async function updateDateWindowRange(dashboard) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  getBrowserCity().then(r => {console.log(r)});
   updateContentState();
   changeContent(dashboard);
   observer2.observe(menu, { attributes: true });
@@ -552,10 +548,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     dashboardQuerySetter(dashboard, menuDataGetter(dashboard).query);
-    updateDashboard(dashboard, true).then(() => {
-      loading.style.display = 'none'
-      chart.style.display = 'block';
-    });
+    // updateDashboard(dashboard, true).then(() => {
+    //   loading.style.display = 'none'
+    //   chart.style.display = 'block';
+    // });
     updateChartBtn.dispatchEvent(new Event('click'));
 
     menuEl.addEventListener('change', () => {
@@ -583,5 +579,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+<script
+  type="text/javascript"
+  src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"
+  integrity="sha256-u0L8aA6Ev3bY2HI4y0CAyr9H8FRWgX4hZ9+K7C2nzdc="
+  crossorigin="anonymous"></script>
+<script type="text/javascript" src="{% static '/js/external/jQDateRangeSlider-withRuler-min.js' %}"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 
 {% endblock %}

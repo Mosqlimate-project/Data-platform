@@ -51,6 +51,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
     "django_celery_beat",
+    "webpack_loader",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",
@@ -225,13 +226,12 @@ LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-url
+
 STATIC_URL = "/static/"
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(BASE_DIR / "static")]
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
+
+STATICFILES_DIRS = [str(BASE_DIR / "static"), str(BASE_DIR / "assets")]
+
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
@@ -241,6 +241,15 @@ STATICFILES_FINDERS = [
     "django_plotly_dash.finders.DashAppDirectoryFinder",
 ]
 
+WEBPACK_LOADER = {
+    "DEFAULT": {
+        "BUNDLE_DIR_NAME": "webpack_bundles/",
+        "CACHE": not DEBUG,
+        "STATS_FILE": os.path.join(BASE_DIR, "webpack-stats.json"),
+        "POLL_INTERVAL": 0.1,
+        "IGNORE": [r".+\.hot-update.js", r".+\.map"],
+    }
+}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
