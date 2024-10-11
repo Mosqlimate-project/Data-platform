@@ -10,6 +10,8 @@ groups:
       - containers/compose.yaml
       - containers/compose-prod.yaml
     env-file: .env
+    environment:
+        NODE_ENV: "production webpack --progress --bail --mode=production"
     services:
       default: django,worker,postgres,documentation,redis
       available:
