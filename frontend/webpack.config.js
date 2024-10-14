@@ -7,15 +7,15 @@ const BundleTracker = require('webpack-bundle-tracker');
 module.exports = (env, argv) => {
   const port = process.env.FRONTEND_PORT;
   const isDev = argv.mode === 'development';
-  const static = path.resolve(__dirname, 'static');
-  const nodeModulesDir = path.resolve(__dirname, "node_modules");
+  const staticfiles = path.resolve(__dirname, 'staticfiles');
+  const nodeModulesDir = path.resolve(__dirname, '../node_modules');
   const localhostOutput = {
-    path: path.resolve(static, 'bundles'),
+    path: path.resolve(staticfiles, 'bundles'),
     publicPath: `http://0.0.0.0:${port}/frontend/bundles/`,
     filename: "[name].js",
   };
   const productionOutput = {
-    path: path.resolve(static, 'bundles'),
+    path: path.resolve(staticfiles, 'bundles'),
     publicPath: `http://0.0.0.0:${port}/frontend/bundles/`,
     filename: "[name]-[chunkhash].js",
   };
@@ -24,7 +24,7 @@ module.exports = (env, argv) => {
     context: __dirname,
     mode: isDev ? "development" : "production",
     entry: {
-      app: path.resolve(static, 'js/main.js'),
+      app: path.resolve(staticfiles, 'js/main.js'),
     },
     output: isDev ? localhostOutput : productionOutput,
     module: {
@@ -74,7 +74,11 @@ module.exports = (env, argv) => {
       }),
     ],
     resolve: {
-      extensions: ['.js', '.jsx'],
+      modules: [nodeModulesDir, staticfiles],
+      extensions: [".js", ".jsx", ".ts", ".tsx"],
+      fallback: {
+          events: require.resolve('events/')
+      }
     },
     optimization: {
       splitChunks: {
@@ -84,7 +88,7 @@ module.exports = (env, argv) => {
     devtool: isDev ? 'inline-source-map' : false,
     devServer: {
       static: {
-        directory: static,
+        directory: staticfiles,
       },
       compress: true,
       host: "0.0.0.0",
