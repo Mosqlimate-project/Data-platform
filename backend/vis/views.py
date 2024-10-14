@@ -21,7 +21,7 @@ from django.db import models
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
 from main.utils import CODES_UF
-from main.api import MUN_DATA
+from main.api import get_mun_data
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
@@ -95,7 +95,7 @@ def get_adm_menu_options(
             )
 
             adm_data[disease][time_resolution]["adm_2"] = [
-                (adm_2, MUN_DATA[str(adm_2)]["municipio"])
+                (adm_2, get_mun_data()[str(adm_2)]["municipio"])
                 for adm_2 in DashboardView.filter_predictions(**query)
                 .exclude(adm_2=None)
                 .values_list("adm_2", flat=True)

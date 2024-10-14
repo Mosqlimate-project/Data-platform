@@ -6,6 +6,7 @@ from ninja import NinjaAPI, Router, Schema, Swagger
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse
+from django.core.cache import cache
 
 from registry.api import router as registry_router
 from datastore.api import router as datastore_router
@@ -17,9 +18,24 @@ from main.utils import UF_CODES, UFs
 
 os.environ["NINJA_SKIP_REGISTRY"] = "yes"
 
-MUN_FILE = os.path.join(settings.STATIC_ROOT, "data/geo/BR/municipios.json")
-with open(MUN_FILE, "r") as file:
-    MUN_DATA = json.load(file)
+
+def load_mun_data():
+    mun_file = str(
+        settings.BASE_DIR / ".." / "frontend/static/data/geo/municipios.json"
+    )
+    if os.path.exists(mun_file):
+        with open(mun_file, "r") as file:
+            return json.load(file)
+    return None
+
+
+def get_mun_data():
+    data = cache.get("mun_data")
+    if data is None:
+        data = load_mun_data()
+        cache.set("mun_data", data, timeout=None)
+    return data
+
 
 api = NinjaAPI(
     csrf=True,
@@ -95,7 +111,7 @@ def get_state_info(request, geocode):
 @csrf_exempt
 def get_municipality_info(request, geocode):
     try:
-        mun_info = MUN_DATA[str(geocode)]
+        mun_info = get_mun_data()[str(geocode)]
     except KeyError:
         return 404, {"message": f"Unknown geocode: {geocode}"}
 

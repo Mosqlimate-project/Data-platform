@@ -76,7 +76,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = "mosqlimate.urls"
 
 # https://stackoverflow.com/a/32347324
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 TEMPLATES = [
     {
