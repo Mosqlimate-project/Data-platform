@@ -10,6 +10,7 @@ in the local variables, then asks for an input if the variable doesn't exist. A
 default_val will be returned. A default value will be overridden if it already
 exists on Environment and it won't ask for input.
 """
+
 import os
 import logging
 from pathlib import Path
@@ -82,6 +83,11 @@ allowed_hosts = var_in(
 )
 dj_settings = (
     "mosqlimate.settings.prod" if env == "prod" else "mosqlimate.settings.dev"
+)
+node_env = (
+    "production webpack --progress --bail --mode=production"
+    if env == "prod"
+    else "development"
 )
 
 
@@ -245,6 +251,7 @@ variables = {
     "SECRET_KEY": secret_key,
     "ALLOWED_HOSTS": allowed_hosts,
     "DJANGO_SETTINGS_MODULE": dj_settings,
+    "NODE_ENV": node_env,
     # [Django Image]
     "HOST_UID": uid,
     "HOST_GID": gid,

@@ -6,17 +6,15 @@ defaults:
 groups:
   prod:
     project-name: mosqlimate
-    compose-path: 
+    compose-path:
       - containers/compose.yaml
       - containers/compose-prod.yaml
     env-file: .env
-    environment:
-        NODE_ENV: "production webpack --progress --bail --mode=production"
     services:
-      default: django,worker,postgres,documentation,redis
+      default: frontend,backend,postgres,documentation,redis
       available:
-        - name: django
-        - name: worker
+        - name: frontend
+        - name: backend
         - name: postgres
         - name: documentation
         - name: redis
@@ -28,10 +26,10 @@ groups:
       - containers/compose-dev.yaml
     env-file: .env
     services:
-      default: django,worker,postgres,documentation,redis
+      default: frontend,backend,postgres,documentation,redis
       available:
-        - name: django
-        - name: worker
+        - name: frontend
+        - name: backend
         - name: postgres
         - name: documentation
         - name: redis

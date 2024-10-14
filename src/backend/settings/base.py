@@ -18,10 +18,6 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = str(env("ENV")).lower() == "dev"
 
-DJANGO_CONTAINER_DATA_PATH = Path(
-    env("DJANGO_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
-)
-
 ALLOWED_HOSTS = [
     "*",  #
     "0.0.0.0",
@@ -77,7 +73,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-ROOT_URLCONF = "mosqlimate.urls"
+ROOT_URLCONF = "urls"
 
 # https://stackoverflow.com/a/32347324
 # STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -85,7 +81,7 @@ ROOT_URLCONF = "mosqlimate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "frontend" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -98,7 +94,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mosqlimate.wsgi.application"
+WSGI_APPLICATION = "wsgi.application"
 
 
 MESSAGE_TAGS = {
@@ -148,7 +144,7 @@ DATABASE_ROUTERS = (
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": f"{BASE_DIR.parent}/djangocache",
+        "LOCATION": str(BASE_DIR / "djangocache"),
         "OPTIONS": {
             "MAX_ENTRIES": 1000,  # Adjust as needed
             "CULL_FREQUENCY": 10,  # Adjust as needed
@@ -179,7 +175,7 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 2  # select * from django_site;
 
-AUTH_USER_MODEL = "users.CustomUser"
+AUTH_USER_MODEL = "backend.users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
@@ -220,17 +216,20 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOCALE_PATHS = [str(BASE_DIR / "templates" / "locale")]
+LOCALE_PATHS = [str(BASE_DIR / "frontend" / "templates" / "locale")]
 
 LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = str(BASE_DIR / "staticfiles")
+STATIC_ROOT = str(BASE_DIR / "frontend" / "staticfiles")
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [str(BASE_DIR / "static"), str(BASE_DIR / "assets")]
+STATICFILES_DIRS = [
+    str(BASE_DIR / "frontend" / "static"),
+    str(BASE_DIR / "frontend" / "assets"),
+]
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -243,16 +242,16 @@ STATICFILES_FINDERS = [
 
 WEBPACK_LOADER = {
     "DEFAULT": {
-        "BUNDLE_DIR_NAME": "webpack_bundles/",
+        "BUNDLE_DIR_NAME": "bundles/",
         "CACHE": not DEBUG,
-        "STATS_FILE": str(BASE_DIR / "webpack-stats.json"),
+        "STATS_FILE": str(BASE_DIR / "frontend" / "webpack-stats.json"),
         "POLL_INTERVAL": 0.1,
         "IGNORE": [r".+\.hot-update.js", r".+\.map"],
     }
 }
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
+MEDIA_ROOT = BASE_DIR / "backend" / "media"
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 

@@ -177,8 +177,10 @@ tests/coverage_html/
 tests/.coverage*
 build/
 tests/report/
-data/
-*/staticfiles/
+# data/
+src/frontend/static/data/geo/BR/states/
+src/frontend/static/data/dengue.csv.gz
+staticfiles/
 */media/
 *cache/
 */webpack-stats.json

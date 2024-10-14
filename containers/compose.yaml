@@ -1,50 +1,49 @@
 services:
-  django:
-    hostname: mosqlimate-django
+  frontend:
+    hostname: mosqlimate-frontend
     restart: unless-stopped
     build:
       context: ..
-      dockerfile: containers/mosqlimate/Dockerfile
+      dockerfile: containers/mosqlimate/Dockerfile.frontend
       args:
         # note: if you want to use a specific UID and GID, ensure to add it to
         #       the .env file
         - UID=${HOST_UID}
         - GID=${HOST_GID}
-        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
+        - FRONTEND_PORT=${FRONTEND_PORT}
     env_file:
       - ../.env
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
     user: "mosqlimate:mosqlimate"
     volumes:
-      - ${EPISCANNER_HOST_DATA_DIR}:${DJANGO_CONTAINER_DATA_PATH}/episcanner
+      - ../src:/opt/services/mosqlimate
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:${DJANGO_PORT}/status"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:${FRONTEND_PORT}/status"]
       interval: 60s
       timeout: 10s
       retries: 5
       start_period: 40s
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
     networks:
       - mosqlimate
 
-  worker:
-    hostname: mosqlimate-worker
+  backend:
+    hostname: mosqlimate-backend
     restart: unless-stopped
     build:
       context: ..
-      dockerfile: containers/mosqlimate/Dockerfile
+      dockerfile: containers/mosqlimate/Dockerfile.backend
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
-        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
     env_file:
       - ../.env
     ports:
-      - ${WORKER_PORT}:${WORKER_PORT}
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    volumes:
+      - ../src:/opt/services/mosqlimate
+      - ${EPISCANNER_HOST_DATA_DIR}:/opt/services/mosqlimate/episcanner
     user: "mosqlimate:mosqlimate"
-    command: celery -A mosqlimate worker -l INFO -E -B --scheduler django_celery_beat.schedulers:DatabaseScheduler
     healthcheck:
       test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
       interval: 10s
@@ -53,6 +52,8 @@ services:
       start_period: 30s
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - mosqlimate

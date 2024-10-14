@@ -6,16 +6,17 @@ const BundleTracker = require('webpack-bundle-tracker');
 
 module.exports = (env, argv) => {
   const isDev = argv.mode === 'development';
-  const staticDir = path.resolve(__dirname, 'static');
+  const static = path.resolve(__dirname, 'static');
   
   return {
+    mode: isDev ? "development" : "production",
     entry: {
-      app: './src/index.js',
+      app: path.resolve(static, 'js/main.js'),
     },
     output: {
-      path: path.resolve(staticDir, 'webpack_bundles'),
+      path: path.resolve(static, 'bundles'),
       filename: isDev ? '[name].js' : '[name].[contenthash].js',
-      publicPath: '/static/webpack_bundles/',
+      publicPath: '/static/bundles/',
     },
     module: {
       rules: [
@@ -74,7 +75,7 @@ module.exports = (env, argv) => {
     devtool: isDev ? 'inline-source-map' : false,
     devServer: {
       static: {
-        directory: staticDir,
+        directory: static,
       },
       compress: true,
       port: 3000,

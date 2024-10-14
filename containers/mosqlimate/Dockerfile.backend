@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Sao_Paulo
 ARG UID
 ARG GID
+ARG BACKEND_PORT
 
 RUN apt-get update -y \
   && apt-get install -y \
@@ -59,23 +60,15 @@ ENV PATH ${CONDA_PREFIX}/bin:$PATH
 # install dependencies
 COPY --chown=mosqlimate:mosqlimate pyproject.toml /opt/services/mosqlimate
 
-# https://github.com/yaml/pyyaml/issues/724
-RUN pip install "cython<3.0.0" \
-  && pip install --no-build-isolation "pyyaml<6.0" \ 
-  && poetry config virtualenvs.create false \
+RUN poetry config virtualenvs.create false \
   && poetry install --without pre-commit,dev,docs
 
 COPY --chown=mosqlimate:mosqlimate containers/entrypoint.sh /opt/entrypoint.sh
-ADD --chown=mosqlimate:mosqlimate src/ /opt/services/mosqlimate/
 
 RUN chmod +x /opt/entrypoint.sh \
   && echo "source /opt/entrypoint.sh" > ~/.bashrc
 
-ARG DJANGO_CONTAINER_DATA_PATH
-ENV DJANGO_CONTAINER_DATA_PATH ${DJANGO_CONTAINER_DATA_PATH}
-RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH}/static
-
 ENV PYTHONPATH='/opt/services/mosqlimate'
 
 ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8042"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:${BACKEND_PORT}"]

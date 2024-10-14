@@ -187,11 +187,7 @@ def get_episcanner(
     # geocode: Optional[List[int]] = None
 ):
     db = duckdb.connect(
-        str(
-            settings.DJANGO_CONTAINER_DATA_PATH
-            / "episcanner"
-            / "episcanner.duckdb"
-        )
+        str(settings.BASE_DIR / "episcanner" / "episcanner.duckdb")
     )
 
     describe: pd.DataFrame = db.execute("DESCRIBE").fetchdf()

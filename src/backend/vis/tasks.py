@@ -4,7 +4,7 @@ from celery.schedules import crontab
 from celery.signals import worker_ready
 from django.db.models import Sum, Max
 
-from mosqlimate.celeryapp import app
+from backend.celeryapp import app
 
 from .models import TotalCases, TotalCases100kHab
 from .plots.home.vis_charts import (
