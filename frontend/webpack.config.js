@@ -5,19 +5,28 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleTracker = require('webpack-bundle-tracker');
 
 module.exports = (env, argv) => {
+  const port = process.env.FRONTEND_PORT;
   const isDev = argv.mode === 'development';
   const static = path.resolve(__dirname, 'static');
-  
+  const nodeModulesDir = path.resolve(__dirname, "node_modules");
+  const localhostOutput = {
+    path: path.resolve(static, 'bundles'),
+    publicPath: `http://0.0.0.0:${port}/frontend/bundles/`,
+    filename: "[name].js",
+  };
+  const productionOutput = {
+    path: path.resolve(static, 'bundles'),
+    publicPath: `http://0.0.0.0:${port}/frontend/bundles/`,
+    filename: "[name]-[chunkhash].js",
+  };
+
   return {
+    context: __dirname,
     mode: isDev ? "development" : "production",
     entry: {
       app: path.resolve(static, 'js/main.js'),
     },
-    output: {
-      path: path.resolve(static, 'bundles'),
-      filename: isDev ? '[name].js' : '[name].[contenthash].js',
-      publicPath: '/static/bundles/',
-    },
+    output: isDev ? localhostOutput : productionOutput,
     module: {
       rules: [
         {
@@ -78,8 +87,10 @@ module.exports = (env, argv) => {
         directory: static,
       },
       compress: true,
-      port: 3000,
+      host: "0.0.0.0",
+      port: port,
       hot: true,
+      historyApiFallback: true,
       headers: { 'Access-Control-Allow-Origin': '*' },
     },
   };
