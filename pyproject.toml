@@ -5,7 +5,7 @@ description = "TODO"
 authors = ["Flávio Codeço Coelho <you@example.com>"]
 license = "GNU"
 readme = "README.md"
-# packages = [{include = "src"}]
+packages = [{include = "backend"}]
 
 
 [tool.poetry.dependencies]

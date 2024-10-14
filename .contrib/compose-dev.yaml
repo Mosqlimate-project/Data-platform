@@ -5,7 +5,8 @@ services:
       - infodengue-dev_infodengue
 
   backend:
-    command: python -m gunicorn -w 1 -b 0.0.0.0:${BACKEND_PORT} mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker --reload
+    # command: python -m gunicorn -w 1 -b 0.0.0.0:${BACKEND_PORT} backend.mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker --reload
+    command: python backend/manage.py runserver ${BACKEND_PORT} --reload
     networks:
       - infodengue-dev_infodengue
 
