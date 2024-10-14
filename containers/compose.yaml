@@ -18,6 +18,9 @@ services:
     user: "mosqlimate:mosqlimate"
     volumes:
       - ../src:/opt/services/mosqlimate
+      - ../package.json:/opt/services/mosqlimate/package.json
+      - ../tsconfig.json:/opt/services/mosqlimate/tsconfig.json
+      - /opt/services/mosqlimate/frontend/node_modules
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${FRONTEND_PORT}/status"]
       interval: 60s
@@ -42,10 +45,42 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ../src:/opt/services/mosqlimate
+      - ../pyproject.toml:/opt/services/mosqlimate/pyproject.toml
       - ${EPISCANNER_HOST_DATA_DIR}:/opt/services/mosqlimate/episcanner
     user: "mosqlimate:mosqlimate"
     healthcheck:
-      test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mosqlimate
+
+  worker:
+    hostname: mosqlimate-backend
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: containers/mosqlimate/Dockerfile.backend
+      args:
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+    env_file:
+      - ../.env
+    volumes:
+      - ../src:/opt/services/mosqlimate
+      - ../pyproject.toml:/opt/services/mosqlimate/pyproject.toml
+      - ${EPISCANNER_HOST_DATA_DIR}:/opt/services/mosqlimate/episcanner
+    user: "mosqlimate:mosqlimate"
+    command: "celery -A backend.celeryapp worker --loglevel=info"
+    healthcheck:
+      test: ["CMD-SHELL", 'celery --app backend.celeryapp.app status']
       interval: 10s
       timeout: 10s
       retries: 5

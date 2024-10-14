@@ -11,10 +11,11 @@ groups:
       - containers/compose-prod.yaml
     env-file: .env
     services:
-      default: frontend,backend,postgres,documentation,redis
+      default: frontend,backend,worker,postgres,documentation,redis
       available:
         - name: frontend
         - name: backend
+        - name: worker
         - name: postgres
         - name: documentation
         - name: redis
@@ -26,10 +27,11 @@ groups:
       - containers/compose-dev.yaml
     env-file: .env
     services:
-      default: frontend,backend,postgres,documentation,redis
+      default: frontend,backend,worker,postgres,documentation,redis
       available:
         - name: frontend
         - name: backend
+        - name: worker
         - name: postgres
         - name: documentation
         - name: redis

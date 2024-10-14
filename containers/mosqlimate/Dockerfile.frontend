@@ -6,7 +6,6 @@ SHELL ["/bin/bash", "-c"]
 
 ARG UID
 ARG GID
-ARG FRONTEND_PORT
 
 RUN addgroup --gid ${GID} mosqlimate \
   && useradd --uid ${UID} --gid ${GID} -ms /bin/bash mosqlimate \
@@ -21,5 +20,3 @@ USER mosqlimate
 WORKDIR /opt/services/mosqlimate
 
 RUN npm install
-
-CMD ["npm", "run", "start"]

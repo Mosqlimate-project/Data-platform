@@ -9,7 +9,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Sao_Paulo
 ARG UID
 ARG GID
-ARG BACKEND_PORT
 
 RUN apt-get update -y \
   && apt-get install -y \
@@ -57,9 +56,6 @@ RUN mamba env create -n $ENV_NAME -f /tmp/conda/base.yaml \
 ENV CONDA_PREFIX /opt/conda/envs/$ENV_NAME
 ENV PATH ${CONDA_PREFIX}/bin:$PATH
 
-# install dependencies
-COPY --chown=mosqlimate:mosqlimate pyproject.toml /opt/services/mosqlimate
-
 RUN poetry config virtualenvs.create false \
   && poetry install --without pre-commit,dev,docs
 
@@ -71,4 +67,3 @@ RUN chmod +x /opt/entrypoint.sh \
 ENV PYTHONPATH='/opt/services/mosqlimate'
 
 ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:${BACKEND_PORT}"]
