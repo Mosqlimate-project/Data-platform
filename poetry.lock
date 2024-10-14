@@ -488,20 +488,6 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
-name = "blacknoise"
-version = "1.1.0"
-description = "An ASGI app for static file serving inspired by whitenoise"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "blacknoise-1.1.0-py3-none-any.whl", hash = "sha256:789e7cb4c0354164738d001fee37622dd8d10df829b33a47ca2645dcfa76e9b0"},
-    {file = "blacknoise-1.1.0.tar.gz", hash = "sha256:20b96a452fe04d40bd69c3d939fb5e751ef56a835975d23fd4354af6e7a0c534"},
-]
-
-[package.dependencies]
-starlette = ">=0.39"
-
-[[package]]
 name = "bleach"
 version = "6.1.0"
 description = "An easy safelist-based HTML-sanitizing tool."
@@ -5627,23 +5613,6 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
-name = "starlette"
-version = "0.39.2"
-description = "The little ASGI library that shines."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "starlette-0.39.2-py3-none-any.whl", hash = "sha256:134dd6deb655a9775991d352312d53f1879775e5cc8a481f966e83416a2c3f71"},
-    {file = "starlette-0.39.2.tar.gz", hash = "sha256:caaa3b87ef8518ef913dac4f073dea44e85f73343ad2bdc17941931835b2a26a"},
-]
-
-[package.dependencies]
-anyio = ">=3.4.0,<5"
-
-[package.extras]
-full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7)", "pyyaml"]
-
-[[package]]
 name = "statsmodels"
 version = "0.14.2"
 description = "Statistical computations and models for Python"
@@ -6385,4 +6354,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "7ac77b610af552acbee6a2a37fdadeb321215bd3ba0e409729d8a7c1edbaf39c"
+content-hash = "bd6fdc7122d19e7450c64edb151015d21718a5cd6e151b00c2a116e668b0d81e"
