@@ -1,0 +1,85 @@
+{% load static %}
+{% load i18n %}
+{% load components %}
+{% load profile_components %}
+{% load models_components %}
+{% load filters %}
+
+
+<hr style="margin-top: 0.5rem;">
+<div class="list-group font-golos">
+  <div class="list-group-item row list-group-item-action align-items-start model-item">
+    <div class="col-1">
+      <p class="mb-1 fw-bold id">ID</p>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      <p class="mb-1 fw-bold lang">{% trans 'Lang' %}</p>
+    </div>
+    <div class="col-4">
+      <p class="mb-1 fw-bold name">{% trans 'Name' %}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold author">{% trans 'Author' %}</p>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 fw-bold repository">{% trans 'Uploaded at' %}</p>
+    </div>
+    <div class="col-1 badge-container">
+      <span class="badge created-date bg-primary rounded-pill">Tags</span>
+    </div>
+    <hr style="margin-top: 5px;">
+    <div class="col-13" style="padding-left: 10px;">
+      <p class="mb-1 fw-bold description">{% trans 'Description' %}</p>
+    </div>
+  </div>
+  {% for model in models %}
+  <div class="list-group-item row list-group-item-action align-items-start model-item">
+    <div class="col-1">
+      <a href="{% url 'model' model_id=model.id %}"><p class="mb-1 id">{{ model.id }}</p></a>
+    </div>
+    <div class="col-1" style="padding-left: 0;">
+      {% with image_path='img/plangs/'|add:model.implementation_language.svg_path %}
+      {% if image_path|static_file_exists %}
+      <img class="icon" src="{% static image_path %}" />
+      {% else %}
+      <p class="mb-1 lang">{{ model.implementation_language.language }}</p>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div class="col-4">
+      <p class="mb-1 model">{{ model.name }}</p>
+    </div>
+    <div class="col-2">
+      <a href="{% url 'profile' username=model.author.user.username %}"><p class="mb-1 author">{{ model.author.user.username }}</p></a>
+    </div>
+    <div class="col-2">
+      <p class="mb-1 predict-date">{{ model.created|date:"Y-m-d" }}</p>
+    </div>
+    <div class="col-1 badge-container">
+      {% for tag in model.tags.all %}
+          <span 
+            class="badge {% if forloop.counter != 1 %}tag{% endif %} rounded-pill" 
+            style="background-color: {{ tag.color }};"
+          >
+            {{ tag.name }}
+          </span>
+      {% endfor %}
+    </div>
+    <hr>
+    <div class="col-13" style="padding-left: 5px;">
+      <p class="mb-1 description">{{ model.description }}</p>
+    </div>
+    <div class="icons">
+      <a href="{{ model.repository }}"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fa-github"></i></a>
+      {% if model|is_model_visualizable %}
+        <a href="{% url 'dashboard' %}?model={{model.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
+      {% endif %}
+      {% if user == model.author.user %}
+      <a href="{% url 'edit-model' model_id=model.id %}"><i class="fa-solid fa-pencil"></i></a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/main/components/models-list.css' %}">

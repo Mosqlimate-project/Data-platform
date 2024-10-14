@@ -1,0 +1,18 @@
+services:
+  frontend:
+    command: npm run dev
+    networks:
+      - infodengue-dev_infodengue
+
+  backend:
+    command: python -m gunicorn -w 1 -b 0.0.0.0:${BACKEND_PORT} mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker --reload
+    networks:
+      - infodengue-dev_infodengue
+
+  worker:
+    networks:
+      - infodengue-dev_infodengue
+
+networks:
+  infodengue-dev_infodengue:
+    external: true

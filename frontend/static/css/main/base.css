@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text&display=swap');
+
+.font-golos {
+  font-family: 'Golos Text', sans-serif;
+}
+
+@font-face {
+  font-family: 'Golos Text', sans-serif;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+body {
+  font-family: 'Golos Text';
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  display: flex;
+  flex: 1;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}

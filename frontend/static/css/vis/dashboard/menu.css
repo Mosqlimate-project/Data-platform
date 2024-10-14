@@ -1,0 +1,389 @@
+:root {
+  --menu-width-expanded: 200px;
+  --menu-width-retracted: 50px;
+  --menu-transition: all 0.2s ease;
+  --navbar-height: 50px;
+}
+
+body {
+  margin: 0px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.navbar {
+  height: var(--navbar-height);
+}
+
+.navbar .navbar-brand {
+  width: 30px;
+}
+
+.navbar .navbar-user {
+  display: none;
+}
+
+footer, .footer {
+  height: 50px;
+}
+
+.fa-github, .funding-text, .partner-text, .funding, .partners {
+  display: none;
+}
+
+.menu-btn {
+  color: #222;
+  background-color: #C3E5D5;
+  border: none;
+  opacity: 0.3;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.menu-btn:hover {
+  opacity: 1;
+  color: #fff;
+  background-color: #6976B7;
+}
+
+.btn, .btn:focus, .btn:active {
+   outline: none !important;
+   box-shadow: none;
+}
+
+#menu {
+  transition: var(--menu-transition);
+  position: fixed;
+  height: 100%;
+  padding: 5px;
+  box-shadow: 2px 0 2px rgba(0, 0, 0, 0.3);
+  z-index: 9990;
+  top: 0;
+}
+
+#menu::-webkit-scrollbar {
+  display: none;
+}
+
+hr {
+  width: calc(100% + 10px);
+  margin-left: -5px;
+  margin-right: -5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border: 0;
+  border-top: 1px solid #fff;
+}
+
+#menu.expanded {
+  width: var(--menu-width-expanded);
+}
+
+#menu.retracted {
+  width: var(--menu-width-retracted);
+}
+
+#menuTitle {
+  font-size: 20px;
+  flex-grow: 1;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 1;
+  margin: 0;
+  padding: 0;
+  max-height: 0;
+  width: 0;
+  height: 0;
+}
+
+.menu-txt {
+  transition: max-width 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  transform: translateX(0);
+  transform-origin: right center;
+  text-align: left;
+}
+
+#menu.retracted #menuTitle {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+#menuTitle.show {
+  max-width: 100%;
+  opacity: 1;
+  max-height: initial;
+  width: auto;
+  height: auto;
+}
+
+#menuHeader {
+  display: flex;
+  align-items: center;
+}
+
+.menu-toggle-btn {
+  opacity: 1;
+  visibility: visible;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px
+}
+
+.menu-toggle-btn.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#dsSelect {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#dsExpanded {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.options {
+  max-height: 500px;
+  height: 0;
+  transition: all 0.3s ease;
+}
+
+.options a {
+  margin-top: 2px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.options a:hover {
+  transition: background-color 0.3s ease;
+  background-color: #697DDD;
+}
+
+.options a.selected {
+  transition: background-color 0.3s ease;
+  background-color: #697DDD;
+}
+
+.options.show {
+  height: auto;
+}
+
+.ds-btn {
+  font-size: 0.875rem;
+  height: 30px;
+  padding: 2px;
+}
+
+.ds-toggle-btn {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  opacity: 1;
+  visibility: visible;
+  flex-shrink: 0;
+  width: 100%;
+  height: 40px
+}
+
+.ds-container {
+  max-height: 0;
+  transition: max-height 0.5s ease-in-out;
+}
+
+.menu-btn-expanded {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[id^="ds1-"], [id^="ds2-"], [id^="ds3-"] {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-20px);
+  transition: max-height 0.2s ease-in-out, transform 0.2s ease-in-out 0.2s, opacity 0.2s ease-in-out 0.2s;
+}
+
+/* #test { */
+/*   position: absolute; */
+/*   bottom: 0; */
+/*   left: 150px; */
+/* } */
+
+[id^="ds1-"].active, [id^="ds2-"].active, [id^="ds3-"].active {
+  opacity: 1;
+  max-height: 500px;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.5s ease-in-out 0.3s;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fa-chevron-down, .fa-chevron-up {
+  font-size: 0.75rem;
+}
+
+.expanded-icon {
+  transform: rotate(90deg);
+}
+
+.adm-select {
+  max-height: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.adm-select.show {
+  max-height: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.adm-select {
+  margin-bottom: 2.5px;
+}
+
+.adm-select:not(:last-child) {
+  margin-bottom: 2.5px;
+}
+
+.ds2-menu {
+  display: block;
+  visibility: hidden;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 9991;
+  position: absolute;
+  bottom: 0;
+  max-height: 500px;
+  overflow-y: scroll;
+  left: calc(var(--menu-width-expanded) - 2.5px);
+  border-radius: 10px; 
+  color: #333; 
+}
+
+.ds2-menu::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.ds2-menu::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.ds2-menu::-webkit-scrollbar-thumb {
+  background: #6976B7;
+  border-radius: 12px;
+}
+
+.ds2-menu::-webkit-scrollbar-thumb:hover {
+  background: #6976B7;
+  border-radius: 12px;
+}
+
+.ds2-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ds2-menu ul li {
+  padding: 10px; 
+  cursor: pointer;
+  border-radius: 5px; 
+}
+
+.ds2-menu li.selected {
+  background-color: #C3E5D5;
+  color: #000;
+}
+
+.ds2-menu ul li:hover {
+  background-color: #C3E5D5;
+  color: #000; 
+}
+
+[id^="windowDatePicker-"] input:nth-of-type(2) {
+  margin-top: 5px;
+}
+
+.datepicker {
+  position: absolute;
+}
+
+.datepicker:nth-of-type(1) {
+  left: 200px !important;
+  top: unset !important;
+  bottom: 50px !important;
+}
+
+.datepicker:nth-of-type(2) {
+  left: 200px !important;
+  top: unset !important;
+  bottom: 0 !important;
+}
+
+[id^="updateChartBtn-"] {
+  position: relative;
+  overflow: hidden;
+  background-color: #e8d530;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition: box-shadow 0.2s;
+}
+
+[id^="updateChartBtn-"]:hover {
+  background-color: golden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[id^="updateChartBtn-"]:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+[id^="updateChartBtn-"]:hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: skewX(-20deg);
+  animation: shine 0.5s forwards;
+}
+
+@keyframes shine {
+  100% {
+    left: 100%;
+  }
+}

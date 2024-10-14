@@ -1,0 +1,27 @@
+FROM node:lts-bullseye
+
+USER root
+
+ARG UID
+ARG GID
+
+RUN apt-get update && \
+  apt-get install -y sudo && \
+  deluser node && \
+  addgroup --gid ${GID} mosqlimate && \
+  useradd --uid ${UID} --gid ${GID} -ms /bin/bash mosqlimate && \
+  mkdir -p /opt/services/mosqlimate && \
+  chmod -R a+rwx /opt/services && \
+  chown mosqlimate:mosqlimate /opt/services && \
+  mkdir -p /etc/sudoers.d && \
+  echo "mosqlimate ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/mosqlimate && \
+  chmod 0440 /etc/sudoers.d/mosqlimate && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
+
+USER mosqlimate
+
+WORKDIR /opt/services/mosqlimate
+
+COPY --chown=mosqlimate:mosqlimate tsconfig.json package.json ./
+
+CMD npm install

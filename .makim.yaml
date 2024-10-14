@@ -34,7 +34,7 @@ groups:
             required: True
         help: Run `createsuperuser` inside container
         run: |
-          sugar run --service django --cmd "python manage.py createsuperuser \
+          sugar run --service backend --cmd "python manage.py createsuperuser \
             --noinput --username ${{ args.username }} --email ${{ args.email }}"
 
       changepassword:
@@ -45,36 +45,36 @@ groups:
             required: True
         help: Run `changepassword <user>` inside container
         run: |
-          sugar run --service django --cmd "python manage.py changepassword ${{ args.username }}"
+          sugar run --service backend --cmd "python manage.py changepassword ${{ args.username }}"
 
       migrations:
         help: Run `migrate` inside container
         env-file: .env
         run: |
-          # sugar run --service django --cmd "python manage.py makemigrations --no-input"
-          sugar run --service django --cmd "python manage.py migrate --no-input"
+          # sugar run --service backend --cmd "python manage.py makemigrations --no-input"
+          sugar run --service backend --cmd "python manage.py migrate --no-input"
 
       collectstatic:
         help: Run `collectstatic` inside container
         run: |
-          sugar run --service django --cmd "python manage.py collectstatic --no-input"
+          sugar run --service backend --cmd "python manage.py collectstatic --no-input"
 
       shell:
         help: Enters in Django Shell on container
         run: |
-          sugar run --service django --cmd "python manage.py shell -i ipython"
+          sugar run --service backend --cmd "python manage.py shell -i ipython"
 
       dbshell:
         help: Enters in Django Database shell on container
         run: |
-          sugar run --service django --cmd "python manage.py dbshell"
+          sugar run --service backend --cmd "python manage.py dbshell"
 
       runserver:
         help: Run the django application
         env-file: ./.env
         run: |
           export POSTGRES_HOST=localhost
-          CMD="python src/manage.py runserver 0.0.0.0:8000"
+          CMD="python manage.py runserver 0.0.0.0:8000"
           $CMD
 
       test:
@@ -85,9 +85,9 @@ groups:
             required: True
         help: Run django test on an app inside container
         run: |
-            # sugar run --service django --cmd "python manage.py makemigrations {{ args.app }}"
-            # sugar run --service django --cmd "python manage.py migrate --database=default"
-            sugar run --service django --cmd "python manage.py test -v 2 ${{ args.app }}.tests"
+            # sugar run --service backend --cmd "python manage.py makemigrations {{ args.app }}"
+            # sugar run --service backend --cmd "python manage.py migrate --database=default"
+            sugar run --service backend --cmd "python manage.py test -v 2 ${{ args.app }}.tests"
 
   dev:
     tasks:
@@ -95,17 +95,17 @@ groups:
         help: Configure .env file
         run: |
           touch ./.env
-          python contrib/scripts/do_dotenv.py
+          python .contrib/scripts/do_dotenv.py
 
       psql-conf:
         help: Configure postgresq.conf file
         run: |
-          python contrib/scripts/do_psqlconf.py
+          python .contrib/scripts/do_psqlconf.py
 
       redis-conf:
         help: Configure redis.conf file
         run: |
-          python contrib/scripts/do_redisconf.py
+          python .contrib/scripts/do_redisconf.py
 
 
   release:

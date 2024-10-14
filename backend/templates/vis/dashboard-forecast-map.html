@@ -1,0 +1,355 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{% load plotly_dash %}
+{% load filters %}
+{% load static %}
+
+{% block title %}{% translate "Forecast Macro Saúde" %}{% endblock %}
+
+{% block content %}
+<div style="display:flex;">
+  <div class="vis-sidebar d-flex flex-column flex-shrink-0 bg-dark">
+    <div class="sidebar-menu">
+      <div class="ps-3">
+        <center><label for="diseaseRadio" class="text-white pt-3 pb-2"><b>{% trans "Select the disease:" %}</b></label></center>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="dengue"
+          onchange="updateOnDisease('dengue')"
+          {% if "dengue" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="dengue">Dengue</label>
+        </div>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="zika"
+          onchange="updateOnDisease('zika')"
+          {% if "zika" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="zika">Zika</label>
+        </div>
+        <div class="form-check">
+          <input 
+          class="form-check-input" 
+          type="radio" 
+          name="diseaseRadio" 
+          id="chikungunya"
+          onchange="updateOnDisease('chikungunya')"
+          {% if "chikungunya" not in dates_by_disease %}disabled{% endif %}
+          >
+          <label class="form-check-label text-white" for="chikungunya">Chikungunya</label>
+        </div>
+      </div>
+
+
+      <center>
+        <div id="date-div">
+          <hr style="color:white;">
+          <div class="ps-3 pe-3 pt-1">
+            <label for="date" class="text-white pb-3"><b>{% trans "Select the date:" %}</b></label><br>
+            <select id="date" name="date" class="form-select" aria-label="select">
+            </select>
+          </div>
+        </div>
+      </center>
+
+      <div id="after-date">
+        <center>
+          <hr style="color:white;">
+          <p class="text-white"><b>Select the region:</b></p>
+        </center>
+
+        <div class="ps-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-national" checked onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-national">
+              {% trans "National" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macroregion" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-macroregion">
+              {% trans "Macroregion" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-state" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-state">
+              {% trans "State" %}
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="select-macro-saude" onChange="showRegionSelect()">
+            <label class="form-check-label text-white" for="select-macro-saude">
+              {% trans "Macro Saúde" %}
+            </label>
+          </div>
+        </div>
+
+        <div id="macroregion-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="macroregion" class="form-select" aria-label="select">
+            <option value="" hidden selected disabled>{% trans "Select the macroregion" %}</option>
+            {% for geocode, name in macroregions %}
+            <option value="{{ geocode }}">{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div id="state-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="state" class="form-select" aria-label="select">
+            <option value="" hidden selected disabled>{% trans "Select the state" %}</option>
+            {% for uf, name in ufs %}
+            <option value="{{ uf }}">{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div id="macroSaude-div" class="region-select ps-4 pe-4 pt-4">
+          <select id="macroSaude" class="selectpicker p-0" data-allow-clear="true" multiple>
+            {% for geocode, name, uf in macros_saude %}
+            <option value="{{ geocode }}">{{ name }} - {{ uf }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+
+      <center>
+        <div class="pt-4">
+          <button id="generate-map" type="button" class="btn btn-secondary">{% trans "Generate map" %}</button>
+        </div>
+      </center>
+    </div>
+  </div>
+
+  <div class="vis-content d-flex flex-column flex-shrink-0 p-3 bg-light" style="height: auto;">
+    <h2>{% trans "Probabilistic Forecast Results" %}</h2>
+    <h5 id="subtitle">{% trans "Select the disease, date and region to generate the visualization" %}</h5>
+    <div class="macro-forecast-chart">
+      <center>
+        <div id="loading" style="display: none;">
+          <img src="{% static '/img/loading.gif' %}" alt="Loading..." width="100" height="100"  style="background-color: #F8F9FA;"/>
+        </div>
+        <iframe 
+          id="macroForecastIframe" 
+          src=""
+          style="width: 100%; height: 100%; border: none;"
+          class="justify-content-center"
+        ></iframe>
+      </center>
+    </div>
+  </div>
+</div>
+
+<style>
+.vis-sidebar {
+  width: 280px;
+  min-height: calc(100vh - 211px);
+}
+
+.vis-content {
+  flex-grow: 1;
+  align-items: center;
+}
+
+.macro-forecast-chart {
+  width: 1150px; 
+  height: auto; 
+  overflow: hidden;
+}
+
+#macroForecastIframe {
+  background-color: #FFFFFF;
+  min-height: calc(100vh - 211px);
+}
+
+#loading {
+  justify-content: center;
+  margin-top: 15%;
+}
+</style>
+
+<script>
+var iframe = document.getElementById('macroForecastIframe');
+
+var disease;
+var date;
+var macroregion_geocode;
+var state_uf;
+var macros_saude = [];
+var macro_map_uri;
+
+$("#date-div").hide();
+$(".region-select").hide();
+$("#after-date").hide();
+$("#generate-map").hide();
+
+$("#date").change(function() {
+  if (!date) {
+    $("#after-date").showTopToBottom();
+  } else {
+    $("#after-date").show();
+  }
+  date = $(this).val();
+  showGenerateMapBtn();
+  // $("#macroForecastIframe").hide();
+});
+
+function updateOnDisease(dis) {
+  $("#date-div").showTopToBottom();
+  disease = dis;
+  const dateSelect = document.getElementById("date");
+  dateSelect.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.text = '{% trans "Select a date" %}';
+  placeholder.value = "";
+  placeholder.hidden = true;
+  dateSelect.add(placeholder);
+
+  const dates = {{ dates_by_disease|safe }}[dis] || [];
+  for (const date of dates) {
+    const option = document.createElement("option");
+    option.text = date;
+    option.value = date;
+    dateSelect.add(option);
+  }
+}
+
+function showRegionSelect() {
+  $(".region-select").hide();
+  macroregion_geocode = null;
+  state_uf = null;
+  macros_saude = [];
+  if ($("#select-national").is(":checked")) {
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    state_uf = null;
+    $('#state').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    showGenerateMapBtn();
+  } else if ($("#select-macroregion").is(":checked")) {
+    state_uf = null;
+    $('#state').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    $("#macroregion-div").showTopToBottom();
+    showGenerateMapBtn();
+  } else if ($("#select-state").is(":checked")) {
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    macros_saude = [];
+    $('#macroSaude').selectpicker('deselectAll');
+    $("#state-div").showTopToBottom();
+    showGenerateMapBtn();
+  } else if ($("#select-macro-saude").is(":checked")) {
+    macroregion_geocode = null;
+    $('#macroregion').val('');
+    state_uf = null;
+    $('#state').val('');
+    $("#macroSaude-div").showTopToBottom();
+    showGenerateMapBtn();
+  }
+}
+
+function showGenerateMapBtn() {
+  $("#generate-map").hide();
+  if (macroregion_geocode !== null || state_uf !== null || macros_saude.length > 0) {
+    $("#generate-map").show();
+  }
+  if ($("#select-national").is(":checked")) {
+    $("#generate-map").show();
+  }
+}
+
+$("#macroregion").change(function() {
+  // $("#macroForecastIframe").hide();
+  macroregion_geocode = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#state").change(function() {
+  // $("#macroForecastIframe").hide();
+  state_uf = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#macroSaude").change(function() {
+  // $("#macroForecastIframe").hide();
+  macros_saude = $(this).val();
+  showGenerateMapBtn();
+});
+
+$("#generate-map").click(function() {
+    $("#macroForecastIframe").hide();
+    $("#subtitle").hide();
+    $("#loading").show();
+
+    let context = {
+      "disease": disease,
+      "date": date,
+    };
+
+    if (macroregion_geocode && macroregion_geocode !== null) {
+      context["macroregion"] = macroregion_geocode;
+    }
+
+    if (state_uf && state_uf !== null) {
+      context["uf"] = state_uf;
+    }
+
+    let params = new URLSearchParams(context).toString();
+
+    if (macros_saude !== null && macros_saude.length > 0) {
+      let macros_uri = "";
+      macros_saude.forEach(macro_saude => {
+        macros_uri = macros_uri + `&geocode=${macro_saude}`;
+      })
+      params = params + macros_uri;
+    }
+
+    if (macro_map_uri !== params) {
+      macro_map_uri = params;
+      renderMap(params);
+    } else {
+      $("#loading").hide();
+      $("#macroForecastIframe").show();
+    }
+});
+
+function renderMap(params) {
+  var url = '/vis/macro-forecast-map/?' + params;
+
+  iframe.src = url;
+
+  console.log(url);
+
+  iframe.onload = function() {
+    $("#loading").hide();
+    $("#macroForecastIframe").show();
+  };
+}
+
+$.fn.showTopToBottom = function() {
+  return this.css({
+    display: "block",
+    opacity: 0,
+    marginTop: "-50px"
+  }).animate({
+    opacity: 1,
+    marginTop: 0
+  }, "fast");
+};
+</script>
+
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ user_profile.username }}{% endblock %}
+
+{% load i18n %}
+{% load static %}
+{% load profile_components %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/users/profile.css' %}">
+<div class="container-xxl font-golos">
+  <div class="profile">
+    <div class="avatar">
+      <img class="border border-5 shadow p-1" src="{{ user_avatar }}"></img>
+    </div>
+
+    <div class="name">
+      <span>{{ user_profile.name }}</span>
+      {% if user.username == user_profile.username %}
+      <a href="#"><i class="fa-solid fa-pencil edit-model" data-bs-toggle="modal" data-bs-target="#update-author" style="color: #9a9996;"></i></a>
+      {% endif %}
+    </div>
+
+    <center><hr style="width:30%;"></center>
+    
+    <div class="profile-items">
+      {% if user_author.institution %}
+      <div class="item institution">
+        <div class="item-icon">
+          <i class="fas fa-building" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <span>{{ user_author.institution }}</span>
+        </div>
+        {% if user.username == user_profile.username %}
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="item update-institution">
+        {% if user.username == user_profile.username %}
+        <div class="item-icon">
+          <i class="fas fa-building" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <a href="#"><i class="fa-solid fa-plus" data-bs-toggle="modal" data-bs-target="#update-author" style="color: #9a9996;"></i></a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="item models-count">
+        <div class="item-icon">
+          <i class="fa-solid fa-scroll" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+        <span>{{ user_models.count }} {% if user_models.count > 1 %}{% trans 'Models' %}{% else %}{% trans 'Model' %}{% endif %}</span>
+        </div>
+      </div>
+
+      <div class="item predictions-count">
+        <div class="item-icon">
+          <i class="fa-solid fa-code" style="color: #5e5c64;"></i>
+        </div>
+        <div class="item-text">
+          <span>{{ user_predictions.count }} {% if user_predictions.count > 1 %}{% trans 'Predictions' %}{% else %}{% trans 'Prediction' %}{% endif %}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="profile-content container models shadow p-4 mb-6 bg-body rounded"
+    <!-- Models -->
+    {% models_box %}
+
+  <!-- X-UID-Key -->
+  {% if user.username == user_profile.username %}
+  <div class="container x-uid-key shadow p-3 mb-5 bg-body rounded">
+    <div class="d-flex justify-content-start">
+      <div class="toggle-container">
+        <button id="uid-key-btn" class="btn btn-primary" onclick="toggleSecret('uid-key'); toggleButtonText('uid-key-btn'); this.blur();">{% trans 'Show' %} UID:Key</button>
+      </div>
+      <div id="uid-key" style="display: none;">
+        <pre class="uid-key-secret"><code>{"X-UID-Key": "{{ user.username }}:{{ user.uuid }}"}</code></pre>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <link rel="stylesheet" href="{% static 'css/external/datatables.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/datatables-bs5.css' %}">
+  <link rel="stylesheet" href="{% static 'css/external/highlight.css' %}">
+  <link rel="stylesheet" href="{% static 'css/users/components/models-box.css' %}">
+  <script src="{% static 'js/external/datatables.js' %}"></script>
+  <script src="{% static 'js/external/datatables-bs5.js' %}"></script>
+  <script src="{% static 'js/external/highlight.js' %}"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script src="{% static 'js/users/components/models-box.js' %}"></script>
+</div>
+
+{% if user.is_authenticated %}
+<div class="modal fade" id="update-author" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">{% trans 'Update Author' %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <form method="post" id="updateAuthorForm" action="{% url 'profile' username=user.username %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col">
+              <label for="first_name">{% trans 'First Name' %}:</label>
+              <input type="text" id="update-author-first-name" name="first_name" value="{{ user.first_name }}" class="form-control" maxlength="50" required>
+            </div>
+            <div class="col">
+              <label for="last_name">{% trans 'Last Name' %}:</label>
+              <input type="text" id="update-author-last-name" name="last_name" value="{{ user.last_name }}" class="form-control" maxlength="50" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col">
+              <label for="institution">{% trans 'Institution' %}:</label>
+              <input type="text" id="update-author-institution" name="institution" value="{{ user_author.institution|default_if_none:"" }}" class="form-control" maxlength="100">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
+          <button type="submit" name="update_author" class="btn btn-primary">{% trans 'Update' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function toggleSecret(elementId) {
+  var element = document.getElementById(elementId);
+  if (element.style.display === "none") {
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
+function toggleButtonText(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button.innerHTML === "Show UID:Key") {
+    button.innerHTML = "{% trans 'Hide' %}";
+    button.classList.remove("btn-primary");
+    button.classList.add("btn-outline-primary");
+  } else {
+    button.innerHTML = "Show UID:Key";
+    button.classList.remove("btn-outline-primary");
+    button.classList.add("btn-primary");
+  }
+}
+</script>
+{% endblock %}
