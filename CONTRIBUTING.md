@@ -23,7 +23,7 @@ git clone git@github.com:Mosqlimate-project/Data-platform.git && cd Data-platfor
 ### Install dependencies
 Mosqlimate uses [conda-forge](https://conda-forge.org/) and [poetry](https://python-poetry.org/) to manage it's dependencies. To prepare the base environment run with your manager (in this example I'm using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)):
 ```sh
-micromamba create -c conda-forge -f conda/base.yaml -y
+micromamba create -c conda-forge -f .contrib/conda/base.yaml -y
 micromamba activate mosqlimate
 ```
 With the virtual environment activate, we can proceed with the Poetry installation:
@@ -45,35 +45,8 @@ Output:
 # [Django Core]
 ENV=dev
 SECRET_KEY="0zs+q%9pv_3s$qz+a^1t52i=l=2k&$un+)7q(j6-r&o=xfh(b6"
-ALLOWED_HOSTS="*"
 DJANGO_SETTINGS_MODULE=mosqlimate.settings.dev
-
-# [Django Image]
-HOST_UID=1000
-HOST_GID=1000
-DJANGO_HOST_DATA_PATH=/tmp/Mosqlimate/storage/django
-DJANGO_CONTAINER_DATA_PATH=/opt/services/storage/django
-
-# [Django OAuth]
-SITE_DOMAIN=0.0.0.0:8042
-SITE_NAME=localhost
-GITHUB_CLIENT_ID=16687d2618b248cc546d
-GITHUB_SECRET=ea2284db0a4194102e5a08d17f9d030c0ee9d006
-
-# [Django PostgreSQL]
-DATABASE_URL=postgresql://mosqlimate-dev:mosqlimate-dev@postgres:5432/mosqlimate-dev
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_USER=mosqlimate-dev
-POSTGRES_PASSWORD=mosqlimate-dev
-POSTGRES_DB=mosqlimate-dev
-
-# [Postgres Image]
-POSTGRES_HOST_UID=1000
-POSTGRES_HOST_GID=1000
-POSTGRES_DATA_DIR_HOST=/tmp/Mosqlimate/data/psql/pgdata
-POSTGRES_CONF_DIR_HOST=/tmp/Mosqlimate/data/psql
-...
+[...]
 ```
 Note that executing the command with a former `.env` in the path, it will ask to override this `.env` at the end of the process. Please make sure any critical information is properly saved before finishing the `makim env.dotenv` command. 
 

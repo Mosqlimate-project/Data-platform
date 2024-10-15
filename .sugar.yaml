@@ -6,14 +6,15 @@ defaults:
 groups:
   prod:
     project-name: mosqlimate
-    compose-path: 
-      - containers/compose.yaml
-      - containers/compose-prod.yaml
+    compose-path:
+      - .contrib/compose.yaml
+      - .contrib/compose-prod.yaml
     env-file: .env
     services:
-      default: django,worker,postgres,documentation,redis
+      default: frontend,backend,worker,postgres,documentation,redis
       available:
-        - name: django
+        - name: frontend
+        - name: backend
         - name: worker
         - name: postgres
         - name: documentation
@@ -22,13 +23,14 @@ groups:
   dev:
     project-name: mosqlimate
     compose-path:
-      - containers/compose.yaml
-      - containers/compose-dev.yaml
+      - .contrib/compose.yaml
+      - .contrib/compose-dev.yaml
     env-file: .env
     services:
-      default: django,worker,postgres,documentation,redis
+      default: frontend,backend,worker,postgres,documentation,redis
       available:
-        - name: django
+        - name: frontend
+        - name: backend
         - name: worker
         - name: postgres
         - name: documentation

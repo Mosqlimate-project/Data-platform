@@ -5,7 +5,7 @@ description = "TODO"
 authors = ["Flávio Codeço Coelho <you@example.com>"]
 license = "GNU"
 readme = "README.md"
-# packages = [{include = "src"}]
+packages = [{include = "backend"}]
 
 
 [tool.poetry.dependencies]
@@ -18,7 +18,6 @@ psycopg2-binary = "^2.9.6"
 django = "^4.2.2"
 python-environ = "^0.4.54"
 django-allauth = "^0.54.0"
-fontawesomefree = "^6.4.0"
 websocket-client = "0.49.0"
 uvicorn = "^0.23.2"
 gunicorn = "^21.2.0"
@@ -48,6 +47,7 @@ duckdb = "^0.10.0"
 dask = {extras = ["dataframe"], version = "^2024.7.0"}
 mosqlient = { git = "https://github.com/luabida/mosqlimate-client", branch = "add-prediction-score" }
 loguru = "^0.7.2"
+django-webpack-loader = "^3.1.1"
 
 
 [tool.poetry.group.pre-commit.dependencies]

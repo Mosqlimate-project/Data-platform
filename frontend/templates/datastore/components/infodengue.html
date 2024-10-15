@@ -1,0 +1,131 @@
+{% load i18n %}
+
+<center><h1>infodengue</h1></center>
+<center><hr></center>
+
+<p>
+This endpoint gives access to data from the <a href="https://info.dengue.mat.br/">Infodengue</a>
+project, which provide a number of epidemiological variables for all the Brazilian 
+municipalities on a weekly time scale.
+</p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "Disease" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <select id="infodengue-select-disease" name="infodengue-disease" class="form-control">
+            {% for value, label in diseases %}
+            <option value="{{ value }}" {% if value == "dengue" %}selected{% endif %}>
+            {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <label>{% translate "Start" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="infodengue-select-start" name="infodengue-start" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+    <div class="col">
+        <label>{% translate "End" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="infodengue-select-end" name="infodengue-end" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "Geocode" %}:</label>
+        <input
+            type="text"
+            min="0"
+            id="infodengue-select-geocode"
+            name="infodengue-geocode"
+            value=""
+            class="form-control"
+            maxlength="7"
+            onkeydown="return (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8;"
+            oninput="this.value=this.value.slice(0,this.maxLength)"
+            placeholder="3304557"
+        >
+    </div>
+    <div class="col">
+        <label>UF:</label>
+        <select id="infodengue-select-uf" name="infodengue-uf" class="form-control">
+            <option value="">
+            {% for value, label in UFs %}
+            <option value="{{ value }}">
+            {{ value }} - {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
+
+<center><hr></center>
+
+<div class="infodengue-api-url">
+    <a id="infodengue-api-url" href="#" target="_blank"></a>
+</div>
+
+<style>
+    .infodengue-api-url {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    #infodengue-api-url {
+      white-space: nowrap;
+      color: black;
+      text-decoration: none;
+    }
+
+    #infodengue-api-url:hover {
+      text-decoration: underline;
+    }
+</style>
+
+<script>
+    const infodengueApiUrl = document.getElementById("infodengue-api-url");
+    const infodengueDefaultApiUrl = "https://api.mosqlimate.org/api/datastore/infodengue/?page=1&per_page=50";
+
+    const infodengueDisease = document.getElementById("infodengue-select-disease");
+    const infodengueStart = document.getElementById("infodengue-select-start");
+    const infodengueEnd = document.getElementById("infodengue-select-end");
+    const infodengueGeocode = document.getElementById("infodengue-select-geocode");
+    const infodengueUf = document.getElementById("infodengue-select-uf");
+
+    infodengueDisease.addEventListener("change", updateInfodengueUrl);
+    infodengueStart.addEventListener("input", updateInfodengueUrl);
+    infodengueEnd.addEventListener("input", updateInfodengueUrl);
+    infodengueGeocode.addEventListener("input", updateInfodengueUrl);
+    infodengueUf.addEventListener("change", updateInfodengueUrl);
+
+    function updateInfodengueUrl() {
+      const updatedInfodengueUrl = buildInfodengueApiUrl(
+          infodengueGeocode.value, 
+          infodengueDisease.value, 
+          infodengueStart.value, 
+          infodengueEnd.value, 
+          infodengueUf.value
+      );
+      updateInfodengueApiUrl(updatedInfodengueUrl);
+    }
+
+    function buildInfodengueApiUrl(
+        infodengueGeocodeValue, 
+        infodengueDiseaseValue, 
+        infodengueStartValue, 
+        infodengueEndValue, 
+        infodengueUfValue
+    ) {
+      const infodengueDiseasePart = "&disease=" + infodengueDiseaseValue;
+      const infodengueStartPart = "&start=" + infodengueStartValue;
+      const infodengueEndPart = "&end=" + infodengueEndValue;
+      const infodengueGeocodePart = infodengueGeocodeValue.trim() !== "" ? "&geocode=" + infodengueGeocodeValue : "";
+      const infodengueUfPart = infodengueUfValue.trim() !== "" ? "&uf=" + infodengueUfValue : "";
+      return infodengueDefaultApiUrl + infodengueDiseasePart + infodengueStartPart + infodengueEndPart + infodengueGeocodePart + infodengueUfPart;
+    }
+
+    function updateInfodengueApiUrl(updatedInfodengueUrl) {
+      infodengueApiUrl.textContent = updatedInfodengueUrl;
+      infodengueApiUrl.href = updatedInfodengueUrl;
+    }
+</script>

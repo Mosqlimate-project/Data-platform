@@ -1,0 +1,168 @@
+{% load i18n %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+<link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+
+{% if prediction_infos %}
+  <table class="table table-striped">
+      <thead>
+          <tr>
+              <th scope="col">{% trans "Model" %}</th>
+              <th scope="col">{% trans "Prediction ID" %}</th>
+              <th scope="col">{% trans "Disease" %}</th>
+              <th scope="col">{% trans "Locality" %}</th>
+              <th scope="col">{% trans "Prediction Date" %}</th>
+              <th scope="col">
+                  <select id="score" name="score" class="form-control fw-bold" onchange="updateSelectedScore()" style="padding: 2px 6px; line-height: 1; max-width: 100px;">
+                      <option value="" style="text-align: center;" disabled selected>Score</option>
+                      {% for score in score_labels %}
+                          <option value="{{ score }}" class="fw-bold">{{ score }}</option>
+                      {% endfor %}
+                  </select>
+              </th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for info in prediction_infos %}
+          <tr class="{{ info.color }}">
+              <td class="model-name"><a href="{% url 'model' model_id=info.model_id %}" target="_blank" style="text-decoration:none">{{info.model}}</a></td>
+              <td id="prediction-id"><a href="/api/registry/predictions/{{info.prediction_id}}" target="_blank" style="text-decoration:none">{{info.prediction_id}}</a></td>
+              <td>{{info.disease}}</td>
+              <td>{{info.locality}}</td>
+              <td>{{info.prediction_date}}</td>
+              <td id="score-{{ info.prediction_id }}"></td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+{% endif %}
+
+<style>
+.\#A6BCD4 { background-color: rgba(166, 188, 212, 0.5); }
+.\#FAC28C { background-color: rgba(250, 194, 140, 0.5); }
+.\#F2ABAB { background-color: rgba(242, 171, 171, 0.5); }
+.\#B9DBD9 { background-color: rgba(185, 219, 217, 0.5); }
+.\#AAD1A5 { background-color: rgba(170, 209, 165, 0.5); }
+.\#F7E59D { background-color: rgba(247, 229, 157, 0.5); }
+.\#D9BCD1 { background-color: rgba(217, 188, 209, 0.5); }
+.\#FFCED3 { background-color: rgba(255, 206, 211, 0.5); }
+.\#CEBAAE { background-color: rgba(206, 186, 174, 0.5); }
+
+.column {
+    width: 50%;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.model-name {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table td, .table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#score {
+    text-align: center;
+    margin: 0 auto;
+    display: block;
+}
+
+#score option {
+    text-align: left;
+}
+</style>
+
+<script>
+let selectedScore = null;
+let scoreInfo = [];
+
+function updateSelectedScore() {
+    const score = document.getElementById('score').value;
+    selectedScore = score;
+    updateScoreTds();
+}
+
+function getScoreValue(id) {
+    for (let i = 0; i < scoreInfo.length; i++) {
+        if (selectedScore !== null && scoreInfo[i].id === id) {
+            let scoreValue = scoreInfo[i][selectedScore];
+            if (scoreValue !== undefined) {
+                return parseFloat(scoreValue).toFixed(2);
+            } else {
+                return null;
+            }
+        }
+    }
+    return null;
+}
+
+function updateScoreTds() {
+    const allTds = document.querySelectorAll('td[id^="score-"]');
+    allTds.forEach(td => {
+        const predictionId = td.id.split('-')[1];
+        const scoreValue = getScoreValue(predictionId);
+        if (scoreValue !== null) {
+            td.innerHTML = scoreValue;
+        } else {
+            td.innerHTML = "";
+        }
+    });
+}
+
+async function getScoreInfo(predictionIDs) {
+    if (!Array.isArray(predictionIDs) || predictionIDs.length === 0) {
+        return;
+    }
+
+    const uri = "/vis/predictions-score/?" + predictionIDs.map(id => `id=${id}`).join("&");
+
+    const allTds = document.querySelectorAll('td[id^="score-"]');
+    allTds.forEach(td => {
+        td.innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                <i class="fa-regular fa-spinner fa-spin"></i>
+            </div>`;
+    });
+
+    try {
+        const response = await fetch(uri);
+        const data = await response.json();
+
+        if (data.score_error) {
+            throw new Error(data.score_error);
+        }
+
+        scoreInfo = data.score;
+        const scoreLabels = Object.keys(scoreInfo[0]).filter(label => label !== "id");
+
+        const scoreSelect = document.getElementById('score');
+        scoreSelect.innerHTML = `<option value="" disabled selected>Score</option>`;
+        scoreLabels.forEach(label => {
+            scoreSelect.innerHTML += `<option value="${label}" class="fw-bold">${label}</option>`;
+        });
+
+        updateScoreTds();
+    } catch (error) {
+        console.log(error.message);
+        const message = encodeURIComponent(error.message);
+        allTds.forEach(td => {
+            td.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                    <i class="fa-solid fa-circle-exclamation text-danger" title=${decodeURIComponent(message)}></i>
+                </div>`;
+        });
+    }
+}
+
+const predictionIDs = {{ prediction_ids|safe }};
+
+getScoreInfo(predictionIDs);
+</script>
