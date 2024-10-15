@@ -1,6 +1,5 @@
 services:
   frontend:
-    command: npm run dev
     networks:
       - infodengue-dev_infodengue
 

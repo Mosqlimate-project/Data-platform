@@ -60,7 +60,7 @@ ENV PATH ${CONDA_PREFIX}/bin:$PATH
 RUN poetry config virtualenvs.create false \
   && poetry install --without pre-commit,dev,docs
 
-COPY --chown=mosqlimate:mosqlimate .contrib/entrypoint.sh /opt/entrypoint.sh
+COPY --chown=mosqlimate:mosqlimate .contrib/mosqlimate/entrypoint.backend.sh /opt/entrypoint.sh
 
 RUN chmod +x /opt/entrypoint.sh \
   && echo "source /opt/entrypoint.sh" > ~/.bashrc

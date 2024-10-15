@@ -5,7 +5,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleTracker = require('webpack-bundle-tracker');
 
 module.exports = (env, argv) => {
-  const port = process.env.FRONTEND_PORT;
+  const port = process.env.FRONTEND_PORT || 8042;
   const isDev = argv.mode === 'development';
   const staticfiles = path.resolve(__dirname, 'staticfiles');
   const nodeModulesDir = path.resolve(__dirname, '../node_modules');
@@ -24,11 +24,16 @@ module.exports = (env, argv) => {
     context: __dirname,
     mode: isDev ? "development" : "production",
     entry: {
-      app: path.resolve(staticfiles, 'js/main.js'),
+      app: path.resolve(staticfiles, 'js/index.tsx'),
     },
     output: isDev ? localhostOutput : productionOutput,
     module: {
       rules: [
+        {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },
         {
           test: /\.js$/,
           exclude: /node_modules/,

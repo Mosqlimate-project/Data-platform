@@ -6,7 +6,7 @@ ARG UID
 ARG GID
 
 RUN apt-get update && \
-  apt-get install -y sudo && \
+  apt-get install -y sudo tini && \
   deluser node && \
   addgroup --gid ${GID} mosqlimate && \
   useradd --uid ${UID} --gid ${GID} -ms /bin/bash mosqlimate && \
@@ -24,4 +24,8 @@ WORKDIR /opt/services/mosqlimate
 
 COPY --chown=mosqlimate:mosqlimate tsconfig.json package.json ./
 
-CMD npm install
+COPY --chown=mosqlimate:mosqlimate .contrib/mosqlimate/entrypoint.frontend.sh /opt/entrypoint.sh
+
+RUN chmod +x /opt/entrypoint.sh
+
+ENTRYPOINT ["tini", "--", "/opt/entrypoint.sh"]
