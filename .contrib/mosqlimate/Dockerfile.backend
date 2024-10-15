@@ -62,8 +62,7 @@ RUN poetry config virtualenvs.create false \
 
 COPY --chown=mosqlimate:mosqlimate .contrib/mosqlimate/entrypoint.backend.sh /opt/entrypoint.sh
 
-RUN chmod +x /opt/entrypoint.sh \
-  && echo "source /opt/entrypoint.sh" > ~/.bashrc
+RUN chmod +x /opt/entrypoint.sh
 
 ENV PYTHONPATH='/opt/services/mosqlimate'
 
