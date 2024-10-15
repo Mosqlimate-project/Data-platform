@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "build",
+    "outDir": "frontend/staticfiles/",
     "module": "esnext",
     "target": "ES2021",
     "allowJs": true,
@@ -9,7 +9,7 @@
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "noEmit": false,
-    "paths": { "*": ["./frontend/*", "./frontend/static/js/*"] },
+    "paths": { "*": ["./frontend/*", "./frontend/staticfiles/js/*"] },
     "skipLibCheck": true,
     "strict": true,
     "types": ["node", "jest", "@testing-library/jest-dom"]

@@ -388,11 +388,6 @@ def get_predict_ids(request) -> JsonResponse:
         .distinct()
     ]
 
-    print(data)
-    print(data)
-    print(data)
-    print(data)
-
     return JsonResponse({"predicts": data})
 
 

@@ -23,6 +23,8 @@
   "homepage": "https://github.com/Mosqlimate-project/Data-platform#readme",
   "dependencies": {
     "@babel/core": "^7.25.8",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
     "@sentry/browser": "^8.34.0",
     "@sentry/react": "^8.34.0",
     "ansi-html-community": "^0.0.8",

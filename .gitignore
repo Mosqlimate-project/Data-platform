@@ -183,5 +183,5 @@ src/frontend/static/data/dengue.csv.gz
 staticfiles/
 */media/
 *cache/
-*/webpack-stats.json
+webpack-stats.json
 */assets/webpack_bundles/

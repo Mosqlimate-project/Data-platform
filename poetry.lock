@@ -1798,16 +1798,6 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
-name = "fontawesomefree"
-version = "6.6.0"
-description = "Font Awesome Free"
-optional = false
-python-versions = "*"
-files = [
-    {file = "fontawesomefree-6.6.0-py3-none-any.whl", hash = "sha256:599b574431c9bd92ed5fc054d1045a07c42335da36c17884f2b934755eef9089"},
-]
-
-[[package]]
 name = "fonttools"
 version = "4.53.1"
 description = "Tools to manipulate font files"
@@ -6354,4 +6344,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "bd6fdc7122d19e7450c64edb151015d21718a5cd6e151b00c2a116e668b0d81e"
+content-hash = "c9714fdbafc4430f54edc14d426e30504a1c50349ee633b73ec4ad209ba4ce51"
