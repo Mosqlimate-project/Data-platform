@@ -7,8 +7,8 @@ groups:
   prod:
     project-name: mosqlimate
     compose-path:
-      - .contrib/compose.yaml
-      - .contrib/compose-prod.yaml
+      - contrib/compose.yaml
+      - contrib/compose-prod.yaml
     env-file: .env
     services:
       default: frontend,backend,worker,postgres,documentation,redis
@@ -23,8 +23,8 @@ groups:
   dev:
     project-name: mosqlimate
     compose-path:
-      - .contrib/compose.yaml
-      - .contrib/compose-dev.yaml
+      - contrib/compose.yaml
+      - contrib/compose-dev.yaml
     env-file: .env
     services:
       default: frontend,backend,worker,postgres,documentation,redis

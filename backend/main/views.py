@@ -43,6 +43,7 @@ def build_url_path(params) -> str:
 
 
 def home(request):
+    print(request)
     return render(request, "main/home.html", {})
 
 

@@ -23,7 +23,7 @@ git clone git@github.com:Mosqlimate-project/Data-platform.git && cd Data-platfor
 ### Install dependencies
 Mosqlimate uses [conda-forge](https://conda-forge.org/) and [poetry](https://python-poetry.org/) to manage it's dependencies. To prepare the base environment run with your manager (in this example I'm using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)):
 ```sh
-micromamba create -c conda-forge -f .contrib/conda/base.yaml -y
+micromamba create -c conda-forge -f contrib/conda/base.yaml -y
 micromamba activate mosqlimate
 ```
 With the virtual environment activate, we can proceed with the Poetry installation:

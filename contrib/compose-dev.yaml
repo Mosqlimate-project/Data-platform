@@ -1,0 +1,23 @@
+services:
+  frontend:
+    volumes:
+      - ../frontend:/opt/services/mosqlimate
+    networks:
+      - infodengue-dev_infodengue
+
+  backend:
+    command: poetry run gunicorn -w 1 -b 0.0.0.0:${BACKEND_PORT} -k uvicorn.workers.UvicornWorker mosqlimate.asgi:application --limit-request-line 8188 --log-file - --reload
+    volumes:
+      - ../backend:/opt/services/mosqlimate
+    networks:
+      - infodengue-dev_infodengue
+
+  worker:
+    volumes:
+      - ../backend:/opt/services/mosqlimate
+    networks:
+      - infodengue-dev_infodengue
+
+networks:
+  infodengue-dev_infodengue:
+    external: true

@@ -40,7 +40,6 @@ THIRD_PARTY_APPS = [
     "ninja",
     "django_extensions",
     "dr_scaffold",
-    "fontawesomefree",
     "corsheaders",
     "allauth",
     "allauth.account",
@@ -82,7 +81,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            str(BASE_DIR / ".." / "frontend/templates"),
+            str(BASE_DIR / "templates"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -218,19 +217,19 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOCALE_PATHS = [str(BASE_DIR / ".." / "frontend/templates")]
+LOCALE_PATHS = [str(BASE_DIR / "templates")]
 
 LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = str(BASE_DIR / ".." / "frontend" / "staticfiles")
+STATIC_ROOT = str(BASE_DIR / "staticfiles")
 
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    str(BASE_DIR / ".." / "frontend" / "static"),
-    str(BASE_DIR / ".." / "frontend" / "assets"),
+    str(BASE_DIR / "static"),
+    str(BASE_DIR / "assets"),
 ]
 
 STATICFILES_FINDERS = [
@@ -241,16 +240,6 @@ STATICFILES_FINDERS = [
     "django_plotly_dash.finders.DashComponentFinder",
     "django_plotly_dash.finders.DashAppDirectoryFinder",
 ]
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "BUNDLE_DIR_NAME": "bundles/",
-        "CACHE": not DEBUG,
-        "STATS_FILE": str(BASE_DIR / ".." / "frontend" / "webpack-stats.json"),
-        "POLL_INTERVAL": 0.1,
-        "IGNORE": [r".+\.hot-update.js", r".+\.map"],
-    }
-}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
