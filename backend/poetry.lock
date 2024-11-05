@@ -1602,17 +1602,6 @@ Django = ">=3.2"
 dev = ["black"]
 
 [[package]]
-name = "django-webpack-loader"
-version = "3.1.1"
-description = "Transparently use webpack with django"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-webpack-loader-3.1.1.tar.gz", hash = "sha256:f11b79700d1bfc1299131bdf4ba479c1ec200f83a1400e1a2feb5c2ba7b6f8c4"},
-    {file = "django_webpack_loader-3.1.1-py2.py3-none-any.whl", hash = "sha256:15c05cb685b113c5e6f947efa8ee3888a03c2969a2dd0da4c7610b3e695f67ba"},
-]
-
-[[package]]
 name = "dpd-components"
 version = "0.1.0"
 description = "Django Plotly Dash component suite"
@@ -6508,4 +6497,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "8510750f5ea4a67da69788f96c0da0d6722cdd3a4526cfe5e8005a62405f3fdc"
+content-hash = "fe04946c9d7d76c601828dbd8c2cd5fe9523d872c3e3b41e11c3a5badb4d6c23"

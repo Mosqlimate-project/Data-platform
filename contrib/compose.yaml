@@ -43,6 +43,7 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ${EPISCANNER_HOST_DATA_DIR}:/opt/services/mosqlimate/episcanner
+      - ../frontend/src/assets:/opt/services/mosqlimate/static/assets
     user: "mosqlimate:mosqlimate"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}"]

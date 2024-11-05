@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = str(env("ENV")).lower() == "dev"
+ENV = env("ENV", default="dev")
+DEBUG = ENV == "dev"
 
 ALLOWED_HOSTS = [
     "*",  #
@@ -46,12 +47,13 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
     "django_celery_beat",
-    "webpack_loader",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",
     "channels",
     "channels_redis",
+    # Frontend
+    "django_vite",
 ]
 
 LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
@@ -222,6 +224,12 @@ LOCALE_PATHS = [str(BASE_DIR / "templates")]
 LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
+# Frontend
+VITE_SERVER_URL = env("VITE_SERVER_URL")
+
+DJANGO_VITE = {"default": {"dev_mode": ENV == "dev"}}
+
+
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 
@@ -229,7 +237,6 @@ STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     str(BASE_DIR / "static"),
-    str(BASE_DIR / "assets"),
 ]
 
 STATICFILES_FINDERS = [
