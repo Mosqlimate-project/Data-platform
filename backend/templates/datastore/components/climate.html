@@ -1,0 +1,113 @@
+{% load i18n %}
+
+<center><h1>climate</h1></center>
+<center><hr></center>
+
+<p>
+Through this API endpoint, you can fetch several climate variables that have been extracted for all
+brazilian municipalities from the satellite-based reanalysis data provided by <a href="https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview">Copernicus ERA5</a>. These series are on a daily timescale.
+</p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>{% translate "Start" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="climate-select-start" name="climate-start" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+    <div class="col">
+        <label>{% translate "End" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <input id="climate-select-end" name="climate-end" class="form-control" type="date", value="{% now 'Y-m-d' %}">
+    </div>
+    <div class="col">
+        <label>{% translate "Geocode" %}:</label>
+        <input
+            type="text"
+            min="0"
+            id="climate-select-geocode"
+            name="climate-geocode"
+            value=""
+            class="form-control"
+            maxlength="7"
+            onkeydown="return (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8;"
+            oninput="this.value=this.value.slice(0,this.maxLength)"
+            placeholder="3304557"
+        >
+    </div>
+    <div class="col">
+        <label>UF:</label>
+        <select id="climate-select-uf" name="climate-uf" class="form-control">
+            <option value="">
+            {% for value, label in UFs %}
+            <option value="{{ value }}">
+            {{ value }} - {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
+
+<center><hr></center>
+
+<div class="climate-api-url">
+    <a id="climate-api-url" href="#" target="_blank"></a>
+</div>
+
+<style>
+    .climate-api-url {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    #climate-api-url {
+      white-space: nowrap;
+      color: black;
+      text-decoration: none;
+    }
+
+    #climate-api-url:hover {
+      text-decoration: underline;
+    }
+</style>
+
+<script>
+    const climateApiUrl = document.getElementById("climate-api-url");
+    const defaultClimateApiUrl = "https://api.mosqlimate.org/api/datastore/climate/?page=1&per_page=50";
+
+    const climateStart = document.getElementById("climate-select-start");
+    const climateEnd = document.getElementById("climate-select-end");
+    const climateGeocode = document.getElementById("climate-select-geocode");
+    const climateUf = document.getElementById("climate-select-uf");
+
+    climateStart.addEventListener("input", updateClimateUrl);
+    climateEnd.addEventListener("input", updateClimateUrl);
+    climateGeocode.addEventListener("input", updateClimateUrl);
+    climateUf.addEventListener("change", updateClimateUrl);
+
+    function updateClimateUrl() {
+      const updatedClimateUrl = buildClimateApiUrl(
+          climateStart.value, 
+          climateEnd.value, 
+          climateGeocode.value, 
+          climateUf.value
+      );
+      updateClimateApiUrl(updatedClimateUrl);
+    }
+
+    function buildClimateApiUrl(
+        climateStartValue, 
+        climateEndValue, 
+        climateGeocodeValue, 
+        climateUfValue
+    ) {
+      const climateStartPart = "&start=" + climateStartValue;
+      const climateEndPart = "&end=" + climateEndValue;
+      const climateGeocodePart = climateGeocodeValue.trim() !== "" ? "&geocode=" + climateGeocodeValue : "";
+      const climateUfPart = climateUfValue.trim() !== "" ? "&uf=" + climateUfValue : "";
+      return defaultClimateApiUrl + climateStartPart + climateEndPart + climateGeocodePart + climateUfPart;
+    }
+
+    function updateClimateApiUrl(updatedClimateUrl) {
+      climateApiUrl.textContent = updatedClimateUrl;
+      climateApiUrl.href = updatedClimateUrl;
+    }
+</script>
