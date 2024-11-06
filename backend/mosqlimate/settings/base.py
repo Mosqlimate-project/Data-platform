@@ -20,11 +20,10 @@ ENV = env("ENV", default="dev")
 DEBUG = ENV == "dev"
 
 ALLOWED_HOSTS = [
-    "*",  #
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "mosqlimate-django",
+    "backend",
 ]
 
 DJANGO_APPS = [
@@ -85,14 +84,24 @@ TEMPLATES = [
         "DIRS": [
             str(BASE_DIR / "templates"),
         ],
-        "APP_DIRS": True,
+        # "APP_DIRS": True,
         "OPTIONS": {
+            "loaders": [
+                (
+                    "django.template.loaders.cached.Loader",
+                    [
+                        "django.template.loaders.filesystem.Loader",
+                        "django.template.loaders.app_directories.Loader",
+                    ],
+                ),
+            ],
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "debug": DEBUG,
         },
     },
 ]
@@ -227,7 +236,13 @@ LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 # Frontend
 VITE_SERVER_URL = env("VITE_SERVER_URL")
 
-DJANGO_VITE = {"default": {"dev_mode": ENV == "dev"}}
+DJANGO_VITE_STATIC_URL_PREFIX = "assets"
+
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": DEBUG,
+    }
+}
 
 
 # Static files (CSS, JavaScript, Images)
@@ -237,6 +252,7 @@ STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     str(BASE_DIR / "static"),
+    ("assets", str(BASE_DIR / "static" / "assets")),
 ]
 
 STATICFILES_FINDERS = [

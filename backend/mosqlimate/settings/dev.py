@@ -1,10 +1,12 @@
 import os
 from .base import *  # noqa: F403
+from .base import ALLOWED_HOSTS
 import mimetypes
 
 from mosqlient._config import set_api_url
 
 HOST_SCHEME = "http://"
+ALLOWED_HOSTS += ["*"]  # noqa: F403
 SECURE_PROXY_SSL_HEADER = None
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False

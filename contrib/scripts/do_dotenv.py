@@ -84,12 +84,6 @@ allowed_hosts = var_in(
 dj_settings = (
     "mosqlimate.settings.prod" if env == "prod" else "mosqlimate.settings.dev"
 )
-node_env = (
-    "production webpack --progress --bail --mode=production"
-    if env == "prod"
-    else "development"
-)
-
 
 print("\nDjango Image:")
 uid = var_in(
@@ -251,7 +245,6 @@ variables = {
     "SECRET_KEY": secret_key,
     "ALLOWED_HOSTS": allowed_hosts,
     "DJANGO_SETTINGS_MODULE": dj_settings,
-    "NODE_ENV": node_env,
     # [Django Image]
     "HOST_UID": uid,
     "HOST_GID": gid,

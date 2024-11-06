@@ -1,12 +1,14 @@
 services:
   frontend:
+    environment:
+        NODE_ENV: development
     volumes:
       - ../frontend:/opt/services/mosqlimate
     networks:
       - infodengue-dev_infodengue
 
   backend:
-    command: poetry run gunicorn -w 1 -b 0.0.0.0:${BACKEND_PORT} -k uvicorn.workers.UvicornWorker mosqlimate.asgi:application --limit-request-line 8188 --log-file - --reload
+    command: poetry run python manage.py runserver 0.0.0.0:${BACKEND_PORT}
     volumes:
       - ../backend:/opt/services/mosqlimate
     networks:

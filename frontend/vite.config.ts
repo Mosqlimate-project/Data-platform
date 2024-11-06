@@ -1,23 +1,26 @@
-import { defineConfig } from 'vite'
-import { resolve } from 'path';
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/static/",
+  base: "/static/assets/",
   build: {
-    manifest: "manifest.json",
-    outDir: resolve("./assets"),
+    manifest: true,
+    ssr: "src/server.tsx",
+    outDir: resolve(__dirname, "static/assets"),
     rollupOptions: {
       input: {
-        main: resolve("./src/main.tsx"),
+        main: resolve(__dirname, 'src/main.tsx'),
+        server: resolve(__dirname, 'src/server.tsx'),
       }
     }
   },
   server: {
-    port: process.env.FRONTEND_PORT,
+    port: Number(process.env.FRONTEND_PORT),
+    origin: process.env.VITE_SERVER_URL,
   },
   preview: {
-    port: process.env.FRONTEND_PORT,
+    port: Number(process.env.FRONTEND_PORT),
   },
 })

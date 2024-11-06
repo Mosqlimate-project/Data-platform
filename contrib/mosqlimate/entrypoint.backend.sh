@@ -18,7 +18,7 @@ fi
 echo "[II] activate mosqlimate"
 source activate mosqlimate
 
-# poetry run ./manage.py collectstatic --noinput
+poetry run ./manage.py collectstatic --noinput
 
 set +ex
 
