@@ -1,9 +1,10 @@
 async function fetchURL(urlPath) {
+  const url = new URL(urlPath, window.location.origin);
+
   try {
-    const url = new URL(urlPath, window.location.origin);
     const response = await fetch(url);
-    const result = await response.json();
-    return result || {};
+    const data = await response.json();
+    return data || {};
   } catch (error) {
     console.error(`fetchURL (${urlPath}):`, error.message);
     return {};
@@ -11,7 +12,20 @@ async function fetchURL(urlPath) {
 }
 
 async function fetchPredictions(dashboard) {
-  return await fetchURL(`/vis/get-predictions/?dashboard=${dashboard}`);
+  return fetchURL(`/vis/get-predictions/?dashboard=${dashboard}`);
+}
+
+async function handleSelectedPredictions(dashboard, predictionIds) {
+  const data = await fetchURL(`/vis/get-prediction-ids-specs/?ids=${predictionIds.join(',')}`);
+  let storage = JSON.parse(localStorage.getItem('dashboards'))[dashboard];
+  if (data && Object.keys(data).length > 0) {
+    Object.keys(storage).forEach(key => {
+      storage[key] = data[key];
+    });
+    localStorage.setItem('dashboards', JSON.stringify(storage));
+  }
+  console.log(storage["prediction_ids"]);
+  return storage["prediction_ids"];
 }
 
 function filterBy(predictions, filters) {

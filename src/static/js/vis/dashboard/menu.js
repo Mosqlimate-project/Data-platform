@@ -9,3 +9,11 @@ function dsBtnClick(event, data) {
     localStorage.setItem('dashboards', JSON.stringify(data));
   }
 }
+
+function populateAdm1Menu(dashboard) {
+
+}
+
+function populateAdm2Menu(dashboard) {
+
+}
