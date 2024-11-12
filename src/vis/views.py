@@ -388,81 +388,19 @@ def get_predictions(request) -> JsonResponse:
                 "disease": p.model.disease,
                 "time_resolution": p.model.time_resolution,
                 "adm_level": p.model.ADM_level,
-                "adm_1": CODES_UF[p.adm_1_geocode],
+                "adm_1": p.adm_1_geocode,
                 "adm_2": p.adm_2_geocode,
                 "start_window_date": str(window["start"]),
                 "end_window_date": str(window["end"]),
             }
         )
 
-    response = JsonResponse({"predictions": data})
-
-    expiration_time = now() + timedelta(hours=3)
-    response["Cache-Control"] = "public, max-age=10800"
-    response["Expires"] = http_date(expiration_time.timestamp())
-
-    return response
+    return JsonResponse({"predictions": data})
 
 
-def get_prediction_ids_specs(request) -> JsonResponse:
-    prediction_ids = request.GET.getlist("ids")
-
-    predictions = Prediction.objects.filter(id__in=prediction_ids)
-
-    def get_distinct(predictions, field):
-        return predictions.values_list(field, flat=True).distinct()
-
-    disease = get_distinct(predictions, "model__disease")
-
-    if len(disease) > 1:
-        predictions = predictions.filter(model__disease=disease[0])
-
-    time_resolution = get_distinct(predictions, "model__time_resolution")
-
-    if len(time_resolution) > 1:
-        predictions = predictions.filter(model__time_resolution=disease[0])
-
-    adm_level = get_distinct(predictions, "model__ADM_level")
-
-    if len(adm_level) > 1:
-        predictions = predictions.filter(model__ADM_level=adm_level[0])
-
-    adm_1 = get_distinct(predictions, "adm_1_geocode")
-
-    if len(adm_1) > 1:
-        predictions = predictions.filter(adm_1_geocode=adm_1[0])
-
-    adm_2 = get_distinct(predictions, "adm_2_geocode")
-
-    if len(adm_2) > 1:
-        if adm_2[0]:
-            predictions = predictions.filter(adm_2_geocode=adm_2[0])
-
-    context = {
-        "disease": disease[0],
-        "time_resolution": time_resolution[0],
-        "adm_level": adm_level[0],
-        "adm_1": CODES_UF[adm_1[0]],
-        "adm_2": adm_2[0],
-        "prediction_ids": list(predictions.values_list("id", flat=True)),
-    }
-
-    return JsonResponse(context)
-
-
-def get_prediction_scores(request) -> JsonResponse:
-    prediction_ids = request.GET.get("prediction-ids").split(",")
-    start_window_date = request.GET.get("start-window-date")
-    end_window_date = request.GET.get("end-window-date")
-
-    predictions = Prediction.objects.filter(id__in=prediction_ids)
-
-    data = PredictionDataRow.objects.filter(
-        id__in=[
-            row.id
-            for prediction in predictions
-            for row in prediction.data.all()
-        ]
+def get_predict_ids(request) -> JsonResponse:
+    query = DashboardView.parse_query_request(
+        request, required=["dashboard", "disease"]
     )
 
     scores = {
