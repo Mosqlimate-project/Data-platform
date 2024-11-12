@@ -9,6 +9,7 @@ urlpatterns = [
         views.DashboardForecastMacroView.as_view(),
         name="dashboard_forecast_map",
     ),
+    path("get-predictions/", views.get_predictions, name="get_predictions"),
     path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
     path(
         "get-predict-list-data/",

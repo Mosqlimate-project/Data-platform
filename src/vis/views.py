@@ -375,6 +375,32 @@ class DashboardView(View):
         return query
 
 
+def get_predictions(request) -> JsonResponse:
+    dashboard = request.GET.get("dashboard", "predictions")
+    sprint = dashboard == "sprint"
+
+    data = []
+    for p in Prediction.objects.filter(model__sprint=sprint):
+        window = p.data.aggregate(
+            start=models.Min("date"), end=models.Max("date")
+        )
+
+        data.append(
+            {
+                "id": p.id,
+                "disease": p.model.disease,
+                "time_resolution": p.model.time_resolution,
+                "adm_level": p.model.ADM_level,
+                "adm_1": p.adm_1_geocode,
+                "adm_2": p.adm_2_geocode,
+                "start_window_date": str(window["start"]),
+                "end_window_date": str(window["end"]),
+            }
+        )
+
+    return JsonResponse({"predictions": data})
+
+
 def get_predict_ids(request) -> JsonResponse:
     query = DashboardView.parse_query_request(
         request, required=["dashboard", "disease"]

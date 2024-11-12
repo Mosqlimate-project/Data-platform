@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="{% static 'css/external/jquery-ui.css' %}">
 </header>
 
+<script src="{% static 'js/vis/dashboard/index.js' %}"></script>
 <script src="{% static 'js/external/jquery.js' %}"></script>
 <script
   src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"
@@ -28,6 +29,53 @@
 {% endfor %}
 
 <script>
+const dashboards = {};
+
+document.querySelectorAll('input[id^="dashboardEl-"]').forEach(input => {
+  const dashboardName = input.id.split('-')[1];
+  dashboards[dashboardName] = JSON.parse(input.value);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  let dashboardsStorage = JSON.parse(localStorage.getItem('dashboards')) || {};
+
+  Object.keys(dashboards).forEach(dashboardName => {
+    if (!dashboardsStorage[dashboardName]) {
+      dashboardsStorage[dashboardName] = dashboards[dashboardName]["query"];
+    }
+  });
+
+  localStorage.setItem('dashboards', JSON.stringify(dashboardsStorage));
+  console.log(JSON.parse(localStorage.getItem('dashboards')));
+});
+
+const pageData = {
+  predictionsData: null,
+  sprintData: null
+};
+
+async function loadData() {
+  try {
+    pageData.predictionsData = await fetchPredictions("predictions");
+    pageData.sprintData = await fetchPredictions("sprint");
+
+    initializePage();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function initializePage() {
+  if (pageData.predictionsData && pageData.sprintData) {
+    console.log("Predictions Data:", pageData.predictionsData);
+    console.log("Sprint Data:", pageData.sprintData);
+  } else {
+    setTimeout(initializePage, 1000);
+  }
+}
+
+loadData();
+
 let dashboard = `{{ dashboard }}`;
 let local = null;
 let selectedPredictions = {

@@ -3238,32 +3238,28 @@ files = [
 
 [[package]]
 name = "mosqlient"
-version = "1.6.3"
+version = "1.7.0"
 description = "client library for the mosqlimate client library"
 optional = false
-python-versions = ">=3.10,<3.13"
-files = []
-develop = false
+python-versions = "<3.13,>=3.10"
+files = [
+    {file = "mosqlient-1.7.0-py3-none-any.whl", hash = "sha256:705de343d276e8a7c26215dd070e3dcb9b314d640026f07008718e7cf0589de6"},
+    {file = "mosqlient-1.7.0.tar.gz", hash = "sha256:6b4882cc2138e8e18ce171a3028781f386804de8e7852419987a70f4739c6bb4"},
+]
 
 [package.dependencies]
-aiohttp = "^3.9.5"
-altair = "^5.3.0"
-cffi = "^1.17.0"
-matplotlib = "^3.9.0"
-nest-asyncio = "^1.6.0"
-pandas = "^2.2.2"
-pmdarima = "^2.0.4"
-pydantic = "^2.7.3"
-requests = "^2.32.2"
-scikit-learn = "^1.5.0"
-scoringrules = "^0.5.2"
-types-requests = "^2.32.0.20240523"
-
-[package.source]
-type = "git"
-url = "https://github.com/luabida/mosqlimate-client"
-reference = "add-prediction-score"
-resolved_reference = "cf232a8f5b7e4d786478fa084ce9e37fed480ec7"
+aiohttp = ">=3.9.5,<4.0.0"
+altair = ">=5.3.0,<6.0.0"
+cffi = ">=1.17.0,<2.0.0"
+matplotlib = ">=3.9.0,<4.0.0"
+nest-asyncio = ">=1.6.0,<2.0.0"
+pandas = ">=2.2.2,<3.0.0"
+pmdarima = ">=2.0.4,<3.0.0"
+pydantic = ">=2.7.3,<3.0.0"
+requests = ">=2.32.2,<3.0.0"
+scikit-learn = ">=1.5.0,<2.0.0"
+scoringrules = ">=0.5.2,<0.6.0"
+types-requests = ">=2.32.0.20240523,<3.0.0.0"
 
 [[package]]
 name = "msgpack"
@@ -6343,4 +6339,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.13"
-content-hash = "22a19e325d300247e34aa256baaebd2c0534c28d0ad1ab28d3be71dd3e562020"
+content-hash = "2ddeb973a09f801b5772ad88fab22d2ae3371bb2fe82afbdfa14223d563bcbf1"

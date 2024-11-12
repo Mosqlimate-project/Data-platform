@@ -41,15 +41,15 @@
     </button>
 
     <div id="dsOptions" class="collapse options">
-      {% for name, data in dashboards.items %}
-        {% if name == "forecast_map" %}
-        <a id="{{ name }}" href="/vis/dashboard/macro-forecast-map/" class="btn ds-btn text-white text-start w-100">
-        {% else %}
-        <a id="{{ name }}" class="btn ds-btn text-white text-start w-100">
-        {% endif %}
-        {{ name|dashboard_name }}
+    {% for name, data in dashboards.items %}
+      {% if name == "forecast_map" %}
+      <a id="dashboard-{{ name }}" href="/vis/dashboard/macro-forecast-map/" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
+      {% else %}
+      <a id="dashboard-{{ name }}" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
+      {% endif %}
+      {{ name|dashboard_name }}
       </a>
-      {% endfor %}
+    {% endfor %}
     </div>
   </div>
 
@@ -69,9 +69,9 @@
       </button>
 
       <div id="diseaseOptions-{{name}}" class="collapse options">
-        {% for disease in data.diseases %}
-        <a class="btn ds-btn text-white text-start w-100" data-value="{{ disease }}">{{ disease|title }}</a>
-        {% endfor %}
+      {% for disease in data.diseases %}
+        <a id="disease-{{name}}" class="btn ds-btn text-white text-start w-100" data-value="{{ disease }}">{{ disease|title }}</a>
+      {% endfor %}
       </div>
     </div>
 
@@ -88,9 +88,9 @@
       </button>
 
       <div id="timeResOptions-{{name}}" class="collapse options">
-        {% for time_res in data.time_resolutions %}
-        <a class="btn ds-btn text-white text-start w-100" data-value="{{ time_res }}">{{ time_res|title }}</a>
-        {% endfor %}
+      {% for time_res in data.time_resolutions %}
+        <a id="time_resolution-{{name}}" class="btn ds-btn text-white text-start w-100" data-value="{{ time_res }}">{{ time_res|title }}</a>
+      {% endfor %}
       </div>
     </div>
     {% endif %}
@@ -108,7 +108,7 @@
 
       <div id="admLevelOptions-{{name}}" class="collapse options">
         {% for adm_level in data.adm_levels %}
-        <a id="adm{{adm_level}}Btn-{{name}}" class="btn ds-btn admlvl-btn text-white text-start w-100" data-value="{{ adm_level }}">{% get_adm_level_name name adm_level %}</a>
+        <a id="adm_level-{{name}}" class="btn ds-btn admlvl-btn text-white text-start w-100" data-value="{{ adm_level }}">{% get_adm_level_name name adm_level %}</a>
         {% endfor %}
       </div>
     </div>
@@ -122,11 +122,12 @@
     <div id="ds2-{{ name }}" class="d-flex flex-column">
       {% for adm_level in data.adm_levels %}
       {% if adm_level != 0 %}
-      <button id="adm{{adm_level}}Select-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center"></button>
+      <button id="adm_{{adm_level}}-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center"></button>
       {% endif %}
       {% endfor %}
     </div>
     {% elif name == "forecast_map" %}
+
     <div id="ds3-{{ name }}" class="d-flex flex-column">
       <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn ds-toggle-btn align-items-center">Update chart</button>
     <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
@@ -155,13 +156,24 @@
 
 </div>
 
-
+<script src="{% static 'js/vis/dashboard/menu.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/pt-BR.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/farhadmammadli/bootstrap-select@main/js/bootstrap-select.min.js"></script>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const dashboardsStorage = JSON.parse(localStorage.getItem('dashboards')) || {};
+
+  document.querySelectorAll('.ds-btn').forEach(button => {
+    button.addEventListener('click', event => dsBtnClick(event, dashboardsStorage));
+  });
+
+  console.log('Dashboards state in localStorage:', dashboardsStorage);
+});
+
+
 // Consts
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
