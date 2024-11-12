@@ -37,15 +37,40 @@ document.querySelectorAll('input[id^="dashboardEl-"]').forEach(input => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  let dashboardsStorage = JSON.parse(localStorage.getItem('dashboards')) || {};
+  let storage = JSON.parse(localStorage.getItem('dashboards')) || {};
 
-  Object.keys(dashboards).forEach(dashboardName => {
-    if (!dashboardsStorage[dashboardName]) {
-      dashboardsStorage[dashboardName] = dashboards[dashboardName]["query"];
+  Object.keys(dashboards).forEach(dashboard => {
+    if (dashboard === "forecast_map") {
+      return
+    }
+
+    if (!storage[dashboard]) {
+      storage[dashboard] = dashboards[dashboard]["query"];
+      if (dashboards[dashboard]["query"]["prediction_ids"]) {
+        handleSelectedPredictions(dashboard, dashboards[dashboard]["query"]["prediction_ids"])
+          .then(predictionIds => {
+            storage[dashboard]["prediction_ids"] = predictionIds;
+          });
+      } else {
+        storage[dashboard]["prediction_ids"] = dashboards[dashboard]["query"]["prediction_ids"];
+      }
+
+      const adm1Options = new Set(dashboards[dashboard]["adm_data"][storage[dashboard]["disease"]][storage[dashboard]["time_resolution"]]["adm_1"]);
+      if (!storage[dashboard]["adm_1"]) {
+        getBrowserCity().then(cityInfo => {
+          if (adm1Options.has(cityInfo.state.uf)) {
+            storage[dashboard]["adm_1"] = cityInfo.state.uf;
+          } else {
+            storage[dashboard]["adm_1"] = adm1Options[0];
+          }
+        }).catch(error => {
+            storage[dashboard]["adm_1"] = adm1Options[0];
+        });
+      }
     }
   });
 
-  localStorage.setItem('dashboards', JSON.stringify(dashboardsStorage));
+  localStorage.setItem('dashboards', JSON.stringify(storage));
   console.log(JSON.parse(localStorage.getItem('dashboards')));
 });
 

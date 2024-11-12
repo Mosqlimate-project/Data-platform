@@ -10,6 +10,11 @@ urlpatterns = [
         name="dashboard_forecast_map",
     ),
     path("get-predictions/", views.get_predictions, name="get_predictions"),
+    path(
+        "get-prediction-ids-specs/",
+        views.get_prediction_ids_specs,
+        name="get_prediction_ids_specs",
+    ),
     path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
     path(
         "get-predict-list-data/",
