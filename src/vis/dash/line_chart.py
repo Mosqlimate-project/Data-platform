@@ -1,5 +1,6 @@
+import warnings
 from datetime import date
-from typing import Literal, List, Optional
+from typing import Literal, Optional
 
 import altair as alt
 import pandas as pd
@@ -15,6 +16,15 @@ from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from datastore.models import DengueGlobal, Sprint202425
 from registry.models import Prediction, PredictionDataRow
+
+
+np.seterr(divide="ignore", invalid="ignore")
+warnings.filterwarnings(
+    "ignore",
+    message="divide by zero encountered in log",
+    category=RuntimeWarning,
+    module="scoringrules.backend.numpy",
+)
 
 
 def calculate_score(
@@ -310,7 +320,7 @@ def data_chart(
 def predictions_chart(
     title: str,
     width: int,
-    colors: list[str],
+    colors: dict[int, str],
     queryset: models.QuerySet[PredictionDataRow],
     data_chart: alt.Chart,
     start_window_date: date,
@@ -341,7 +351,11 @@ def predictions_chart(
         final += base
     else:
         color_scale = alt.Scale(
-            domain=list(predicts_df["prediction"].unique()), range=colors
+            domain=list(predicts_df["prediction"].unique()),
+            range=[
+                colors.get(str(pred), "lightgray")
+                for pred in predicts_df["prediction"].unique()
+            ],
         )
 
         highlight = alt.selection_point(
@@ -372,8 +386,14 @@ def predictions_chart(
                     alt.Color("prediction:N", scale=color_scale),
                     alt.value("lightgray"),
                 ),
+                strokeWidth=alt.condition(
+                    highlight,
+                    alt.value(3),
+                    alt.value(1),
+                ),
                 tooltip=["prediction:N", "pred"],
             )
+            .add_params(highlight)
             .properties(
                 title=alt.TitleParams(
                     "https://mosqlimate.org/",
@@ -392,7 +412,7 @@ def predictions_chart(
         )
 
         timeseries = timeseries_chart(
-            predicts_df=predicts_df, width=width, colors=colors
+            predicts_df=predicts_df, width=width, color_scale=color_scale
         )
 
         final += points + lines + timeseries
@@ -401,15 +421,9 @@ def predictions_chart(
 
 
 def timeseries_chart(
-    predicts_df: pd.DataFrame, width: int, colors: List[str]
+    predicts_df: pd.DataFrame, width: int, color_scale: alt.Scale
 ) -> alt.Chart:
-    color_scale = alt.Scale(
-        domain=list(predicts_df["prediction"].unique()), range=colors
-    )
-
-    highlight = alt.selection_point(
-        on="mouseover", nearest=True, fields=["prediction"]
-    )
+    highlight = alt.selection_point(on="mouseover", fields=["prediction"])
 
     base = (
         alt.Chart(predicts_df)
