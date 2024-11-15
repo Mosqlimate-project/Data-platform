@@ -30,22 +30,22 @@
   <hr style="color:white;">
 
   <div id="dsSelect">
-    <button id="dsBtn" class="btn menu-btn ds-toggle-btn align-items-center">
+    <button id="-dashboard-toggle" class="btn menu-btn ds-toggle-btn align-items-center">
       <div class="menu-btn-retracted">
         <i class="fa-regular fa-chart-line me-2"></i>
       </div>
       <div class="menu-btn-expanded justify-content-between">
-        <span id="dsTitle" class="menu-txt text-start">Dashboard</span>
-        <i id="dsArrow" class="fa-solid menu-btn-arrow"></i>
+        <span id="-dashboard-title" class="menu-txt text-start">Dashboard</span>
+        <i id="-dashboard-arrow" class="fa-solid menu-btn-arrow"></i>
       </div>
     </button>
 
-    <div id="dsOptions" class="collapse options">
+    <div id="-dashboard-options" class="collapse options">
     {% for name, data in dashboards.items %}
       {% if name == "forecast_map" %}
-      <a id="dashboard-{{ name }}" href="/vis/dashboard/macro-forecast-map/" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
+      <a id="{{name}}-dashboard-{{name}}" href="/vis/dashboard/macro-forecast-map/" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
       {% else %}
-      <a id="dashboard-{{ name }}" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
+      <a id="{{name}}-dashboard-{{name}}" class="btn ds-btn text-white text-start w-100" data-value="{{name}}">
       {% endif %}
       {{ name|dashboard_name }}
       </a>
@@ -57,58 +57,58 @@
 
   {% for name, data in dashboards.items %}
   <div id="ds1-{{ name }}">
-    <div id="disease-{{ name }}">
-      <button id="diseaseBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center">
+    <div id="diseaseDiv-{{ name }}">
+      <button id="{{name}}-disease-toggle" class="btn menu-btn ds-toggle-btn align-items-center">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-vial-virus me-2"></i>
         </div>
         <div class="menu-btn-expanded justify-content-between">
-          <span id="diseaseTitle" class="menu-txt text-start">{% trans "Disease" %}</span>
-          <i id="diseaseArrow" class="fa-solid menu-btn-arrow"></i>
+          <span id="{{name}}-disease-title" class="menu-txt text-start">{% trans "Disease" %}</span>
+          <i id="{{name}}-disease-arrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
 
-      <div id="diseaseOptions-{{name}}" class="collapse options">
+      <div id="{{name}}-disease-options" class="collapse options">
       {% for disease in data.diseases %}
-        <a id="disease-{{name}}" class="btn ds-btn text-white text-start w-100" data-value="{{ disease }}">{{ disease|title }}</a>
+        <a id="{{name}}-disease-{{disease}}" class="btn ds-btn text-white text-start w-100" data-value="{{disease}}">{{ disease|title }}</a>
       {% endfor %}
       </div>
     </div>
 
     {% if name == "predictions" or name == "sprint" %}
     <div id="timeRes-{{ name }}">
-      <button id="timeResBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mt-1">
+      <button id="{{name}}-time_resolution-toggle" class="btn menu-btn ds-toggle-btn align-items-center mt-1">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-hourglass-end"></i>
         </div>
         <div class="menu-btn-expanded justify-content-between">
-          <span id="timeResTitle" class="menu-txt text-start">{% trans "Time Resolution" %}</span>
-          <i id="timeResArrow" class="fa-solid menu-btn-arrow"></i>
+          <span id="{{name}}-time_resolution-title" class="menu-txt text-start">{% trans "Time Resolution" %}</span>
+          <i id="{{name}}-time_resolution-arrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
 
-      <div id="timeResOptions-{{name}}" class="collapse options">
+      <div id="{{name}}-time_resolution-options" class="collapse options">
       {% for time_res in data.time_resolutions %}
-        <a id="time_resolution-{{name}}" class="btn ds-btn text-white text-start w-100" data-value="{{ time_res }}">{{ time_res|title }}</a>
+        <a id="{{name}}-time_resolution-{{time_res}}" class="btn ds-btn text-white text-start w-100" data-value="{{time_res}}">{{ time_res|title }}</a>
       {% endfor %}
       </div>
     </div>
     {% endif %}
 
     <div id="admLevel-{{ name }}">
-      <button id="admLevelBtn-{{name}}" class="btn menu-btn ds-toggle-btn align-items-center mt-1">
+      <button id="{{name}}-adm_level-{{adm_level}}" class="btn menu-btn ds-toggle-btn align-items-center mt-1">
         <div class="menu-btn-retracted">
           <i class="fa-solid fa-earth-americas me-2"></i>
         </div>
         <div class="menu-btn-expanded justify-content-between">
-          <span id="admLevelTitle" class="menu-txt text-nowrap text-start" style="font-size: 15px;">{% trans "Administrative Level" %}</span>
-          <i id="admLevelArrow" class="fa-solid menu-btn-arrow"></i>
+          <span id="{{name}}-adm_level-title" class="menu-txt text-nowrap text-start" style="font-size: 15px;">{% trans "Administrative Level" %}</span>
+          <i id="{{name}}-adm_level-arrow" class="fa-solid menu-btn-arrow"></i>
         </div>
       </button>
 
-      <div id="admLevelOptions-{{name}}" class="collapse options">
+      <div id="{{name}}-adm_level-options" class="collapse options">
         {% for adm_level in data.adm_levels %}
-        <a id="adm_level-{{name}}" class="btn ds-btn admlvl-btn text-white text-start w-100" data-value="{{ adm_level }}">{% get_adm_level_name name adm_level %}</a>
+        <a id="{{name}}-adm_level-{{adm_level}}" class="btn ds-btn admlvl-btn text-white text-start w-100" data-value="{{adm_level}}">{% get_adm_level_name name adm_level %}</a>
         {% endfor %}
       </div>
     </div>
@@ -122,14 +122,14 @@
     <div id="ds2-{{ name }}" class="d-flex flex-column">
       {% for adm_level in data.adm_levels %}
       {% if adm_level != 0 %}
-      <button id="adm_{{adm_level}}-{{name}}" class="btn menu-btn adm-select ds-toggle-btn align-items-center"></button>
+      <button id="{{name}}-adm_{{adm_level}}" class="btn menu-btn adm-select align-items-center"></button>
       {% endif %}
       {% endfor %}
     </div>
     {% elif name == "forecast_map" %}
 
     <div id="ds3-{{ name }}" class="d-flex flex-column">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn ds-toggle-btn align-items-center">Update chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn align-items-center">Update chart</button>
     <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="start-{{ name }}"> -->
     <!--   </div> -->
@@ -142,7 +142,7 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn ds-toggle-btn align-items-center">Update chart</button>
+      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn align-items-center">Update chart</button>
     <!--   <div id="windowDatePicker-{{ name }}" class="d-flex flex-column"> -->
     <!--     <input type="text" name="windowStart-{{ name }}"> -->
     <!--     <input type="text" name="windowEnd-{{ name }}"> -->
@@ -164,20 +164,59 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const dashboardsStorage = JSON.parse(localStorage.getItem('dashboards')) || {};
+  const initialDashboard = "{{ dashboard }}";
+  const storage = JSON.parse(localStorage.getItem('dashboards')) || {};
 
-  document.querySelectorAll('.ds-btn').forEach(button => {
-    button.addEventListener('click', event => dsBtnClick(event, dashboardsStorage));
+  selectDashboard(initialDashboard);
+
+  const dashboardOptions = document.getElementById(`-dashboard-options`);
+  dashboardOptions.querySelectorAll('a').forEach(dashboardBtn => {
+    dashboardBtn.addEventListener('click', event => {
+      const value = event.target.getAttribute('data-value');
+      if (value) {
+        selectDashboard(value);
+      }
+    });
   });
 
-  console.log('Dashboards state in localStorage:', dashboardsStorage);
+  // ["predictions", "sprint"].forEach(dashboard => {
+  //   console.log(storage);
+  //   const ufs = dashboards[dashboard]["adm_data"][storage[dashboard]["disease"]][storage[dashboard]["time_resolution"]]["adm_1"];
+  //   populateAdm1Menu(dashboard);
+  // })
+
+  document.querySelectorAll('.ds-toggle-btn').forEach(button => {
+    const parts = button.id.split("-");
+    const dashboard = parts[0];
+    const key = parts[1];
+
+    if (["", "predictions", "sprint"].includes(dashboard)) {
+      toggleBtn(dashboard, key);
+      button.addEventListener('click', event => {
+        toggleBtn(dashboard, key);
+      });
+    }
+  });
+
+  document.querySelectorAll('.ds-btn').forEach(button => {
+    button.addEventListener('click', event => {
+      const parts = event.target.id.split("-");
+      const dashboard = parts[0];
+      const key = parts[1];
+      const value = parts[2];
+
+      if (key !== "dashboard") {
+        selectParameter(dashboard, key, value);
+      }
+    })
+  });
 });
 
 
 // Consts
 const useri18n = navigator.language || navigator.userLanguage;
 const dateFormat = 'yyyy-mm-dd';
-const ufs = {
+const ufNames = {
     "AC": "Acre",
     "AL": "Alagoas",
     "AP": "Amapá",
@@ -331,7 +370,7 @@ function handleMenuBtnClick(btn) {
 }
 
 function initializeMenu() {
-  activateDivs(dashboard);
+  // activateDivs(dashboard);
 
   function toggleVisibility(elements, shouldShow) {
     elements.forEach(el => {
@@ -341,12 +380,12 @@ function initializeMenu() {
     });
   }
 
-  const allDashboardElements = document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`);
-  const visibleElements = Array.from(allDashboardElements).filter(el => el.id.includes(dashboard));
-  const hiddenElements = Array.from(allDashboardElements).filter(el => !el.id.includes(dashboard));
-
-  toggleVisibility(visibleElements, true);
-  toggleVisibility(hiddenElements, false);
+  // const allDashboardElements = document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`);
+  // const visibleElements = Array.from(allDashboardElements).filter(el => el.id.includes(dashboard));
+  // const hiddenElements = Array.from(allDashboardElements).filter(el => !el.id.includes(dashboard));
+  //
+  // toggleVisibility(visibleElements, true);
+  // toggleVisibility(hiddenElements, false);
 
   document.querySelectorAll('[id^="diseaseBtn-"], [id^="timeResBtn-"], [id^="admLevelBtn-"], #dsBtn').forEach(btn => {
     btn.addEventListener('click', () => handleMenuBtnClick(btn));
@@ -369,7 +408,7 @@ function initializeMenu() {
     options.querySelectorAll('a').forEach(option => {
       if (isDashboardSelector) {
         option.addEventListener('click', () => {
-          activateDivs(option.id);
+          // activateDivs(option.id);
           dashboard = option.id;
           changeContent(dashboard);
         });
@@ -455,18 +494,15 @@ function initializeMenu() {
 
     if (String(optionValue) === "0") {
       document.querySelectorAll('[id^="ds2-"]').forEach(div => div.classList.add('hidden'));
-      ds2Menu(dashboard);
     } else if (String(optionValue) === "1") {
       admSelect?.classList.toggle('show');
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.add('hidden'));
-      ds2Menu(dashboard);
       menuQuerySetter(dashboard, { "adm_2": null });
     } else if (String(optionValue) === "2") {
       document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
       document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.remove('hidden'));
       admSelect.style.height = 'auto';
-      ds2Menu(dashboard);
     }
   }
 }
@@ -510,17 +546,17 @@ function initializeDivs() {
         event.preventDefault();
       }
       updateDs(option);
-      document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`).forEach((el) => {
-        if (!el.id.includes(dashboard)) {
-          setTimeout(() => {
-            el.classList.add('hidden');
-          }, 400);
-        } else {
-          setTimeout(() => {
-            el.classList.remove('hidden');
-          }, 400);
-        }
-      });
+      // document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`).forEach((el) => {
+      //   if (!el.id.includes(dashboard)) {
+      //     setTimeout(() => {
+      //       el.classList.add('hidden');
+      //     }, 400);
+      //   } else {
+      //     setTimeout(() => {
+      //       el.classList.remove('hidden');
+      //     }, 400);
+      //   }
+      // });
     });
   });
 }

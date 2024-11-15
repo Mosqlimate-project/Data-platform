@@ -17,14 +17,13 @@ async function fetchPredictions(dashboard) {
 
 async function handleSelectedPredictions(dashboard, predictionIds) {
   const data = await fetchURL(`/vis/get-prediction-ids-specs/?ids=${predictionIds.join(',')}`);
-  let storage = JSON.parse(localStorage.getItem('dashboards'))[dashboard];
+  let storage = JSON.parse(localStorage.getItem('dashboards'));
   if (data && Object.keys(data).length > 0) {
-    Object.keys(storage).forEach(key => {
+    Object.keys(storage[dashboard]).forEach(key => {
       storage[key] = data[key];
     });
     localStorage.setItem('dashboards', JSON.stringify(storage));
   }
-  console.log(storage["prediction_ids"]);
   return storage["prediction_ids"];
 }
 

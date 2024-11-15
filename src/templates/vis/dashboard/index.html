@@ -71,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   localStorage.setItem('dashboards', JSON.stringify(storage));
-  console.log(JSON.parse(localStorage.getItem('dashboards')));
 });
 
 const pageData = {
@@ -203,6 +202,8 @@ async function fetchStartEndWindowDate(dashboard) {
 }
 
 async function getBrowserCity() {
+  let local = JSON.parse(localStorage.getItem('local')) || {};
+
   if (local) {
     return local;
   }
@@ -220,8 +221,7 @@ async function getBrowserCity() {
         const cityInfo = await cityInfoResponse.json();
 
         if (cityInfo.geocode) {
-          local = cityInfo;
-          return cityInfo;
+          localStorage.setItem('local', JSON.stringify(cityInfo));
         }
       }
     }
@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loading.style.display = 'none'
         chart.style.display = 'block';
       });
-      updateDateWindowRange(dashboard);
+      // updateDateWindowRange(dashboard);
     });
 
     dashboardQuerySetter(dashboard, menuDataGetter(dashboard).query);
