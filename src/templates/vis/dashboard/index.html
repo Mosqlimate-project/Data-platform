@@ -73,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   localStorage.setItem('dashboards', JSON.stringify(storage));
-  console.log(JSON.parse(localStorage.getItem('dashboards')));
 });
 
 const pageData = {
@@ -205,6 +204,8 @@ async function fetchStartEndWindowDate(dashboard) {
 }
 
 async function getBrowserCity() {
+  let local = JSON.parse(localStorage.getItem('local')) || {};
+
   if (local) {
     return local;
   }
@@ -222,8 +223,7 @@ async function getBrowserCity() {
         const cityInfo = await cityInfoResponse.json();
 
         if (cityInfo.geocode) {
-          local = cityInfo;
-          return cityInfo;
+          localStorage.setItem('local', JSON.stringify(cityInfo));
         }
       }
     }
@@ -673,11 +673,32 @@ document.addEventListener('DOMContentLoaded', function() {
   })
 
   updateContentState();
-  const observer2 = new MutationObserver(function (mutationsList) {
-    mutationsList.forEach(function (mutation) {
-      if (mutation.attributeName === 'class') {
-        updateContentState();
-      }
+  changeContent(dashboard);
+  observer2.observe(menu, { attributes: true });
+
+  ["predictions", "sprint"].forEach(dashboard => { //, "forecast_map"]
+    const dashboardEl = getDashboardEl(dashboard);
+    const menuEl = getMenuEl(dashboard);
+    const updateChartBtn = document.getElementById(`updateChartBtn-${dashboard}`);
+    const data = dashboardDataGetter(dashboard);
+    const query = data.query;
+
+    const loading = document.getElementById(`chart-loading-${dashboard}`);
+    const chart = document.getElementById(`chart-container-${dashboard}`);
+
+    loading.style.display = 'flex';
+    chart.style.display = 'none';
+    updateChartBtn.disabled = true;
+
+    updateChartBtn.addEventListener('click', () => {
+      loading.style.display = 'flex';
+      chart.style.display = 'none';
+      dashboardQuerySetter(dashboard, menuDataGetter(dashboard).query);
+      updateDashboard(dashboard, true).then(() => {
+        loading.style.display = 'none'
+        chart.style.display = 'block';
+      });
+      // updateDateWindowRange(dashboard);
     });
   });
   observer2.observe(menu, { attributes: true });
