@@ -130,10 +130,7 @@
     {% elif name == "forecast_map" %}
 
     <div id="ds3-{{ name }}" class="d-flex flex-column">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn align-items-center">Update chart</button>
-    <!--   <div id="datePicker-{{ name }}" class="d-flex flex-column"> -->
-    <!--     <input type="text" name="start-{{ name }}"> -->
-    <!--   </div> -->
+      <button id="update-{{name}}" class="btn menu-btn update-btn align-items-center">Update chart</button>
     </div>
     {% endif %}
   {% endfor %}
@@ -143,11 +140,7 @@
   {% for name, data in dashboards.items %}
     {% if name == "predictions" or name == "sprint" %}
     <div id="ds3-{{ name }}">
-      <button id="updateChartBtn-{{name}}" class="btn menu-btn update-btn align-items-center">Update chart</button>
-    <!--   <div id="windowDatePicker-{{ name }}" class="d-flex flex-column"> -->
-    <!--     <input type="text" name="windowStart-{{ name }}"> -->
-    <!--     <input type="text" name="windowEnd-{{ name }}"> -->
-    <!--   </div> -->
+      <button id="update-{{name}}" class="btn menu-btn update-btn align-items-center w-100">Update chart</button>
     </div>
     {% elif name == "forecast_map" %}
     <div id="ds2-{{ name }}" class="d-flex flex-column">
@@ -166,9 +159,15 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const initialDashboard = "{{ dashboard }}";
-  const storage = JSON.parse(localStorage.getItem('dashboards')) || {};
+  const storage = JSON.parse(localStorage.getItem('dashboards'));
 
-  selectDashboard(initialDashboard);
+  const waitForStorage = setInterval(() => {
+    const storage = JSON.parse(localStorage.getItem('dashboards'));
+    if (storage) {
+      clearInterval(waitForStorage);
+      selectDashboard(initialDashboard);
+    }
+  }, 100);
 
   const dashboardOptions = document.getElementById(`-dashboard-options`);
   dashboardOptions.querySelectorAll('a').forEach(dashboardBtn => {
@@ -179,12 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  // ["predictions", "sprint"].forEach(dashboard => {
-  //   console.log(storage);
-  //   const ufs = dashboards[dashboard]["adm_data"][storage[dashboard]["disease"]][storage[dashboard]["time_resolution"]]["adm_1"];
-  //   populateAdm1Menu(dashboard);
-  // })
 
   document.querySelectorAll('.ds-toggle-btn').forEach(button => {
     const parts = button.id.split("-");
@@ -211,6 +204,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   });
+
+  ['predictions', 'sprint'].forEach(dashboard => {
+    const updateBtn = document.getElementById(`update-${dashboard}`);
+    updateBtn.addEventListener('click', event => {
+      update(dashboard);
+      updateBtn.disabled = true;
+    });
+  })
 });
 
 
@@ -319,386 +320,6 @@ function toggleMenuBtn(btn) {
       }
     }
   }
-}
-
-function activateDivs(optionId) {
-  document.querySelectorAll('[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]').forEach(div => {
-    div.classList.remove('active');
-  });
-
-  ['ds1', 'ds2', 'ds3'].forEach(prefix => {
-    const div = document.getElementById(`${prefix}-${optionId}`);
-    if (div) div.classList.add('active');
-  });
-}
-
-function handleMenuBtnClick(btn) {
-  const options = document.getElementById(btn.id.replace('Btn', 'Options'));
-  if (!options) return;
-
-  const arrow = btn.querySelector('.menu-btn-arrow');
-  options.classList.toggle('show');
-  arrow.classList.toggle('fa-chevron-up', options.classList.contains('show'));
-  arrow.classList.toggle('fa-chevron-down', !options.classList.contains('show'));
-
-  toggleMenuBtn(btn);
-}
-
-function initializeMenu() {
-  // activateDivs(dashboard);
-
-  function toggleVisibility(elements, shouldShow) {
-    elements.forEach(el => {
-      setTimeout(() => {
-        el.classList.toggle('hidden', !shouldShow);
-      }, 400);
-    });
-  }
-
-  // const allDashboardElements = document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`);
-  // const visibleElements = Array.from(allDashboardElements).filter(el => el.id.includes(dashboard));
-  // const hiddenElements = Array.from(allDashboardElements).filter(el => !el.id.includes(dashboard));
-  //
-  // toggleVisibility(visibleElements, true);
-  // toggleVisibility(hiddenElements, false);
-
-  document.querySelectorAll('[id^="diseaseBtn-"], [id^="timeResBtn-"], [id^="admLevelBtn-"], #dsBtn').forEach(btn => {
-    btn.addEventListener('click', () => handleMenuBtnClick(btn));
-    handleMenuBtnClick(btn);
-
-    const name = btn.id.split('-')[1];
-    const options = document.getElementById(btn.id.replace('Btn', 'Options'));
-
-    if (options) {
-      if (options.id === 'dsOptions') {
-        initializeOptionClick(options, name, true);
-      } else {
-        const data = menuDataGetter(name);
-        initializeOptionClick(options, name, false, data);
-      }
-    }
-  });
-
-  function initializeOptionClick(options, name, isDashboardSelector, data = null) {
-    options.querySelectorAll('a').forEach(option => {
-      if (isDashboardSelector) {
-        option.addEventListener('click', () => {
-          // activateDivs(option.id);
-          dashboard = option.id;
-          changeContent(dashboard);
-        });
-      } else {
-        setOptionListeners(option, options, name, data);
-      }
-    });
-
-    if (options.id.startsWith('admLevel')) {
-      const selectedOption = options.querySelector('a.selected');
-      if (selectedOption) {
-        const optionValue = selectedOption.getAttribute('data-value');
-        toggleAdministrativeDivs(optionValue, name);
-      }
-    }
-  }
-
-  function setOptionListeners(option, options, name, data) {
-    const optionValue = option.getAttribute('data-value');
-    const queryValue = getQueryValue(options.id, data);
-
-    if (String(optionValue) === String(queryValue)) {
-      option.classList.add('selected');
-      if (options.id.startsWith('admLevel')) {
-        displayAdmSelect(name, optionValue);
-      }
-    }
-
-    option.addEventListener('click', () => {
-      setSelectedOption(options.id, option);
-      handleOptionClick(options.id, optionValue, name);
-    });
-  }
-
-  function setSelectedOption(optionsId, option) {
-    document.querySelectorAll(`#${CSS.escape(optionsId)} a`).forEach(opt => opt.classList.remove('selected'));
-    option.classList.add('selected');
-  }
-
-  function getQueryValue(optionsId, data) {
-    if (optionsId.startsWith('disease')) {
-      return data.query.disease.toLowerCase();
-    } else if (optionsId.startsWith('timeRes')) {
-      return data.query.time_resolution.toLowerCase();
-    } else if (optionsId.startsWith('admLevel')) {
-      return data.query.adm_level.toString();
-    }
-  }
-
-  function handleOptionClick(optionsId, optionValue, dashboard) {
-    const options = document.querySelectorAll(`#${optionsId} li`);
-    options.forEach(option => option.classList.remove('selected'));
-    const selectedOption = document.querySelector(`#${optionsId} li[data-value="${optionValue}"]`);
-    if (selectedOption) {
-      selectedOption.classList.add('selected');
-    }
-
-    if (optionsId.startsWith('admLevel')) {
-      let adm1Value;
-
-      if (menuDataGetter(dashboard)["adm_1"] !== null) {
-        adm1Value = menuDataGetter(dashboard)["adm_1"];
-      } // else if (local) {
-       // adm1Value = local.state.uf;
-      //}
-
-      if (!adm1Value) {
-        const adm1SelectOptions = document.querySelectorAll(`#adm1Select-${dashboard} li`);
-        adm1Value = adm1SelectOptions.length > 0 ? adm1SelectOptions[0].getAttribute('data-value') : null;
-      }
-
-      menuQuerySetter(dashboard, { "adm_level": Number(optionValue) });
-      toggleAdministrativeDivs(optionValue, dashboard);
-    } else if (optionsId.startsWith('disease')) {
-      menuQuerySetter(dashboard, { "disease": optionValue });
-    } else if (optionsId.startsWith('timeRes')) {
-      menuQuerySetter(dashboard, { "time_resolution": optionValue });
-    }
-  }
-
-  function toggleAdministrativeDivs(optionValue, dashboard) {
-    const admSelect = document.querySelector(`#adm${optionValue}Select-${dashboard}`);
-
-    if (String(optionValue) === "0") {
-      document.querySelectorAll('[id^="ds2-"]').forEach(div => div.classList.add('hidden'));
-    } else if (String(optionValue) === "1") {
-      admSelect?.classList.toggle('show');
-      document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
-      document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.add('hidden'));
-      menuQuerySetter(dashboard, { "adm_2": null });
-    } else if (String(optionValue) === "2") {
-      document.querySelectorAll(`[id^="adm1Select"]`).forEach(btn => btn.classList.remove('hidden'));
-      document.querySelectorAll(`[id^="adm2Select"]`).forEach(btn => btn.classList.remove('hidden'));
-      admSelect.style.height = 'auto';
-    }
-  }
-}
-
-
-function displayAdmSelect(name, selectedAdmLevel) {
-  const admSelectButtons = document.querySelectorAll(`[id^="adm"][id$="Select-${name}"]`);
-
-  admSelectButtons.forEach(btn => {
-    btn.classList.remove('show');
-  });
-
-  if (String(selectedAdmLevel) === "0") {
-    return;
-  }
-
-  const selectedAdmBtn = document.getElementById(`adm${selectedAdmLevel}Select-${name}`);
-  if (selectedAdmBtn) {
-    selectedAdmBtn.classList.add('show');
-  }
-} 
-
-function initializeDivs() {
-  document.querySelectorAll('[id^="ds-"]').forEach(dsDiv => {
-    dsDiv.classList.add('ds-hidden', 'ds-container');
-  });
-
-  const initialDiv = document.getElementById(`ds-${dashboard}`);
-  if (initialDiv) {
-    initialDiv.classList.remove('ds-hidden');
-    initialDiv.classList.add('ds-slide-down');
-  }
-
-  document.querySelectorAll('#dsOptions a').forEach(option => {
-    if (option.id === dashboard) {
-      option.classList.add('selected');
-    }
-
-    option.addEventListener('click', (event) => {
-      if (dashboard !== "forecast_map") {
-        event.preventDefault();
-      }
-      updateDs(option);
-      // document.querySelectorAll(`[id^="ds1-"], [id^="ds2-"], [id^="ds3-"]`).forEach((el) => {
-      //   if (!el.id.includes(dashboard)) {
-      //     setTimeout(() => {
-      //       el.classList.add('hidden');
-      //     }, 400);
-      //   } else {
-      //     setTimeout(() => {
-      //       el.classList.remove('hidden');
-      //     }, 400);
-      //   }
-      // });
-    });
-  });
-}
-
-function updateDs(option) {
-  document.querySelectorAll('#dsOptions a').forEach(opt => opt.classList.remove('selected'));
-  option.classList.add('selected');
-
-  const previousDiv = document.getElementById(`ds-${dashboard}`);
-  dashboard = option.id;
-  const newDiv = document.getElementById(`ds-${dashboard}`);
-
-  if (previousDiv) {
-    previousDiv.classList.remove('ds-slide-down');
-    previousDiv.classList.add('ds-slide-up');
-
-    previousDiv.addEventListener('transitionend', () => {
-      previousDiv.classList.add('ds-hidden');
-      previousDiv.classList.remove('ds-slide-up');
-
-      if (newDiv) {
-        newDiv.classList.remove('ds-hidden');
-        newDiv.classList.add('ds-slide-down');
-      }
-    }, { once: true });
-  } else if (newDiv) {
-    newDiv.classList.remove('ds-hidden');
-    newDiv.classList.add('ds-slide-down');
-  }
-}
-
-
-function ds2Menu(dashboard, admLevel = null, options = null) {
-  if (dashboard === "forecast_map") {
-    return
-  }
-  const query = menuDataGetter(dashboard).query;
-  const disease = menuDataGetter(dashboard).query.disease;
-  const timeRes = menuDataGetter(dashboard).query.time_resolution;
-  if (!admLevel) {
-    admLevel = menuDataGetter(dashboard).query.adm_level;
-  }
-  const admData = menuDataGetter(dashboard)["adm_data"][disease][timeRes];
-  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
-  const existingMenu = button.nextElementSibling;
-
-  if (existingMenu && existingMenu.classList.contains('ds2-menu')) {
-    existingMenu.remove();
-  }
-
-  button.innerHTML = '';
-  button.disabled = false;
-
-  const menu = document.createElement('div');
-  menu.className = 'ds2-menu bg-dark text-white';
-  const list = document.createElement('ul');
-
-  let selectedValue = false;
-
-  if (admLevel === 1) {
-    if (!options) {
-      options = menuDataGetter(dashboard)["adm_data"][disease][timeRes]["adm_1"].map(adm1 => [adm1, ufs[adm1]]);
-    }
-  } else if (admLevel === 2) {
-    const adm2Data = menuDataGetter(dashboard)["adm_data"][disease][timeRes]["adm_2"]
-    const adm1Options = adm2Data.map(i => parseInt(String(i[0]).slice(0, 2), 10)).map(x => [ufCodes[x], ufs[ufCodes[x]]]);
-    ds2Menu(dashboard, 1, adm1Options);
-    options = adm2Data.filter(i => String(i[0]).startsWith(String(codesUfs[menuDataGetter(dashboard).query.adm_1])))
-  }
-
-  if (options) {
-    options.sort((a, b) => a[1].localeCompare(b[1]));
-
-    options.forEach(option => {
-      const listItem = document.createElement('li');
-      const value = option[0];
-      const name = option[1];
-
-      listItem.setAttribute('data-value', value);
-      listItem.textContent = name;
-
-      if (query["adm_1"] && query["adm_1"] === value || query["adm_2"] && query["adm_2"] === value) {
-        button.textContent = name;
-        listItem.classList.add('selected');
-        selectedValue = true;
-      }
-
-      listItem.addEventListener('click', () => {
-        button.textContent = name;
-        selectAdmLevelOption(dashboard, admLevel, value, name);
-        menu.style.visibility = 'hidden';
-
-        if (admLevel == 1 && menuDataGetter(dashboard).query.adm_level == 2) {
-          ds2Menu(dashboard, 2);
-        }
-
-        list.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
-        listItem.classList.add('selected');
-      });
-
-      list.appendChild(listItem);
-    });
-  }
-
-  // if (!selectedValue && options && options.length > 0) {
-  //   if (local !== null) {
-  //     if (admLevel === 1 && local.state && Object.keys(admData).includes(local.state.uf)) {
-  //       button.textContent = local.state.name;
-  //       selectAdmLevelOption(dashboard, 1, local.state.uf, local.state.name);
-  //       selectedValue = true;
-  //     } else if (admLevel === 2 && query["adm_1"] && admData[query["adm_1"]].some(item => item[0] === local.geocode)) {
-  //       button.textContent = local.name;
-  //       selectAdmLevelOption(dashboard, 2, local.geocode, local.name);
-  //       selectedValue = true;
-  //     }
-  //   }
-  // }
-
-  if (!selectedValue) {
-    const firstOption = options[0];
-    const value = firstOption[0];
-    const name = firstOption[1];
-    button.textContent = name;
-    selectAdmLevelOption(dashboard, admLevel, value, name);
-    list.firstChild.classList.add('selected');
-  }
-
-  menu.appendChild(list);
-  button.insertAdjacentElement('afterend', menu);
-
-  button.addEventListener('click', (e) => {
-    const rect = button.getBoundingClientRect();
-    menu.style.position = 'absolute';
-    menu.style.maxHeight = `${window.innerHeight - rect.bottom}px`;
-    menu.style.overflowY = 'auto';
-    menu.style.visibility = menu.style.visibility === 'visible' ? 'hidden' : 'visible';
-    e.stopPropagation();
-
-    document.querySelectorAll('.ds2-menu').forEach((m) => {
-      if (m !== menu) {
-        m.style.visibility = 'hidden';
-      }
-    });
-
-    if (selectedValue) {
-      const selectedItem = list.querySelector('.selected');
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }
-  });
-
-  document.addEventListener('click', () => {
-    menu.style.visibility = 'hidden';
-  });
-
-  menu.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-}
-
-function selectAdmLevelOption(dashboard, admLevel, value, name) {
-  const button = document.getElementById(`adm${admLevel}Select-${dashboard}`);
-  menuQuerySetter(dashboard, { [`adm_${admLevel}`]: value });
-  button.setAttribute('adm-name', name);
-  button.textContent = name;
-  button.value = value;
 }
 
 document.addEventListener('DOMContentLoaded', function() {

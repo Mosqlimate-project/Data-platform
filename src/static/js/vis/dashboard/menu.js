@@ -8,6 +8,7 @@ function toggleBtn(dashboard, parameter) {
   arrow.classList.toggle('fa-chevron-down', !options.classList.contains('show'));
 }
 
+
 function selectDashboard(dashboard) {
   const dashboardOptions = document.getElementById(`-dashboard-options`);
   const options = dashboardOptions.querySelectorAll('a');
@@ -23,21 +24,56 @@ function selectDashboard(dashboard) {
     div.classList.add('hidden');
   });
 
+  document.querySelectorAll('[id^="dsContent-"]').forEach(div => {
+    div.classList.add('hidden');
+  });
+
   ['ds1', 'ds2', 'ds3'].forEach(ds => {
-    const div = document.getElementById(`${ds}-${dashboard}`);
-    if (div) {
-      div.classList.remove('hidden');
-      div.classList.add('active');
-    }
+    const dashboardMenu = document.getElementById(`${ds}-${dashboard}`);
+    const content = document.getElementById(`dsContent-${dashboard}`);
+    dashboardMenu.classList.add('active');
+    dashboardMenu.classList.remove('hidden');
+    content.classList.remove('hidden');
   });
 
   storageSelect(dashboard);
 }
 
+
+function equalMaps(map1, map2) {
+  if (typeof map1 === 'object' && !map1.size) {
+    map1 = new Map(Object.entries(map1));
+  }
+
+  if (typeof map2 === 'object' && !map2.size) {
+    map2 = new Map(Object.entries(map2));
+  }
+
+  if (map1.size !== map2.size) {
+    return false;
+  }
+
+  for (let [key, val] of map1) {
+    let testVal = map2.get(key);
+    if (key === 'prediction_ids') {
+      testVal = String(testVal || []);
+      val = String(val || []);
+    }
+    if (testVal !== val || (testVal === undefined && !map2.has(key))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
 function selectParameter(dashboard, parameter, value) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
   storage[dashboard][parameter] = value;
   localStorage.setItem('dashboards', JSON.stringify(storage));
+
+  checkForUpdates(dashboard);
 
   const options = document.getElementById(`${dashboard}-${parameter}-options`);
 
@@ -55,7 +91,9 @@ function selectParameter(dashboard, parameter, value) {
     if (String(value) === "1") {
       if (adm_2Btn) adm_2Btn.classList.add('hidden');
       populateAdm1Menu(dashboard, admData["adm_1"]);
-    } else if (String(value) === "2") {
+    }
+
+    if (String(value) === "2") {
       if (adm_2Btn) adm_2Btn.classList.remove('hidden');
       const adm1Options = admData["adm_2"].map(item => ufCodes[parseInt(String(item[0]).slice(0, 2), 10)]);
       populateAdm1Menu(dashboard, adm1Options);
@@ -80,13 +118,22 @@ function selectParameter(dashboard, parameter, value) {
   }
 }
 
+
 function storageSelect(dashboard) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
   ["disease", "time_resolution", "adm_level"].forEach(parameter => {
-    selectParameter(dashboard, parameter, storage[dashboard][parameter])
+    selectParameter(dashboard, parameter, storage[dashboard][parameter]);
   });
+
+  const admData = dashboards[dashboard]["adm_data"][storage[dashboard]["disease"]][storage[dashboard]["time_resolution"]];
+  if (!storage[dashboard]["adm_1"] && admData["adm_1"] && admData["adm_1"].length > 0) {
+    storage[dashboard]["adm_1"] = admData["adm_1"][0];
+    localStorage.setItem('dashboards', JSON.stringify(storage));
+  }
+
   selectAdm1(dashboard, storage[dashboard]["adm_1"]);
 }
+
 
 function selectAdm1(dashboard, uf) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
@@ -105,6 +152,7 @@ function selectAdm1(dashboard, uf) {
     });
   }
 
+
   const admData = dashboards[dashboard]["adm_data"][storage[dashboard]["disease"]][storage[dashboard]["time_resolution"]];
   if (admData["adm_2"]) {
     const ufCode = codesUfs[uf];
@@ -112,6 +160,7 @@ function selectAdm1(dashboard, uf) {
     populateAdm2Menu(dashboard, adm2Options);
   }
 }
+
 
 function selectAdm2(dashboard, geocode, name) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
@@ -130,6 +179,7 @@ function selectAdm2(dashboard, geocode, name) {
     });
   }
 }
+
 
 function attachMenu(menu, button, list) {
   menu.appendChild(list);
@@ -163,6 +213,7 @@ function attachMenu(menu, button, list) {
   });
 }
 
+
 function populateAdm1Menu(dashboard, ufs) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
   const button = document.getElementById(`${dashboard}-adm_1`);
@@ -186,6 +237,7 @@ function populateAdm1Menu(dashboard, ufs) {
     listItem.addEventListener('click', () => {
       selectAdm1(dashboard, uf);
       menu.style.visibility = 'hidden';
+      checkForUpdates(dashboard);
     });
     list.appendChild(listItem);
   });
@@ -201,6 +253,7 @@ function populateAdm1Menu(dashboard, ufs) {
 
   if (selectedAdm1) selectAdm1(dashboard, selectedAdm1);
 }
+
 
 function populateAdm2Menu(dashboard, options) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
@@ -243,4 +296,29 @@ function populateAdm2Menu(dashboard, options) {
       selectAdm2(dashboard, list.querySelector('li').getAttribute('data-value'));
     }
   }
+}
+
+function checkForUpdates(dashboard) {
+  const prevUpdateEl = document.getElementById(`update-prev-${dashboard}`);
+  const storage = JSON.parse(localStorage.getItem('dashboards'));
+
+  const updateEl = document.getElementById(`update-${dashboard}`);
+  if (equalMaps(JSON.parse(prevUpdateEl.value || '{}'), storage[dashboard])) {
+    updateEl.disabled = true;
+  } else {
+    updateEl.disabled = false;
+  }
+}
+
+
+async function update(dashboard) {
+  const storage = JSON.parse(localStorage.getItem('dashboards'));
+  const updateEl = document.getElementById(`update-${dashboard}`);
+  const prevUpdateEl = document.getElementById(`update-prev-${dashboard}`);
+  prevUpdateEl.value = JSON.stringify(storage[dashboard]);
+
+  await renderPredictList(dashboard);
+  await renderPredictsChart(dashboard);
+
+  updateEl.disabled = true;
 }
