@@ -3,7 +3,6 @@ import json
 import math
 from pathlib import Path
 from typing import Union, Optional, Literal, List
-from itertools import cycle
 from collections import defaultdict
 from hashlib import blake2b
 from dateutil import parser
@@ -11,7 +10,7 @@ from datetime import date
 
 # from loguru import logger
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -44,15 +43,16 @@ def check_adm_level(adm_level, adm_1, adm_2) -> JsonResponse | None:
         if is_null(adm_1):
             return JsonResponse({"error": "adm_1 is required"}, status=422)
         return None
-    elif str(adm_level) == "2":
+
+    if str(adm_level) == "2":
         if is_null(adm_2):
             return JsonResponse({"error": "adm_2 is required"}, status=422)
         return None
-    else:
-        return JsonResponse(
-            {"error": f"incorrect value for adm_level: {adm_level}"},
-            status=422,
-        )
+
+    return JsonResponse(
+        {"error": f"incorrect value for adm_level: {adm_level}"},
+        status=422,
+    )
 
 
 def get_distinct_values(field: str, sprint: bool) -> list:
@@ -529,22 +529,6 @@ def get_prediction_scores(request) -> JsonResponse:
     return JsonResponse(scores)
 
 
-def get_predict_ids(request) -> JsonResponse:
-    query = DashboardView.parse_query_request(
-        request, required=["dashboard", "disease"]
-    )
-
-    data = DashboardView.filter_predictions(**query)
-
-    return JsonResponse(
-        {
-            "predicts": list(
-                data.values_list("predict_id", query["score"]).distinct()
-            )
-        }
-    )
-
-
 def get_predict_list_data(request) -> JsonResponse:
     prediction_ids = request.GET.get("prediction-ids", [])
     prediction_ids = prediction_ids.split(",") if prediction_ids else []
@@ -722,57 +706,6 @@ class DashboardForecastMacroView(View):
             ).order_by("geocode")
         )
 
-        return render(request, self.template_name, context)
-
-
-class PredictTableView(View):
-    template_name = "vis/charts/prediction-table.html"
-
-    @xframe_options_exempt
-    def get(self, request):
-        prediction_ids = request.GET.getlist("predict")
-        context = {}
-
-        colors = cycle(
-            [
-                "#A6BCD4",
-                "#FAC28C",
-                "#F2ABAB",
-                "#B9DBD9",
-                "#AAD1A5",
-                "#F7E59D",
-                "#D9BCD1",
-                "#FFCED3",
-                "#CEBAAE",
-            ]
-        )
-
-        predictions: set[Prediction] = set()
-        for id in prediction_ids:
-            predict = get_object_or_404(Prediction, pk=id)
-            predictions.add(predict)
-
-        infos = []
-        for prediction in predictions:
-            info = {}
-            info["model_id"] = prediction.model.id
-            info["model"] = prediction.model.name
-            info["prediction_id"] = prediction.id
-            info["disease"] = prediction.model.disease.capitalize()
-            if prediction.adm_2_geocode and prediction.model.ADM_level == 2:
-                geocode = prediction.adm_2_geocode
-                geocode_info = json.loads(
-                    get_geocode_info(request, geocode).content
-                )
-                info["locality"] = geocode_info["municipio"]
-            else:
-                info["locality"] = "BR"  # TODO
-            info["prediction_date"] = prediction.predict_date
-            info["color"] = next(colors)
-            infos.append(info)
-
-        context["prediction_ids"] = prediction_ids
-        context["prediction_infos"] = infos
         return render(request, self.template_name, context)
 
 

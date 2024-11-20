@@ -20,7 +20,6 @@ urlpatterns = [
         views.get_prediction_scores,
         name="get_prediction_scores",
     ),
-    path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
     path(
         "get-predict-list-data/",
         views.get_predict_list_data,
@@ -50,11 +49,6 @@ urlpatterns = [
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
         name="macro_forecast_map",
-    ),
-    path(
-        "predict-table/",
-        views.PredictTableView.as_view(),
-        name="predict_table",
     ),
     path(
         "get-model-item/<int:model_id>/",
