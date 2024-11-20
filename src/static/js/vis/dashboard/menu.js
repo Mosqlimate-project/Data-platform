@@ -1,3 +1,16 @@
+function waitForStorage() {
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      const storage = JSON.parse(localStorage.getItem('dashboards'));
+      if (storage) {
+        clearInterval(interval);
+        resolve(storage);
+      }
+    }, 100);
+  });
+}
+
+
 function toggleBtn(dashboard, parameter) {
   const base = new String(`${dashboard}-${parameter}`);
   const arrow = document.getElementById(`${base}-arrow`);
@@ -74,6 +87,7 @@ function selectParameter(dashboard, parameter, value) {
   localStorage.setItem('dashboards', JSON.stringify(storage));
 
   checkForUpdates(dashboard);
+  populateAdm1Menu(dashboard);
 
   const options = document.getElementById(`${dashboard}-${parameter}-options`);
 
@@ -90,13 +104,10 @@ function selectParameter(dashboard, parameter, value) {
   if (parameter === "adm_level") {
     if (String(value) === "1") {
       if (adm_2Btn) adm_2Btn.classList.add('hidden');
-      populateAdm1Menu(dashboard, admData["adm_1"]);
     }
 
     if (String(value) === "2") {
       if (adm_2Btn) adm_2Btn.classList.remove('hidden');
-      const adm1Options = admData["adm_2"].map(item => ufCodes[parseInt(String(item[0]).slice(0, 2), 10)]);
-      populateAdm1Menu(dashboard, adm1Options);
     }
   }
 
@@ -214,9 +225,14 @@ function attachMenu(menu, button, list) {
 }
 
 
-function populateAdm1Menu(dashboard, ufs) {
+function populateAdm1Menu(dashboard) {
   const storage = JSON.parse(localStorage.getItem('dashboards'));
   const button = document.getElementById(`${dashboard}-adm_1`);
+  const adm_level = storage[dashboard]["adm_level"];
+  const predictions = pageData[dashboard].predictions;
+  const ufs = [...new Set(
+    predictions.filter(p => String(p.adm_level) === String(adm_level)).map(p => p.adm_1)
+  )];
 
   if (button.nextElementSibling && button.nextElementSibling.classList.contains('ds2-menu')) {
     button.nextElementSibling.remove();

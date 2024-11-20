@@ -157,61 +157,61 @@
 <script src="https://cdn.jsdelivr.net/gh/farhadmammadli/bootstrap-select@main/js/bootstrap-select.min.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const initialDashboard = "{{ dashboard }}";
-  const storage = JSON.parse(localStorage.getItem('dashboards'));
 
-  const waitForStorage = setInterval(() => {
-    const storage = JSON.parse(localStorage.getItem('dashboards'));
-    if (storage) {
-      clearInterval(waitForStorage);
-      selectDashboard(initialDashboard);
-    }
-  }, 100);
+  await waitForStorage();
 
-  const dashboardOptions = document.getElementById(`-dashboard-options`);
-  dashboardOptions.querySelectorAll('a').forEach(dashboardBtn => {
-    dashboardBtn.addEventListener('click', event => {
-      const value = event.target.getAttribute('data-value');
-      if (value) {
-        selectDashboard(value);
-      }
-    });
-  });
+  try {
+    await loadData();
+    selectDashboard(initialDashboard);
 
-  document.querySelectorAll('.ds-toggle-btn').forEach(button => {
-    const parts = button.id.split("-");
-    const dashboard = parts[0];
-    const key = parts[1];
-
-    if (["", "predictions", "sprint"].includes(dashboard)) {
-      toggleBtn(dashboard, key);
-      button.addEventListener('click', event => {
-        toggleBtn(dashboard, key);
+    const dashboardOptions = document.getElementById(`-dashboard-options`);
+    dashboardOptions.querySelectorAll('a').forEach(dashboardBtn => {
+      dashboardBtn.addEventListener('click', event => {
+        const value = event.target.getAttribute('data-value');
+        if (value) {
+          selectDashboard(value);
+        }
       });
-    }
-  });
+    });
 
-  document.querySelectorAll('.ds-btn').forEach(button => {
-    button.addEventListener('click', event => {
-      const parts = event.target.id.split("-");
+    document.querySelectorAll('.ds-toggle-btn').forEach(button => {
+      const parts = button.id.split("-");
       const dashboard = parts[0];
       const key = parts[1];
-      const value = parts[2];
 
-      if (key !== "dashboard") {
-        selectParameter(dashboard, key, value);
+      if (["", "predictions", "sprint"].includes(dashboard)) {
+        toggleBtn(dashboard, key);
+        button.addEventListener('click', event => {
+          toggleBtn(dashboard, key);
+        });
       }
-    })
-  });
-
-  ['predictions', 'sprint'].forEach(dashboard => {
-    const updateBtn = document.getElementById(`update-${dashboard}`);
-    updateBtn.addEventListener('click', event => {
-      update(dashboard);
-      updateBtn.disabled = true;
     });
-  })
+
+    document.querySelectorAll('.ds-btn').forEach(button => {
+      button.addEventListener('click', event => {
+        const parts = event.target.id.split("-");
+        const dashboard = parts[0];
+        const key = parts[1];
+        const value = parts[2];
+
+        if (key !== "dashboard") {
+          selectParameter(dashboard, key, value);
+        }
+      });
+    });
+
+    ['predictions', 'sprint'].forEach(dashboard => {
+      const updateBtn = document.getElementById(`update-${dashboard}`);
+      updateBtn.addEventListener('click', event => {
+        update(dashboard);
+        updateBtn.disabled = true;
+      });
+    });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 

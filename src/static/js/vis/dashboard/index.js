@@ -78,11 +78,19 @@ async function loadData() {
     pageData.predictions = await fetchPredictions("predictions");
     pageData.sprint = await fetchPredictions("sprint");
 
-    await initializePage();
+    if (pageData.predictions && pageData.sprint) {
+      ['predictions', 'sprint'].forEach(dashboard => {
+        update(dashboard);
+      });
+    } else {
+      throw new Error("Page data is incomplete.");
+    }
   } catch (error) {
-    console.error(error);
+    console.error("Error loading data:", error);
+    throw error;
   }
 }
+
 
 async function initializePage() {
   if (pageData.predictions && pageData.sprint) {

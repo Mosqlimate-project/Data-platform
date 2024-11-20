@@ -20,7 +20,6 @@ urlpatterns = [
         views.get_prediction_scores,
         name="get_prediction_scores",
     ),
-    path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
     path(
         "get-predict-list-data/",
         views.get_predict_list_data,

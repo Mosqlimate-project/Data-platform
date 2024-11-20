@@ -144,7 +144,6 @@ async function updateDateWindowRange(dashboard) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  loadData();
   updateContentState();
   const observer2 = new MutationObserver(function (mutationsList) {
     mutationsList.forEach(function (mutation) {
