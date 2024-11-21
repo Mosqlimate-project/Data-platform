@@ -234,6 +234,9 @@ function renderPredictionItems(dashboard, data, predictions) {
   storage[dashboard]["prediction_ids"] = storagePredictionIds.filter(id => data.some(item => item.id === id));
   localStorage.setItem('dashboards', JSON.stringify(storage));
 
+  let startWindowDate;
+  let endWindowDate;
+
   data.forEach((item, index) => {
     const id = item.id;
     listIds.add(id);
@@ -248,6 +251,16 @@ function renderPredictionItems(dashboard, data, predictions) {
 
     const color = colors[index % colors.length];
     li.setAttribute('data-color', color);
+    li.setAttribute('data-start-window-date', item.start_window_date);
+    li.setAttribute('data-end-window-date', item.end_window_date);
+
+    if (!startWindowDate || new Date(item.start_window_date) < new Date(startWindowDate)) {
+      startWindowDate = item.start_window_date;
+    }
+
+    if (!endWindowDate || new Date(item.end_window_date) > new Date(endWindowDate)) {
+      endWindowDate = item.end_window_date;
+    }
 
     if (storagePredictionIds.includes(id)) {
       li.classList.add('active');
@@ -273,6 +286,7 @@ function renderPredictionItems(dashboard, data, predictions) {
     li.addEventListener('click', function() {
       const storage = JSON.parse(localStorage.getItem('dashboards'));
       const isActive = this.classList.toggle('active');
+
       if (isActive) {
         this.style.backgroundColor = color;
         this.style.color = 'black';
@@ -286,7 +300,27 @@ function renderPredictionItems(dashboard, data, predictions) {
           storagePredictionIds.splice(index, 1);
         }
       }
+
+      const activePreds = Array.from(ul.querySelectorAll('.list-group-item.active'));
+      let activeStartWindowDate = null;
+      let activeEndWindowDate = null;
+
+      activePreds.forEach(item => {
+        const startDate = item.getAttribute('data-start-window-date');
+        const endDate = item.getAttribute('data-end-window-date');
+
+        if (!activeStartWindowDate || new Date(startDate) < new Date(activeStartWindowDate)) {
+          activeStartWindowDate = startDate;
+        }
+
+        if (!activeEndWindowDate || new Date(endDate) > new Date(activeEndWindowDate)) {
+          activeEndWindowDate = endDate;
+        }
+      });
+
       storage[dashboard]["prediction_ids"] = storagePredictionIds;
+      storage[dashboard]["start_window_date"] = activeStartWindowDate;
+      storage[dashboard]["end_window_date"] = activeEndWindowDate;
       localStorage.setItem('dashboards', JSON.stringify(storage));
       renderPredictsChart(dashboard);
     });
@@ -294,11 +328,32 @@ function renderPredictionItems(dashboard, data, predictions) {
     ul.appendChild(li);
   });
 
+  const activePreds = Array.from(ul.querySelectorAll('.list-group-item.active'));
+
+  if (activePreds.length > 0) {
+    startWindowDate = null;
+    endWindowDate = null;
+
+    activePreds.forEach(item => {
+      const startDate = item.getAttribute('data-start-window-date');
+      const endDate = item.getAttribute('data-end-window-date');
+
+      if (!startWindowDate || new Date(startDate) < new Date(startWindowDate)) {
+        startWindowDate = startDate;
+      }
+
+      if (!endWindowDate || new Date(endDate) > new Date(endWindowDate)) {
+        endWindowDate = endDate;
+      }
+    });
+  }
+
+  storage[dashboard]["start_window_date"] = startWindowDate;
+  storage[dashboard]["end_window_date"] = endWindowDate;
   storage[dashboard]["prediction_ids"] = storagePredictionIds.filter(id => listIds.has(id));
   localStorage.setItem('dashboards', JSON.stringify(storage));
   predictIdsContainer.appendChild(ul);
 }
-
 
 
 async function updateScores(dashboard, selectedScore) {
@@ -401,7 +456,6 @@ async function renderPredictsChart(dashboard) {
   });
 
   loading.style.display = 'flex';
-  chart.style.display = 'none';
 
   const query = {
     sprint: dashboard === "sprint",
@@ -433,7 +487,6 @@ async function renderPredictsChart(dashboard) {
     if (result.status === 'success') {
       await vegaEmbed(`#chart-container-${dashboard}`, result.chart);
       loading.style.display = 'none';
-      chart.style.display = 'block';
     }
   } catch (error) {
     console.error(error);

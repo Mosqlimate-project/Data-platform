@@ -35,10 +35,3 @@ body::-webkit-scrollbar {
   padding-bottom: 30px;
 
 }
-
-[id^="windowDatePicker-"] {
-  margin-bottom: 30px;
-  margin-left: 15px;
-  margin-right: 20px;
-
-}
