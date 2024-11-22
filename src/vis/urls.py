@@ -26,11 +26,6 @@ urlpatterns = [
         name="get_predict_list_data",
     ),
     path(
-        "get-predicts-start-end-window-date/",
-        views.get_predicts_start_end_window_date,
-        name="get_predicts_start_end_window_date",
-    ),
-    path(
         "line-charts-base/",
         views.line_chart_base_view,
         name="line_charts_base",

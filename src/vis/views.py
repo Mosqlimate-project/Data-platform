@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Union, Optional, Literal, List
 from collections import defaultdict
 from hashlib import blake2b
+from datetime import date, timedelta
+
 from dateutil import parser
-from datetime import date
 
 # from loguru import logger
 
@@ -17,6 +18,8 @@ from django.conf import settings
 from django.http import JsonResponse, FileResponse
 from django.views import View
 from django.db import models
+from django.utils.http import http_date
+from django.utils.timezone import now
 
 # from epiweeks import Week
 from registry.models import Model, Prediction, PredictionDataRow
@@ -63,14 +66,6 @@ def get_distinct_values(field: str, sprint: bool) -> list:
             .distinct()
         )
     )
-
-
-def get_start_end_window_date(query: str) -> tuple[date, date]:
-    data = DashboardView.filter_predictions(**query).aggregate(
-        start_window_date=models.Min("date"),
-        end_window_date=models.Max("date"),
-    )
-    return data["start_window_date"], data["end_window_date"]
 
 
 def get_adm_menu_options(
@@ -400,7 +395,13 @@ def get_predictions(request) -> JsonResponse:
             }
         )
 
-    return JsonResponse({"predictions": data})
+    response = JsonResponse({"predictions": data})
+
+    expiration_time = now() + timedelta(hours=3)
+    response["Cache-Control"] = "public, max-age=10800"
+    response["Expires"] = http_date(expiration_time.timestamp())
+
+    return response
 
 
 def get_prediction_ids_specs(request) -> JsonResponse:
@@ -546,26 +547,6 @@ def get_predict_list_data(request) -> JsonResponse:
         context["data"][prediction.id] = data
 
     return JsonResponse(context)
-
-
-def get_predicts_start_end_window_date(request) -> JsonResponse:
-    query = DashboardView.parse_query_request(
-        request,
-        required=["dashboard", "disease", "time_resolution", "adm_level"],
-    )
-
-    start_window_date, end_window_date = get_start_end_window_date(query)
-
-    return JsonResponse(
-        {
-            "start_window_date": (
-                start_window_date.isoformat() if start_window_date else None
-            ),
-            "end_window_date": (
-                end_window_date.isoformat() if end_window_date else None
-            ),
-        }
-    )
 
 
 def line_chart_base_view(request):
