@@ -395,7 +395,13 @@ def get_predictions(request) -> JsonResponse:
             }
         )
 
-    return JsonResponse({"predictions": data})
+    response = JsonResponse({"predictions": data})
+
+    expiration_time = now() + timedelta(hours=3)
+    response["Cache-Control"] = "public, max-age=10800"
+    response["Expires"] = http_date(expiration_time.timestamp())
+
+    return response
 
 
 def get_prediction_ids_specs(request) -> JsonResponse:
