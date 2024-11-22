@@ -301,7 +301,12 @@ function renderPredictionItems(dashboard, data, predictions) {
         }
       }
 
-      const activePreds = Array.from(ul.querySelectorAll('.list-group-item.active'));
+      let activePreds = Array.from(ul.querySelectorAll('.predict-item.active'));
+
+      if (activePreds.length === 0) {
+        activePreds = Array.from(ul.querySelectorAll('.predict-item')).slice(0, 5)
+      }
+
       let activeStartWindowDate = null;
       let activeEndWindowDate = null;
 
@@ -357,6 +362,9 @@ function renderPredictionItems(dashboard, data, predictions) {
 
 
 async function updateScores(dashboard, selectedScore) {
+  if (dashboard === "forecast_map") {
+    return
+  }
   const storage = JSON.parse(localStorage.getItem('dashboards'));
   const ul = document.querySelector(`#predict-ids-${dashboard} .list-group`);
   const predictionIds = Array.from(ul.children)
@@ -441,6 +449,10 @@ async function renderPredictList(dashboard) {
 
 
 async function renderPredictsChart(dashboard) {
+  if (dashboard === "forecast_map") {
+    return {}
+  }
+  const storage = JSON.parse(localStorage.getItem('dashboards'));
   const data = JSON.parse(localStorage.getItem('dashboards'))[dashboard];
   const predictList = document.getElementById(`predict-ids-${dashboard}`);
   const loading = document.getElementById(`chart-loading-${dashboard}`);
@@ -473,6 +485,19 @@ async function renderPredictsChart(dashboard) {
     colors: colors,
   };
 
+  if (data["prediction_ids"].length === 0) {
+    await fetchPredictScores(
+      Array.from(predictList.querySelectorAll('.predict-item'))
+        .slice(0, 5)
+        .map(item => parseInt(item.id, 10)),
+      data["start_window_date"],
+      data["end_window_date"]
+    );
+    query["prediction_ids"] = Array.from(predictList.querySelectorAll('.predict-item'))
+      .slice(0, 5)
+      .map(item => parseInt(item.id, 10));
+  }
+
   try {
     const response = await fetch('/vis/line-charts-predicts-chart/', {
       method: 'POST',
@@ -485,7 +510,7 @@ async function renderPredictsChart(dashboard) {
     const result = await response.json();
 
     if (result.status === 'success') {
-      await vegaEmbed(`#chart-container-${dashboard}`, result.chart);
+      await vegaEmbed(chart, result.chart);
       loading.style.display = 'none';
     }
   } catch (error) {
