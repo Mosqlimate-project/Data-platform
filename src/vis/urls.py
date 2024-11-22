@@ -31,11 +31,6 @@ urlpatterns = [
         name="line_charts_base",
     ),
     path(
-        "line-charts-data-chart/",
-        views.line_chart_data_view,
-        name="line_charts_data",
-    ),
-    path(
         "line-charts-predicts-chart/",
         views.line_chart_predicts_view,
         name="line_charts_predicts",

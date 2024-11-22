@@ -455,7 +455,11 @@ def get_prediction_scores(request) -> JsonResponse:
     start_window_date = request.GET.get("start-window-date")
     end_window_date = request.GET.get("end-window-date")
 
+    print(prediction_ids)
     predictions = Prediction.objects.filter(id__in=prediction_ids)
+
+    print(start_window_date)
+    print(end_window_date)
 
     data = PredictionDataRow.objects.filter(
         id__in=[
@@ -565,40 +569,6 @@ def line_chart_base_view(request):
     return JsonResponse(chart.to_dict(), safe=False)
 
 
-def line_chart_data_view(request):
-    width = request.GET.get("width", 450)
-    query = DashboardView.parse_query_request(
-        request,
-        required=[
-            "dashboard",
-            "disease",
-            "adm_level",
-            "start_window_date",
-            "end_window_date",
-        ],
-    )
-
-    invalid_adm_level = check_adm_level(
-        query["adm_level"], query["adm_1"], query["adm_2"]
-    )
-
-    if invalid_adm_level:
-        return invalid_adm_level
-
-    chart = data_chart(
-        width=int(width),
-        sprint=query["sprint"],
-        disease=query["disease"],
-        adm_level=query["adm_level"],
-        adm_1=query["adm_1"],
-        adm_2=query["adm_2"],
-        start_window_date=query["start_window_date"],
-        end_window_date=query["end_window_date"],
-    )
-
-    return JsonResponse(chart.to_dict(), safe=False)
-
-
 @csrf_exempt
 def line_chart_predicts_view(request):
     if request.method != "POST":
@@ -615,6 +585,8 @@ def line_chart_predicts_view(request):
 
     if invalid_adm_level:
         return invalid_adm_level
+
+    print(data["prediction_ids"])
 
     chart = data_chart(
         width=data["width"],
