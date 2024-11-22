@@ -450,9 +450,9 @@ async function renderPredictList(dashboard) {
 
 async function renderPredictsChart(dashboard) {
   if (dashboard === "forecast_map") {
-    return {}
+    return {};
   }
-  const storage = JSON.parse(localStorage.getItem('dashboards'));
+
   const data = JSON.parse(localStorage.getItem('dashboards'))[dashboard];
   const predictList = document.getElementById(`predict-ids-${dashboard}`);
   const loading = document.getElementById(`chart-loading-${dashboard}`);
@@ -485,6 +485,16 @@ async function renderPredictsChart(dashboard) {
     colors: colors,
   };
 
+  const cacheKey = JSON.stringify(query);
+  const cachedChart = localStorage.getItem(cacheKey);
+
+  if (cachedChart) {
+    const result = JSON.parse(cachedChart);
+    await vegaEmbed(chart, result.chart);
+    loading.style.display = 'none';
+    return;
+  }
+
   if (data["prediction_ids"].length === 0) {
     await fetchPredictScores(
       Array.from(predictList.querySelectorAll('.predict-item'))
@@ -510,6 +520,7 @@ async function renderPredictsChart(dashboard) {
     const result = await response.json();
 
     if (result.status === 'success') {
+      localStorage.setItem(cacheKey, JSON.stringify(result));
       await vegaEmbed(chart, result.chart);
       loading.style.display = 'none';
     }

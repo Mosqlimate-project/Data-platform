@@ -455,11 +455,7 @@ def get_prediction_scores(request) -> JsonResponse:
     start_window_date = request.GET.get("start-window-date")
     end_window_date = request.GET.get("end-window-date")
 
-    print(prediction_ids)
     predictions = Prediction.objects.filter(id__in=prediction_ids)
-
-    print(start_window_date)
-    print(end_window_date)
 
     data = PredictionDataRow.objects.filter(
         id__in=[
