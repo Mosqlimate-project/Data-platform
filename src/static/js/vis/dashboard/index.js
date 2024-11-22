@@ -283,6 +283,19 @@ function renderPredictionItems(dashboard, data, predictions) {
       </div>
     `;
 
+    // Add hover effect
+    li.addEventListener('mouseover', function() {
+      if (!li.classList.contains('active')) {
+        li.style.backgroundColor = color;
+      }
+    });
+
+    li.addEventListener('mouseout', function() {
+      if (!li.classList.contains('active')) {
+        li.style.backgroundColor = '';
+      }
+    });
+
     li.addEventListener('click', function() {
       const storage = JSON.parse(localStorage.getItem('dashboards'));
       const isActive = this.classList.toggle('active');
@@ -485,16 +498,6 @@ async function renderPredictsChart(dashboard) {
     colors: colors,
   };
 
-  const cacheKey = JSON.stringify(query);
-  const cachedChart = localStorage.getItem(cacheKey);
-
-  if (cachedChart) {
-    const result = JSON.parse(cachedChart);
-    await vegaEmbed(chart, result.chart);
-    loading.style.display = 'none';
-    return;
-  }
-
   if (data["prediction_ids"].length === 0) {
     await fetchPredictScores(
       Array.from(predictList.querySelectorAll('.predict-item'))
@@ -506,6 +509,16 @@ async function renderPredictsChart(dashboard) {
     query["prediction_ids"] = Array.from(predictList.querySelectorAll('.predict-item'))
       .slice(0, 5)
       .map(item => parseInt(item.id, 10));
+  }
+
+  const cacheKey = JSON.stringify(query);
+  const cachedChart = localStorage.getItem(cacheKey);
+
+  if (cachedChart) {
+    const result = JSON.parse(cachedChart);
+    await vegaEmbed(chart, result.chart);
+    loading.style.display = 'none';
+    return;
   }
 
   try {
