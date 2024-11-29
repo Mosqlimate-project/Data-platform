@@ -110,8 +110,6 @@ function filterBy(data, filters) {
       if (['score', 'adm_0', 'adm_3', 'prediction_ids'].includes(key)) return true;
       if (['start_window_date', 'end_window_date'].includes(key)) return true;
       if (key === 'adm_2' && prediction.adm_level === 1) return true;
-      // if (key === 'start_window_date') return new Date(prediction.start_window_date) >= new Date(value);
-      // if (key === 'end_window_date') return new Date(prediction.end_window_date) <= new Date(value);
       return String(prediction[key]) === String(value);
     });
   });
@@ -283,7 +281,6 @@ function renderPredictionItems(dashboard, data, predictions) {
       </div>
     `;
 
-    // Add hover effect
     li.addEventListener('mouseover', function() {
       if (!li.classList.contains('active')) {
         li.style.backgroundColor = color;
@@ -512,10 +509,11 @@ async function renderPredictsChart(dashboard) {
   }
 
   const cacheKey = JSON.stringify(query);
-  const cachedChart = localStorage.getItem(cacheKey);
+
+  const cachedChart = await db.charts.get(cacheKey);
 
   if (cachedChart) {
-    const result = JSON.parse(cachedChart);
+    const result = JSON.parse(cachedChart.data);
     await vegaEmbed(chart, result.chart);
     loading.style.display = 'none';
     return;
@@ -533,11 +531,100 @@ async function renderPredictsChart(dashboard) {
     const result = await response.json();
 
     if (result.status === 'success') {
-      localStorage.setItem(cacheKey, JSON.stringify(result));
+      await db.charts.put({ cacheKey: cacheKey, data: JSON.stringify(result) });
       await vegaEmbed(chart, result.chart);
       loading.style.display = 'none';
     }
   } catch (error) {
     console.error(error);
   }
+}
+
+
+async function extractStartEndWindowDate(dashboard) {
+  const predictList = document.getElementById(`predict-ids-${dashboard}`);
+  let minDate = null;
+  let maxDate = null;
+
+  predictList.querySelectorAll('.predict-item').forEach(item => {
+    const startDate = new Date(item.getAttribute('data-start-window-date'));
+    const endDate = new Date(item.getAttribute('data-end-window-date'));
+
+    if (!isNaN(startDate) && (!minDate || startDate < minDate)) {
+      minDate = startDate;
+    }
+    if (!isNaN(endDate) && (!maxDate || endDate > maxDate)) {
+      maxDate = endDate;
+    }
+  });
+
+  return [minDate, maxDate];
+}
+
+
+async function setDateWindowRange(dashboard) {
+  const predictList = document.getElementById(`predict-ids-${dashboard}`);
+  const [startDate, endDate] = await extractStartEndWindowDate(dashboard);
+  const dateSlider = $(`#windowDatePicker-${dashboard}`);
+
+  try {
+    dateSlider.dateRangeSlider("destroy");
+  } catch (error) {
+    console.log(error);
+  }
+
+  dateSlider.dateRangeSlider({
+    bounds: {
+      min: new Date(startDate),
+      max: new Date(endDate),
+    },
+    defaultValues: {
+      min: new Date(startDate),
+      max: new Date(endDate),
+    },
+    range: {
+      min: { days: 90 },
+    },
+  });
+
+  const predictDatesMap = new Map();
+
+  predictList.querySelectorAll('.predict-item').forEach(item => {
+    const predictId = item.getAttribute('id');
+    const itemStartDate = new Date(item.getAttribute('data-start-window-date'));
+    const itemEndDate = new Date(item.getAttribute('data-end-window-date'));
+    predictDatesMap.set(predictId, { start: itemStartDate, end: itemEndDate });
+  });
+
+  dateSlider.bind("valuesChanging", function(e, data) {
+    const rangeMin = data.values.min;
+    const rangeMax = data.values.max;
+
+    predictDatesMap.forEach((dates, predictId) => {
+      const escapedId = CSS.escape(predictId);
+      const item = predictList.querySelector(`#${escapedId}`);
+
+      if (item) {
+        if (dates.end >= rangeMin && dates.start <= rangeMax) {
+          item.classList.remove("hidden");
+        } else {
+          item.classList.add("hidden");
+        }
+      } else {
+        console.warn(`Element with ID ${predictId} not found within the predictList.`);
+      }
+    });
+  });
+
+  dateSlider.bind("valuesChanged", function(e, data) {
+    const storage = JSON.parse(localStorage.getItem('dashboards'));
+    const startDate = data.values.min;
+    const endDate = data.values.max;
+
+    storage[dashboard]["start_window_date"] = startDate.toISOString().split('T')[0];
+    storage[dashboard]["end_window_date"] = endDate.toISOString().split('T')[0];
+    localStorage.setItem('dashboards', JSON.stringify(storage));
+    renderPredictsChart(dashboard);
+    updateScores(dashboard, storage[dashboard].score);
+  });
 }
