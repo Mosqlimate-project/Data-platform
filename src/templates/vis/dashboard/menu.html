@@ -198,6 +198,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (key !== "dashboard") {
           selectParameter(dashboard, key, value);
+        } else {
+          update(dashboard);
         }
       });
     });

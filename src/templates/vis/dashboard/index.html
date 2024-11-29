@@ -41,7 +41,7 @@
       </div>
       <div id="chart-container-{{name}}" style="min-height:351px; z-index: 1;"></div>
     </div>
-    <div id="windowDatePicker-{{name}}" style="margin-bottom:15px"></div>
+    <div id="windowDatePicker-{{name}}"></div>
     <div id="predict-ids-{{name}}"></div>
     {% endif %}
   </div>
@@ -55,6 +55,10 @@ const pageData = {
   predictions: [],
   sprint: []
 };
+const db = new Dexie('CacheDatabase');
+db.version(1).stores({
+  charts: 'cacheKey',
+});
 
 document.querySelectorAll('input[id^="dashboardEl-"]').forEach(input => {
   const dashboardName = input.id.split('-')[1];
@@ -118,32 +122,11 @@ function updateContentState() {
   }
 }
 
-async function updateDateWindowRange(dashboard) {
-  const [startDate, endDate] = await fetchStartEndWindowDate(dashboard);
-  const dateSlider = $(`#windowDatePicker-${dashboard}`)
-
-  try {
-    dateSlider.dateRangeSlider("destroy");
-  } catch (error) {
-    console.log(error);
-  }
-
-  dateSlider.dateRangeSlider({
-    bounds: {
-      min: new Date(startDate),
-      max: new Date(endDate)
-    },
-    defaultValues: {
-      min: new Date(startDate),
-      max: new Date(endDate)
-    },
-    range: {
-      min: { days: 90 }
-    }
-  })
-}
-
 document.addEventListener('DOMContentLoaded', function() {
+  ['predictions', 'sprint'].forEach(dashboard => {
+    update(dashboard);
+  })
+
   updateContentState();
   const observer2 = new MutationObserver(function (mutationsList) {
     mutationsList.forEach(function (mutation) {
