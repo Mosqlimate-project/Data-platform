@@ -9,26 +9,26 @@ urlpatterns = [
         views.DashboardForecastMacroView.as_view(),
         name="dashboard_forecast_map",
     ),
-    path("get-predict-ids/", views.get_predict_ids, name="get_predict_ids"),
+    path("get-predictions/", views.get_predictions, name="get_predictions"),
+    path(
+        "get-prediction-ids-specs/",
+        views.get_prediction_ids_specs,
+        name="get_prediction_ids_specs",
+    ),
+    path(
+        "get-prediction-scores/",
+        views.get_prediction_scores,
+        name="get_prediction_scores",
+    ),
     path(
         "get-predict-list-data/",
         views.get_predict_list_data,
         name="get_predict_list_data",
     ),
     path(
-        "get-predicts-start-end-window-date/",
-        views.get_predicts_start_end_window_date,
-        name="get_predicts_start_end_window_date",
-    ),
-    path(
         "line-charts-base/",
         views.line_chart_base_view,
         name="line_charts_base",
-    ),
-    path(
-        "line-charts-data-chart/",
-        views.line_chart_data_view,
-        name="line_charts_data",
     ),
     path(
         "line-charts-predicts-chart/",
@@ -39,11 +39,6 @@ urlpatterns = [
         "macro-forecast-map/",
         views.MacroForecastMap.as_view(),
         name="macro_forecast_map",
-    ),
-    path(
-        "predict-table/",
-        views.PredictTableView.as_view(),
-        name="predict_table",
     ),
     path(
         "get-model-item/<int:model_id>/",

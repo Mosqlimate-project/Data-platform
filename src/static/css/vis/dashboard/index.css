@@ -30,3 +30,15 @@ body::-webkit-scrollbar {
   padding-right: 5px;
   transition: margin-left 0.2s ease;
 }
+
+[id^="predict-ids-"] {
+  padding-bottom: 30px;
+
+}
+
+[id^="windowDatePicker-"] {
+  margin-bottom: 30px;
+  margin-left: 15px;
+  margin-right: 20px;
+
+}
