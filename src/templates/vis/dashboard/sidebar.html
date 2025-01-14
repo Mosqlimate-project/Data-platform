@@ -1,0 +1,48 @@
+{% load i18n %}
+{% load static %}
+{% load filters %}
+{% load socialaccount %}
+
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <a href='{% url 'home' %}' class="brand-link">
+    <link rel="icon" href="{% static '/img/favicon.ico' %}" type="image/x-icon">
+    <img src="{% static '/img/logo-medium.png' %}" alt="Mosqlimate" class="brand-image"
+      style="opacity: .8">
+    <span class="brand-text font-weight-light">Mosqlimate</span>
+  </a>
+
+  <div class="sidebar">
+    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+      <div class="info" style="margin:0;padding:0;">
+        {% if user.is_authenticated %}
+        <a href="{% url 'profile' user.username %}" class="nav-link" aria-current="page">{{user.username}}</a>
+        {% else %}
+        <form method="post" action="{% provider_login_url "github" %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="d-block" style="all: unset; cursor: pointer; color: lightgray;">login</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+      <nav class="mt-2" style="width:100%">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+              <i class="nav-icon fas fa-line-chart"></i>
+              <p>{% trans "Predictions" %}</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    {% if request.resolver_match.url_name == 'dashboard' %}
+      {% include 'vis/dashboard/sidebar-predictions.html' %}
+    {% elif request.resolver_match.url_name == 'dashboard' %}
+      {% include 'vis/dashboard/sidebar-forecast-map.html' %}
+    {% endif %}
+  </div>
+</aside>

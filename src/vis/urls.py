@@ -3,7 +3,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path("dashboard/", views.PredictionsDashboard.as_view(), name="dashboard"),
+    path(
+        "get-hist-alerta-data/",
+        views.get_hist_alerta_data,
+        name="get_hist_alerta_data",
+    ),
     path(
         "dashboard/macro-forecast-map/",
         views.DashboardForecastMacroView.as_view(),

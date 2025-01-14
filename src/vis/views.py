@@ -13,6 +13,7 @@ from dateutil import parser
 
 from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse, FileResponse
@@ -99,6 +100,72 @@ def get_adm_menu_options(
             ]
 
     return adm_data
+
+
+class PredictionsDashboard(View):
+    template_name = "vis/dashboard/predictions.html"
+
+    def get(self, request):
+        dashboard = request.GET.get("dashboard", "predictions")
+        # prediction = request.GET.get("prediction", None)
+        # model = request.GET.get("model", None)
+
+        sprint = dashboard == "sprint"
+        context = {}
+
+        window = Prediction.objects.filter(model__sprint=sprint).aggregate(
+            start=models.Min("date_ini_prediction"),
+            end=models.Max("date_end_prediction"),
+        )
+
+        context["diseases"] = get_distinct_values("model__disease", sprint)
+        context["adm_levels"] = get_distinct_values("model__ADM_level", sprint)
+        context["time_resolutions"] = get_distinct_values(
+            "model__time_resolution", sprint
+        )
+
+        context["dashboard"] = dashboard
+        context["min_window_date"] = str(window["start"].date())
+        context["max_window_date"] = str(window["end"].date())
+
+        return render(request, self.template_name, context)
+
+
+@cache_page(60 * 120)
+def get_hist_alerta_data(request) -> JsonResponse:
+    sprint = request.GET.get("dashboard", "predictions") == "sprint"
+    disease = request.GET.get("disease", "dengue")
+    adm_level = request.GET.get("adm-level", None)
+    adm_1 = request.GET.get("adm-1", None)
+    adm_2 = request.GET.get("adm-2", None)
+
+    if not adm_level:
+        return JsonResponse({}, status=400)
+
+    if (adm_level == "1" and not adm_1) or (adm_level == "2" and not adm_2):
+        return JsonResponse({}, status=400)
+
+    window = Prediction.objects.filter(model__sprint=sprint).aggregate(
+        start=models.Min("date_ini_prediction"),
+        end=models.Max("date_end_prediction"),
+    )
+
+    try:
+        hist_alerta = hist_alerta_data(
+            sprint=sprint,
+            disease=disease,
+            start_window_date=window["start"],
+            end_window_date=window["end"],
+            adm_level=adm_level,
+            adm_1=adm_1,
+            adm_2=adm_2,
+        )
+    except Exception:
+        return JsonResponse({}, status=400)
+
+    res = hist_alerta.set_index("date")["target"].to_dict()
+    res = {str(k.date()): int(v) for k, v in res.items()}
+    return JsonResponse(res)
 
 
 class DashboardView(View):

@@ -338,6 +338,7 @@ function renderPredictionItems(dashboard, data, predictions) {
       storage[dashboard]["end_window_date"] = activeEndWindowDate;
       localStorage.setItem('dashboards', JSON.stringify(storage));
       renderPredictsChart(dashboard);
+      setDateWindowRange(dashboard);
     });
 
     ul.appendChild(li);

@@ -60,8 +60,12 @@ class ProfileView(View):
 
 
 def redirect_to_user_profile(request):
-    username = request.user.username
-    return redirect(f"/{username}/")
+    next_page = request.GET.get("next")
+    if next_page:
+        return redirect(next_page)
+    else:
+        username = request.user.username
+        return redirect(f"/{username}/")
 
 
 @verified_email_required

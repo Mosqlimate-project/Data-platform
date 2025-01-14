@@ -1,0 +1,113 @@
+{% extends 'vis/dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Dashboard - Predictions{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div id="chart-chard" class="card-body">
+    <canvas id="chart" style="min-height: 250px; max-height: 500px; max-width: 100%;"></canvas>
+    <div id="date-picker"></div>
+  </div>
+</div>
+
+<script>
+  const dashboard = `{{ dashboard }}`;
+  const min_window_date = `{{ min_window_date }}`;
+  const max_window_date = `{{ max_window_date }}`;
+</script>
+<script type="text/javascript" src="{% static 'js/vis/dashboard/predictions.js' %}"></script>
+{% endblock %}
+
+<!--   <script> -->
+<!--   const dashboards = {}; -->
+<!--   const pageData = { -->
+<!--     predictions: [], -->
+<!--     sprint: [] -->
+<!--   }; -->
+<!--   const db = new Dexie('CacheDatabase'); -->
+<!--   db.version(1).stores({ -->
+<!--     charts: 'cacheKey', -->
+<!--   }); -->
+<!---->
+<!--   document.querySelectorAll('input[id^="dashboardEl-"]').forEach(input => { -->
+<!--     const dashboardName = input.id.split('-')[1]; -->
+<!--     dashboards[dashboardName] = JSON.parse(input.value); -->
+<!--   }); -->
+<!---->
+<!--   document.addEventListener("DOMContentLoaded", async () => { -->
+<!--     let dashboardStorage = JSON.parse(localStorage.getItem('dashboards')) || {}; -->
+<!---->
+<!--     await Promise.all(Object.keys(dashboards).map(async dashboard => { -->
+<!--       if (dashboard === "forecast_map") return; -->
+<!---->
+<!--       if (!dashboardStorage[dashboard]) { -->
+<!--         dashboardStorage[dashboard] = dashboards[dashboard]["query"]; -->
+<!---->
+<!--         if (dashboards[dashboard]["query"]["prediction_ids"].length > 0) { -->
+<!--           try { -->
+<!--             const predictionIds = await handleSelectedPredictions(dashboard, dashboards[dashboard]["query"]["prediction_ids"]); -->
+<!--             dashboardStorage[dashboard]["prediction_ids"] = predictionIds; -->
+<!--           } catch (error) { -->
+<!--             dashboardStorage[dashboard]["prediction_ids"] = []; -->
+<!--             console.error(error); -->
+<!--           } -->
+<!--         } else { -->
+<!--           dashboardStorage[dashboard]["prediction_ids"] = dashboards[dashboard]["query"]["prediction_ids"]; -->
+<!--         } -->
+<!---->
+<!--         const adm1Options = new Set( -->
+<!--           dashboards[dashboard]?.["adm_data"]?.[dashboardStorage[dashboard]?.["disease"]]?.[dashboardStorage[dashboard]?.["time_resolution"]]?.["adm_1"] || [] -->
+<!--         ); -->
+<!---->
+<!--         if (!dashboardStorage[dashboard]["adm_1"]) { -->
+<!--           try { -->
+<!--             const cityInfo = await getBrowserCity(); -->
+<!--             if (cityInfo && cityInfo.state && cityInfo.state.uf && adm1Options.has(cityInfo.state.uf)) { -->
+<!--               dashboardStorage[dashboard]["adm_1"] = cityInfo.state.uf; -->
+<!--             } else { -->
+<!--               dashboardStorage[dashboard]["adm_1"] = [...adm1Options][0]; -->
+<!--             } -->
+<!--           } catch (error) { -->
+<!--             console.error(error); -->
+<!--             dashboardStorage[dashboard]["adm_1"] = [...adm1Options][0]; -->
+<!--           } -->
+<!--         } -->
+<!--       } -->
+<!--     })); -->
+<!---->
+<!--     localStorage.setItem('dashboards', JSON.stringify(dashboardStorage)); -->
+<!--   }); -->
+<!---->
+<!--   let local = null; -->
+<!---->
+<!--   function updateContentState() { -->
+<!--     const dsContent = document.getElementById('dsContent');  -->
+<!--     if (!menu.classList.contains('retracted')) { -->
+<!--       dsContent.classList.add('expanded'); -->
+<!--       dsContent.classList.remove('retracted'); -->
+<!--     } else { -->
+<!--       dsContent.classList.add('retracted'); -->
+<!--       dsContent.classList.remove('expanded'); -->
+<!--     } -->
+<!--   } -->
+<!---->
+<!--   document.addEventListener('DOMContentLoaded', function() { -->
+<!--     ['predictions', 'sprint'].forEach(dashboard => { -->
+<!--       update(dashboard); -->
+<!--     }) -->
+<!---->
+<!--     updateContentState(); -->
+<!--     const observer2 = new MutationObserver(function (mutationsList) { -->
+<!--       mutationsList.forEach(function (mutation) { -->
+<!--         if (mutation.attributeName === 'class') { -->
+<!--           updateContentState(); -->
+<!--         } -->
+<!--       }); -->
+<!--     }); -->
+<!--     observer2.observe(menu, { attributes: true }); -->
+<!--   }); -->
+<!--   </script> -->
+<!-- </html> -->

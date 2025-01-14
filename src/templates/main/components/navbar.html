@@ -66,7 +66,7 @@
         <li class="nav-item">
           <form method="post" action="{% provider_login_url "github" %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary me-auto" role="button">{% trans 'Login with Github' %}</i></button>
+            <button type="submit" class="btn btn-primary me-auto" role="button">{% trans 'Login with Github' %}</button>
           </form>
           {% endif %}
         </li>
