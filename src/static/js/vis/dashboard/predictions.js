@@ -78,6 +78,13 @@ document.addEventListener('DOMContentLoaded', function() {
     },
   });
 
+  $('[data-widget="pushmenu"]').on('click', function() {
+    console.log("Pushmenu button clicked!");
+    setTimeout(() => {
+      dateSlider.dateRangeSlider("resize");
+    }, 350)
+  });
+
   dateSlider.bind("valuesChanged", function(e, data) {
     const storage = JSON.parse(localStorage.getItem('dashboards'));
     const startDate = data.values.min;

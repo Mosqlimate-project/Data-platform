@@ -225,6 +225,19 @@ class Prediction(models.Model):
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
     # Metadata
+    color = models.CharField(
+        max_length=7,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r"^#[0-9A-Fa-f]{6}$",
+                message=_(
+                    "Color must be in hexadecimal format, e.g., #ffffff"
+                ),
+            ),
+        ],
+        help_text=_("Color in hexadecimal format. E.g: #ffffff"),
+    )
     visualizable = models.BooleanField(default=False)
     metadata = models.CharField(null=True, default=None)
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
