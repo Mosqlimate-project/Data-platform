@@ -107,8 +107,6 @@ class PredictionsDashboard(View):
 
     def get(self, request):
         dashboard = request.GET.get("dashboard", "predictions")
-        # prediction = request.GET.get("prediction", None)
-        # model = request.GET.get("model", None)
 
         sprint = dashboard == "sprint"
         context = {}
@@ -116,12 +114,6 @@ class PredictionsDashboard(View):
         window = Prediction.objects.filter(model__sprint=sprint).aggregate(
             start=models.Min("date_ini_prediction"),
             end=models.Max("date_end_prediction"),
-        )
-
-        context["diseases"] = get_distinct_values("model__disease", sprint)
-        context["adm_levels"] = get_distinct_values("model__ADM_level", sprint)
-        context["time_resolutions"] = get_distinct_values(
-            "model__time_resolution", sprint
         )
 
         context["dashboard"] = dashboard

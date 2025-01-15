@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  initialize_localStorage();
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
 
   var chartCtx = document.getElementById('chart').getContext('2d');
@@ -79,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   $('[data-widget="pushmenu"]').on('click', function() {
-    console.log("Pushmenu button clicked!");
     setTimeout(() => {
       dateSlider.dateRangeSlider("resize");
     }, 350)
@@ -98,6 +98,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
   update_casos(dashboard);
 });
+
+
+function initialize_localStorage() {
+  let data = localStorage.getItem("dashboards");
+
+  if (!data) { data = {} } else { data = JSON.parse(data) };
+
+  if (!data[dashboard]) {
+    data[dashboard] = {
+      disease: null,
+      time_resolution: null,
+      adm_level: null,
+      adm_1: null,
+      adm_2: null,
+      start_window_date: null,
+      end_window_date: null,
+      prediction_ids: null,
+      model_ids: null,
+      tags: null,
+    }
+  }
+
+  data[dashboard].disease = data[dashboard].disease || disease;
+  data[dashboard].time_resolution = data[dashboard].time_resolution || time_resolution;
+  data[dashboard].adm_level = data[dashboard].adm_level || adm_level;
+  data[dashboard].adm_1 = data[dashboard].adm_1 || adm_1;
+  data[dashboard].adm_2 = data[dashboard].adm_2 || adm_2;
+  data[dashboard].start_window_date = data[dashboard].start_window_date || min_window_date;
+  data[dashboard].end_window_date = data[dashboard].end_window_date || max_window_date;
+  data[dashboard].prediction_ids = data[dashboard].prediction_ids || [];
+  data[dashboard].model_ids = data[dashboard].model_ids || [];
+  data[dashboard].tags_ids = data[dashboard].tags_ids || [];
+
+  localStorage.setItem("dashboards", JSON.stringify(data));
+}
 
 
 async function update_casos(dashboard) {
@@ -147,73 +182,6 @@ async function update_casos(dashboard) {
     chart.data.datasets[0].data = filteredData;
     chart.update();
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error(error);
   }
-}
-
-async function setDateWindowRange(dashboard) {
-  const predictList = document.getElementById(`predict-ids-${dashboard}`);
-  const [startDate, endDate] = await extractStartEndWindowDate(dashboard);
-  const dateSlider = $(`#windowDatePicker-${dashboard}`);
-
-  try {
-    dateSlider.dateRangeSlider("destroy");
-  } catch (error) {
-    console.log(error);
-  }
-
-  dateSlider.dateRangeSlider({
-    bounds: {
-      min: new Date(startDate),
-      max: new Date(endDate),
-    },
-    defaultValues: {
-      min: new Date(startDate),
-      max: new Date(endDate),
-    },
-    range: {
-      min: { days: 90 },
-    },
-  });
-
-  const predictDatesMap = new Map();
-
-  predictList.querySelectorAll('.predict-item').forEach(item => {
-    const predictId = item.getAttribute('id');
-    const itemStartDate = new Date(item.getAttribute('data-start-window-date'));
-    const itemEndDate = new Date(item.getAttribute('data-end-window-date'));
-    predictDatesMap.set(predictId, { start: itemStartDate, end: itemEndDate });
-  });
-
-  dateSlider.bind("valuesChanging", function(e, data) {
-    const rangeMin = data.values.min;
-    const rangeMax = data.values.max;
-
-    predictDatesMap.forEach((dates, predictId) => {
-      const escapedId = CSS.escape(predictId);
-      const item = predictList.querySelector(`#${escapedId}`);
-
-      if (item) {
-        if (dates.end >= rangeMin && dates.start <= rangeMax) {
-          item.classList.remove("hidden");
-        } else {
-          item.classList.add("hidden");
-        }
-      } else {
-        console.warn(`Element with ID ${predictId} not found within the predictList.`);
-      }
-    });
-  });
-
-  dateSlider.bind("valuesChanged", function(e, data) {
-    const storage = JSON.parse(localStorage.getItem('dashboards'));
-    const startDate = data.values.min;
-    const endDate = data.values.max;
-
-    storage[dashboard]["start_window_date"] = startDate.toISOString().split('T')[0];
-    storage[dashboard]["end_window_date"] = endDate.toISOString().split('T')[0];
-    localStorage.setItem('dashboards', JSON.stringify(storage));
-    renderPredictsChart(dashboard);
-    updateScores(dashboard, storage[dashboard].score);
-  });
 }

@@ -21,6 +21,7 @@ def get_plangs_path() -> str:
 
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
+    group = models.CharField(unique=True, null=True)
     color = models.CharField(
         max_length=7,
         null=True,
@@ -220,7 +221,9 @@ class Model(models.Model):
 
 
 class Prediction(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
+    model = models.ForeignKey(
+        Model, on_delete=models.CASCADE, null=False, related_name="predictions"
+    )
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()

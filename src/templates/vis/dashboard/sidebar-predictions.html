@@ -10,28 +10,6 @@
           <p>Sprint 2024/25</p>
         </a>
       </li>
-
-      <small><p class="category">disease</p></small>
-      {% for disease in diseases %}
-      <li class="nav-item">
-        <button id="{{disease}}" class="btn nav-link"><p class="nav-text">{{ disease|title }}</p></button>
-      </li>
-      {% endfor %}
-
-      <small><p class="category">time resolution</p></small>
-      {% for time_resolution in time_resolutions %}
-      <li class="nav-item">
-        <button id="{{time_resolution}}" class="btn nav-link"><p class="nav-text">{{ time_resolution|title }}</p></button>
-      </li>
-      {% endfor %}
-
-      <small><p class="category">administrative level</p></small>
-      {% for adm_level in adm_levels %}
-      <li class="nav-item">
-        <button id="adm_{{adm_level}}" class="btn nav-link"><p class="nav-text">{% get_adm_level_name dashboard adm_level %}</p></button>
-      </li>
-      {% endfor %}
-
     </ul>
   </nav>
 </div>
