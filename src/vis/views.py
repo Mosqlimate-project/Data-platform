@@ -11,19 +11,20 @@ from dateutil import parser
 
 # from loguru import logger
 
-from django.shortcuts import render
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.decorators.cache import cache_page
-from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from django.http import JsonResponse, FileResponse
-from django.views import View
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
-from django.utils.http import http_date
+from django.http import JsonResponse, FileResponse
+from django.shortcuts import render
 from django.utils.timezone import now
+from django.utils.http import http_date
+from django.views import View
+from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 # from epiweeks import Week
-from registry.models import Model, Prediction, PredictionDataRow
+from registry.models import Model, Prediction, PredictionDataRow, Tag
 from main.utils import CODES_UF
 from main.api import MUN_DATA
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
@@ -123,7 +124,7 @@ class PredictionsDashboard(View):
         return render(request, self.template_name, context)
 
 
-@cache_page(60 * 120)
+@cache_page(60 * 20)
 def get_hist_alerta_data(request) -> JsonResponse:
     sprint = request.GET.get("dashboard", "predictions") == "sprint"
     disease = request.GET.get("disease", "dengue")
@@ -158,6 +159,105 @@ def get_hist_alerta_data(request) -> JsonResponse:
     res = hist_alerta.set_index("date")["target"].to_dict()
     res = {str(k.date()): int(v) for k, v in res.items()}
     return JsonResponse(res)
+
+
+# @cache_page(60 * 20)
+@never_cache
+def get_models(request) -> JsonResponse:
+    sprint = request.GET.get("dashboard", "predictions") == "sprint"
+    page = request.GET.get("page", 1)
+    tag_ids = request.GET.getlist("tags", [])
+    context = {}
+
+    tags = []
+    for tag_id in tag_ids:
+        try:
+            tags.append(Tag.objects.get(pk=tag_id))
+        except (Tag.DoesNotExist, ValueError):
+            continue
+
+    if tags:
+        models = Model.objects.filter(sprint=sprint, tag__in=tags)
+    else:
+        models = Model.objects.filter(sprint=sprint)
+
+    paginator = Paginator(models.order_by("-updated"), 5)
+
+    try:
+        models_page = paginator.page(page)
+    except PageNotAnInteger:
+        models_page = paginator.page(1)
+    except EmptyPage:
+        models_page = paginator.page(paginator.num_pages)
+
+    res = []
+
+    for model in models_page.object_list:
+        model_res = {}
+        model_res["id"] = model.id
+        res.append(model_res)
+
+    context["items"] = res
+    context["pagination"] = {
+        "current_page": page,
+        "total_pages": paginator.num_pages,
+        "total_items": paginator.count,
+        "has_next": models_page.has_next(),
+        "has_previous": models_page.has_previous(),
+    }
+    return JsonResponse(context)
+
+
+# @cache_page(60 * 20)
+@never_cache
+def get_predictions(request) -> JsonResponse:
+    sprint = request.GET.get("dashboard", "predictions") == "sprint"
+    page = request.GET.get("page", 1)
+    tag_ids = request.GET.getlist("tags", [])
+    context = {}
+
+    tags = []
+    for tag_id in tag_ids:
+        try:
+            tags.append(Tag.objects.get(pk=tag_id))
+        except (Tag.DoesNotExist, ValueError):
+            continue
+
+    if tags:
+        predictions = Prediction.objects.filter(
+            model__sprint=sprint, tag__in=tags
+        )
+    else:
+        predictions = Prediction.objects.filter(model__sprint=sprint)
+
+    paginator = Paginator(predictions.order_by("-predict_date"), 5)
+
+    try:
+        predictions_page = paginator.page(page)
+    except PageNotAnInteger:
+        predictions_page = paginator.page(1)
+    except EmptyPage:
+        predictions_page = paginator.page(paginator.num_pages)
+
+    res = []
+
+    for prediction in predictions_page.object_list:
+        prediction_res = {}
+        prediction_res["id"] = prediction.id
+        res.append(prediction_res)
+
+    context["items"] = res
+    context["pagination"] = {
+        "current_page": page,
+        "total_pages": paginator.num_pages,
+        "total_items": paginator.count,
+        "has_next": predictions_page.has_next(),
+        "has_previous": predictions_page.has_previous(),
+    }
+    return JsonResponse(context)
+
+
+#
 
 
 class DashboardView(View):
@@ -431,7 +531,7 @@ class DashboardView(View):
         return query
 
 
-def get_predictions(request) -> JsonResponse:
+def get_predictions_old(request) -> JsonResponse:
     dashboard = request.GET.get("dashboard", "predictions")
     sprint = dashboard == "sprint"
 

@@ -182,7 +182,7 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=500, null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name="tags", default=[])
+    tags = models.ManyToManyField(Tag, related_name="model_tags", default=[])
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage,
@@ -227,6 +227,9 @@ class Prediction(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
+    tags = models.ManyToManyField(
+        Tag, related_name="prediction_tags", default=[]
+    )
     # Metadata
     color = models.CharField(
         max_length=7,
