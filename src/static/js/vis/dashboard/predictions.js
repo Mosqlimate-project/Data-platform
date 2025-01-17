@@ -1,3 +1,6 @@
+let all_models = [];
+let all_models_map = {};
+
 document.addEventListener('DOMContentLoaded', function() {
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
 
@@ -96,44 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // });
 
   // update_casos(dashboard);
-  render_model_page(dashboard, 1, []);
-  render_prediction_page(dashboard, 1, []);
+  get_models_data(dashboard);
 });
-
-
-function initialize_localStorage() {
-  let data = localStorage.getItem("dashboards");
-
-  if (!data) { data = {} } else { data = JSON.parse(data) };
-
-  if (!data[dashboard]) {
-    data[dashboard] = {
-      disease: null,
-      time_resolution: null,
-      adm_level: null,
-      adm_1: null,
-      adm_2: null,
-      start_window_date: null,
-      end_window_date: null,
-      prediction_ids: null,
-      model_ids: null,
-      tags: null,
-    }
-  }
-
-  data[dashboard].disease = data[dashboard].disease || disease;
-  data[dashboard].time_resolution = data[dashboard].time_resolution || time_resolution;
-  data[dashboard].adm_level = data[dashboard].adm_level || adm_level;
-  data[dashboard].adm_1 = data[dashboard].adm_1 || adm_1;
-  data[dashboard].adm_2 = data[dashboard].adm_2 || adm_2;
-  data[dashboard].start_window_date = data[dashboard].start_window_date || min_window_date;
-  data[dashboard].end_window_date = data[dashboard].end_window_date || max_window_date;
-  data[dashboard].prediction_ids = data[dashboard].prediction_ids || [];
-  data[dashboard].model_ids = data[dashboard].model_ids || [];
-  data[dashboard].tags_ids = data[dashboard].tags_ids || [];
-
-  localStorage.setItem("dashboards", JSON.stringify(data));
-}
 
 
 async function update_casos(dashboard) {
@@ -192,182 +159,107 @@ async function update_casos(dashboard) {
 }
 
 
-async function get_models(dashboard, page, tags) {
-  const params = new URLSearchParams({
-    dashboard: dashboard,
-    page: page,
+async function get_models_data(dashboard) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.style.display = 'flex';
+  overlay.style.flexDirection = 'column';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
+  $(overlay).appendTo("#models-card");
+
+  const response = await fetch(`/vis/get-models/?dashboard=${dashboard}`);
+  if (response.ok) {
+    const models = await response.json();
+    all_models = models['items'];
+    all_models_map = models['items'].reduce((acc, model) => {
+      const { description, ..._ } = model;
+      acc[model.id] = _;
+      return acc;
+    }, {});
+    models_list(all_models);
+    $(`#models-card .overlay`).remove();
+  }
+}
+
+function model_select(model) {
+  console.log(model.id)
+}
+
+function model_item(data) {
+  return `
+    <tr data-widget="expandable-table" aria-expanded="false">
+      <td style="width: 40px;">
+        <input type="checkbox" value="${data.id}" id="checkbox-${data.id}" class="checkbox-item">
+      </td>
+      <td><a href="/registry/model/${data.id}/">${data.id}</a></td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="2"><p>${data.description}</p></td></tr>
+  `;
+}
+
+function models_list(items) {
+  $('#models-pagination').pagination({
+    dataSource: items,
+    pageSize: 5,
+    callback: function(data, pagination) {
+      const body = data.map((item) => model_item(item)).join("");
+      $(`#models-list`).html(`
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>ID</th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      `);
+      $(".checkbox-item").on("click", function(event) {
+        event.stopPropagation();
+        const model_id = event.target.value;
+        model_select(all_models_map[model_id]);
+      });
+    },
   });
-
-  tags.forEach(tag => params.append("tags", tag));
-
-  try {
-    const response = await fetch(`/vis/get-models/?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-
-    const context = await response.json();
-    return context;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
-
-async function get_predictions(dashboard, page, tags) {
-  const params = new URLSearchParams({
-    dashboard: dashboard,
-    page: page,
+  $("input[name='models-search']").off("input").on("input", function() {
+    models_search(this.value, items);
   });
+}
 
-  tags.forEach(tag => params.append("tags", tag));
-
-  try {
-    const response = await fetch(`/vis/get-predictions/?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-
-    const context = await response.json();
-    console.log(context);
-    return context;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+function models_search(query) {
+  const items = all_models.filter((model) =>
+    model.id.toString().toLowerCase().includes(query.toLowerCase()) ||
+    model.disease.toLowerCase().includes(query.toLowerCase()) ||
+    model.time_resolution.toLowerCase().includes(query.toLowerCase()) ||
+    model.author.toLowerCase().includes(query.toLowerCase())
+  );
+  models_list(items);
 }
 
 
-async function render_model_page(dashboard, page, tags) {
-  try {
-    const currentContext = await get_models(dashboard, page, tags);
-
-    // const previousContext = currentContext.pagination.has_previous
-    //   ? await get_models(dashboard, page - 1, tags)
-    //   : null;
-    //
-    // const nextContext = currentContext.pagination.has_next
-    //   ? await get_models(dashboard, page + 1, tags)
-    //   : null;
-
-    const tableBody = currentContext.items
-      .map(
-        (model) =>
-          `<tr>
-            <td>${model.id}</td>
-          </tr>`
-      )
-      .join("");
-
-    $("#model-list")
-      .html(`<thead>
-               <tr>
-                 <th>ID</th>
-               </tr>
-             </thead>
-             <tbody>
-               ${tableBody}
-             </tbody>`);
-
-    const pagination = [];
-    if (currentContext.pagination.has_previous) {
-      pagination.push(
-        `<li class="page-item">
-           <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
-         </li>`
-      );
-    }
-
-    pagination.push(
-      `<li class="page-item active">
-         <span class="page-link">${currentContext.pagination.current_page}</span>
-       </li>`
-    );
-
-    if (currentContext.pagination.has_next) {
-      pagination.push(
-        `<li class="page-item">
-           <a class="page-link" href="#" data-page="${page + 1}">Next</a>
-         </li>`
-      );
-    }
-
-    $("#model-pagination").html(pagination.join(""));
-
-    $("#model-pagination .page-link").on("click", function(e) {
-      e.preventDefault();
-      const newPage = $(this).data("page");
-      render_model_page(dashboard, newPage, tags);
-    });
-  } catch (error) {
-    console.error("Error rendering model page:", error);
-  }
+function prediction_item(data) {
+  return `
+    <tr data-widget="expandable-table" aria-expanded="false">
+      <td style="width: 40px;">
+        <input type="checkbox" value="${data.id}" id="checkbox-${data.id}">
+      </td>
+      <td>${data.id}</td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="2"><p>${data.id}</p></td></tr>
+  `;
 }
 
-
-async function render_prediction_page(dashboard, page, tags) {
-  try {
-    const currentContext = await get_predictions(dashboard, page, tags);
-
-    // const previousContext = currentContext.pagination.has_previous
-    //   ? await get_models(dashboard, page - 1, tags)
-    //   : null;
-    //
-    // const nextContext = currentContext.pagination.has_next
-    //   ? await get_models(dashboard, page + 1, tags)
-    //   : null;
-
-    const tableBody = currentContext.items
-      .map(
-        (prediction) =>
-          `<tr>
-            <td>${prediction.id}</td>
-          </tr>`
-      )
-      .join("");
-
-    $("#prediction-list")
-      .html(`<thead>
-               <tr>
-                 <th>ID</th>
-               </tr>
-             </thead>
-             <tbody>
-               ${tableBody}
-             </tbody>`);
-
-    const pagination = [];
-    if (currentContext.pagination.has_previous) {
-      pagination.push(
-        `<li class="page-item">
-           <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
-         </li>`
-      );
-    }
-
-    pagination.push(
-      `<li class="page-item active">
-         <span class="page-link">${currentContext.pagination.current_page}</span>
-       </li>`
-    );
-
-    if (currentContext.pagination.has_next) {
-      pagination.push(
-        `<li class="page-item">
-           <a class="page-link" href="#" data-page="${page + 1}">Next</a>
-         </li>`
-      );
-    }
-
-    $("#prediction-pagination").html(pagination.join(""));
-
-    $("#prediction-pagination .page-link").on("click", function(e) {
-      e.preventDefault();
-      const newPage = $(this).data("page");
-      render_prediction_page(dashboard, newPage, tags);
-    });
-  } catch (error) {
-    console.error(error);
-  }
+function predictions_list(items) {
+  const body = items['items'].map((item) => prediction_item(item)).join("");
+  $(`#predictions-list`).html(`
+    <thead>
+      <tr>
+        <th style="width: 40px;">
+          <input type="checkbox" id="predictions-check-all">
+        </th>
+        <th>ID</th>
+      </tr>
+    </thead>
+    <tbody>${body}</tbody>
+  `);
 }

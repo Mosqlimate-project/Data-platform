@@ -161,50 +161,27 @@ def get_hist_alerta_data(request) -> JsonResponse:
     return JsonResponse(res)
 
 
-# @cache_page(60 * 20)
+# @cache_page(60 * 120, key_prefix="get_models")
 @never_cache
 def get_models(request) -> JsonResponse:
     sprint = request.GET.get("dashboard", "predictions") == "sprint"
-    page = request.GET.get("page", 1)
-    tag_ids = request.GET.getlist("tags", [])
+    models = Model.objects.filter(sprint=sprint).order_by("-updated")
     context = {}
 
-    tags = []
-    for tag_id in tag_ids:
-        try:
-            tags.append(Tag.objects.get(pk=tag_id))
-        except (Tag.DoesNotExist, ValueError):
-            continue
-
-    if tags:
-        models = Model.objects.filter(sprint=sprint, tag__in=tags)
-    else:
-        models = Model.objects.filter(sprint=sprint)
-
-    paginator = Paginator(models.order_by("-updated"), 5)
-
-    try:
-        models_page = paginator.page(page)
-    except PageNotAnInteger:
-        models_page = paginator.page(1)
-    except EmptyPage:
-        models_page = paginator.page(paginator.num_pages)
-
     res = []
-
-    for model in models_page.object_list:
+    for model in models:
         model_res = {}
         model_res["id"] = model.id
+        model_res["author"] = model.author.user.name
+        model_res["disease"] = model.disease
+        model_res["adm_level"] = model.ADM_level
+        model_res["time_resolution"] = model.time_resolution
+        model_res["tags"] = list(model.tags.all().values_list("id", flat=True))
+        model_res["description"] = model.description
+
         res.append(model_res)
 
     context["items"] = res
-    context["pagination"] = {
-        "current_page": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
-        "has_next": models_page.has_next(),
-        "has_previous": models_page.has_previous(),
-    }
     return JsonResponse(context)
 
 
@@ -230,7 +207,7 @@ def get_predictions(request) -> JsonResponse:
     else:
         predictions = Prediction.objects.filter(model__sprint=sprint)
 
-    paginator = Paginator(predictions.order_by("-predict_date"), 5)
+    paginator = Paginator(predictions.distinct().order_by("-predict_date"), 5)
 
     try:
         predictions_page = paginator.page(page)

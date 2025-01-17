@@ -8,12 +8,12 @@
 <div class="row">
   {{models}}
   <div class="col-md-6">
-    <div class="card">
+    <div id="models-card" class="card">
       <div class="card-header">
         <h3 class="card-title">Models</h3>
         <div class="card-tools">
           <div class="input-group input-group-sm" style="width: 200px;">
-            <input type="text" name="model-search" class="form-control float-right" placeholder="Search">
+            <input type="text" name="models-search" class="form-control float-right" placeholder="Search">
 
             <div class="input-group-append">
               <button type="submit" class="btn btn-default">
@@ -24,11 +24,11 @@
         </div>
       </div>
       <div class="card-body" style="margin:0;padding:0;">
-        <table id="model-list" class="table table-bordered">
+        <table id="models-list" class="table table-bordered table-hover">
         </table>
       </div>
       <div class="card-footer clearfix">
-        <ul id="model-pagination" class="pagination pagination-sm m-0 float-right"></ul>
+        <ul id="models-pagination" class="pagination pagination-sm m-0 float-right"></ul>
       </div>
     </div>
   </div>
@@ -39,23 +39,14 @@
       <div class="card-header">
         <h3 class="card-title">Predictions</h3>
         <div class="card-tools">
-          <div class="input-group input-group-sm" style="width: 200px;">
-            <input type="text" name="prediction-search" class="form-control float-right" placeholder="Search">
-
-            <div class="input-group-append">
-              <button type="submit" class="btn btn-default">
-                <i class="fas fa-search"></i>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
       <div class="card-body" style="margin:0;padding:0;">
-        <table id="prediction-list" class="table table-bordered">
+        <table id="predictions-list" class="table table-bordered table-hover">
         </table>
       </div>
       <div class="card-footer clearfix">
-        <ul id="prediction-pagination" class="pagination pagination-sm m-0 float-right"></ul>
+        <ul id="predictions-pagination" class="pagination pagination-sm m-0 float-right"></ul>
       </div>
     </div>
   </div>
@@ -87,96 +78,11 @@
   const max_window_date = `{{ max_window_date }}`;
 </script>
 
+<style>
+.table {
+  table-layout: fixed;
+}
+</style>
+
 <script type="text/javascript" src="{% static 'js/vis/dashboard/predictions.js' %}"></script>
 {% endblock %}
-
-<!--   <script> -->
-<!--   const dashboards = {}; -->
-<!--   const pageData = { -->
-<!--     predictions: [], -->
-<!--     sprint: [] -->
-<!--   }; -->
-<!--   const db = new Dexie('CacheDatabase'); -->
-<!--   db.version(1).stores({ -->
-<!--     charts: 'cacheKey', -->
-<!--   }); -->
-<!---->
-<!--   document.querySelectorAll('input[id^="dashboardEl-"]').forEach(input => { -->
-<!--     const dashboardName = input.id.split('-')[1]; -->
-<!--     dashboards[dashboardName] = JSON.parse(input.value); -->
-<!--   }); -->
-<!---->
-<!--   document.addEventListener("DOMContentLoaded", async () => { -->
-<!--     let dashboardStorage = JSON.parse(localStorage.getItem('dashboards')) || {}; -->
-<!---->
-<!--     await Promise.all(Object.keys(dashboards).map(async dashboard => { -->
-<!--       if (dashboard === "forecast_map") return; -->
-<!---->
-<!--       if (!dashboardStorage[dashboard]) { -->
-<!--         dashboardStorage[dashboard] = dashboards[dashboard]["query"]; -->
-<!---->
-<!--         if (dashboards[dashboard]["query"]["prediction_ids"].length > 0) { -->
-<!--           try { -->
-<!--             const predictionIds = await handleSelectedPredictions(dashboard, dashboards[dashboard]["query"]["prediction_ids"]); -->
-<!--             dashboardStorage[dashboard]["prediction_ids"] = predictionIds; -->
-<!--           } catch (error) { -->
-<!--             dashboardStorage[dashboard]["prediction_ids"] = []; -->
-<!--             console.error(error); -->
-<!--           } -->
-<!--         } else { -->
-<!--           dashboardStorage[dashboard]["prediction_ids"] = dashboards[dashboard]["query"]["prediction_ids"]; -->
-<!--         } -->
-<!---->
-<!--         const adm1Options = new Set( -->
-<!--           dashboards[dashboard]?.["adm_data"]?.[dashboardStorage[dashboard]?.["disease"]]?.[dashboardStorage[dashboard]?.["time_resolution"]]?.["adm_1"] || [] -->
-<!--         ); -->
-<!---->
-<!--         if (!dashboardStorage[dashboard]["adm_1"]) { -->
-<!--           try { -->
-<!--             const cityInfo = await getBrowserCity(); -->
-<!--             if (cityInfo && cityInfo.state && cityInfo.state.uf && adm1Options.has(cityInfo.state.uf)) { -->
-<!--               dashboardStorage[dashboard]["adm_1"] = cityInfo.state.uf; -->
-<!--             } else { -->
-<!--               dashboardStorage[dashboard]["adm_1"] = [...adm1Options][0]; -->
-<!--             } -->
-<!--           } catch (error) { -->
-<!--             console.error(error); -->
-<!--             dashboardStorage[dashboard]["adm_1"] = [...adm1Options][0]; -->
-<!--           } -->
-<!--         } -->
-<!--       } -->
-<!--     })); -->
-<!---->
-<!--     localStorage.setItem('dashboards', JSON.stringify(dashboardStorage)); -->
-<!--   }); -->
-<!---->
-<!--   let local = null; -->
-<!---->
-<!--   function updateContentState() { -->
-<!--     const dsContent = document.getElementById('dsContent');  -->
-<!--     if (!menu.classList.contains('retracted')) { -->
-<!--       dsContent.classList.add('expanded'); -->
-<!--       dsContent.classList.remove('retracted'); -->
-<!--     } else { -->
-<!--       dsContent.classList.add('retracted'); -->
-<!--       dsContent.classList.remove('expanded'); -->
-<!--     } -->
-<!--   } -->
-<!---->
-<!--   document.addEventListener('DOMContentLoaded', function() { -->
-<!--     ['predictions', 'sprint'].forEach(dashboard => { -->
-<!--       update(dashboard); -->
-<!--     }) -->
-<!---->
-<!--     updateContentState(); -->
-<!--     const observer2 = new MutationObserver(function (mutationsList) { -->
-<!--       mutationsList.forEach(function (mutation) { -->
-<!--         if (mutation.attributeName === 'class') { -->
-<!--           updateContentState(); -->
-<!--         } -->
-<!--       }); -->
-<!--     }); -->
-<!--     observer2.observe(menu, { attributes: true }); -->
-<!--   }); -->
-<!--   </script> -->
-<!-- </html> -->
