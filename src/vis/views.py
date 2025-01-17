@@ -108,15 +108,32 @@ class PredictionsDashboard(View):
 
     def get(self, request):
         dashboard = request.GET.get("dashboard", "predictions")
-
         sprint = dashboard == "sprint"
         context = {}
+
+        all_tags = set(
+            Tag.objects.filter(model_tags__sprint=sprint).distinct()
+        )
+        all_tags |= set(
+            Tag.objects.filter(
+                prediction_tags__model__sprint=sprint
+            ).distinct()
+        )
 
         window = Prediction.objects.filter(model__sprint=sprint).aggregate(
             start=models.Min("date_ini_prediction"),
             end=models.Max("date_end_prediction"),
         )
 
+        tags = []
+        for tag in all_tags:
+            info = {}
+            info["id"] = tag.id
+            info["name"] = tag.name
+            info["group"] = tag.group
+            tags.append(info)
+
+        context["tags"] = tags
         context["dashboard"] = dashboard
         context["min_window_date"] = str(window["start"].date())
         context["max_window_date"] = str(window["end"].date())
@@ -165,6 +182,8 @@ def get_hist_alerta_data(request) -> JsonResponse:
 @never_cache
 def get_models(request) -> JsonResponse:
     sprint = request.GET.get("dashboard", "predictions") == "sprint"
+    model_id = request.GET.get("model_id", None)
+    prediction_id = request.GET.get("prediction_id", None)
     models = Model.objects.filter(sprint=sprint).order_by("-updated")
     context = {}
 
@@ -181,7 +200,23 @@ def get_models(request) -> JsonResponse:
 
         res.append(model_res)
 
+    if model_id:
+        try:
+            model = Model.objects.get(pk=model_id)
+        except (Model.DoesNotExist, ValueError):
+            model_id = None
+
+    if prediction_id:
+        try:
+            prediction = Prediction.objects.get(pk=prediction_id)
+            model_id = prediction.model.id
+        except (Prediction.DoesNotExist, ValueError):
+            model_id = None
+            prediction_id = None
+
     context["items"] = res
+    context["model_id"] = model_id
+    context["prediction_id"] = prediction_id
     return JsonResponse(context)
 
 

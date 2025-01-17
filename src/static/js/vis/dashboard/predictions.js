@@ -2,6 +2,7 @@ let all_models = [];
 let all_models_map = {};
 
 document.addEventListener('DOMContentLoaded', function() {
+  initialize_localStorage();
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
 
   var chartCtx = document.getElementById('chart').getContext('2d');
@@ -102,6 +103,30 @@ document.addEventListener('DOMContentLoaded', function() {
   get_models_data(dashboard);
 });
 
+function initialize_localStorage() {
+  let data = localStorage.getItem("dashboards");
+
+  if (!data) { data = {} } else { data = JSON.parse(data) };
+
+  if (!data[dashboard]) {
+    data[dashboard] = {
+      prediction_ids: null,
+      model_ids: null,
+      tags: null,
+    }
+  }
+
+  data[dashboard].prediction_ids = data[dashboard].prediction_ids || [];
+  if (model_id) {
+    data[dashboard].model_ids = [model_id];
+  } else {
+    data[dashboard].model_ids = data[dashboard].model_ids || [];
+  }
+  data[dashboard].tags_ids = data[dashboard].tags_ids || [];
+
+  console.log(data[dashboard].model_ids);
+  localStorage.setItem("dashboards", JSON.stringify(data));
+}
 
 async function update_casos(dashboard) {
   const chart = Chart.getChart("chart");
@@ -183,15 +208,23 @@ async function get_models_data(dashboard) {
   }
 }
 
-function model_select(model) {
-  console.log(model.id)
+function model_select(model_id, action) {
+  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+  let models = new Set(dashboards[dashboard].model_ids);
+  if (action === "add") {
+    models.add(model_id);
+  } else if (action === "remove") {
+    models.delete(model_id);
+  }
+  dashboards[dashboard].model_ids = Array.from(models);
+  localStorage.setItem("dashboards", JSON.stringify(dashboards));
 }
 
 function model_item(data) {
   return `
     <tr data-widget="expandable-table" aria-expanded="false">
       <td style="width: 40px;">
-        <input type="checkbox" value="${data.id}" id="checkbox-${data.id}" class="checkbox-item">
+        <input type="checkbox" value="${data.id}" id="checkbox-${data.id}" class="checkbox-model">
       </td>
       <td><a href="/registry/model/${data.id}/">${data.id}</a></td>
     </tr>
@@ -200,6 +233,16 @@ function model_item(data) {
 }
 
 function models_list(items) {
+  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+
+  items.sort((a, b) => {
+    const aChecked = dashboards[dashboard].model_ids.includes(a.id);
+    const bChecked = dashboards[dashboard].model_ids.includes(b.id);
+    if (aChecked && !bChecked) return -1;
+    if (!aChecked && bChecked) return 1;
+    return 0;
+  });
+
   $('#models-pagination').pagination({
     dataSource: items,
     pageSize: 5,
@@ -214,13 +257,31 @@ function models_list(items) {
         </thead>
         <tbody>${body}</tbody>
       `);
-      $(".checkbox-item").on("click", function(event) {
+
+      $(".checkbox-model").each(function() {
+        const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+        const model_id = parseInt($(this).val(), 10);
+        if (dashboards[dashboard].model_ids.includes(model_id)) {
+          $(this).prop("checked", true);
+          model_select(model_id, "add");
+        } else {
+          $(this).prop("checked", false);
+          model_select(model_id, "remove");
+        }
+      });
+
+      $(".checkbox-model").on("click", function(event) {
         event.stopPropagation();
-        const model_id = event.target.value;
-        model_select(all_models_map[model_id]);
+        const model_id = parseInt(event.target.value, 10);
+        if ($(event.target).prop("checked")) {
+          model_select(model_id, "add");
+        } else {
+          model_select(model_id, "remove");
+        }
       });
     },
   });
+
   $("input[name='models-search']").off("input").on("input", function() {
     models_search(this.value, items);
   });

@@ -62,6 +62,7 @@
     </div>
   </div>
   <div class="card-body">
+    {{tags}}
   </div>
 </div>
 
@@ -72,8 +73,14 @@
   </div>
 </div>
 
+<br>
+<br>
+<br>
+
 <script>
   const dashboard = `{{ dashboard }}`;
+  const model_id = `{{ model_id }}` | null;
+  const prediction_id = `{{ prediction_id }}` | null;
   const min_window_date = `{{ min_window_date }}`;
   const max_window_date = `{{ max_window_date }}`;
 </script>
