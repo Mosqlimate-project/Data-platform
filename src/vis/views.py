@@ -127,7 +127,7 @@ class PredictionsDashboard(View):
 
         tags = {}
         for tag in all_tags:
-            if tag.group == "sprint":
+            if tag.group in ["sprint", "output", "programming_language"]:
                 continue
 
             tags[f"{tag.id}"] = {

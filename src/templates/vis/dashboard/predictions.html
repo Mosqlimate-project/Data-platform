@@ -93,14 +93,20 @@
 
 #tags-card .card-body {
   display: flex;
-  gap: 30px;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .tag-group {
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  flex-direction: column;
   gap: 10px;
+}
+
+.tag-group-title {
+  flex: 1 1 100%;
+  font-weight: bold;
 }
 
 .tag-btn {
@@ -117,25 +123,38 @@
   gap: 6px;
   background-color: var(--btn-bg);
   color: var(--btn-color);
-  padding: 14px 22px;
+  padding: 7px 11px;
   border-radius: 8px;
   border: 0;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 0.8rem;
   font-family: system-ui;
   border: 2px solid var(--btn-color);
   transition: 100ms ease;
   box-shadow: 5px 5px 0 0 var(--btn-color);
+  text-shadow: 0.5px 0px 0px lightgray;
 }
 
 .tag-btn:hover {
   box-shadow: 2px 2px 0 0 var(--btn-color);
 }
 
-.tag-btn:active {
+.tag-btn:disabled:hover {
+  box-shadow: 2px 2px 0 0 gray;
+}
+
+.tag-btn:active, .tag-btn.active {
   transition: 50ms ease;
-  box-shadow:  0 0 0 0 var(--btn-color);
+  box-shadow:  0 0 0 0;
+  color: white;
+  text-shadow: 1px 0px 0px gray;
+}
+
+.tag-btn:disabled, .tag-btn.disabled {
+  text-shadow: unset;
+  border: 2px solid gray;
+  box-shadow: 5px 5px 0 0 gray;
 }
 
 .tag-btn:focus-visible {
@@ -150,6 +169,10 @@
   transform: translateX(-50%);
   content: "\21E7";
   animation: float .5s ease-in-out infinite;
+}
+
+.tag-btn p {
+  margin-bottom: 0;
 }
 
 @keyframes float {

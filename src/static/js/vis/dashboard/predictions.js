@@ -1,35 +1,10 @@
 let all_models = [];
 let all_models_map = {};
+const unique_tag_groups = ["disease", "adm_level", "time_resolution"];
 
 document.addEventListener('DOMContentLoaded', function() {
   initialize_localStorage();
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-
-  const grouped_tags = Object.entries(all_tags).reduce((groups, [id, tag]) => {
-    const key = tag.group || '';
-    if (!groups[key]) groups[key] = [];
-    groups[key].push({ id, ...tag });
-    return groups;
-  }, {});
-
-  console.log(grouped_tags);
-  $.each(grouped_tags, function(group, tags) {
-    const group_div = $('<div></div>')
-      .addClass('tag-group')
-      .append(`<h4>${group}</h4>`);
-
-    $.each(tags, function(index, tag) {
-      const tag_btn = $('<button></button>')
-        .addClass('tag-btn')
-        .text(tag.name)
-        .css('background-color', tag.color)
-        .attr('id', `tag-${tag.id}`);
-
-      group_div.append(tag_btn);
-    });
-
-    $('#tags-card .card-body').append(group_div);
-  });
+  initialize_tags();
 
   var chartCtx = document.getElementById('chart').getContext('2d');
   new Chart(chartCtx, {
@@ -154,6 +129,83 @@ function initialize_localStorage() {
   localStorage.setItem("dashboards", JSON.stringify(data));
 }
 
+function initialize_tags() {
+  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+
+  const grouped_tags = Object.entries(all_tags).reduce((groups, [id, tag]) => {
+    const key = tag.group || 'Others';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({ id, ...tag });
+    groups[key].sort((a, b) => a.name.localeCompare(b.name));
+    return groups;
+  }, {});
+
+  $.each(grouped_tags, function(group, tags) {
+    const group_div = $('<div></div>')
+      .addClass('tag-group')
+      .append(`<div class="tag-group-title"><small>${group}</small></div>`);
+
+    $.each(tags, function(index, tag) {
+      const tag_btn = $('<button></button>')
+        .addClass('tag-btn')
+        .css('background-color', tag.color)
+        .attr('id', `tag-${tag.id}`)
+        .attr('value', tag.id)
+        .append($('<p></p>').text(tag.name))
+        .on('click', function() {
+          $(this).toggleClass('active');
+          const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+          const tags_ids = dashboards[dashboard].tags_ids;
+          const id = parseInt(this.value);
+
+          if ($(this).hasClass('active')) {
+            if (!(id in tags_ids)) {
+              tags_ids.push(id);
+            }
+
+            if (unique_tag_groups.includes(group)) {
+              group_div.find('button').each(function() {
+                if (!$(this).hasClass('active')) {
+                  $(this).prop('disabled', true);
+                }
+              });
+            }
+          } else {
+            if (tags_ids.indexOf(id) > -1) {
+              tags_ids.splice(tags_ids.indexOf(id), 1);
+            }
+
+            if (unique_tag_groups.includes(group)) {
+              group_div.find('button').prop('disabled', false);
+            }
+          }
+
+          filter_models_by_tags(tags_ids);
+          localStorage.setItem("dashboards", JSON.stringify(dashboards));
+        });
+
+      if (dashboards[dashboard].tags_ids.includes(parseInt(tag.id))) {
+        tag_btn.addClass('active');
+      }
+
+      group_div.append(tag_btn);
+    });
+
+    if (unique_tag_groups.includes(group)) {
+      if (group_div.find('button.active').length > 0) {
+        group_div.find('button').each(function() {
+          if (!$(this).hasClass('active')) {
+            $(this).prop('disabled', true);
+          }
+        });
+      }
+    }
+
+    $('#tags-card .card-body').append(group_div);
+  });
+}
+
+
 async function update_casos(dashboard) {
   const chart = Chart.getChart("chart");
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
@@ -206,6 +258,49 @@ async function update_casos(dashboard) {
     chart.update();
   } catch (error) {
     console.error(error);
+  }
+}
+
+function filter_models_by_tags(tags) {
+  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+  const filtered_tags = Object.fromEntries(
+    Object.entries(all_tags).filter(([key, value]) => tags.includes(parseInt(key)))
+  );
+
+  const tagGroups = Object.values(filtered_tags).map(tag => tag.group);
+  const uniqueGroupTags = tagGroups.filter(group => unique_tag_groups.includes(group));
+
+  let filter;
+
+  if (tags.length > 0) {
+    if (uniqueGroupTags.length > 0) {
+      filter = all_models.filter(model => {
+        return model.tags && tags.every(tag_id => model.tags.includes(tag_id));
+      });
+    } else {
+      filter = all_models.filter(model => {
+        return model.tags && model.tags.some(tag_id => tags.includes(tag_id));
+      });
+    }
+
+    const checkedModels = new Set(dashboards[dashboard].model_ids);
+
+    dashboards[dashboard].model_ids.forEach(model_id => {
+      const model = all_models_map[model_id];
+      if (!filter.includes(model)) {
+        model_select(model.id, "remove");
+      }
+    });
+
+    filter.forEach(model => {
+      if (checkedModels.has(model.id)) {
+        model_select(model.id, "add");
+      }
+    });
+
+    models_list(filter);
+  } else {
+    models_list(all_models);
   }
 }
 
