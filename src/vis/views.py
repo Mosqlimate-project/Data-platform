@@ -125,15 +125,18 @@ class PredictionsDashboard(View):
             end=models.Max("date_end_prediction"),
         )
 
-        tags = []
+        tags = {}
         for tag in all_tags:
-            info = {}
-            info["id"] = tag.id
-            info["name"] = tag.name
-            info["group"] = tag.group
-            tags.append(info)
+            if tag.group == "sprint":
+                continue
 
-        context["tags"] = tags
+            tags[f"{tag.id}"] = {
+                "name": tag.name,
+                "color": tag.color,
+                "group": tag.group,
+            }
+
+        context["tags"] = json.dumps(tags)
         context["dashboard"] = dashboard
         context["min_window_date"] = str(window["start"].date())
         context["max_window_date"] = str(window["end"].date())

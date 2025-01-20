@@ -21,7 +21,7 @@ def get_plangs_path() -> str:
 
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    group = models.CharField(unique=True, null=True)
+    group = models.CharField(unique=False, null=True)
     color = models.CharField(
         max_length=7,
         null=True,

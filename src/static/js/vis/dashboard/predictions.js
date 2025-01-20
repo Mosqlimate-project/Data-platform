@@ -5,6 +5,32 @@ document.addEventListener('DOMContentLoaded', function() {
   initialize_localStorage();
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
 
+  const grouped_tags = Object.entries(all_tags).reduce((groups, [id, tag]) => {
+    const key = tag.group || '';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({ id, ...tag });
+    return groups;
+  }, {});
+
+  console.log(grouped_tags);
+  $.each(grouped_tags, function(group, tags) {
+    const group_div = $('<div></div>')
+      .addClass('tag-group')
+      .append(`<h4>${group}</h4>`);
+
+    $.each(tags, function(index, tag) {
+      const tag_btn = $('<button></button>')
+        .addClass('tag-btn')
+        .text(tag.name)
+        .css('background-color', tag.color)
+        .attr('id', `tag-${tag.id}`);
+
+      group_div.append(tag_btn);
+    });
+
+    $('#tags-card .card-body').append(group_div);
+  });
+
   var chartCtx = document.getElementById('chart').getContext('2d');
   new Chart(chartCtx, {
     type: 'line',

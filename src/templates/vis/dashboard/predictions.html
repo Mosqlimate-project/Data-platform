@@ -52,7 +52,7 @@
   </div>
 </div>
 
-<div class="card">
+<div id="tags-card" class="card">
   <div class="card-header">
     <h3 class="card-title">Tags</h3>
     <div class="card-tools">
@@ -62,7 +62,6 @@
     </div>
   </div>
   <div class="card-body">
-    {{tags}}
   </div>
 </div>
 
@@ -83,11 +82,86 @@
   const prediction_id = `{{ prediction_id }}` | null;
   const min_window_date = `{{ min_window_date }}`;
   const max_window_date = `{{ max_window_date }}`;
+
+  const all_tags = {{ tags|safe }};
 </script>
 
 <style>
 .table {
   table-layout: fixed;
+}
+
+#tags-card .card-body {
+  display: flex;
+  gap: 30px;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 10px;
+}
+
+.tag-btn {
+  --btn-color: rgb(124 45 18);
+  --btn-bg: rgb(252 211 77);
+  max-height: 40px;
+  max-width: fit-content;
+  position: relative;
+  display: inline-flex;
+  flex-grow: 0;
+  flex-basis: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+  padding: 14px 22px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: system-ui;
+  border: 2px solid var(--btn-color);
+  transition: 100ms ease;
+  box-shadow: 5px 5px 0 0 var(--btn-color);
+}
+
+.tag-btn:hover {
+  box-shadow: 2px 2px 0 0 var(--btn-color);
+}
+
+.tag-btn:active {
+  transition: 50ms ease;
+  box-shadow:  0 0 0 0 var(--btn-color);
+}
+
+.tag-btn:focus-visible {
+  outline: 0;
+  --btn-color: #002cc8;
+}
+
+.tag-btn:focus-visible::after {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  transform: translateX(-50%);
+  content: "\21E7";
+  animation: float .5s ease-in-out infinite;
+}
+
+@keyframes float {
+	0% {
+		transform: translateX(-50%) translatey(0px);
+	}
+	50% {
+		transform: translateX(-50%) translatey(-6px);
+	}
+	100% {
+		transform: translateX(-50%) translatey(0px);
+	}
 }
 </style>
 
