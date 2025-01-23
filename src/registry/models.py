@@ -233,7 +233,8 @@ class Prediction(models.Model):
     # Metadata
     color = models.CharField(
         max_length=7,
-        null=True,
+        null=False,
+        default="#000000",
         validators=[
             RegexValidator(
                 regex=r"^#[0-9A-Fa-f]{6}$",
@@ -294,6 +295,21 @@ class Prediction(models.Model):
             row["date"] = str(datetime.fromisoformat(row["date"]).date())
 
         return json.dumps(data)
+
+    def to_chartjs(self) -> dict:
+        df = self.to_dataframe()
+
+        return {
+            "labels": df["date"].tolist(),
+            "datasets": [
+                {
+                    "label": self.id,
+                    "data": df["pred"].tolist(),
+                    "borderColor": self.color,
+                    "fill": False,
+                },
+            ],
+        }
 
     def parse_metadata(self):
         if not self.to_dataframe().empty:

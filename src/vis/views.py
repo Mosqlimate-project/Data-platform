@@ -12,7 +12,6 @@ from dateutil import parser
 # from loguru import logger
 
 from django.conf import settings
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
 from django.http import JsonResponse, FileResponse
 from django.shortcuts import render
@@ -127,7 +126,8 @@ class PredictionsDashboard(View):
 
         tags = {}
         for tag in all_tags:
-            if tag.group in ["sprint", "output", "programming_language"]:
+            if tag.group not in ["disease", "adm_level", "time_resolution"]:
+                # TODO: enable non-unique tag groups to be used
                 continue
 
             tags[f"{tag.id}"] = {
@@ -185,13 +185,13 @@ def get_hist_alerta_data(request) -> JsonResponse:
 @never_cache
 def get_models(request) -> JsonResponse:
     sprint = request.GET.get("dashboard", "predictions") == "sprint"
-    model_id = request.GET.get("model_id", None)
-    prediction_id = request.GET.get("prediction_id", None)
     models = Model.objects.filter(sprint=sprint).order_by("-updated")
     context = {}
 
     res = []
     for model in models:
+        if not model.predictions.all():
+            continue
         model_res = {}
         model_res["id"] = model.id
         model_res["author"] = model.author.user.name
@@ -200,75 +200,37 @@ def get_models(request) -> JsonResponse:
         model_res["time_resolution"] = model.time_resolution
         model_res["tags"] = list(model.tags.all().values_list("id", flat=True))
         model_res["description"] = model.description
-
         res.append(model_res)
 
-    if model_id:
-        try:
-            model = Model.objects.get(pk=model_id)
-        except (Model.DoesNotExist, ValueError):
-            model_id = None
-
-    if prediction_id:
-        try:
-            prediction = Prediction.objects.get(pk=prediction_id)
-            model_id = prediction.model.id
-        except (Prediction.DoesNotExist, ValueError):
-            model_id = None
-            prediction_id = None
-
     context["items"] = res
-    context["model_id"] = model_id
-    context["prediction_id"] = prediction_id
     return JsonResponse(context)
 
 
-# @cache_page(60 * 20)
+# @cache_page(60 * 120, key_prefix="get_predictions")
 @never_cache
 def get_predictions(request) -> JsonResponse:
-    sprint = request.GET.get("dashboard", "predictions") == "sprint"
-    page = request.GET.get("page", 1)
-    tag_ids = request.GET.getlist("tags", [])
+    model_ids = request.GET.getlist("model_id")
+
+    if not model_ids:
+        return JsonResponse({"items": []}, status=204)
+
+    predictions = Prediction.objects.filter(model__id__in=model_ids).distinct()
     context = {}
-
-    tags = []
-    for tag_id in tag_ids:
-        try:
-            tags.append(Tag.objects.get(pk=tag_id))
-        except (Tag.DoesNotExist, ValueError):
-            continue
-
-    if tags:
-        predictions = Prediction.objects.filter(
-            model__sprint=sprint, tag__in=tags
-        )
-    else:
-        predictions = Prediction.objects.filter(model__sprint=sprint)
-
-    paginator = Paginator(predictions.distinct().order_by("-predict_date"), 5)
-
-    try:
-        predictions_page = paginator.page(page)
-    except PageNotAnInteger:
-        predictions_page = paginator.page(1)
-    except EmptyPage:
-        predictions_page = paginator.page(paginator.num_pages)
-
     res = []
 
-    for prediction in predictions_page.object_list:
-        prediction_res = {}
-        prediction_res["id"] = prediction.id
-        res.append(prediction_res)
+    for p in predictions:
+        p_res = {}
+        p_res["id"] = p.id
+        # p_res["description"] = p.description
+        p_res["adm_1"] = p.adm_1_geocode
+        p_res["adm_2"] = p.adm_2_geocode
+        p_res["start_date"] = p.date_ini_prediction
+        p_res["end_date"] = p.date_end_prediction
+        p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
+        p_res["chart"] = p.to_chartjs()
+        res.append(p_res)
 
     context["items"] = res
-    context["pagination"] = {
-        "current_page": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
-        "has_next": predictions_page.has_next(),
-        "has_previous": predictions_page.has_previous(),
-    }
     return JsonResponse(context)
 
 
