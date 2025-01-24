@@ -5,6 +5,18 @@ let current_models = [];
 let predictions_map = {};
 
 const unique_tag_groups = ["disease", "adm_level", "time_resolution"];
+let chart;
+
+function hexToRgba(hex, alpha = 1) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex.split('').map(c => c + c).join('');
+  }
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   $('#tags-card .card-tools button').click()
@@ -12,64 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
   initialize_tags();
 
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-  var chartCtx = document.getElementById('chart').getContext('2d');
-
-  new Chart(chartCtx, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [
-        {
-          data: [],
-          label: "Cases",
-          borderColor: 'rgba(17, 34, 80, 1)',
-          backgroundColor: 'rgba(17, 34, 80, 0.2)',
-          fill: true,
-          tension: 0.3,
-        },
-      ]
-    },
-    options: {
-      plugins: {
-        legend: {
-          display: true,
-          labels: {
-            usePointStyle: true,
-            pointStyle: 'line',
-            useBorderRadius: true,
-            borderRadius: 5,
-          }
-        },
-      },
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-          },
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 10,
-          },
-          grid: {
-            display: false
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: "New Cases",
-          },
-          grid: {
-            display: false
-          },
-          beginAtZero: true
-        }
-      },
-    }
-  });
-
   const dateSlider = $(`#date-picker`);
+  chart = new LineChart('chart');
+
   try {
     dateSlider.dateRangeSlider("destroy");
   } catch (err) {
@@ -200,56 +157,58 @@ function initialize_tags() {
 }
 
 async function update_casos(dashboard) {
-  const chart = Chart.getChart("chart");
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+  const dashboards = JSON.parse(localStorage.getItem('dashboards'));
   const tag_ids = dashboards[dashboard].tag_ids;
   const start_window_date = dashboards[dashboard].start_window_date;
   const end_window_date = dashboards[dashboard].end_window_date;
 
   function parse_tag_name(param, name) {
-    if (["disease", "time_resolution"].includes(param)) {
+    if (['disease', 'time_resolution'].includes(param)) {
       name = name.toLowerCase();
     }
-    if (param == "adm_level") {
-      name = parseInt(name.split("ADM ")[1])
+    if (param == 'adm_level') {
+      name = parseInt(name.split('ADM ')[1]);
     }
-    return name
+    return name;
   }
 
   const params = {};
-  tag_ids.forEach(tag_id => {
+  tag_ids.forEach((tag_id) => {
     const tag = all_tags[tag_id];
     if (tag && tag.group) {
       params[tag.group] = parse_tag_name(tag.group, tag.name);
     }
   });
 
-  let disease = params["disease"] || null;
-  let time_resolution = params["time_resolution"] || null;
-  let adm_level = params["adm_level"] || null;
+  let disease = params['disease'] || null;
+  let time_resolution = params['time_resolution'] || null;
+  let adm_level = params['adm_level'] || null;
   let adm_1 = dashboards[dashboard].adm_1;
   let adm_2 = dashboards[dashboard].adm_2;
 
-  if (!disease || !time_resolution || !adm_level || (adm_level == 1 && !adm_1) || (adm_level == 2 && !adm_2)) {
-    chart.data.labels = [];
-    chart.data.datasets[0].data = [];
-    chart.update();
-    return
+  if (
+    !disease ||
+    !time_resolution ||
+    !adm_level ||
+    (adm_level == 1 && !adm_1) ||
+    (adm_level == 2 && !adm_2)
+  ) {
+    chart.clearChart();
+    return;
   }
 
-
   const url_params = new URLSearchParams();
-  url_params.append("dashboard", dashboard);
-  url_params.append("disease", disease);
-  url_params.append("adm-level", adm_level);
-  url_params.append("adm-1", adm_1);
-  url_params.append("adm-2", adm_2);
+  url_params.append('dashboard', dashboard);
+  url_params.append('disease', disease);
+  url_params.append('adm-level', adm_level);
+  url_params.append('adm-1', adm_1);
+  url_params.append('adm-2', adm_2);
 
   try {
     const res = await new Promise((resolve, reject) => {
       $.ajax({
-        type: "GET",
-        url: "/vis/get-hist-alerta-data/?",
+        type: 'GET',
+        url: '/vis/get-hist-alerta-data/?',
         data: url_params.toString(),
         success: function(response) {
           resolve(response);
@@ -263,22 +222,28 @@ async function update_casos(dashboard) {
     const startDate = new Date(start_window_date);
     const endDate = new Date(end_window_date);
 
+    const allLabels = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      allLabels.push(currentDate.toISOString().split('T')[0]);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const allData = new Array(allLabels.length).fill(NaN);
+
     const labels = Object.keys(res);
     const data = Object.values(res);
-
-    const filteredLabels = [];
-    const filteredData = [];
     labels.forEach((label, index) => {
-      const currentDate = new Date(label);
-      if (currentDate >= startDate && currentDate <= endDate) {
-        filteredLabels.push(label);
-        filteredData.push(data[index]);
+      const dateIndex = allLabels.indexOf(label);
+      if (dateIndex !== -1) {
+        allData[dateIndex] = data[index];
       }
     });
 
-    chart.data.labels = filteredLabels;
-    chart.data.datasets[0].data = filteredData;
-    chart.update();
+    chart.updateLabels(allLabels);
+    chart.updateDataset(allData);
+
+    chart.reapplyPredictions();
   } catch (error) {
     console.error(error);
   }
@@ -609,7 +574,6 @@ function prediction_item(data) {
 
 function predictions_list(predictions) {
   const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-  const chart = Chart.getChart("chart");
 
   predictions.sort((a, b) => {
     const aChecked = dashboards[dashboard].prediction_ids.includes(a.id);
@@ -700,56 +664,37 @@ function predictions_list(predictions) {
         const isChecked = $(this).prop("checked");
         $(".checkbox-prediction").prop("checked", isChecked).each(function() {
           const prediction_id = parseInt($(this).val(), 10);
-          const chart = Chart.getChart("chart");
           const prediction = predictions_map[prediction_id];
-
+          const prediction_line = {
+            id: prediction_id,
+            labels: prediction.chart.labels,
+            data: prediction.chart.data,
+            color: prediction.color
+          }
           if (isChecked) {
-            if (prediction && prediction.chart) {
-              chart.data.datasets.push({
-                label: `${prediction_id}`,
-                data: prediction.chart.datasets[0].data,
-                borderColor: prediction.chart.datasets[0].borderColor,
-                fill: false,
-              });
-            }
+            chart.addPrediction(prediction_line)
           } else {
-            const datasetIndex = chart.data.datasets.findIndex(
-              dataset => dataset.label === `${prediction_id}`
-            );
-            if (datasetIndex !== -1) {
-              chart.data.datasets.splice(datasetIndex, 1);
-            }
+            chart.removePrediction(prediction_id)
           }
         });
-
-        chart.update();
       });
 
       $(".checkbox-prediction").on("click", function(event) {
         event.stopPropagation();
-        const chart = Chart.getChart("chart");
         const prediction_id = parseInt(event.target.value, 10);
 
         if ($(event.target).prop("checked")) {
           const prediction = predictions_map[prediction_id];
-          if (prediction && prediction.chart) {
-            chart.data.datasets.push({
-              label: `${prediction_id}`,
-              data: prediction.chart.datasets[0].data,
-              borderColor: prediction.chart.datasets[0].borderColor,
-              fill: false,
-            });
+          const prediction_line = {
+            id: prediction_id,
+            labels: prediction.chart.labels,
+            data: prediction.chart.data,
+            color: prediction.color
           }
+          chart.addPrediction(prediction_line)
         } else {
-          const datasetIndex = chart.data.datasets.findIndex(
-            dataset => dataset.label === `${prediction_id}`
-          );
-          if (datasetIndex !== -1) {
-            chart.data.datasets.splice(datasetIndex, 1);
-          }
+          chart.removePrediction(prediction_id)
         }
-
-        chart.update();
       });
     },
   });
@@ -757,6 +702,7 @@ function predictions_list(predictions) {
   $("#adm-filter").on("change", function() {
     const selectedAdm = $(this).val();
     const filteredPredictions = filterPredictions(selectedAdm);
+    chart.clearPredictions();
 
     $('#predictions-pagination').pagination({
       dataSource: filteredPredictions,
@@ -786,56 +732,39 @@ function predictions_list(predictions) {
           const isChecked = $(this).prop("checked");
           $(".checkbox-prediction").prop("checked", isChecked).each(function() {
             const prediction_id = parseInt($(this).val(), 10);
-            const chart = Chart.getChart("chart");
             const prediction = predictions_map[prediction_id];
-
+            const prediction_line = {
+              id: prediction_id,
+              labels: prediction.chart.labels,
+              data: prediction.chart.data,
+              color: prediction.color
+            }
             if (isChecked) {
-              if (prediction && prediction.chart) {
-                chart.data.datasets.push({
-                  label: `${prediction_id}`,
-                  data: prediction.chart.datasets[0].data,
-                  borderColor: prediction.chart.datasets[0].borderColor,
-                  fill: false,
-                });
-              }
+              chart.addPrediction(prediction_line)
             } else {
-              const datasetIndex = chart.data.datasets.findIndex(
-                dataset => dataset.label === `${prediction_id}`
-              );
-              if (datasetIndex !== -1) {
-                chart.data.datasets.splice(datasetIndex, 1);
-              }
+              chart.removePrediction(prediction_id)
             }
           });
 
-          chart.update();
         });
 
         $(".checkbox-prediction").on("click", function(event) {
           event.stopPropagation();
-          const chart = Chart.getChart("chart");
           const prediction_id = parseInt(event.target.value, 10);
-
-          if ($(event.target).prop("checked")) {
-            const prediction = predictions_map[prediction_id];
-            if (prediction && prediction.chart) {
-              chart.data.datasets.push({
-                label: `${prediction_id}`,
-                data: prediction.chart.datasets[0].data,
-                borderColor: prediction.chart.datasets[0].borderColor,
-                fill: false,
-              });
-            }
-          } else {
-            const datasetIndex = chart.data.datasets.findIndex(
-              dataset => dataset.label === `${prediction_id}`
-            );
-            if (datasetIndex !== -1) {
-              chart.data.datasets.splice(datasetIndex, 1);
-            }
+          const prediction = predictions_map[prediction_id];
+          const prediction_line = {
+            id: prediction_id,
+            labels: prediction.chart.labels,
+            data: prediction.chart.data,
+            color: prediction.color
           }
 
-          chart.update();
+          if ($(event.target).prop("checked")) {
+            chart.addPrediction(prediction_line)
+          } else {
+            chart.removePrediction(prediction_id)
+          }
+
         });
       },
     });

@@ -228,6 +228,7 @@ def get_predictions(request) -> JsonResponse:
         p_res["end_date"] = p.date_end_prediction
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
         p_res["chart"] = p.to_chartjs()
+        p_res["color"] = p.color
         res.append(p_res)
 
     context["items"] = res

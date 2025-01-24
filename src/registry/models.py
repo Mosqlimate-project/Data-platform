@@ -301,14 +301,7 @@ class Prediction(models.Model):
 
         return {
             "labels": df["date"].tolist(),
-            "datasets": [
-                {
-                    "label": self.id,
-                    "data": df["pred"].tolist(),
-                    "borderColor": self.color,
-                    "fill": False,
-                },
-            ],
+            "data": df["pred"].tolist(),
         }
 
     def parse_metadata(self):
