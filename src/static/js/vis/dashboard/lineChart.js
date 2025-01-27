@@ -5,16 +5,21 @@ class LineChart {
     this.option = {
       tooltip: {
         trigger: 'axis',
+        formatter: (params) => {
+          const p = params.filter(param => !isNaN(param.value));
+          return p.map(param => {
+            return `${param.marker} ${param.seriesName}: ${param.value}`;
+          }).join('<br/>');
+        }
       },
       legend: {
-        data: ['Cases'],
-        top: '5%',
+        top: 0,
       },
       grid: {
         top: '10%',
         bottom: '5%',
         left: '0',
-        right: '0',
+        right: '15px',
         containLabel: true,
       },
       xAxis: {
@@ -29,7 +34,7 @@ class LineChart {
           name: 'Cases',
           type: 'line',
           data: [],
-          smooth: false,
+          smooth: true,
           areaStyle: {},
           lineStyle: {
             width: 2,
@@ -37,26 +42,28 @@ class LineChart {
         },
       ],
     };
-    this.chart.setOption(this.option);
+    this.chart.setOption(this.option, true);
   }
 
   updateCases(dates, cases) {
     this.option.xAxis.data = dates;
     this.option.series[0].data = cases;
-    this.chart.setOption(this.option);
+    this.chart.setOption(this.option, true);
   }
 
   addPrediction(prediction) {
     const id = `${prediction.id}`;
 
     if (this.predictions[id]) {
-      this._updatePrediction(id, prediction);
+      this._updatePrediction(prediction);
     } else {
-      this._addNewPrediction(id, prediction);
+      this._addNewPrediction(prediction);
     }
   }
 
-  _addNewPrediction(id, prediction) {
+  _addNewPrediction(prediction) {
+    const id = `${prediction.id}`;
+
     const pdata = this.option.xAxis.data.map((label) => {
       const i = prediction.labels.indexOf(label);
       return i !== -1 ? prediction.data[i] : NaN;
@@ -68,17 +75,42 @@ class LineChart {
       name: id,
       type: 'line',
       data: pdata,
-      smooth: false,
+      smooth: true,
       lineStyle: {
         color: prediction.color,
         width: 2,
       },
+      symbol: 'circle',
+      symbolSize: 0,
+      itemStyle: {
+        color: prediction.color,
+      },
+      emphasis: {
+        focus: 'series',
+      },
     });
 
-    this.chart.setOption(this.option);
+    this.chart.on('mouseover', (params) => {
+      if (params.seriesName === id) {
+        const prediction = this.predictions[params.seriesName];
+        console.log("over");
+      }
+    });
+
+    this.chart.on('mouseout', (params) => {
+      if (params.seriesName === id) {
+        const prediction = this.predictions[params.seriesName];
+        console.log("out");
+      }
+    });
+
+    this.chart.setOption(this.option, true);
   }
 
-  _updatePrediction(id, prediction) {
+
+  _updatePrediction(prediction) {
+    const id = `${prediction.id}`;
+
     const pdata = this.option.xAxis.data.map((label) => {
       const i = prediction.labels.indexOf(label);
       return i !== -1 ? prediction.data[i] : NaN;
@@ -90,19 +122,21 @@ class LineChart {
       this.option.series[i].lineStyle.color = prediction.color;
     }
 
-    this.chart.setOption(this.option);
+    this.chart.setOption(this.option, true);
   }
 
   removePrediction(prediction_id) {
     const id = `${prediction_id}`;
+
     if (this.predictions[id]) {
       const i = this.option.series.findIndex((series) => series.name === id);
       if (i !== -1) {
         this.option.series.splice(i, 1);
         delete this.predictions[id];
-        this.chart.setOption(this.option);
       }
     }
+
+    this.chart.setOption(this.option, true);
   }
 
   clearPredictions() {
@@ -111,18 +145,18 @@ class LineChart {
     this.chart.setOption(this.option);
   }
 
+  reapplyPredictions() {
+    Object.keys(this.predictions).forEach((id) => {
+      const prediction = this.predictions[id];
+      this._updatePrediction(prediction);
+    });
+  }
+
   clear() {
     this.clearPredictions();
     this.option.xAxis.data = [];
     this.option.series[0].data = [];
-    this.chart.setOption(this.option);
-  }
-
-  reapplyPredictions() {
-    Object.keys(this.predictions).forEach((prediction_id) => {
-      const prediction = this.predictions[prediction_id];
-      this._updatePrediction(prediction_id, prediction);
-    });
+    this.chart.setOption(this.option, true);
   }
 
   resize(width, height) {

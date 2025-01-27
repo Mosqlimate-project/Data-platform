@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
   $('[data-widget="pushmenu"]').on('click', function() {
     setTimeout(() => {
       dateSlider.dateRangeSlider("resize");
+      chart.resize();
     }, 350)
   });
 
@@ -462,7 +463,6 @@ function tag_select(tag_id) {
   model_ids.forEach(model_id => {
     const model = all_models_map[model_id];
     if (!model.tags.includes(tag_id)) {
-      console.log(model_id);
       model_unselect(model_id);
       model_ids.delete(model_id);
     }
@@ -585,8 +585,6 @@ function predictions_list(predictions) {
     return 0;
   });
 
-  console.log(predictions);
-
   const distinctAdm = [
     ...new Set(
       predictions.map(prediction => prediction.adm_1 || prediction.adm_2)
@@ -672,6 +670,8 @@ function predictions_list(predictions) {
               id: prediction_id,
               labels: prediction.chart.labels,
               data: prediction.chart.data,
+              upper: prediction.chart.upper,
+              lower: prediction.chart.lower,
               color: prediction.color
             })
           } else {
@@ -690,6 +690,8 @@ function predictions_list(predictions) {
             id: prediction_id,
             labels: prediction.chart.labels,
             data: prediction.chart.data,
+            upper: prediction.chart.upper,
+            lower: prediction.chart.lower,
             color: prediction.color
           })
         } else {
@@ -738,6 +740,8 @@ function predictions_list(predictions) {
                 id: prediction_id,
                 labels: prediction.chart.labels,
                 data: prediction.chart.data,
+                upper: prediction.chart.upper,
+                lower: prediction.chart.lower,
                 color: prediction.color
               })
             } else {
@@ -756,6 +760,8 @@ function predictions_list(predictions) {
               id: prediction_id,
               labels: prediction.chart.labels,
               data: prediction.chart.data,
+              upper: prediction.chart.upper,
+              lower: prediction.chart.lower,
               color: prediction.color
             })
           } else {

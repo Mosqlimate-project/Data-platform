@@ -219,6 +219,14 @@ def get_predictions(request) -> JsonResponse:
     res = []
 
     for p in predictions:
+        df = p.to_dataframe()
+        chart = {
+            "labels": df["date"].tolist(),
+            "data": list(map(round, df["pred"].tolist())),
+            "upper": list(map(round, df["upper"].tolist())),
+            "lower": list(map(round, df["lower"].tolist())),
+        }
+
         p_res = {}
         p_res["id"] = p.id
         # p_res["description"] = p.description
@@ -227,7 +235,7 @@ def get_predictions(request) -> JsonResponse:
         p_res["start_date"] = p.date_ini_prediction
         p_res["end_date"] = p.date_end_prediction
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
-        p_res["chart"] = p.to_chartjs()
+        p_res["chart"] = chart
         p_res["color"] = p.color
         res.append(p_res)
 
