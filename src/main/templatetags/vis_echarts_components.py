@@ -32,9 +32,6 @@ def vis_echarts(context):
         }
     )
 
-    from pprint import pprint
-
-    pprint(br_info_data)
     context.update(br_info_data)
 
     return context

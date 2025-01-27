@@ -193,7 +193,7 @@ async function update_casos(dashboard) {
     (adm_level == 1 && !adm_1) ||
     (adm_level == 2 && !adm_2)
   ) {
-    chart.clearChart();
+    chart.clear();
     return;
   }
 
@@ -222,27 +222,29 @@ async function update_casos(dashboard) {
     const startDate = new Date(start_window_date);
     const endDate = new Date(end_window_date);
 
-    const allLabels = [];
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      allLabels.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
+    const dateKeys = Object.keys(res).map(date => new Date(date));
+    const minDate = new Date(Math.min(...dateKeys));
+    const maxDate = new Date(Math.max(...dateKeys));
+
+    for (let d = new Date(minDate); d < startDate; d.setDate(d.getDate() + 7)) {
+      res[d.toISOString().split('T')[0]] = NaN;
     }
 
-    const allData = new Array(allLabels.length).fill(NaN);
+    for (let d = new Date(maxDate); d < endDate; d.setDate(d.getDate() + 7)) {
+      res[d.toISOString().split('T')[0]] = NaN;
+    }
 
-    const labels = Object.keys(res);
-    const data = Object.values(res);
-    labels.forEach((label, index) => {
-      const dateIndex = allLabels.indexOf(label);
-      if (dateIndex !== -1) {
-        allData[dateIndex] = data[index];
+    Object.keys(res).forEach(date => {
+      const currentDate = new Date(date);
+      if (currentDate > endDate) {
+        delete res[date];
+      }
+      if (currentDate < startDate) {
+        delete res[date];
       }
     });
 
-    chart.updateLabels(allLabels);
-    chart.updateDataset(allData);
-
+    chart.updateCases(Object.keys(res), Object.values(res));
     chart.reapplyPredictions();
   } catch (error) {
     console.error(error);
@@ -665,14 +667,13 @@ function predictions_list(predictions) {
         $(".checkbox-prediction").prop("checked", isChecked).each(function() {
           const prediction_id = parseInt($(this).val(), 10);
           const prediction = predictions_map[prediction_id];
-          const prediction_line = {
-            id: prediction_id,
-            labels: prediction.chart.labels,
-            data: prediction.chart.data,
-            color: prediction.color
-          }
           if (isChecked) {
-            chart.addPrediction(prediction_line)
+            chart.addPrediction({
+              id: prediction_id,
+              labels: prediction.chart.labels,
+              data: prediction.chart.data,
+              color: prediction.color
+            })
           } else {
             chart.removePrediction(prediction_id)
           }
@@ -685,13 +686,12 @@ function predictions_list(predictions) {
 
         if ($(event.target).prop("checked")) {
           const prediction = predictions_map[prediction_id];
-          const prediction_line = {
+          chart.addPrediction({
             id: prediction_id,
             labels: prediction.chart.labels,
             data: prediction.chart.data,
             color: prediction.color
-          }
-          chart.addPrediction(prediction_line)
+          })
         } else {
           chart.removePrediction(prediction_id)
         }
@@ -733,14 +733,13 @@ function predictions_list(predictions) {
           $(".checkbox-prediction").prop("checked", isChecked).each(function() {
             const prediction_id = parseInt($(this).val(), 10);
             const prediction = predictions_map[prediction_id];
-            const prediction_line = {
-              id: prediction_id,
-              labels: prediction.chart.labels,
-              data: prediction.chart.data,
-              color: prediction.color
-            }
             if (isChecked) {
-              chart.addPrediction(prediction_line)
+              chart.addPrediction({
+                id: prediction_id,
+                labels: prediction.chart.labels,
+                data: prediction.chart.data,
+                color: prediction.color
+              })
             } else {
               chart.removePrediction(prediction_id)
             }
@@ -752,15 +751,13 @@ function predictions_list(predictions) {
           event.stopPropagation();
           const prediction_id = parseInt(event.target.value, 10);
           const prediction = predictions_map[prediction_id];
-          const prediction_line = {
-            id: prediction_id,
-            labels: prediction.chart.labels,
-            data: prediction.chart.data,
-            color: prediction.color
-          }
-
           if ($(event.target).prop("checked")) {
-            chart.addPrediction(prediction_line)
+            chart.addPrediction({
+              id: prediction_id,
+              labels: prediction.chart.labels,
+              data: prediction.chart.data,
+              color: prediction.color
+            })
           } else {
             chart.removePrediction(prediction_id)
           }

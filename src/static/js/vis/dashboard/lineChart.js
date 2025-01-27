@@ -1,78 +1,49 @@
 class LineChart {
-  constructor(canvasId) {
-    const chartCtx = document.getElementById(canvasId).getContext('2d');
-
-    this.chart = new Chart(chartCtx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Cases',
-            data: [],
-            borderColor: 'rgba(17, 34, 80, 1)',
-            backgroundColor: 'rgba(17, 34, 80, 0.2)',
-            fill: true,
-            tension: 0.3,
-          },
-        ],
-      },
-      options: {
-        elements: {
-          line: {
-            spanGaps: true,
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              usePointStyle: true,
-              pointStyle: 'line',
-              useBorderRadius: true,
-              borderRadius: 5,
-            },
-          },
-        },
-        responsive: true,
-        scales: {
-          x: {
-            title: {
-              display: true,
-            },
-            ticks: {
-              autoSkip: true,
-              maxTicksLimit: 10,
-            },
-            grid: {
-              display: false,
-            },
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'New Cases',
-            },
-            grid: {
-              display: false,
-            },
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-
+  constructor(containerId) {
+    this.chart = echarts.init(document.getElementById(containerId));
     this.predictions = {};
+    this.option = {
+      tooltip: {
+        trigger: 'axis',
+      },
+      legend: {
+        data: ['Cases'],
+        top: '5%',
+      },
+      grid: {
+        top: '10%',
+        bottom: '5%',
+        left: '0',
+        right: '0',
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: [],
+      },
+      yAxis: {
+        type: 'value',
+      },
+      series: [
+        {
+          name: 'Cases',
+          type: 'line',
+          data: [],
+          smooth: false,
+          areaStyle: {},
+          lineStyle: {
+            width: 2,
+          },
+        },
+      ],
+    };
+    this.chart.setOption(this.option);
   }
 
-  updateLabels(labels) {
-    this.chart.data.labels = labels;
-    this.chart.update();
-  }
-
-  updateDataset(data) {
-    this.chart.data.datasets[0].data = data;
-    this.chart.update();
+  updateCases(dates, cases) {
+    this.option.xAxis.data = dates;
+    this.option.series[0].data = cases;
+    this.chart.setOption(this.option);
   }
 
   addPrediction(prediction) {
@@ -86,70 +57,75 @@ class LineChart {
   }
 
   _addNewPrediction(id, prediction) {
-    const pdata = this.chart.data.labels.map(label => {
-      const index = prediction.labels.indexOf(label);
-      return index !== -1 ? prediction.data[index] : NaN;
+    const pdata = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.data[i] : NaN;
     });
 
     this.predictions[id] = prediction;
 
-    this.chart.data.datasets.push({
-      label: id,
+    this.option.series.push({
+      name: id,
+      type: 'line',
       data: pdata,
-      borderColor: prediction.color,
-      fill: false,
-      tension: 0.3,
+      smooth: false,
+      lineStyle: {
+        color: prediction.color,
+        width: 2,
+      },
     });
 
-    this.chart.update();
+    this.chart.setOption(this.option);
   }
 
   _updatePrediction(id, prediction) {
-    const pdata = this.chart.data.labels.map(label => {
-      const index = prediction.labels.indexOf(label);
-      return index !== -1 ? prediction.data[index] : NaN;
+    const pdata = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.data[i] : NaN;
     });
 
-    const datasetIndex = this.chart.data.datasets.findIndex(dataset => dataset.label === id);
-    if (datasetIndex !== -1) {
-      this.chart.data.datasets[datasetIndex].data = pdata;
-      this.chart.data.datasets[datasetIndex].borderColor = prediction.color;
+    const i = this.option.series.findIndex((series) => series.name === id);
+    if (i !== -1) {
+      this.option.series[i].data = pdata;
+      this.option.series[i].lineStyle.color = prediction.color;
     }
 
-    this.chart.update();
+    this.chart.setOption(this.option);
   }
 
   removePrediction(prediction_id) {
     const id = `${prediction_id}`;
     if (this.predictions[id]) {
-      const index = this.chart.data.datasets.findIndex(
-        (dataset) => dataset.label === id
-      );
-      if (index !== -1) {
-        this.chart.data.datasets.splice(index, 1);
+      const i = this.option.series.findIndex((series) => series.name === id);
+      if (i !== -1) {
+        this.option.series.splice(i, 1);
         delete this.predictions[id];
-        this.chart.update();
+        this.chart.setOption(this.option);
       }
     }
   }
 
   clearPredictions() {
-    this.chart.data.datasets = this.chart.data.datasets.slice(0, 1);
+    this.option.series = this.option.series.slice(0, 1);
     this.predictions = {};
-    this.chart.update();
+    this.chart.setOption(this.option);
   }
 
-  clearChart() {
+  clear() {
     this.clearPredictions();
-    this.chart.data.labels = [];
-    this.chart.data.datasets[0].data = [];
-    this.chart.update();
+    this.option.xAxis.data = [];
+    this.option.series[0].data = [];
+    this.chart.setOption(this.option);
   }
 
   reapplyPredictions() {
-    Object.keys(this.predictions).forEach(prediction_id => {
+    Object.keys(this.predictions).forEach((prediction_id) => {
       const prediction = this.predictions[prediction_id];
       this._updatePrediction(prediction_id, prediction);
     });
+  }
+
+  resize(width, height) {
+    this.chart.resize(width, height)
   }
 }
