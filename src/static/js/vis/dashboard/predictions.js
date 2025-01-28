@@ -5,7 +5,9 @@ let current_models = [];
 let predictions_map = {};
 
 const unique_tag_groups = ["disease", "adm_level", "time_resolution"];
+
 let chart;
+let storage;
 
 function hexToRgba(hex, alpha = 1) {
   hex = hex.replace('#', '');
@@ -20,10 +22,9 @@ function hexToRgba(hex, alpha = 1) {
 
 document.addEventListener('DOMContentLoaded', function() {
   $('#tags-card .card-tools button').click()
-  initialize_localStorage();
+  storage = new Storage(dashboard);
   initialize_tags();
 
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
   const dateSlider = $(`#date-picker`);
   chart = new LineChart('chart');
 
@@ -39,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
       max: new Date(max_window_date),
     },
     defaultValues: {
-      min: new Date(dashboards[dashboard].start_window_date),
-      max: new Date(dashboards[dashboard].end_window_date),
+      min: new Date(storage.get("start_window_date")),
+      max: new Date(storage.get("end_window_date")),
     },
     range: {
       min: { days: 90 },
@@ -55,13 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   dateSlider.bind("valuesChanged", function(e, data) {
-    const storage = JSON.parse(localStorage.getItem('dashboards'));
-    const startDate = data.values.min;
-    const endDate = data.values.max;
-
-    storage[dashboard]["start_window_date"] = startDate.toISOString().split('T')[0];
-    storage[dashboard]["end_window_date"] = endDate.toISOString().split('T')[0];
-    localStorage.setItem('dashboards', JSON.stringify(storage));
+    storage.set("start_window_date", data.values.min.toISOString().split('T')[0]);
+    storage.set("end_window_date", data.values.max.toISOString().split('T')[0]);
     update_casos(dashboard);
   });
 
@@ -70,41 +66,55 @@ document.addEventListener('DOMContentLoaded', function() {
   get_predictions_data(dashboard);
 });
 
-function initialize_localStorage() {
-  let data = localStorage.getItem("dashboards");
-  if (!data) { data = {} } else { data = JSON.parse(data) };
-  if (!data[dashboard]) {
-    data[dashboard] = {
-      prediction_ids: null,
-      model_ids: null,
-      tag_ids: null,
-      start_window_date: null,
-      end_window_date: null,
-      adm_1: null,
-      adm_2: null,
+
+class Storage {
+  constructor(dashboard) {
+    let data = localStorage.getItem("dashboards");
+    if (!data) { data = {} } else { data = JSON.parse(data) };
+    if (!data[dashboard]) {
+      data[dashboard] = {
+        prediction_ids: null,
+        model_ids: null,
+        tag_ids: null,
+        start_window_date: null,
+        end_window_date: null,
+        adm_1: null,
+        adm_2: null,
+      }
     }
+    data[dashboard].prediction_ids = data[dashboard].prediction_ids || [];
+    if (model_id) {
+      data[dashboard].model_ids = [model_id];
+    } else {
+      data[dashboard].model_ids = data[dashboard].model_ids || [];
+    }
+    data[dashboard].tag_ids = data[dashboard].tag_ids || [];
+    if (!data[dashboard].start_window_date) {
+      data[dashboard].start_window_date = min_window_date;
+    }
+    if (!data[dashboard].end_window_date) {
+      data[dashboard].end_window_date = max_window_date;
+    }
+    data[dashboard].adm_1 = data[dashboard].adm_1 || null;
+    data[dashboard].adm_2 = data[dashboard].adm_2 || null;
+    localStorage.setItem("dashboards", JSON.stringify(data));
+
+    this.dashboard = dashboard;
   }
-  data[dashboard].prediction_ids = data[dashboard].prediction_ids || [];
-  if (model_id) {
-    data[dashboard].model_ids = [model_id];
-  } else {
-    data[dashboard].model_ids = data[dashboard].model_ids || [];
+
+  get(param) {
+    const data = JSON.parse(localStorage.getItem("dashboards"));
+    return data[this.dashboard][param];
   }
-  data[dashboard].tag_ids = data[dashboard].tag_ids || [];
-  if (!data[dashboard].start_window_date) {
-    data[dashboard].start_window_date = min_window_date;
+
+  set(param, value) {
+    let data = JSON.parse(localStorage.getItem("dashboards"));
+    data[this.dashboard][param] = value;
+    localStorage.setItem("dashboards", JSON.stringify(data));
   }
-  if (!data[dashboard].end_window_date) {
-    data[dashboard].end_window_date = max_window_date;
-  }
-  data[dashboard].adm_1 = data[dashboard].adm_1 || null;
-  data[dashboard].adm_2 = data[dashboard].adm_2 || null;
-  localStorage.setItem("dashboards", JSON.stringify(data));
 }
 
 function initialize_tags() {
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-
   const grouped_tags = Object.entries(all_tags).reduce((groups, [id, tag]) => {
     const key = tag.group || 'Others';
     if (!groups[key]) groups[key] = [];
@@ -136,7 +146,7 @@ function initialize_tags() {
           }
         });
 
-      if (dashboards[dashboard].tag_ids.includes(parseInt(tag.id))) {
+      if (storage.get("tag_ids").includes(parseInt(tag.id))) {
         tag_btn.addClass('active');
       }
 
@@ -158,11 +168,6 @@ function initialize_tags() {
 }
 
 async function update_casos(dashboard) {
-  const dashboards = JSON.parse(localStorage.getItem('dashboards'));
-  const tag_ids = dashboards[dashboard].tag_ids;
-  const start_window_date = dashboards[dashboard].start_window_date;
-  const end_window_date = dashboards[dashboard].end_window_date;
-
   function parse_tag_name(param, name) {
     if (['disease', 'time_resolution'].includes(param)) {
       name = name.toLowerCase();
@@ -174,7 +179,7 @@ async function update_casos(dashboard) {
   }
 
   const params = {};
-  tag_ids.forEach((tag_id) => {
+  storage.get("tag_ids").forEach((tag_id) => {
     const tag = all_tags[tag_id];
     if (tag && tag.group) {
       params[tag.group] = parse_tag_name(tag.group, tag.name);
@@ -184,8 +189,8 @@ async function update_casos(dashboard) {
   let disease = params['disease'] || null;
   let time_resolution = params['time_resolution'] || null;
   let adm_level = params['adm_level'] || null;
-  let adm_1 = dashboards[dashboard].adm_1;
-  let adm_2 = dashboards[dashboard].adm_2;
+  let adm_1 = storage.get("adm_1");
+  let adm_2 = storage.get("adm_2");
 
   if (
     !disease ||
@@ -220,8 +225,8 @@ async function update_casos(dashboard) {
       });
     });
 
-    const startDate = new Date(start_window_date);
-    const endDate = new Date(end_window_date);
+    const startDate = new Date(storage.get("start_window_date"));
+    const endDate = new Date(storage.get("end_window_date"));
 
     const dateKeys = Object.keys(res).map(date => new Date(date));
     const minDate = new Date(Math.min(...dateKeys));
@@ -253,7 +258,6 @@ async function update_casos(dashboard) {
 }
 
 async function get_models_data(dashboard) {
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.style.display = 'flex';
@@ -272,7 +276,7 @@ async function get_models_data(dashboard) {
       acc[model.id] = _;
       return acc;
     }, {});
-    const filter = model_filter_by_tags(all_models, dashboards[dashboard].tag_ids);
+    const filter = model_filter_by_tags(all_models, storage.get("tag_ids"));
     current_models = filter;
     models_list(current_models);
     $(`#models-card .overlay`).remove();
@@ -292,11 +296,9 @@ function model_item(data) {
 }
 
 function models_list(models) {
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-
   models.sort((a, b) => {
-    const aChecked = dashboards[dashboard].model_ids.includes(a.id);
-    const bChecked = dashboards[dashboard].model_ids.includes(b.id);
+    const aChecked = storage.get("model_ids").includes(a.id);
+    const bChecked = storage.get("model_ids").includes(b.id);
     if (aChecked && !bChecked) return -1;
     if (!aChecked && bChecked) return 1;
     return 0;
@@ -319,7 +321,7 @@ function models_list(models) {
 
       $(".checkbox-model").each(function() {
         const model_id = parseInt($(this).val(), 10);
-        if (dashboards[dashboard].model_ids.includes(model_id)) {
+        if (storage.get("model_ids").includes(model_id)) {
           $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
         }
       });
@@ -378,9 +380,8 @@ function model_filter_by_tags(models, tag_ids) {
 }
 
 function model_select(model_id) {
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-  let model_ids = new Set(dashboards[dashboard].model_ids);
-  let tag_ids = new Set(dashboards[dashboard].tag_ids);
+  let model_ids = new Set(storage.get("model_ids"));
+  let tag_ids = new Set(storage.get("tag_ids"));
 
   $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
   $("input[name='models-search']").val("");
@@ -392,22 +393,20 @@ function model_select(model_id) {
     }
   });
 
-  dashboards[dashboard].model_ids = Array.from(model_ids);
-  dashboards[dashboard].tag_ids = Array.from(tag_ids);
-  localStorage.setItem("dashboards", JSON.stringify(dashboards));
+  storage.set("model_ids", Array.from(model_ids));
+  storage.set("tag_ids", Array.from(tag_ids));
 
   tag_ids.forEach(id => tag_select(id));
 
-  const models = model_filter_by_tags(current_models, dashboards[dashboard].tag_ids);
+  const models = model_filter_by_tags(current_models, storage.get("tag_ids"));
   current_models = models;
   models_list(current_models);
   get_predictions_data(dashboard);
 }
 
 function model_unselect(model_id, checkbox = false) {
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
-  let model_ids = new Set(dashboards[dashboard].model_ids);
-  let tag_ids = new Set(dashboards[dashboard].tag_ids);
+  let model_ids = new Set(storage.get("model_ids"));
+  let tag_ids = new Set(storage.get("tag_ids"));
 
   $(`.checkbox-model[value="${model_id}"]`).prop("checked", false);
   $("input[name='models-search']").val("");
@@ -429,21 +428,19 @@ function model_unselect(model_id, checkbox = false) {
       ) {
         tag_ids.delete(tag_id);
         tag_unselect(tag_id);
-        dashboards[dashboard].tag_ids = Array.from(tag_ids);
-        localStorage.setItem("dashboards", JSON.stringify(dashboards));
+        storage.set("tag_ids", Array.from(tag_ids));
       }
     });
   }
 
-  dashboards[dashboard].model_ids = Array.from(model_ids);
-  dashboards[dashboard].tag_ids = Array.from(tag_ids);
-  localStorage.setItem("dashboards", JSON.stringify(dashboards));
+  storage.set("model_ids", Array.from(model_ids));
+  storage.set("tag_ids", Array.from(tag_ids));
 
   let models;
-  if (dashboards[dashboard].model_ids.length > 0) {
-    models = model_filter_by_tags(current_models, dashboards[dashboard].tag_ids);
+  if (storage.get("model_ids").length > 0) {
+    models = model_filter_by_tags(current_models, storage.get("tag_ids"));
   } else {
-    models = model_filter_by_tags(all_models, dashboards[dashboard].tag_ids);
+    models = model_filter_by_tags(all_models, storage.get("tag_ids"));
   }
   current_models = models;
   models_list(current_models);
@@ -453,10 +450,9 @@ function model_unselect(model_id, checkbox = false) {
 function tag_select(tag_id) {
   if (!all_tags[tag_id]) return;
 
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
   const group = all_tags[tag_id].group;
-  let tag_ids = new Set(dashboards[dashboard].tag_ids);
-  let model_ids = new Set(dashboards[dashboard].model_ids);
+  let model_ids = new Set(storage.get("model_ids"));
+  let tag_ids = new Set(storage.get("tag_ids"));
 
   tag_ids.add(tag_id);
 
@@ -480,15 +476,14 @@ function tag_select(tag_id) {
     });
   }
 
-  dashboards[dashboard].tag_ids = Array.from(tag_ids);
-  dashboards[dashboard].model_ids = Array.from(model_ids);
-  localStorage.setItem("dashboards", JSON.stringify(dashboards));
+  storage.set("model_ids", Array.from(model_ids));
+  storage.set("tag_ids", Array.from(tag_ids));
 
   let models;
-  if (dashboards[dashboard].model_ids.length > 0) {
-    models = model_filter_by_tags(current_models, dashboards[dashboard].tag_ids);
+  if (storage.get("model_ids").length > 0) {
+    models = model_filter_by_tags(current_models, storage.get("tag_ids"));
   } else {
-    models = model_filter_by_tags(all_models, dashboards[dashboard].tag_ids);
+    models = model_filter_by_tags(all_models, storage.get("tag_ids"));
   }
   current_models = models;
   models_list(current_models);
@@ -496,10 +491,10 @@ function tag_select(tag_id) {
 
 function tag_unselect(tag_id) {
   if (!all_tags[tag_id]) return;
-  const dashboards = JSON.parse(localStorage.getItem("dashboards"));
+
   const group = all_tags[tag_id].group;
-  let model_ids = new Set(dashboards[dashboard].model_ids);
-  let tag_ids = new Set(dashboards[dashboard].tag_ids);
+  let model_ids = new Set(storage.get("model_ids"));
+  let tag_ids = new Set(storage.get("tag_ids"));
 
   model_ids.forEach(model_id => {
     const model = all_models_map[model_id];
@@ -515,17 +510,16 @@ function tag_unselect(tag_id) {
     $(`#tag-group-${group}`).find('button').prop('disabled', false);
   }
 
-  dashboards[dashboard].tag_ids = Array.from(tag_ids);
-  localStorage.setItem("dashboards", JSON.stringify(dashboards));
+  storage.set("tag_ids", Array.from(tag_ids));
 
   let models;
-  if (dashboards[dashboard].model_ids.length > 0) {
-    models = model_filter_by_tags(current_models, dashboards[dashboard].tag_ids);
+  if (storage.get("model_ids").length > 0) {
+    models = model_filter_by_tags(current_models, storage.get("tag_ids"));
   } else {
-    models = model_filter_by_tags(all_models, dashboards[dashboard].tag_ids);
+    models = model_filter_by_tags(all_models, storage.get("tag_ids"));
   }
-  if (dashboards[dashboard].model_ids.length === 0 && tag_ids.size === 0) {
-    models = model_filter_by_tags(all_models, dashboards[dashboard].tag_ids);
+  if (storage.get("model_ids").length === 0 && tag_ids.size === 0) {
+    models = model_filter_by_tags(all_models, storage.get("tag_ids"));
   }
   current_models = models;
   models_list(current_models);
