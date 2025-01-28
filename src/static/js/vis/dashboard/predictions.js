@@ -445,7 +445,14 @@ class PredictionList {
     const self = this;
     const isAdm2 = predictions.some(prediction => prediction.adm_2 !== null);
 
+    storage.get("prediction_ids").forEach(id => {
+      if (!predictions.some(prediction => prediction.id === id)) {
+        self.unselect(id)
+      }
+    })
+
     let distinctAdm;
+    let admLevel;
     let adm;
     if (!isAdm2) {
       distinctAdm = [...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))];
@@ -453,12 +460,14 @@ class PredictionList {
         storage.set("adm_1", distinctAdm[0]);
       }
       adm = storage.get("adm_1")
+      admLevel = 1;
     } else {
       distinctAdm = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
       if (!storage.get("adm_2") || !distinctAdm.includes(storage.get("adm_2"))) {
         storage.set("adm_2", distinctAdm[0]);
       }
       adm = storage.get("adm_2")
+      admLevel = 2;
     }
 
     const adm_select = `
@@ -471,31 +480,39 @@ class PredictionList {
 
     $("#predictions-card .card-header .card-tools").html(adm_select);
 
-    const filterPredictions = (selectedAdm) => {
-      if (!isAdm2) {
-        storage.set("adm_1", parseInt(selectedAdm, 10));
-      } else {
-        storage.set("adm_2", parseInt(selectedAdm, 10));
-      }
-      update_casos(this.dashboard);
+    self.paginate(self.filter(predictions, admLevel, adm))
 
-      let filter = selectedAdm
-        ? predictions.filter(
-          prediction => prediction.adm_1 == selectedAdm || prediction.adm_2 == selectedAdm
-        )
-        : predictions;
+    $("#adm-filter").on("change", function() {
+      storage.set("prediction_ids", []);
+      chart.clearPredictions();
+      self.paginate(self.filter(predictions, admLevel, $(this).val()));
+    });
+  }
 
-      self.predictions_map = filter.reduce((acc, prediction) => {
-        const { description, ..._ } = prediction;
-        acc[prediction.id] = _;
-        return acc;
-      }, {});
+  filter(predictions, adm_level, adm) {
+    let res;
+    if (adm_level === 1) {
+      storage.set("adm_1", parseInt(adm, 10));
+      res = predictions.filter(prediction => prediction.adm_1 == adm);
+    } else {
+      storage.set("adm_2", parseInt(adm, 10));
+      res = predictions.filter(prediction => prediction.adm_2 == adm);
+    }
+    update_casos(this.dashboard);
 
-      return filter;
-    };
+    this.predictions_map = res.reduce((acc, prediction) => {
+      const { description, ..._ } = prediction;
+      acc[prediction.id] = _;
+      return acc;
+    }, {});
 
+    return res;
+  };
+
+  paginate(predictions) {
+    const self = this;
     $('#predictions-pagination').pagination({
-      dataSource: filterPredictions(adm),
+      dataSource: predictions,
       pageSize: 5,
       callback: function(data, pagination) {
         const body = data.map((item) => self.li(item)).join("");
@@ -519,21 +536,13 @@ class PredictionList {
         });
 
         $("#select-all-checkbox").on("click", function() {
-          const isChecked = $(this).prop("checked");
-          $(".checkbox-prediction").prop("checked", isChecked).each(function() {
+          const checked = $(this).prop("checked");
+          $(".checkbox-prediction").prop("checked", checked).each(function() {
             const prediction_id = parseInt($(this).val(), 10);
-            const prediction = self.predictions_map[prediction_id];
-            if (isChecked) {
-              chart.addPrediction({
-                id: prediction_id,
-                labels: prediction.chart.labels,
-                data: prediction.chart.data,
-                upper: prediction.chart.upper,
-                lower: prediction.chart.lower,
-                color: prediction.color
-              })
+            if (checked) {
+              self.select(self.predictions_map[prediction_id])
             } else {
-              chart.removePrediction(prediction_id)
+              self.unselect(prediction_id)
             }
           });
         });
@@ -543,92 +552,34 @@ class PredictionList {
           const prediction_id = parseInt(event.target.value, 10);
 
           if ($(event.target).prop("checked")) {
-            const prediction = self.predictions_map[prediction_id];
-            chart.addPrediction({
-              id: prediction_id,
-              labels: prediction.chart.labels,
-              data: prediction.chart.data,
-              upper: prediction.chart.upper,
-              lower: prediction.chart.lower,
-              color: prediction.color
-            })
+            self.select(self.predictions_map[prediction_id])
           } else {
-            chart.removePrediction(prediction_id)
+            self.unselect(prediction_id)
           }
         });
       },
     });
+  }
 
-    $("#adm-filter").on("change", function() {
-      const selectedAdm = $(this).val();
-      const filteredPredictions = filterPredictions(selectedAdm);
-      chart.clearPredictions();
+  select(prediction) {
+    let prediction_ids = new Set(storage.get("prediction_ids"));
+    prediction_ids.add(prediction.id);
+    chart.addPrediction({
+      id: prediction.id,
+      labels: prediction.chart.labels,
+      data: prediction.chart.data,
+      upper: prediction.chart.upper,
+      lower: prediction.chart.lower,
+      color: prediction.color
+    })
+    storage.set("prediction_ids", Array.from(prediction_ids));
+  }
 
-      $('#predictions-pagination').pagination({
-        dataSource: filteredPredictions,
-        pageSize: 5,
-        callback: function(data, pagination) {
-          const body = data.map((item) => self.li(item)).join("");
-          $(`#predictions-list`).html(`
-          <thead>
-            <tr>
-              <th style="width: 40px;">
-                <input type="checkbox" id="select-all-checkbox">
-              </th>
-              <th>id</th>
-            </tr>
-          </thead>
-          <tbody>${body}</tbody>
-        `);
-
-          $(".checkbox-prediction").each(function() {
-            const prediction_id = parseInt($(this).val(), 10);
-            if (storage.get("prediction_ids").includes(prediction_id)) {
-              $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
-            }
-          });
-
-          $("#select-all-checkbox").on("click", function() {
-            const isChecked = $(this).prop("checked");
-            $(".checkbox-prediction").prop("checked", isChecked).each(function() {
-              const prediction_id = parseInt($(this).val(), 10);
-              const prediction = self.predictions_map[prediction_id];
-              if (isChecked) {
-                chart.addPrediction({
-                  id: prediction_id,
-                  labels: prediction.chart.labels,
-                  data: prediction.chart.data,
-                  upper: prediction.chart.upper,
-                  lower: prediction.chart.lower,
-                  color: prediction.color
-                })
-              } else {
-                chart.removePrediction(prediction_id)
-              }
-            });
-
-          });
-
-          $(".checkbox-prediction").on("click", function(event) {
-            event.stopPropagation();
-            const prediction_id = parseInt(event.target.value, 10);
-            const prediction = self.predictions_map[prediction_id];
-            if ($(event.target).prop("checked")) {
-              chart.addPrediction({
-                id: prediction_id,
-                labels: prediction.chart.labels,
-                data: prediction.chart.data,
-                upper: prediction.chart.upper,
-                lower: prediction.chart.lower,
-                color: prediction.color
-              })
-            } else {
-              chart.removePrediction(prediction_id)
-            }
-          });
-        },
-      });
-    });
+  unselect(prediction_id) {
+    let prediction_ids = new Set(storage.get("prediction_ids"));
+    prediction_ids.delete(prediction_id);
+    chart.removePrediction(prediction_id)
+    storage.set("prediction_ids", Array.from(prediction_ids));
   }
 }
 
