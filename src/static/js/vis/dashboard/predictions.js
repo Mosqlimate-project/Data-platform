@@ -51,6 +51,23 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+function get_adm_names(admLevel, geocodes) {
+  const params = new URLSearchParams();
+  params.append("adm_level", admLevel);
+  geocodes.forEach(geocode => params.append("geocode", geocode));
+
+  const request = new XMLHttpRequest();
+  request.open("GET", `/vis/get-adm-names/?${params.toString()}`, false);
+  request.send();
+
+  if (request.status !== 200) {
+    throw new Error(request.responseText);
+  }
+
+  return JSON.parse(request.responseText);
+}
+
+
 async function update_casos(dashboard) {
   function parse_tag_name(param, name) {
     if (['disease', 'time_resolution'].includes(param)) {
@@ -470,10 +487,13 @@ class PredictionList {
       admLevel = 2;
     }
 
+    const adm_names = get_adm_names(admLevel, distinctAdm);
+    distinctAdm = distinctAdm.sort((a, b) => adm_names[a].localeCompare(adm_names[b]));
+
     const adm_select = `
-      <select id="adm-filter" class="form-control" style="width: 100px; margin-left: 10px;">
+      <select id="adm-filter" class="form-select form-select-sm w-auto ms-2">
         ${distinctAdm.map(ADM => `
-          <option value="${ADM}" ${ADM === adm ? 'selected' : ''}>${ADM}</option>
+          <option value="${ADM}" ${ADM === adm ? 'selected' : ''}>${adm_names[ADM]}</option>
         `).join("")}
       </select>
     `;
@@ -522,7 +542,7 @@ class PredictionList {
             <th style="width: 40px;">
               <input type="checkbox" id="select-all-checkbox">
             </th>
-            <th>id</th>
+            <th>ID</th>
           </tr>
         </thead>
         <tbody>${body}</tbody>
@@ -532,6 +552,7 @@ class PredictionList {
           const prediction_id = parseInt($(this).val(), 10);
           if (storage.get("prediction_ids").includes(prediction_id)) {
             $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
+            self.select(self.predictions_map[prediction_id]);
           }
         });
 

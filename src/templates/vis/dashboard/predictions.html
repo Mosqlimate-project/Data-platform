@@ -45,7 +45,7 @@
     <div id="predictions-card" class="card">
       <div class="card-header">
         <h3 class="card-title">Predictions</h3>
-        <div class="card-tools">
+        <div class="card-tools d-flex align-items-center">
         </div>
       </div>
       <div class="card-body" style="margin:0;padding:0;">
@@ -178,6 +178,8 @@
 
 #adm-filter {
   height: calc(1.8125rem + 2px);
+  width: 200px;
+  margin-left: 10px;
 }
 
 .card-tools {
@@ -195,6 +197,19 @@
 		transform: translateX(-50%) translatey(0px);
 	}
 }
+
+.ui-rangeSlider,
+.ui-rangeSlider-container,
+.ui-rangeSlider-bar,
+.ui-rangeSlider-handle,
+.ui-rangeSlider-leftHandle,
+.ui-rangeSlider-rightHandle,
+.ui-rangeSlider-arrow,
+.ui-rangeSlider-rightArrow,
+.ui-rangeSlider-leftArrow {
+  height: 20px;
+}
+
 </style>
 
 <script type="text/javascript" src="{% static 'js/vis/dashboard/lineChart.js' %}"></script>

@@ -26,7 +26,8 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from registry.models import Model, Prediction, PredictionDataRow, Tag
 from main.utils import CODES_UF
 from main.api import MUN_DATA
-from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast, City
+from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast
+from .brasil.models import State, City
 from .plots.home.vis_charts import uf_ibge_mapping
 from .plots.forecast_map import macro_forecast_map_table
 from .dash.line_chart import (
@@ -241,6 +242,26 @@ def get_predictions(request) -> JsonResponse:
 
     context["items"] = res
     return JsonResponse(context)
+
+
+# @cache_page(60 * 120)
+@never_cache
+def get_adm_names(request):
+    adm_level = request.GET.get("adm_level")
+    geocodes = request.GET.getlist("geocode")
+
+    res = {}
+    if str(adm_level) == "1":
+        states = State.objects.filter(geocode__in=geocodes)
+        for uf in states:
+            res[uf.geocode] = uf.name
+
+    if str(adm_level) == "2":
+        cities = City.objects.filter(geocode__in=geocodes)
+        for mun in cities:
+            res[mun.geocode] = mun.name
+
+    return JsonResponse(res)
 
 
 #

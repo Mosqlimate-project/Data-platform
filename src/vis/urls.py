@@ -11,6 +11,7 @@ urlpatterns = [
     ),
     path("get-models/", views.get_models, name="get_models"),
     path("get-predictions/", views.get_predictions, name="get_predictions"),
+    path("get-adm-names/", views.get_adm_names, name="get_adm_names"),
     #
     # path(
     #     "dashboard/macro-forecast-map/",
