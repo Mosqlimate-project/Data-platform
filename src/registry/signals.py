@@ -38,6 +38,10 @@ def calculate_score_add_color(sender, instance, **kwargs):
 
     scores = calculate_score(instance)
 
+    if scores != instance.scores:
+        # cache.delete("get_predictions")
+        cache.clear()  # TODO: should delete specific caches
+
     instance.mae = scores["mae"]
     instance.mse = scores["mse"]
     instance.crps = scores["crps"]
@@ -47,6 +51,9 @@ def calculate_score_add_color(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Prediction)
 @receiver(post_delete, sender=Prediction)
+@receiver(post_save, sender=Model)
+@receiver(post_delete, sender=Model)
 def clear_model_cache(sender, **kwargs):
-    cache_key = "views.decorators.cache.cache_page.get_models"
-    cache.delete(cache_key)
+    # cache.delete("get_models")
+    # cache.delete("get_predictions")
+    cache.clear()  # TODO: should delete specific caches

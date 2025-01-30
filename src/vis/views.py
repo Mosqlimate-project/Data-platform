@@ -11,7 +11,7 @@ from django.db import models
 from django.http import JsonResponse, FileResponse
 from django.shortcuts import render
 from django.views import View
-from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.cache import cache_page
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 # from epiweeks import Week
@@ -132,8 +132,7 @@ def get_hist_alerta_data(request) -> JsonResponse:
     return JsonResponse(res)
 
 
-# @cache_page(60 * 120, key_prefix="get_models")
-@never_cache
+@cache_page(60 * 120, key_prefix="get_models")
 def get_models(request) -> JsonResponse:
     sprint = request.GET.get("dashboard", "predictions") == "sprint"
     models = Model.objects.filter(sprint=sprint).order_by("-updated")
@@ -157,8 +156,8 @@ def get_models(request) -> JsonResponse:
     return JsonResponse(context)
 
 
-# @cache_page(60 * 120, key_prefix="get_predictions")
-@never_cache
+@cache_page(60 * 120, key_prefix="get_predictions")
+# @never_cache
 def get_predictions(request) -> JsonResponse:
     model_ids = request.GET.getlist("model_id")
 

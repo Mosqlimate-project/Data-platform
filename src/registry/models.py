@@ -302,12 +302,14 @@ class Prediction(models.Model):
 
         return json.dumps(data)
 
-    def to_chartjs(self) -> dict:
-        df = self.to_dataframe()
-
+    @property
+    def scores(self) -> dict:
         return {
-            "labels": df["date"].tolist(),
-            "data": df["pred"].tolist(),
+            "mae": self.mae,
+            "mse": self.mse,
+            "crps": self.crps,
+            "log_score": self.log_score,
+            "interval_score": self.interval_score,
         }
 
     def parse_metadata(self):
