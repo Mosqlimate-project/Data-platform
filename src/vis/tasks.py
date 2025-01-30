@@ -6,6 +6,7 @@ from django.db.models import Sum, Max
 
 from mosqlimate.celeryapp import app
 
+from registry.models import Prediction
 from .models import TotalCases, TotalCases100kHab
 from .plots.home.vis_charts import (
     uf_ibge_mapping,
@@ -23,7 +24,17 @@ app.conf.beat_schedule = {
         "task": "vis.tasks.update_total_cases_100k_hab_task",
         "schedule": crontab(hour=1, minute=15),
     },
+    "update-prediction-scores-weekly": {
+        "task": "vis.tasks.update_prediction_scores",
+        "schedule": crontab(hour=3, minute=0, day_of_week=2),
+    },
 }
+
+
+@app.task
+def update_prediction_scores():
+    for prediction in Prediction.objects.all():
+        prediction.save()
 
 
 @worker_ready.connect

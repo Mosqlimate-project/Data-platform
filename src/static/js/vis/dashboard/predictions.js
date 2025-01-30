@@ -69,6 +69,8 @@ function get_adm_names(admLevel, geocodes) {
 
 
 async function update_casos(dashboard) {
+  $('#loading-overlay').css('display', 'flex');
+
   function parse_tag_name(param, name) {
     if (['disease', 'time_resolution'].includes(param)) {
       name = name.toLowerCase();
@@ -153,6 +155,7 @@ async function update_casos(dashboard) {
 
     chart.updateCases(Object.keys(res), Object.values(res));
     chart.reapplyPredictions();
+    $('#loading-overlay').css('display', 'none');
   } catch (error) {
     console.error(error);
   }

@@ -253,6 +253,12 @@ class Prediction(models.Model):
     adm_3_geocode = models.IntegerField(null=True, default=None)  # TODO
     date_ini_prediction = models.DateTimeField(null=True, default=None)
     date_end_prediction = models.DateTimeField(null=True, default=None)
+    # scores
+    mae = models.FloatField(null=True, default=None)
+    mse = models.FloatField(null=True, default=None)
+    crps = models.FloatField(null=True, default=None)
+    log_score = models.FloatField(null=True, default=None)
+    interval_score = models.FloatField(null=True, default=None)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

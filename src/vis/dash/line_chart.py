@@ -9,7 +9,6 @@ import scipy.stats as stats
 from django.db import models
 from scoringrules import crps_normal, logs_normal
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from loguru import logger
 
 from .charts import watermark
 from main.utils import UFs, CODES_UF
@@ -28,155 +27,89 @@ warnings.filterwarnings(
 
 
 def calculate_score(
-    queryset: models.QuerySet[PredictionDataRow],
-    data: pd.DataFrame,
+    prediction: Prediction,
     confidence_level: float = 0.9,
-) -> models.QuerySet[PredictionDataRow]:
-    data_df = data[["date", "casos"]]
+) -> dict[str, float]:
+    scores = dict(
+        mae=None,
+        mse=None,
+        crps=None,
+        log_score=None,
+        interval_score=None,
+    )
+
+    data_df = hist_alerta_data(
+        sprint=prediction.model.sprint,
+        disease=prediction.model.disease,
+        start_window_date=prediction.date_ini_prediction,
+        end_window_date=prediction.date_end_prediction,
+        adm_level=prediction.model.ADM_level,
+        adm_1=prediction.adm_1_geocode,
+        adm_2=prediction.adm_2_geocode,
+    )
+
+    if data_df.empty:
+        return scores
+
+    data_df.rename(columns={"target": "casos"}, inplace=True)
+    data_df = data_df[["date", "casos"]]
     data_df.date = pd.to_datetime(data_df.date)
 
-    z_value = stats.norm.ppf((1 + confidence_level) / 2)
+    pred_df = prediction.to_dataframe()
+    pred_df = pred_df.sort_values(by="date")
+    pred_df.date = pd.to_datetime(pred_df.date)
+
+    min_date = max(min(data_df.date), min(pred_df.date))
+    max_date = min(max(data_df.date), max(pred_df.date))
 
     def dt_range(df):
         return (df.date >= min_date) & (df.date <= max_date)
 
-    scores = {}
+    data_df = data_df.loc[dt_range(data_df)].reset_index(drop=True)
 
-    for _id in queryset.values_list("predict_id", flat=True).distinct():
-        pred_df = Prediction.objects.get(pk=_id).to_dataframe()
+    df = data_df.merge(pred_df, on="date", how="inner")
 
-        pred_df = pred_df.sort_values(by="date")
-        pred_df.date = pd.to_datetime(pred_df.date)
+    if df.empty:
+        return scores
 
-        min_date = max(min(data_df.date), min(pred_df.date))
-        max_date = min(max(data_df.date), max(pred_df.date))
+    z_value = stats.norm.ppf((1 + confidence_level) / 2)
 
-        _data_df = data_df.loc[dt_range(data_df)].reset_index(drop=True)
-        _pred_df = pred_df.loc[dt_range(pred_df)].reset_index(drop=True)
+    scores["mae"] = mean_absolute_error(df.casos, df.pred)
+    scores["mse"] = mean_squared_error(df.casos, df.pred)
 
-        if _data_df.empty or _pred_df.empty:
-            logger.warning(
-                "[LINE-CHART]: couldn't calculate score for Prediction "
-                + f"'{_id}'. Ignoring"
-            )
-            continue
-
-        mae = mean_absolute_error(_data_df.casos, _pred_df.pred)
-        mse = mean_squared_error(_data_df.casos, _pred_df.pred)
-
-        crps = np.mean(
-            crps_normal(
-                _data_df.casos,
-                _pred_df.pred,
-                (_pred_df.upper - _pred_df.lower) / (2 * z_value),
-            )
+    scores["crps"] = np.mean(
+        crps_normal(
+            df.casos,
+            df.pred,
+            (df.upper - df.lower) / (2 * z_value),
         )
-
-        log_score = [
-            abs(x)
-            for x in logs_normal(
-                _data_df.casos,
-                _pred_df.pred,
-                (_pred_df.upper - _pred_df.lower) / (2 * z_value),
-                negative=False,
-            )
-            if not np.isinf(x)
-        ]
-
-        log_score_mean = np.mean(
-            np.maximum(log_score, np.repeat(-100, len(log_score)))
-        )
-
-        alpha = 1 - confidence_level
-        upper_bound = _pred_df.upper.values
-        lower_bound = _pred_df.lower.values
-
-        penalty = (
-            2 / alpha * np.maximum(0, lower_bound - _data_df.casos.values)
-        ) + (2 / alpha * np.maximum(0, _data_df.casos.values - upper_bound))
-        interval_score = np.mean((upper_bound - lower_bound) + penalty)
-
-        scores[_id] = dict(
-            mae=mae,
-            mse=mse,
-            crps=crps,
-            log_score=log_score_mean,
-            interval_score=interval_score,
-        )
-
-    mae_c, mse_c, crps_c, log_score_c, interval_score_c = [], [], [], [], []
-
-    for _id, score in scores.items():
-        mae_c.append(
-            models.When(
-                predict_id=_id,
-                then=models.Value(
-                    score["mae"], output_field=models.FloatField()
-                ),
-            )
-        )
-        mse_c.append(
-            models.When(
-                predict_id=_id,
-                then=models.Value(
-                    score["mse"], output_field=models.FloatField()
-                ),
-            )
-        )
-        crps_c.append(
-            models.When(
-                predict_id=_id,
-                then=models.Value(
-                    score["crps"], output_field=models.FloatField()
-                ),
-            )
-        )
-        log_score_c.append(
-            models.When(
-                predict_id=_id,
-                then=models.Value(
-                    score["log_score"], output_field=models.FloatField()
-                ),
-            )
-        )
-        interval_score_c.append(
-            models.When(
-                predict_id=_id,
-                then=models.Value(
-                    score["interval_score"], output_field=models.FloatField()
-                ),
-            )
-        )
-
-    queryset = queryset.annotate(
-        mae=models.Case(
-            *mae_c,
-            default=models.Value(None, output_field=models.FloatField()),
-            output_field=models.FloatField(),
-        ),
-        mse=models.Case(
-            *mse_c,
-            default=models.Value(None, output_field=models.FloatField()),
-            output_field=models.FloatField(),
-        ),
-        crps=models.Case(
-            *crps_c,
-            default=models.Value(None, output_field=models.FloatField()),
-            output_field=models.FloatField(),
-        ),
-        log_score=models.Case(
-            *log_score_c,
-            default=models.Value(None, output_field=models.FloatField()),
-            output_field=models.FloatField(),
-        ),
-        interval_score=models.Case(
-            *interval_score_c,
-            default=models.Value(None, output_field=models.FloatField()),
-            output_field=models.FloatField(),
-        ),
     )
 
-    return queryset
+    log_score = [
+        abs(x)
+        for x in logs_normal(
+            df.casos,
+            df.pred,
+            (df.upper - df.lower) / (2 * z_value),
+            negative=False,
+        )
+        if not np.isinf(x)
+    ]
+
+    scores["log_score"] = np.mean(
+        np.maximum(log_score, np.repeat(-100, len(log_score)))
+    )
+
+    alpha = 1 - confidence_level
+    upper_bound = df.upper.values
+    lower_bound = df.lower.values
+
+    penalty = (2 / alpha * np.maximum(0, lower_bound - df.casos.values)) + (
+        2 / alpha * np.maximum(0, df.casos.values - upper_bound)
+    )
+    scores["interval_score"] = np.mean((upper_bound - lower_bound) + penalty)
+
+    return {k: round(v, 2) for k, v in scores.items()}
 
 
 def hist_alerta_data(

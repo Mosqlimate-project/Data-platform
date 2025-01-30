@@ -7,7 +7,11 @@
 {% block content %}
 <div class="card">
   <div id="chart-chard" class="card-body">
-    <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
+    <div id="chart" style="height: 100%; width: 100%; min-height: 350px">
+      <div id="loading-overlay">
+        <img src="{% static 'img/loading-dots.gif' %}" alt="Loading" style="height: 100px; opacity: 0.5;">
+      </div>
+    </div>
     <div id="date-picker"></div>
   </div>
 </div>
@@ -87,6 +91,18 @@
 </script>
 
 <style>
+#loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
 .table {
   table-layout: fixed;
 }

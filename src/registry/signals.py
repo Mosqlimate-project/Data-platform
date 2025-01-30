@@ -1,8 +1,11 @@
-from django.db.models.signals import post_save, post_delete
+import random
+
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.core.cache import cache
 
 from registry.models import Prediction, Model, Tag
+from vis.dash.line_chart import calculate_score
 
 
 @receiver(post_save, sender=Model)
@@ -19,6 +22,27 @@ def tags_post_save(sender, instance, created, **kwargs):
     if created and instance.color is None:
         instance.color = Tag.random_rgb()
         instance.save()
+
+
+@receiver(pre_save, sender=Prediction)
+def calculate_score_add_color(sender, instance, **kwargs):
+    def random_hex_color():
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        return "#{:02x}{:02x}{:02x}".format(r, g, b)
+
+    if instance.color == "#000000":
+        instance.color = random_hex_color()
+        instance.save()
+
+    scores = calculate_score(instance)
+
+    instance.mae = scores["mae"]
+    instance.mse = scores["mse"]
+    instance.crps = scores["crps"]
+    instance.log_score = scores["log_score"]
+    instance.interval_score = scores["interval_score"]
 
 
 @receiver(post_save, sender=Prediction)
