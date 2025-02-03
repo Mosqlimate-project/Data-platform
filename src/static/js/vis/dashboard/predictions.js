@@ -13,6 +13,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const dateSlider = $(`#date-picker`);
   chart = new LineChart('chart');
 
+  chart.chart.on('finished', function() {
+    chart.chart.setOption({
+      graphic: {
+        type: 'image',
+        right: 10,
+        top: 0,
+        silent: true,
+        style: {
+          image: watermark,
+          width: 150,
+          opacity: 0.3,
+        },
+        z: 10
+      }
+    });
+  });
   try {
     dateSlider.dateRangeSlider("destroy");
   } catch (err) {

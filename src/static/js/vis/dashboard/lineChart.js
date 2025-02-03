@@ -7,9 +7,14 @@ class LineChart {
         trigger: 'axis',
         formatter: (params) => {
           const p = params.filter(param => !isNaN(param.value));
-          return p.map(param => {
-            return `${param.marker} ${param.seriesName}: ${param.value}`;
+          if (p.length === 0) return '';
+
+          const date = p[0].axisValue;
+          const casesInfo = p.map(param => {
+            return `${param.marker} ${param.seriesName}: ${param.value} cases`;
           }).join('<br/>');
+
+          return `<strong>${date}</strong><br/>${casesInfo}`;
         }
       },
       legend: {
@@ -26,21 +31,45 @@ class LineChart {
         type: 'category',
         data: [],
       },
-      yAxis: {
-        type: 'value',
-      },
+      yAxis: [
+        {
+          name: 'New Cases',
+          type: 'value',
+          nameLocation: 'end',
+          nameGap: 10,
+          nameTextStyle: {
+            padding: [0, 0, 5, -12],
+            fontWeight: 'bold'
+          }
+        }
+      ],
       series: [
         {
-          name: 'Cases',
+          name: 'Data',
           type: 'line',
           data: [],
-          smooth: true,
-          areaStyle: {},
+          smooth: false,
+          symbol: 'circle',
+          symbolKeepAspect: true,
+          sampling: 'none',
+          symbolSize: 3,
           lineStyle: {
-            width: 2,
+            width: 0,
           },
         },
       ],
+      graphic: {
+        type: 'image',
+        right: 10,
+        top: 0,
+        silent: true,
+        style: {
+          image: watermark,
+          width: 150,
+          opacity: 0.3,
+        },
+        z: 10
+      }
     };
     this.chart.setOption(this.option, true);
   }

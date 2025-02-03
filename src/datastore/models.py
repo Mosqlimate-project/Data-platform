@@ -193,7 +193,7 @@ class HistoricoAlertaZika(models.Model):
 
 class CopernicusBrasil(models.Model):
     date = models.DateField(db_column="date", primary_key=True)
-    geocodigo = models.BigIntegerField(db_column="geocodigo")
+    geocodigo = models.BigIntegerField(db_column="geocode")
     temp_min = models.FloatField(db_column="temp_min")
     temp_med = models.FloatField(db_column="temp_med")
     temp_max = models.FloatField(db_column="temp_max")
@@ -210,7 +210,7 @@ class CopernicusBrasil(models.Model):
 
     class Meta:
         managed = False
-        db_table = "copernicus_brasil"
+        db_table = "copernicus_bra"
         constraints = [
             models.UniqueConstraint(
                 fields=["date", "geocodigo"], name="composite_primary_key"

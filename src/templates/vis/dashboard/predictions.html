@@ -86,6 +86,7 @@
   const prediction_id = `{{ prediction_id }}` | null;
   const min_window_date = `{{ min_window_date }}`;
   const max_window_date = `{{ max_window_date }}`;
+  const watermark = `{% static 'img/logo-mosqlimate.png' %}`
 
   const all_tags = {{ tags|safe }};
 </script>
@@ -194,7 +195,7 @@
 
 #adm-filter {
   height: calc(1.8125rem + 2px);
-  width: 200px;
+  width: 200px !important;
   margin-left: 10px;
 }
 
