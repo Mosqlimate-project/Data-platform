@@ -140,15 +140,20 @@ def get_models(request) -> JsonResponse:
 
     res = []
     for model in models:
-        if not model.predictions.all():
+        if not model.predictions.first():
             continue
         model_res = {}
         model_res["id"] = model.id
-        model_res["author"] = model.author.user.name
+        model_res["author"] = {
+            "name": model.author.user.name,
+            "user": model.author.user.username,
+        }
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
         model_res["time_resolution"] = model.time_resolution
         model_res["tags"] = list(model.tags.all().values_list("id", flat=True))
+        model_res["name"] = model.name
+        model_res["updated"] = model.updated.date()
         model_res["description"] = model.description
         res.append(model_res)
 

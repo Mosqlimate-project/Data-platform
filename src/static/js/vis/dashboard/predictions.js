@@ -258,11 +258,13 @@ class ModelList {
   }
 
   model_search(query) {
-    const items = current_models.filter((model) =>
+    const items = modelList.current_models.filter((model) =>
       model.id.toString().toLowerCase().includes(query.toLowerCase()) ||
+      model.name.toLowerCase().includes(query.toLowerCase()) ||
       model.disease.toLowerCase().includes(query.toLowerCase()) ||
       model.time_resolution.toLowerCase().includes(query.toLowerCase()) ||
-      model.author.toLowerCase().includes(query.toLowerCase())
+      model.author.name.toLowerCase().includes(query.toLowerCase()) ||
+      model.author.user.toLowerCase().includes(query.toLowerCase())
     );
     this.list(items);
   }
@@ -270,10 +272,13 @@ class ModelList {
   li(model) {
     return `
       <tr data-widget="expandable-table" aria-expanded="false">
-        <td style="width: 40px;">
+        <td style="max-width: 40px;">
           <input type="checkbox" value="${model.id}" id="checkbox-${model.id}" class="checkbox-model">
         </td>
         <td><a href="/registry/model/${model.id}/">${model.id}</a></td>
+        <td class="truncate-name">${model.name}</td>
+        <td class="truncate-name"><a href="/${model.author.username}/">${model.author.name}</a></td>
+        <td class="truncate-name">${model.updated}</td>
       </tr>
       <tr class="expandable-body d-none"><td colspan="2"><p>${model.description}</p></td></tr>
     `;
@@ -298,7 +303,10 @@ class ModelList {
           <thead>
             <tr>
               <th style="width: 40px;">#</th>
-              <th>ID</th>
+              <th style="width: 65px;">ID</th>
+              <th>Name</th>
+              <th style="width: 150px;">Author</th>
+              <th style="width: 130px;">Last update</th>
             </tr>
           </thead>
           <tbody>${body}</tbody>
