@@ -90,68 +90,9 @@ class LineChart {
     }
   }
 
-  _addNewPrediction(prediction) {
-    const id = `${prediction.id}`;
-
-    const pdata = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.data[i] : NaN;
-    });
-
-    this.predictions[id] = prediction;
-
-    this.option.series.push({
-      name: id,
-      type: 'line',
-      data: pdata,
-      smooth: true,
-      lineStyle: {
-        color: prediction.color,
-        width: 2,
-      },
-      symbol: 'circle',
-      symbolSize: 0,
-      itemStyle: {
-        color: prediction.color,
-      },
-      emphasis: {
-        focus: 'series',
-      },
-    });
-
-    this.chart.on('mouseover', (params) => {
-      if (params.seriesName === id) {
-        const prediction = this.predictions[params.seriesName];
-        console.log("over");
-      }
-    });
-
-    this.chart.on('mouseout', (params) => {
-      if (params.seriesName === id) {
-        const prediction = this.predictions[params.seriesName];
-        console.log("out");
-      }
-    });
-
-    this.chart.setOption(this.option, true);
-  }
-
-
-  _updatePrediction(prediction) {
-    const id = `${prediction.id}`;
-
-    const pdata = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.data[i] : NaN;
-    });
-
-    const i = this.option.series.findIndex((series) => series.name === id);
-    if (i !== -1) {
-      this.option.series[i].data = pdata;
-      this.option.series[i].lineStyle.color = prediction.color;
-    }
-
-    this.chart.setOption(this.option, true);
+  getIndex(prediction_id) {
+    console.log(prediction_id)
+    return this.option.series.findIndex((series) => `${series.name}` === `${prediction_id}`);
   }
 
   removePrediction(prediction_id) {
@@ -190,5 +131,52 @@ class LineChart {
 
   resize(width, height) {
     this.chart.resize(width, height)
+  }
+
+  _addNewPrediction(prediction) {
+    const id = `${prediction.id}`;
+    const pdata = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.data[i] : NaN;
+    });
+
+    this.predictions[id] = prediction;
+
+    this.option.series.push({
+      name: id,
+      type: 'line',
+      data: pdata,
+      smooth: true,
+      lineStyle: {
+        color: prediction.color,
+        width: 2,
+      },
+      symbol: 'circle',
+      symbolSize: 0,
+      itemStyle: {
+        color: prediction.color,
+      },
+      emphasis: {
+        focus: 'series',
+      },
+    });
+
+    this.chart.setOption(this.option, true);
+  }
+
+  _updatePrediction(prediction) {
+    const id = `${prediction.id}`;
+    const pdata = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.data[i] : NaN;
+    });
+
+    const i = this.option.series.findIndex((series) => series.name === id);
+    if (i !== -1) {
+      this.option.series[i].data = pdata;
+      this.option.series[i].lineStyle.color = prediction.color;
+    }
+
+    this.chart.setOption(this.option, true);
   }
 }

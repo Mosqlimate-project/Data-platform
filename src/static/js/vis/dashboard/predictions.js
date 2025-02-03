@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
   try {
     dateSlider.dateRangeSlider("destroy");
   } catch (err) {
@@ -64,6 +65,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
   modelList = new ModelList(dashboard);
   predictionList = new PredictionList(dashboard);
+
+  $(".prediction-row").on("mouseenter", function() {
+    const index = chart.getIndex($(this).data("id"));
+    console.log(index);
+    if (index !== -1) {
+      chart.chart.dispatchAction({
+        type: 'highlight',
+        seriesIndex: index,
+        dataIndex: 0
+      });
+    }
+  });
+
+  $(".prediction-row").on("mouseleave", function() {
+    const index = chart.getIndex($(this).data("id"));
+    if (index !== -1) {
+      chart.chart.dispatchAction({
+        type: 'downplay',
+        seriesIndex: index,
+        dataIndex: 0
+      });
+    }
+  });
 });
 
 
@@ -85,8 +109,6 @@ function get_adm_names(admLevel, geocodes) {
 
 
 async function update_casos(dashboard) {
-  $('#loading-overlay').css('display', 'flex');
-
   function parse_tag_name(param, name) {
     if (['disease', 'time_resolution'].includes(param)) {
       name = name.toLowerCase();
@@ -171,7 +193,6 @@ async function update_casos(dashboard) {
 
     chart.updateCases(Object.keys(res), Object.values(res));
     chart.reapplyPredictions();
-    $('#loading-overlay').css('display', 'none');
   } catch (error) {
     console.error(error);
   }
@@ -276,7 +297,7 @@ class ModelList {
           <input type="checkbox" value="${model.id}" id="checkbox-${model.id}" class="checkbox-model">
         </td>
         <td><a href="/registry/model/${model.id}/">${model.id}</a></td>
-        <td class="truncate-name">${model.name}</td>
+        <td class="truncate-name" title="${model.name}">${model.name}</td>
         <td class="truncate-name"><a href="/${model.author.username}/">${model.author.name}</a></td>
         <td class="truncate-name">${model.updated}</td>
       </tr>
@@ -467,15 +488,22 @@ class PredictionList {
   }
 
   li(prediction) {
+    const selected = storage.get("prediction_ids").includes(prediction.id);
+
     return `
-      <tr>
-        <td style="width: 40px;">
-          <input type="checkbox" value="${prediction.id}" id="checkbox-${prediction.id}" class="checkbox-prediction">
-        </td>
-        <td>${prediction.id}</td>
-      </tr>
-    `;
+    <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row">
+      <td style="width: 40px;" class="${selected ? 'selected' : ''}" id="td-${prediction.id}">
+        <input type="checkbox" value="${prediction.id}" id="checkbox-${prediction.id}" class="checkbox-prediction">
+      </td>
+      <td>${prediction.id}</td>
+      <td>${prediction.start_date}</td>
+      <td>${prediction.end_date}</td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="2"><p>${prediction.description}</p></td></tr>
+  `;
   }
+
+
 
   list(predictions) {
     predictions.sort((a, b) => {
@@ -570,6 +598,17 @@ class PredictionList {
               <input type="checkbox" id="select-all-checkbox">
             </th>
             <th>ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th style="width: 100px;">
+              <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 80px !important;">
+                <option value="mae">MAE</option>
+                <option value="mse">MSE</option>
+                <option value="crps">CRPS</option>
+                <option value="log_score">Log Score</option>
+                <option value="interval_score">Interval Score</option>
+              </select>
+            </th>
           </tr>
         </thead>
         <tbody>${body}</tbody>
@@ -577,9 +616,12 @@ class PredictionList {
 
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
+          const td = $(`#td-${prediction_id}`);
           if (storage.get("prediction_ids").includes(prediction_id)) {
             $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
             self.select(self.predictions_map[prediction_id]);
+            td.addClass('selected');
+            td.css("background-color", self.predictions_map[prediction_id].color);
           }
         });
 
@@ -611,6 +653,7 @@ class PredictionList {
 
   select(prediction) {
     let prediction_ids = new Set(storage.get("prediction_ids"));
+
     prediction_ids.add(prediction.id);
     chart.addPrediction({
       id: prediction.id,
@@ -621,6 +664,10 @@ class PredictionList {
       color: prediction.color
     })
     storage.set("prediction_ids", Array.from(prediction_ids));
+
+    const td = $(`#td-${prediction.id}`);
+    td.addClass('selected');
+    td.css("background-color", prediction.color);
   }
 
   unselect(prediction_id) {
@@ -628,6 +675,10 @@ class PredictionList {
     prediction_ids.delete(prediction_id);
     chart.removePrediction(prediction_id)
     storage.set("prediction_ids", Array.from(prediction_ids));
+
+    const td = $(`#td-${prediction_id}`);
+    td.removeClass('selected');
+    td.css("background-color", '');
   }
 }
 

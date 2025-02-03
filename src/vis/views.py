@@ -14,7 +14,6 @@ from django.views import View
 from django.views.decorators.cache import cache_page
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-# from epiweeks import Week
 from registry.models import Model, Prediction, Tag
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast
 from .brasil.models import State, City
@@ -162,7 +161,6 @@ def get_models(request) -> JsonResponse:
 
 
 @cache_page(60 * 120, key_prefix="get_predictions")
-# @never_cache
 def get_predictions(request) -> JsonResponse:
     model_ids = request.GET.getlist("model_id")
 
@@ -184,13 +182,14 @@ def get_predictions(request) -> JsonResponse:
 
         p_res = {}
         p_res["id"] = p.id
-        # p_res["description"] = p.description
+        p_res["description"] = p.description
         p_res["adm_1"] = p.adm_1_geocode
         p_res["adm_2"] = p.adm_2_geocode
-        p_res["start_date"] = p.date_ini_prediction
-        p_res["end_date"] = p.date_end_prediction
+        p_res["start_date"] = p.date_ini_prediction.date()
+        p_res["end_date"] = p.date_end_prediction.date()
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
         p_res["chart"] = chart
+        p_res["scores"] = p.scores
         p_res["color"] = p.color
         res.append(p_res)
 

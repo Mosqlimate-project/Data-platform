@@ -96,8 +96,10 @@ def calculate_score(
         if not np.isinf(x)
     ]
 
-    scores["log_score"] = np.mean(
-        np.maximum(log_score, np.repeat(-100, len(log_score)))
+    scores["log_score"] = (
+        np.mean(np.maximum(log_score, np.repeat(-100, len(log_score))))
+        if log_score
+        else None
     )
 
     alpha = 1 - confidence_level
@@ -109,7 +111,7 @@ def calculate_score(
     )
     scores["interval_score"] = np.mean((upper_bound - lower_bound) + penalty)
 
-    return {k: round(v, 2) for k, v in scores.items()}
+    return {k: round(v, 2) if v is not None else v for k, v in scores.items()}
 
 
 def hist_alerta_data(
