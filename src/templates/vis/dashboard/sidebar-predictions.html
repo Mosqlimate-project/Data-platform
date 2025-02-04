@@ -1,0 +1,35 @@
+{% load i18n %}
+{% load filters %}
+
+<div class="user-panel mt-3 pb-3 mb-3 d-flex">
+  <nav class="mt-2" style="width:100%">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+      <small><p class="category">dashboard</p></small>
+      <li class="nav-item">
+        <a href="{% url 'dashboard' %}{% if request.GET.dashboard != 'sprint' %}?dashboard=sprint{% endif %}" class="nav-link {% if request.GET.dashboard == 'sprint' %}active{% endif %}">
+          <p>Sprint 2024/25</p>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<style>
+.nav-link {
+  width: 100%;
+  text-align: start;
+}
+
+.nav-link.active {
+  background-color: #6976B7 !important;
+}
+
+.nav-text {
+  color: lightgray;
+}
+
+.category {
+  margin-bottom: 0;
+  color: gray;
+}
+</style>

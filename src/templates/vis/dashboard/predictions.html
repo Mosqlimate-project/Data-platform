@@ -1,0 +1,237 @@
+{% extends 'vis/dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Dashboard - Predictions{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div id="chart-chard" class="card-body">
+    <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
+    <div id="date-picker"></div>
+  </div>
+</div>
+
+<div class="row">
+  {{models}}
+  <div class="col-md-6">
+    <div id="models-card" class="card">
+      <div class="card-header">
+        <h3 class="card-title">Models</h3>
+        <div class="card-tools">
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="models-search" class="form-control float-right" placeholder="Search">
+
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body" style="margin:0;padding:0;">
+        <table id="models-list" class="table table-bordered table-hover">
+        </table>
+      </div>
+      <div class="card-footer clearfix">
+        <ul id="models-pagination" class="pagination pagination-sm m-0 float-right"></ul>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="col-md-6">
+    <div id="predictions-card" class="card">
+      <div class="card-header">
+        <h3 class="card-title">Predictions</h3>
+        <div class="card-tools d-flex align-items-center">
+        </div>
+      </div>
+      <div class="card-body" style="margin:0;padding:0;">
+        <table id="predictions-list" class="table table-bordered table-hover">
+        </table>
+      </div>
+      <div class="card-footer clearfix">
+        <div class="row">
+          <div class="col">
+            <button id="predictions-clear-all" type="button" class="btn btn-tool">Clear</button>
+          </div>
+          <div class="col">
+            <ul id="predictions-pagination" class="pagination pagination-sm m-0 float-right"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tags-card" class="card">
+  <div class="card-header">
+    <h3 class="card-title">Tags</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-chevron-down"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+  </div>
+</div>
+
+<br>
+<br>
+<br>
+
+<script>
+  const dashboard = `{{ dashboard }}`;
+  const model_id = `{{ model_id }}` | null;
+  const prediction_id = `{{ prediction_id }}` | null;
+  const min_window_date = `{{ min_window_date }}`;
+  const max_window_date = `{{ max_window_date }}`;
+  const watermark = `{% static 'img/logo-mosqlimate.png' %}`
+  const loading = `{% static 'img/loading-dots.gif' %}`
+
+  const all_tags = {{ tags|safe }};
+</script>
+
+<style>
+.table {
+  table-layout: fixed;
+}
+
+#tags-card .card-body {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tag-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tag-group-title {
+  flex: 1 1 100%;
+  font-weight: bold;
+}
+
+.tag-btn {
+  --btn-color: rgb(124 45 18);
+  --btn-bg: rgb(252 211 77);
+  max-height: 40px;
+  max-width: fit-content;
+  position: relative;
+  display: inline-flex;
+  flex-grow: 0;
+  flex-basis: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.8rem;
+  font-family: system-ui;
+  border: 2px solid var(--btn-color);
+  transition: 100ms ease;
+  box-shadow: 5px 5px 0 0 var(--btn-color);
+  text-shadow: 0.5px 0px 0px lightgray;
+}
+
+.tag-btn:hover {
+  box-shadow: 2px 2px 0 0 var(--btn-color);
+}
+
+.tag-btn:disabled:hover {
+  box-shadow: 2px 2px 0 0 gray;
+}
+
+.tag-btn:active, .tag-btn.active {
+  transition: 50ms ease;
+  box-shadow:  0 0 0 0;
+  color: white;
+  text-shadow: 1px 0px 0px gray;
+}
+
+.tag-btn:disabled, .tag-btn.disabled {
+  text-shadow: unset;
+  border: 2px solid gray;
+  box-shadow: 5px 5px 0 0 gray;
+}
+
+.tag-btn:focus-visible {
+  outline: 0;
+  --btn-color: #002cc8;
+}
+
+.tag-btn:focus-visible::after {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  transform: translateX(-50%);
+  content: "\21E7";
+  animation: float .5s ease-in-out infinite;
+}
+
+.tag-btn p {
+  margin-bottom: 0;
+}
+
+#scores {
+  height: 25px;
+  font-size: 0.75rem;
+}
+
+#adm-filter {
+  height: calc(1.8125rem + 2px);
+  width: 200px !important;
+  margin-left: 10px;
+}
+
+.truncate-name {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-tools {
+  height: 20px;
+}
+
+@keyframes float {
+	0% {
+		transform: translateX(-50%) translatey(0px);
+	}
+	50% {
+		transform: translateX(-50%) translatey(-6px);
+	}
+	100% {
+		transform: translateX(-50%) translatey(0px);
+	}
+}
+
+.ui-rangeSlider,
+.ui-rangeSlider-container,
+.ui-rangeSlider-bar,
+.ui-rangeSlider-handle,
+.ui-rangeSlider-leftHandle,
+.ui-rangeSlider-rightHandle,
+.ui-rangeSlider-arrow,
+.ui-rangeSlider-rightArrow,
+.ui-rangeSlider-leftArrow {
+  height: 20px;
+}
+
+</style>
+
+<script type="text/javascript" src="{% static 'js/vis/dashboard/lineChart.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vis/dashboard/predictions.js' %}"></script>
+{% endblock %}

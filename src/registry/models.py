@@ -21,6 +21,7 @@ def get_plangs_path() -> str:
 
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
+    group = models.CharField(unique=False, null=True)
     color = models.CharField(
         max_length=7,
         null=True,
@@ -181,7 +182,7 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=500, null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name="tags", default=[])
+    tags = models.ManyToManyField(Tag, related_name="model_tags", default=[])
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage,
@@ -220,11 +221,30 @@ class Model(models.Model):
 
 
 class Prediction(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, null=False)
+    model = models.ForeignKey(
+        Model, on_delete=models.CASCADE, null=False, related_name="predictions"
+    )
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
+    tags = models.ManyToManyField(
+        Tag, related_name="prediction_tags", default=[]
+    )
     # Metadata
+    color = models.CharField(
+        max_length=7,
+        null=False,
+        default="#000000",
+        validators=[
+            RegexValidator(
+                regex=r"^#[0-9A-Fa-f]{6}$",
+                message=_(
+                    "Color must be in hexadecimal format, e.g., #ffffff"
+                ),
+            ),
+        ],
+        help_text=_("Color in hexadecimal format. E.g: #ffffff"),
+    )
     visualizable = models.BooleanField(default=False)
     metadata = models.CharField(null=True, default=None)
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
@@ -233,6 +253,12 @@ class Prediction(models.Model):
     adm_3_geocode = models.IntegerField(null=True, default=None)  # TODO
     date_ini_prediction = models.DateTimeField(null=True, default=None)
     date_end_prediction = models.DateTimeField(null=True, default=None)
+    # scores
+    mae = models.FloatField(null=True, default=None)
+    mse = models.FloatField(null=True, default=None)
+    crps = models.FloatField(null=True, default=None)
+    log_score = models.FloatField(null=True, default=None)
+    interval_score = models.FloatField(null=True, default=None)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -275,6 +301,16 @@ class Prediction(models.Model):
             row["date"] = str(datetime.fromisoformat(row["date"]).date())
 
         return json.dumps(data)
+
+    @property
+    def scores(self) -> dict:
+        return {
+            "mae": self.mae,
+            "mse": self.mse,
+            "crps": self.crps,
+            "log_score": self.log_score,
+            "interval_score": self.interval_score,
+        }
 
     def parse_metadata(self):
         if not self.to_dataframe().empty:

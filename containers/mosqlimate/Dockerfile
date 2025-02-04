@@ -63,7 +63,7 @@ COPY --chown=mosqlimate:mosqlimate pyproject.toml /opt/services/mosqlimate
 RUN pip install "cython<3.0.0" \
   && pip install --no-build-isolation "pyyaml<6.0" \ 
   && poetry config virtualenvs.create false \
-  && poetry install --without pre-commit,dev,docs
+  && poetry install --no-root --without pre-commit,dev,docs
 
 COPY --chown=mosqlimate:mosqlimate containers/entrypoint.sh /opt/entrypoint.sh
 ADD --chown=mosqlimate:mosqlimate src/ /opt/services/mosqlimate/

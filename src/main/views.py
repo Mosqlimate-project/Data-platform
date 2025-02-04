@@ -165,23 +165,6 @@ class EditModelView(View):
         context = {
             "model": model,
             "implementation_languages": languages,
-            "diseases": [
-                ("dengue", "Dengue"),
-                ("zika", "Zika"),
-                ("chikungunya", "Chikungunya"),
-            ],
-            "adm_levels": [
-                (0, _("National")),
-                (1, _("State")),
-                (2, _("Municipality")),
-                (3, _("Sub Municipality")),
-            ],
-            "time_resolutions": [
-                ("day", _("Day")),
-                ("week", _("Week")),
-                ("month", _("Month")),
-                ("year", _("Year")),
-            ],
         }
         return render(request, self.template_name, context)
 
@@ -219,11 +202,6 @@ class EditModelView(View):
                     ),
                     "spatial": form.data.get("model_spatial") == "True",
                     "temporal": form.data.get("model_temporal") == "True",
-                    "ADM_level": form.cleaned_data["model_adm_level"],
-                    "disease": form.cleaned_data["model_disease"],
-                    "time_resolution": form.cleaned_data[
-                        "model_time_resolution"
-                    ],
                 }
 
                 status_code, model = update_model(
