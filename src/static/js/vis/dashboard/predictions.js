@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
+
 });
 
 
@@ -214,6 +215,7 @@ class Storage {
         end_window_date: null,
         adm_1: null,
         adm_2: null,
+        score: null,
       }
     }
     data[this.dashboard].prediction_ids = data[this.dashboard].prediction_ids || [];
@@ -231,6 +233,7 @@ class Storage {
     }
     data[this.dashboard].adm_1 = data[this.dashboard].adm_1 || null;
     data[this.dashboard].adm_2 = data[this.dashboard].adm_2 || null;
+    data[this.dashboard].score = data[this.dashboard].score || null;
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
 
@@ -301,7 +304,7 @@ class ModelList {
         <td class="truncate-name"><a href="/${model.author.username}/">${model.author.name}</a></td>
         <td class="truncate-name">${model.updated}</td>
       </tr>
-      <tr class="expandable-body d-none"><td colspan="2"><p>${model.description}</p></td></tr>
+      <tr class="expandable-body d-none"><td colspan="5"><p>${model.description}</p></td></tr>
     `;
   }
 
@@ -457,6 +460,7 @@ class PredictionList {
   constructor(dashboard) {
     this.dashboard = dashboard;
     this.predictions_map = {};
+    this.current_predictions = [];
     this.get_data();
   }
 
@@ -491,27 +495,25 @@ class PredictionList {
     const selected = storage.get("prediction_ids").includes(prediction.id);
 
     return `
-    <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row">
+    <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${prediction.id}">
       <td style="width: 40px;" class="${selected ? 'selected' : ''}" id="td-${prediction.id}">
         <input type="checkbox" value="${prediction.id}" id="checkbox-${prediction.id}" class="checkbox-prediction">
       </td>
-      <td>${prediction.id}</td>
-      <td>${prediction.start_date}</td>
-      <td>${prediction.end_date}</td>
+      <td style="width: 40px;">${prediction.id}</td>
+      <td style="width: 40px;"><a href="/registry/model/${prediction.model}/">${prediction.model}</a></td>
+      <td style="width: 110px;">${prediction.start_date}</td>
+      <td style="width: 110px;">${prediction.end_date}</td>
+      <td style="width: 150px;">${prediction.scores[storage.get("score")] || "-"}</td>
     </tr>
-    <tr class="expandable-body d-none"><td colspan="2"><p>${prediction.description}</p></td></tr>
+    <tr class="expandable-body d-none"><td colspan="6"><p>${prediction.description}</p></td></tr>
   `;
   }
 
-
-
   list(predictions) {
-    predictions.sort((a, b) => {
-      const aChecked = storage.get("prediction_ids").includes(a.id);
-      const bChecked = storage.get("prediction_ids").includes(b.id);
-      if (aChecked && !bChecked) return -1;
-      if (!aChecked && bChecked) return 1;
-      return 0;
+    predictions = [...predictions].sort((a, b) => {
+      const aScore = a.scores[storage.get("score")] ?? Infinity;
+      const bScore = b.scores[storage.get("score")] ?? Infinity;
+      return aScore - bScore;
     });
 
     const self = this;
@@ -562,6 +564,10 @@ class PredictionList {
       chart.clearPredictions();
       self.paginate(self.filter(predictions, admLevel, $(this).val()));
     });
+
+    $("#predictions-clear-all").on("click", function() {
+      self.clear()
+    });
   }
 
   filter(predictions, adm_level, adm) {
@@ -586,33 +592,45 @@ class PredictionList {
 
   paginate(predictions) {
     const self = this;
+    this.current_predictions = predictions;
     $('#predictions-pagination').pagination({
       dataSource: predictions,
       pageSize: 5,
       callback: function(data, pagination) {
         const body = data.map((item) => self.li(item)).join("");
+        const score = storage.get("score");
         $(`#predictions-list`).html(`
         <thead>
           <tr>
             <th style="width: 40px;">
               <input type="checkbox" id="select-all-checkbox">
             </th>
-            <th>ID</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th style="width: 100px;">
-              <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 80px !important;">
-                <option value="mae">MAE</option>
-                <option value="mse">MSE</option>
-                <option value="crps">CRPS</option>
-                <option value="log_score">Log Score</option>
-                <option value="interval_score">Interval Score</option>
-              </select>
+            <th style="width: 65px;">ID</th>
+            <th style="width: 85px;">Model</th>
+            <th style="width: 110px;">Start Date</th>
+            <th style="width: 110px;">End Date</th>
+            <th style="width: 150px;">
+              <div class="row">
+                <div class="col">Score</div>
+                <div class="col">
+                  <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 80px !important;">
+                    <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
+                    <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
+                    <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
+                    <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
+                    <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
+                  </select>
+                </div>
+              </div>
             </th>
           </tr>
         </thead>
         <tbody>${body}</tbody>
       `);
+
+        $("#scores").on("change", function() {
+          self.set_score($(this).val());
+        });
 
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
@@ -647,8 +665,20 @@ class PredictionList {
             self.unselect(prediction_id)
           }
         });
+
+        $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
       },
     });
+  }
+
+  set_score(score) {
+    storage.set("score", score);
+    const predictions = [...this.current_predictions].sort((a, b) => {
+      const aScore = a.scores[score] ?? Infinity;
+      const bScore = b.scores[score] ?? Infinity;
+      return aScore - bScore;
+    });
+    this.list(predictions);
   }
 
   select(prediction) {
@@ -679,6 +709,12 @@ class PredictionList {
     const td = $(`#td-${prediction_id}`);
     td.removeClass('selected');
     td.css("background-color", '');
+    $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", false);
+    $("#select-all-checkbox").prop("checked", false);
+  }
+
+  clear() {
+    storage.get("prediction_ids").forEach(id => this.unselect(id));
   }
 }
 

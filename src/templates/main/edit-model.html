@@ -32,38 +32,6 @@
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="model_time_resolution"><b>{% translate "Time resolution" %}:</b></label>
-                    <select id="edit-time-resolution" name="model_time_resolution" class="form-control" required>
-                        {% for value, label in time_resolutions %}
-                        <option value="{{ value }}" {% if value == model.time_resolution %}selected{% endif %}>
-                        {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col">
-                    <label for="model_adm_level"><b>{% translate "ADM Level" %}:</b></label>
-                    <select id="edit-adm-level" name="model_adm_level" class="form-control" required>
-                        {% for level, label in adm_levels %}
-                        <option value="{{ level }}" {% if level == model.ADM_level %}selected{% endif %}>
-                        {{ level }} - {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col">
-                    <label for="model_disease"><b>{% translate "Disease" %}:</b></label>
-                    <select id="edit-disease" name="model_disease" class="form-control" required>
-                        {% for disease, label in diseases %}
-                        <option value="{{ disease }}" {% if disease == model.disease %}selected{% endif %}>
-                        {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col">
                     <label for="model_repository"><b>{% translate "Github repository" %}:</b></label>
                     <input type="text" id="edit-model-repo" name="model_repository" value="{{ model.repository }}" class="form-control" maxlength="150" placeholder="https://github.com/<user>/<repository>/" required>
                 </div>

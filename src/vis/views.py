@@ -182,6 +182,7 @@ def get_predictions(request) -> JsonResponse:
 
         p_res = {}
         p_res["id"] = p.id
+        p_res["model"] = p.model.id
         p_res["description"] = p.description
         p_res["adm_1"] = p.adm_1_geocode
         p_res["adm_2"] = p.adm_2_geocode
