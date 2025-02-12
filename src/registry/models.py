@@ -12,7 +12,6 @@ from django.utils.translation import gettext_lazy as _
 
 from main.utils import UF_CODES
 from vis.dash import errors
-from vis.metadata import compose_prediction_metadata
 
 
 def get_plangs_path() -> str:
@@ -230,7 +229,6 @@ class Prediction(models.Model):
     tags = models.ManyToManyField(
         Tag, related_name="prediction_tags", default=[]
     )
-    # Metadata
     color = models.CharField(
         max_length=7,
         null=False,
@@ -246,7 +244,6 @@ class Prediction(models.Model):
         help_text=_("Color in hexadecimal format. E.g: #ffffff"),
     )
     visualizable = models.BooleanField(default=False)
-    metadata = models.CharField(null=True, default=None)
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
     adm_1_geocode = models.IntegerField(null=True, default=None)  # TODO
     adm_2_geocode = models.IntegerField(null=True, default=None)
@@ -311,14 +308,6 @@ class Prediction(models.Model):
             "log_score": self.log_score,
             "interval_score": self.interval_score,
         }
-
-    def parse_metadata(self):
-        if not self.to_dataframe().empty:
-            self._add_adm_geocode()
-            self._add_ini_end_prediction_dates()
-            self.visualizable = True
-            self.metadata = compose_prediction_metadata(self)
-            self.save()
 
     def _add_adm_geocode(self):
         level = self.model.ADM_level

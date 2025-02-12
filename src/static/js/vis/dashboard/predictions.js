@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   $(".prediction-row").on("mouseenter", function() {
     const index = chart.getIndex($(this).data("id"));
-    console.log(index);
     if (index !== -1) {
       chart.chart.dispatchAction({
         type: 'highlight',
@@ -144,6 +143,7 @@ async function update_casos(dashboard) {
     chart.clear();
     return;
   }
+
 
   const url_params = new URLSearchParams();
   url_params.append('dashboard', dashboard);
@@ -525,45 +525,110 @@ class PredictionList {
       }
     })
 
-    let distinctAdm;
-    let admLevel;
     let adm;
     if (!isAdm2) {
-      distinctAdm = [...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))];
-      if (!storage.get("adm_1") || !distinctAdm.includes(storage.get("adm_1"))) {
-        storage.set("adm_1", distinctAdm[0]);
+      let adm1List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))];
+
+      if (!storage.get("adm_1") || !adm1List.includes(storage.get("adm_1"))) {
+        storage.set("adm_1", adm1List[0]);
       }
+
       adm = storage.get("adm_1")
-      admLevel = 1;
+      storage.set("adm_level", 1)
+
+      const adm1_names = get_adm_names(1, adm1List);
+      adm1List = adm1List.sort((a, b) => adm1_names[a].localeCompare(adm1_names[b]));
+
+      const adm1_select = `
+        <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2">
+          ${adm1List.map(ADM => `
+            <option value="${ADM}" ${ADM === adm ? 'selected' : ''}>${adm1_names[ADM]}</option>
+          `).join("")}
+        </select>
+      `;
+
+      $("#predictions-card .card-header .card-tools").html(adm1_select);
+
+      self.paginate(self.filter(predictions, 1, adm))
+
+      $("#adm1-filter").on("change", function() {
+        storage.set("prediction_ids", []);
+        chart.clearPredictions();
+        self.paginate(self.filter(predictions, 1, $(this).val()));
+      });
     } else {
-      distinctAdm = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
-      if (!storage.get("adm_2") || !distinctAdm.includes(storage.get("adm_2"))) {
-        storage.set("adm_2", distinctAdm[0]);
+      let adm2List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
+      let adm1List = [...new Set(adm2List.map(adm => parseInt(String(adm).slice(0, 2), 10)))];
+      console.log(adm2List)
+      console.log(adm1List)
+
+      storage.set("adm_level", 2);
+
+      if (!storage.get("adm_2") || !adm2List.includes(storage.get("adm_2"))) {
+        if (!storage.get("adm_1") || !adm1List.includes(storage.get("adm_1"))) {
+          const adm2 = adm2List.find(adm => String(adm).startsWith(String(adm1List[0])));
+          storage.set("adm_2", adm2);
+          storage.set("adm_1", adm1List[0]);
+        } else {
+          const adm2 = adm2List.find(adm => String(adm).startsWith(String(storage.get("adm_1"))));
+          storage.set("adm_2", adm2);
+        }
+      } else {
+        storage.set("adm_1", parseInt(String(storage.get("adm_2")).slice(0, 2), 10));
       }
-      adm = storage.get("adm_2")
-      admLevel = 2;
+
+      const adm1_names = get_adm_names(1, adm1List);
+      const adm1_list = adm1List.sort((a, b) => adm1_names[a].localeCompare(adm1_names[b]));
+
+      let adm2_list = adm2List.filter(adm => adm.toString().startsWith(storage.get("adm_1").toString()));
+      const adm2_names = get_adm_names(2, adm2_list);
+      adm2_list.sort((a, b) => adm2_names[a].localeCompare(adm2_names[b]));
+
+      const adm1_select = `
+        <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2">
+          ${adm1_list.map(ADM => `
+            <option value="${ADM}" ${ADM === storage.get("adm_1") ? 'selected' : ''}>${adm1_names[ADM]}</option>
+          `).join("")}
+        </select>
+      `;
+
+      const adm2_select = `
+        <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
+          ${adm2_list.map(ADM => `
+            <option value="${ADM}" ${ADM === storage.get("adm_2") ? 'selected' : ''}>${adm2_names[ADM]}</option>
+          `).join("")}
+        </select>
+      `;
+
+      $("#predictions-card .card-header .card-tools").html(adm1_select + adm2_select);
+
+      $("#adm1-filter").on("change", function() {
+        storage.set("prediction_ids", []);
+        chart.clearPredictions();
+
+        let adm2_list = adm2List.filter(adm => String(adm).startsWith(String($(this).val())));
+        const adm2_names = get_adm_names(2, adm2_list);
+        adm2_list = adm2_list.sort((a, b) => adm2_names[a].localeCompare(adm2_names[b]));
+
+        let adm2 = storage.get("adm_2");
+        if (!adm2 || !adm2_list.includes(adm2) || !String(adm2).startsWith(String($(this).val()))) {
+          storage.set("adm_2", adm2_list[0]);
+        }
+
+        const adm2_select = `
+          <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
+            ${adm2_list.map(ADM => `
+              <option value="${ADM}" ${ADM === storage.get("adm_2") ? 'selected' : ''}>${adm2_names[ADM]}</option>
+            `).join("")}
+          </select>
+        `;
+
+        $("#adm2-filter").replaceWith(adm2_select);
+        self.paginate(self.filter(predictions, 2, storage.get("adm_2")));
+      });
+
+      $("#adm1-filter").change();
     }
-
-    const adm_names = get_adm_names(admLevel, distinctAdm);
-    distinctAdm = distinctAdm.sort((a, b) => adm_names[a].localeCompare(adm_names[b]));
-
-    const adm_select = `
-      <select id="adm-filter" class="form-select form-select-sm w-auto ms-2">
-        ${distinctAdm.map(ADM => `
-          <option value="${ADM}" ${ADM === adm ? 'selected' : ''}>${adm_names[ADM]}</option>
-        `).join("")}
-      </select>
-    `;
-
-    $("#predictions-card .card-header .card-tools").html(adm_select);
-
-    self.paginate(self.filter(predictions, admLevel, adm))
-
-    $("#adm-filter").on("change", function() {
-      storage.set("prediction_ids", []);
-      chart.clearPredictions();
-      self.paginate(self.filter(predictions, admLevel, $(this).val()));
-    });
 
     $("#predictions-clear-all").on("click", function() {
       self.clear()
@@ -673,12 +738,7 @@ class PredictionList {
 
   set_score(score) {
     storage.set("score", score);
-    const predictions = [...this.current_predictions].sort((a, b) => {
-      const aScore = a.scores[score] ?? Infinity;
-      const bScore = b.scores[score] ?? Infinity;
-      return aScore - bScore;
-    });
-    this.list(predictions);
+    location.reload();
   }
 
   select(prediction) {
