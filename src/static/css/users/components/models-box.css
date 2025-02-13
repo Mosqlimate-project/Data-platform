@@ -1,5 +1,14 @@
-.models-table {
-    overflow: auto;
+.models-table th, .models-table td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.models-table td a {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 th {
