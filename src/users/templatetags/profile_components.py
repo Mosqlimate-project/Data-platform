@@ -11,7 +11,7 @@ def models_box(context):
     profile = context.get("user_profile")
     user = context.request.user
     models = Model.objects.filter(author__user=profile).annotate(
-        predictions_count=Count("prediction")
+        predictions_count=Count("predictions")
     )
 
     context = {
