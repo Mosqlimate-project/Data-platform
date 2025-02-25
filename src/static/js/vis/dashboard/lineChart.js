@@ -18,7 +18,7 @@ class LineChart {
         }
       },
       legend: {
-        top: 0,
+        top: 15,
       },
       grid: {
         top: '10%',
@@ -36,9 +36,10 @@ class LineChart {
           name: 'New Cases',
           type: 'value',
           nameLocation: 'end',
-          nameGap: 10,
+          nameGap: 18,
+          nameRotate: 0,
           nameTextStyle: {
-            padding: [0, 0, 5, -12],
+            padding: [0, 0, 5, 100],
             fontWeight: 'bold'
           }
         }
@@ -104,6 +105,14 @@ class LineChart {
         this.option.series.splice(i, 1);
         delete this.predictions[id];
       }
+      const u = this.option.series.findIndex((series) => series.name === `${id}-U`);
+      if (u !== -1) {
+        this.option.series.splice(u, 1);
+      }
+      const l = this.option.series.findIndex((series) => series.name === `${id}-L`);
+      if (l !== -1) {
+        this.option.series.splice(l, 1);
+      }
     }
 
     this.chart.setOption(this.option, true);
@@ -152,12 +161,9 @@ class LineChart {
         width: 2,
       },
       symbol: 'circle',
-      symbolSize: 0,
+      symbolSize: 1,
       itemStyle: {
         color: prediction.color,
-      },
-      emphasis: {
-        focus: 'series',
       },
     });
 
@@ -170,11 +176,30 @@ class LineChart {
       const i = prediction.labels.indexOf(label);
       return i !== -1 ? prediction.data[i] : NaN;
     });
+    const pupper = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.upper[i] : NaN;
+    });
+    const plower = this.option.xAxis.data.map((label) => {
+      const i = prediction.labels.indexOf(label);
+      return i !== -1 ? prediction.lower[i] : NaN;
+    });
 
     const i = this.option.series.findIndex((series) => series.name === id);
+    const u = this.option.series.findIndex((series) => series.name === `${id}-U`);
+    const l = this.option.series.findIndex((series) => series.name === `${id}-L`);
+
     if (i !== -1) {
       this.option.series[i].data = pdata;
       this.option.series[i].lineStyle.color = prediction.color;
+    }
+    if (u !== -1) {
+      this.option.series[u].data = pupper;
+      this.option.series[u].lineStyle.color = prediction.color;
+    }
+    if (l !== -1) {
+      this.option.series[l].data = plower;
+      this.option.series[l].lineStyle.color = prediction.color;
     }
 
     this.chart.setOption(this.option, true);
