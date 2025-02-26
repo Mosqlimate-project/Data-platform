@@ -30,6 +30,81 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  chart.chart.on('click', function(params) {
+    if (params.seriesName === "Data") {
+      return;
+    }
+
+    const id = params.seriesName;
+    const pred = chart.predictions[id];
+    const pIndex = chart.option.series.findIndex((series) => series.name === id);
+
+    const hasBounds = chart.option.series.some(series =>
+      series.name === `${id}-L` || series.name === `${id}-U`
+    );
+
+    if (!hasBounds) {
+      const pUpper = chart.option.xAxis.data.map((label) => {
+        const i = pred.labels.indexOf(label);
+        return i !== -1 ? pred.upper[i] : NaN;
+      });
+
+      const pLower = chart.option.xAxis.data.map((label) => {
+        const i = pred.labels.indexOf(label);
+        return i !== -1 ? pred.lower[i] : NaN;
+      });
+
+      const lBounds = {
+        name: `${id}-L`,
+        type: 'line',
+        data: pLower,
+        lineStyle: {
+          color: pred.color,
+          opacity: 0
+        },
+        itemStyle: {
+          color: pred.color,
+        },
+        stack: `${id}`,
+        symbol: 'none',
+        showSymbol: false,
+      };
+
+      const uBounds = {
+        name: `${id}-U`,
+        type: 'line',
+        data: pUpper,
+        lineStyle: {
+          color: pred.color,
+          opacity: 0
+        },
+        itemStyle: {
+          color: pred.color,
+        },
+        areaStyle: {
+          color: pred.color,
+          opacity: 0.3,
+        },
+        stack: `${id}`,
+        symbol: 'none',
+        showSymbol: false,
+      };
+
+      chart.option.series.splice(pIndex + 1, 0, lBounds, uBounds);
+    } else {
+      chart.option.series = chart.option.series.filter(series =>
+        series.name !== `${id}-L` && series.name !== `${id}-U`
+      );
+    }
+
+    chart.option.legend.data = chart.option.series
+      .map(series => series.name)
+      .filter(name => !name.includes('-U') && !name.includes('-L'));
+
+    chart.chart.setOption(chart.option, true);
+  });
+
+
   try {
     dateSlider.dateRangeSlider("destroy");
   } catch (err) {
@@ -555,7 +630,13 @@ class PredictionList {
         storage.set("prediction_ids", []);
         chart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
+
+        const chartName = `${adm1_names[$(this).val()]}`;
+        chart.option.yAxis[0].name = chartName;
+        chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
       });
+
+      $("#adm1-filter").change();
     } else {
       let adm2List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
       let adm1List = [...new Set(adm2List.map(adm => parseInt(String(adm).slice(0, 2), 10)))];
@@ -625,6 +706,10 @@ class PredictionList {
 
         $("#adm2-filter").replaceWith(adm2_select);
         self.paginate(self.filter(predictions, 2, storage.get("adm_2")));
+
+        const chartName = `${adm2_names[storage.get("adm_2")]} - ${adm1_names[$(this).val()]}`;
+        chart.option.yAxis[0].name = chartName;
+        chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 3.5)];
       });
 
       $("#adm1-filter").change();
