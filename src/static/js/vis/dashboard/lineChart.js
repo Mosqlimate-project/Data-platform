@@ -59,18 +59,21 @@ class LineChart {
           },
         },
       ],
-      graphic: {
-        type: 'image',
-        right: 10,
-        top: 0,
-        silent: true,
-        style: {
-          image: watermark,
-          width: 150,
-          opacity: 0.3,
-        },
-        z: 10
-      }
+      graphic: [
+        {
+          type: 'image',
+          right: 10,
+          top: 0,
+          silent: true,
+          style: {
+            image: watermark,
+            width: 150,
+            opacity: 0.3,
+          },
+          z: 10,
+          id: 'watermark'
+        }
+      ]
     };
     this.chart.setOption(this.option, true);
   }
@@ -136,6 +139,7 @@ class LineChart {
     this.option.xAxis.data = [];
     this.option.series[0].data = [];
     this.chart.setOption(this.option, true);
+    this._addDefaultText();
   }
 
   resize(width, height) {
@@ -273,5 +277,24 @@ class LineChart {
     }
 
     this.chart.setOption(this.option, true);
+  }
+
+  _addDefaultText() {
+    this.chart.setOption({
+      graphic: [
+        {
+          type: 'text',
+          left: 'center',
+          top: 'middle',
+          style: {
+            text: 'Select Model and Predictions to be visualized',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fill: '#999',
+          },
+          id: 'default-text'
+        }
+      ]
+    });
   }
 }
