@@ -30,78 +30,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  chart.chart.on('legendselectchanged', (params) => {
+    chart.chart.setOption({ animation: false });
+    chart.chart.dispatchAction({ type: 'legendSelect', name: params.name });
+    chart.chart.setOption({ animation: true });
+    if (params.name == 'Data') {
+      return
+    }
+    chart.toggleConfidenceBounds(params.name);
+  });
+
   chart.chart.on('click', function(params) {
     if (params.seriesName === "Data") {
       return;
     }
-
-    const id = params.seriesName;
-    const pred = chart.predictions[id];
-    const pIndex = chart.option.series.findIndex((series) => series.name === id);
-
-    const hasBounds = chart.option.series.some(series =>
-      series.name === `${id}-L` || series.name === `${id}-U`
-    );
-
-    if (!hasBounds) {
-      const pUpper = chart.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.upper[i] : NaN;
-      });
-
-      const pLower = chart.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.lower[i] : NaN;
-      });
-
-      const lBounds = {
-        name: `${id}-L`,
-        type: 'line',
-        data: pLower,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
-
-      const uBounds = {
-        name: `${id}-U`,
-        type: 'line',
-        data: pUpper,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        areaStyle: {
-          color: pred.color,
-          opacity: 0.3,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
-
-      chart.option.series.splice(pIndex + 1, 0, lBounds, uBounds);
-    } else {
-      chart.option.series = chart.option.series.filter(series =>
-        series.name !== `${id}-L` && series.name !== `${id}-U`
-      );
-    }
-
-    chart.option.legend.data = chart.option.series
-      .map(series => series.name)
-      .filter(name => !name.includes('-U') && !name.includes('-L'));
-
-    chart.chart.setOption(chart.option, true);
+    chart.toggleConfidenceBounds(params.seriesName);
   });
 
 
@@ -272,6 +215,10 @@ async function update_casos(dashboard) {
   } catch (error) {
     console.error(error);
   }
+  if (storage.get("model_ids").length === 0) {
+    chart.clear();
+    predictionList.clear();
+  }
 }
 
 
@@ -308,7 +255,7 @@ class Storage {
     }
     data[this.dashboard].adm_1 = data[this.dashboard].adm_1 || null;
     data[this.dashboard].adm_2 = data[this.dashboard].adm_2 || null;
-    data[this.dashboard].score = data[this.dashboard].score || null;
+    data[this.dashboard].score = data[this.dashboard].score || "mae";
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
 
@@ -631,7 +578,7 @@ class PredictionList {
         chart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
 
-        const chartName = `${adm1_names[$(this).val()]}`;
+        const chartName = `${adm1_names[$(this).val()] || ""}`;
         chart.option.yAxis[0].name = chartName;
         chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
       });
@@ -640,8 +587,6 @@ class PredictionList {
     } else {
       let adm2List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
       let adm1List = [...new Set(adm2List.map(adm => parseInt(String(adm).slice(0, 2), 10)))];
-      console.log(adm2List)
-      console.log(adm1List)
 
       storage.set("adm_level", 2);
 
