@@ -30,78 +30,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  chart.chart.on('legendselectchanged', (params) => {
+    chart.chart.setOption({ animation: false });
+    chart.chart.dispatchAction({ type: 'legendSelect', name: params.name });
+    chart.chart.setOption({ animation: true });
+    if (params.name == 'Data') {
+      return
+    }
+    chart.toggleConfidenceBounds(params.name);
+  });
+
   chart.chart.on('click', function(params) {
     if (params.seriesName === "Data") {
       return;
     }
-
-    const id = params.seriesName;
-    const pred = chart.predictions[id];
-    const pIndex = chart.option.series.findIndex((series) => series.name === id);
-
-    const hasBounds = chart.option.series.some(series =>
-      series.name === `${id}-L` || series.name === `${id}-U`
-    );
-
-    if (!hasBounds) {
-      const pUpper = chart.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.upper[i] : NaN;
-      });
-
-      const pLower = chart.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.lower[i] : NaN;
-      });
-
-      const lBounds = {
-        name: `${id}-L`,
-        type: 'line',
-        data: pLower,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
-
-      const uBounds = {
-        name: `${id}-U`,
-        type: 'line',
-        data: pUpper,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        areaStyle: {
-          color: pred.color,
-          opacity: 0.3,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
-
-      chart.option.series.splice(pIndex + 1, 0, lBounds, uBounds);
-    } else {
-      chart.option.series = chart.option.series.filter(series =>
-        series.name !== `${id}-L` && series.name !== `${id}-U`
-      );
-    }
-
-    chart.option.legend.data = chart.option.series
-      .map(series => series.name)
-      .filter(name => !name.includes('-U') && !name.includes('-L'));
-
-    chart.chart.setOption(chart.option, true);
+    chart.toggleConfidenceBounds(params.seriesName);
   });
 
 

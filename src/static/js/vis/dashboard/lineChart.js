@@ -142,6 +142,76 @@ class LineChart {
     this.chart.resize(width, height)
   }
 
+  toggleConfidenceBounds(prediction_id) {
+    const id = `${prediction_id}`;
+    const pred = this.predictions[id];
+    const pIndex = this.option.series.findIndex((series) => series.name === id);
+
+    const hasBounds = this.option.series.some(series =>
+      series.name === `${id}-L` || series.name === `${id}-U`
+    );
+
+    if (!hasBounds) {
+      const pUpper = this.option.xAxis.data.map((label) => {
+        const i = pred.labels.indexOf(label);
+        return i !== -1 ? pred.upper[i] : NaN;
+      });
+
+      const pLower = this.option.xAxis.data.map((label) => {
+        const i = pred.labels.indexOf(label);
+        return i !== -1 ? pred.lower[i] : NaN;
+      });
+
+      const lBounds = {
+        name: `${id}-L`,
+        type: 'line',
+        data: pLower,
+        lineStyle: {
+          color: pred.color,
+          opacity: 0
+        },
+        itemStyle: {
+          color: pred.color,
+        },
+        stack: `${id}`,
+        symbol: 'none',
+        showSymbol: false,
+      };
+
+      const uBounds = {
+        name: `${id}-U`,
+        type: 'line',
+        data: pUpper,
+        lineStyle: {
+          color: pred.color,
+          opacity: 0
+        },
+        itemStyle: {
+          color: pred.color,
+        },
+        areaStyle: {
+          color: pred.color,
+          opacity: 0.3,
+        },
+        stack: `${id}`,
+        symbol: 'none',
+        showSymbol: false,
+      };
+
+      this.option.series.splice(pIndex + 1, 0, lBounds, uBounds);
+    } else {
+      this.option.series = this.option.series.filter(series =>
+        series.name !== `${id}-L` && series.name !== `${id}-U`
+      );
+    }
+
+    this.option.legend.data = this.option.series
+      .map(series => series.name)
+      .filter(name => !name.includes('-U') && !name.includes('-L'));
+
+    this.chart.setOption(this.option, true);
+  }
+
   _addNewPrediction(prediction) {
     const id = `${prediction.id}`;
     const pdata = this.option.xAxis.data.map((label) => {
