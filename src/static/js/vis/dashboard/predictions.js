@@ -215,6 +215,10 @@ async function update_casos(dashboard) {
   } catch (error) {
     console.error(error);
   }
+  if (storage.get("model_ids").length === 0) {
+    chart.clear();
+    predictionList.clear();
+  }
 }
 
 
@@ -251,7 +255,7 @@ class Storage {
     }
     data[this.dashboard].adm_1 = data[this.dashboard].adm_1 || null;
     data[this.dashboard].adm_2 = data[this.dashboard].adm_2 || null;
-    data[this.dashboard].score = data[this.dashboard].score || null;
+    data[this.dashboard].score = data[this.dashboard].score || "mae";
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
 
@@ -574,7 +578,7 @@ class PredictionList {
         chart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
 
-        const chartName = `${adm1_names[$(this).val()]}`;
+        const chartName = `${adm1_names[$(this).val()] || ""}`;
         chart.option.yAxis[0].name = chartName;
         chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
       });
@@ -583,8 +587,6 @@ class PredictionList {
     } else {
       let adm2List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
       let adm1List = [...new Set(adm2List.map(adm => parseInt(String(adm).slice(0, 2), 10)))];
-      console.log(adm2List)
-      console.log(adm1List)
 
       storage.set("adm_level", 2);
 

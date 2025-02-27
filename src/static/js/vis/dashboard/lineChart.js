@@ -33,7 +33,7 @@ class LineChart {
       },
       yAxis: [
         {
-          name: 'New Cases',
+          name: '',
           type: 'value',
           nameLocation: 'end',
           nameGap: 18,
@@ -95,7 +95,6 @@ class LineChart {
   }
 
   getIndex(prediction_id) {
-    console.log(prediction_id)
     return this.option.series.findIndex((series) => `${series.name}` === `${prediction_id}`);
   }
 
