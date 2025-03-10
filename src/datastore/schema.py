@@ -62,22 +62,21 @@ class CopernicusBrasilSchema(Schema):
 
 
 class ContaOvosSchema(Schema):
-    """https://contaovos.dengue.mat.br"""
+    """https://contaovos.com/pt-br/api/lastcountingpublic"""
 
-    complement: str
-    district: str
+    counting_id: int
+    date: str
+    date_collect: Optional[str]
     eggs: int
     latitude: float
-    loc_inst: str
     longitude: float
     municipality: str
-    number: str
+    municipality_code: str
     ovitrap_id: str
     ovitrap_website_id: int
-    sector: Optional[str]
-    street: str
+    state_code: str
+    state_name: str
     time: str
-    user: str
     week: int
     year: int
 

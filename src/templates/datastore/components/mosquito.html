@@ -4,23 +4,13 @@
 
 <center><hr></center>
 
-<p>
-Here you get access to mosquito abundance data from the <a href="https://contaovos.dengue.mat.br/">Contaovos project</a>, co-developed by the Mosqlimate project. These data are based on egg traps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.
-</p>
+<div class="alert alert-warning" role="alert">
+  <p>This endpoint is a redirect to the <a href="https://contaovos.dengue.mat.br/">Contaovos API</a>, co-developed by the Mosqlimate project. These data are based on egg traps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.</p>
+</div>
 
 <div class="row mb-3">
     <div class="col">
-        <label>{% translate "ContaOvos API Key" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
-        <input
-            type="text"
-            id="mosquito-select-key"
-            name="mosquito-key"
-            value=""
-            class="form-control"
-        >
-    </div>
-    <div class="col">
-        <label>{% translate "Page" %}:</label><span class="required" style="color:red;">&nbsp;*</span>
+        <label>{% translate "Page" %}:</label>
         <input
             type="number"
             min="1"
@@ -30,8 +20,30 @@ Here you get access to mosquito abundance data from the <a href="https://contaov
             class="form-control"
         >
     </div>
+    <div class="col">
+        <label>{% translate "State" %}:</label>
+        <input
+            type="text"
+            id="mosquito-select-state"
+            name="mosquito-state"
+            value=""
+            class="form-control"
+            placeholder="MG"
+            maxlength="2"
+            oninput="this.value=this.value.toUpperCase()"
+        >
+    </div>
+    <div class="col">
+        <label>{% translate "Municipality" %}:</label>
+        <input
+            type="text"
+            id="mosquito-select-municipality"
+            name="mosquito-municipality"
+            value=""
+            class="form-control"
+        >
+    </div>
 </div>
-<span class="required" style="color:red;">&nbsp;*</span> {% translate "Required inputs" %}
 
 <center><hr></center>
 
@@ -57,34 +69,51 @@ Here you get access to mosquito abundance data from the <a href="https://contaov
 </style>
 
 <script>
-    const mosquitoApiUrl = document.getElementById("mosquito-api-url");
-    const defaultMosquitoApiUrl = "https://api.mosqlimate.org/api/datastore/mosquito/?";
+  const mosquitoApiUrl = document.getElementById("mosquito-api-url");
+  const defaultMosquitoApiUrl = "https://api.mosqlimate.org/api/datastore/mosquito/?";
 
-    const mosquitoKey = document.getElementById("mosquito-select-key");
-    const mosquitoPage = document.getElementById("mosquito-select-page");
+  const mosquitoPage = document.getElementById("mosquito-select-page");
+  const mosquitoState = document.getElementById("mosquito-select-state");
+  const mosquitoMunicipality = document.getElementById("mosquito-select-municipality");
 
-    mosquitoKey.addEventListener("input", updateMosquitoUrl);
-    mosquitoPage.addEventListener("input", updateMosquitoUrl);
+  mosquitoPage.addEventListener("input", updateMosquitoUrl);
+  mosquitoState.addEventListener("input", updateMosquitoUrl);
+  mosquitoMunicipality.addEventListener("input", updateMosquitoUrl);
 
-    function updateMosquitoUrl() {
-      const updatedMosquitoUrl = buildMosquitoApiUrl(
-          mosquitoKey.value, 
-          mosquitoPage.value, 
-      );
-      updateMosquitoApiUrl(updatedMosquitoUrl);
+  function updateMosquitoUrl() {
+    const updatedMosquitoUrl = buildMosquitoApiUrl(
+      mosquitoPage.value,
+      mosquitoState.value,
+      mosquitoMunicipality.value,
+    );
+    updateMosquitoApiUrl(updatedMosquitoUrl);
+  }
+
+  function buildMosquitoApiUrl(
+    mosquitoPage = null,
+    mosquitoState = null,
+    mosquitoMunicipality = null,
+  ) {
+    let url = defaultMosquitoApiUrl;
+    if (mosquitoPage) {
+      const mosquitoPagePart = "page=" + mosquitoPage;
+      url = url + mosquitoPagePart;
     }
-
-    function buildMosquitoApiUrl(
-        mosquitoKey, 
-        mosquitoPage, 
-    ) {
-      const mosquitoKeyPart = "key=" + mosquitoKey;
-      const mosquitoPagePart = "&page=" + mosquitoPage;
-      return defaultMosquitoApiUrl + mosquitoKeyPart + mosquitoPagePart;
+    if (mosquitoState) {
+      const mosquitoStatePart = "state=" + mosquitoState;
+      url = url + mosquitoStatePart;
     }
-
-    function updateMosquitoApiUrl(updatedMosquitoUrl) {
-      mosquitoApiUrl.textContent = updatedMosquitoUrl;
-      mosquitoApiUrl.href = updatedMosquitoUrl;
+    if (mosquitoMunicipality) {
+      const mosquitoMunicipalityPart = "municipality=" + encodeURIComponent(mosquitoMunicipality);
+      url = url + mosquitoMunicipalityPart;
     }
+    return url;
+  }
+
+  function updateMosquitoApiUrl(updatedMosquitoUrl) {
+    mosquitoApiUrl.textContent = updatedMosquitoUrl;
+    mosquitoApiUrl.href = updatedMosquitoUrl;
+  }
+
+  updateMosquitoUrl();
 </script>
