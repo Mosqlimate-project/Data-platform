@@ -7,6 +7,7 @@
 {% block content %}
 <div class="card">
   <div id="chart-chard" class="card-body">
+    <i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal"></i>
     <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
     <div id="date-picker"></div>
   </div>
@@ -83,6 +84,24 @@
 <br>
 <br>
 
+<div class="modal fade" id="infoModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel">{% trans "Welcome to Mosqlimate Predictions Dashboard" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <p class="fs-6 fw-bold">{% trans "Confidence Interval" %}</p>
+          {% trans "To toggle the Prediction's Confidence Interval bounds of the in the chart, click in the Prediction's legend: " %}
+          <img src="{% static 'img/vis/prediction-dashboard-show-boundaries.png' %}">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   const dashboard = `{{ dashboard }}`;
   const model_id = `{{ model_id }}` | null;
@@ -94,8 +113,17 @@
 
   const all_tags = {{ tags|safe }};
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 <style>
+#infoModalIcon {
+  position: absolute;
+  left: calc(100% - 30px);
+  top: 15px;
+  z-index: 50;
+}
+
 .table {
   table-layout: fixed;
 }
