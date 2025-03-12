@@ -318,7 +318,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 
 @router.delete(
     "/models/{model_id}",
-    response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
     tags=["registry", "models"],
     include_in_schema=False,
@@ -336,7 +336,7 @@ def delete_model(request, model_id: int):
             # Not really required, since include_in_schema=False
             model.delete()
 
-        return 204, {"message": f"Model {model.name} deleted successfully"}
+        return 200, {"message": f"Model {model.name} deleted successfully"}
     except Author.DoesNotExist:
         return 404, {"message": "Model not found"}
 
@@ -501,7 +501,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
 @router.delete(
     "/predictions/{predict_id}",
-    response={204: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
     tags=["registry", "predictions"],
     include_in_schema=False,
@@ -519,7 +519,7 @@ def delete_prediction(request, predict_id: int):
             # Not really required, since include_in_schema=False
             prediction.delete()
 
-        return 204, {
+        return 200, {
             "message": f"Prediction {prediction.id} deleted successfully"
         }
     except Prediction.DoesNotExist:

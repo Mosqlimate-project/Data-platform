@@ -165,7 +165,7 @@ def get_predictions(request) -> JsonResponse:
     model_ids = request.GET.getlist("model_id")
 
     if not model_ids:
-        return JsonResponse({"items": []}, status=204)
+        return JsonResponse({"items": []}, status=200)
 
     predictions = Prediction.objects.filter(model__id__in=model_ids).distinct()
     context = {}

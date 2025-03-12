@@ -240,6 +240,7 @@ class LineChart {
       },
     });
 
+    this.option.legend.data = this.option.series.map(series => series.name);
     this.chart.setOption(this.option, true);
   }
 
@@ -275,6 +276,7 @@ class LineChart {
       this.option.series[l].lineStyle.color = prediction.color;
     }
 
+    this.option.legend.data = this.option.series.map(series => series.name);
     this.chart.setOption(this.option, true);
   }
 

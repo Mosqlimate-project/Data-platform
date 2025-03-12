@@ -94,8 +94,10 @@
       <div class="modal-body">
         <div>
           <p class="fs-6 fw-bold">{% trans "Confidence Interval" %}</p>
-          {% trans "To toggle the Prediction's Confidence Interval bounds of the in the chart, click in the Prediction's legend: " %}
+          {% trans "To toggle the Prediction's Confidence Interval bounds of the in the chart, click in the Prediction's legend" %}
           <img src="{% static 'img/vis/prediction-dashboard-show-boundaries.png' %}">
+          {% trans " or line" %}
+          <img src="{% static 'img/vis/prediction-dashboard-show-boundaries-2.png' %}">
         </div>
       </div>
     </div>
