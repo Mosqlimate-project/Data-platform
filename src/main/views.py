@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.utils.translation import gettext as _
 from django.db.models import Count
@@ -139,7 +140,11 @@ class ModelsView(View):
 
         langs = languages_refs.values_list("language", flat=True)
         context["implementation_languages_with_refs"] = list(langs)
-        context["tags"] = list(Tag.objects.all())
+        context["tags"] = list(
+            Tag.objects.annotate(model_count=Count("model_tags")).filter(
+                model_count__gt=0
+            )
+        )
         context["selected_tags"] = tags
 
         if response["items"]:
@@ -147,6 +152,19 @@ class ModelsView(View):
 
         if response["message"]:
             messages.warning(request, message=response["message"])
+
+        return render(request, self.template_name, context)
+
+
+class AddModelView(View, LoginRequiredMixin):
+    template_name = "main/add-model.html"
+
+    def get(self, request):
+        context = {}
+
+        if not request.user.is_authenticated:
+            messages.error(request, message="Login required")
+            return redirect("home")
 
         return render(request, self.template_name, context)
 

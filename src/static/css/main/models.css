@@ -3,6 +3,22 @@
    box-shadow: none;
 }
 
+.models-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#add-button {
+  position: absolute;
+  right: 0;
+}
+
+.add-icon {
+  font-size: 30px;
+}
+
 .pagination {
   justify-content: center;
 }

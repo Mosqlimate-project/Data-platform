@@ -36,13 +36,12 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          miniconda-version: "latest"
-          mamba-version: "*"
+          miniforge-version: latest
           environment-file: conda/base.yaml
           channels: conda-forge,nodefaults
           activate-environment: mosqlimate
-          use-mamba: true
-          miniforge-variant: Mambaforge
+          auto-update-conda: true
+          conda-solver: libmamba
 
       - name: Create file with environment variables
         run: touch .env
