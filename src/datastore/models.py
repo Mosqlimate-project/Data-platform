@@ -12,7 +12,9 @@ class DengueGlobal(models.Model):
 
 
 class HistoricoAlerta(models.Model):
-    data_iniSE = models.DateField(null=False, db_column="data_iniSE")
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
     SE = models.IntegerField(null=False, db_column="SE")
     casos_est = models.FloatField(db_column="casos_est")
     casos_est_min = models.IntegerField(db_column="casos_est_min")
@@ -72,7 +74,9 @@ class HistoricoAlerta(models.Model):
 
 
 class HistoricoAlertaChik(models.Model):
-    data_iniSE = models.DateField(null=False, db_column="data_iniSE")
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
     SE = models.IntegerField(null=False, db_column="SE")
     casos_est = models.FloatField(db_column="casos_est")
     casos_est_min = models.IntegerField(db_column="casos_est_min")
@@ -132,7 +136,9 @@ class HistoricoAlertaChik(models.Model):
 
 
 class HistoricoAlertaZika(models.Model):
-    data_iniSE = models.DateField(null=False, db_column="data_iniSE")
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
     SE = models.IntegerField(null=False, db_column="SE")
     casos_est = models.FloatField(db_column="casos_est")
     casos_est_min = models.IntegerField(db_column="casos_est_min")
