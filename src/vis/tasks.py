@@ -122,6 +122,7 @@ def update_total_cases(
     except total_cases.DoesNotExist:
         get_cases(disease, uf, year)
         update_total_cases(disease, uf, is_100k_hab)
+        return
 
     uf_code = uf_ibge_mapping[uf]["code"]
 
