@@ -9,6 +9,12 @@ class SuccessSchema(Schema):
     message: Optional[str]
 
 
+class BadRequestSchema(Schema):
+    """400"""
+
+    message: str
+
+
 class ForbiddenSchema(Schema):
     """403"""
 

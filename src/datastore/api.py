@@ -4,18 +4,23 @@ from typing import List, Literal, Optional
 
 import duckdb
 import pandas as pd
+from epiweeks import Week
 
 from ninja import Router, Query
+from ninja.errors import HttpError
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
+from django.db.models import F, Avg, Sum
+from django.db.models.functions import Round
 from django.conf import settings
 
-from main.schema import NotFoundSchema, InternalErrorSchema
+from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
 from main.utils import UFs
 from registry.pagination import PagesPagination
+from vis.brasil.models import State
 from .models import (
-    DengueGlobal,
+    Municipio,
     HistoricoAlerta,
     HistoricoAlertaZika,
     HistoricoAlertaChik,
@@ -25,7 +30,10 @@ from .schema import (
     HistoricoAlertaSchema,
     HistoricoAlertaFilterSchema,
     CopernicusBrasilSchema,
+    CopernicusBrasilWeeklySchema,
     CopernicusBrasilFilterSchema,
+    CopernicusBrasilWeeklyFilterSchema,
+    CopernicusBrasilWeeklyParams,
     ContaOvosSchema,
     EpiScannerSchema,
     ContaOvosParams,
@@ -84,7 +92,7 @@ def get_infodengue(
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
         geocodes = (
-            DengueGlobal.objects.using("infodengue")
+            Municipio.objects.using("infodengue")
             .filter(uf=uf_name)
             .values_list("geocodigo", flat=True)
         )
@@ -128,13 +136,117 @@ def get_copernicus_brasil(
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
         geocodes = (
-            DengueGlobal.objects.using("infodengue")
+            Municipio.objects.using("infodengue")
             .filter(uf=uf_name)
             .values_list("geocodigo", flat=True)
         )
         data = data.filter(geocodigo__in=geocodes)
 
     data = filters.filter(data)
+    return data
+
+
+@router.get(
+    "/climate/weekly/",
+    response={
+        200: List[CopernicusBrasilWeeklySchema],
+        400: BadRequestSchema,
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
+    tags=["datastore", "infodengue"],
+)
+@paginate(paginator)
+@csrf_exempt
+def get_copernicus_brasil_weekly(
+    request,
+    params: CopernicusBrasilWeeklyParams = Query(...),
+    filters: CopernicusBrasilWeeklyFilterSchema = Query(...),
+    **kwargs,
+):
+    if not params.geocode and not params.macro_health_code and not params.uf:
+        # NOTE: raising a HttpError is a workaround (django-ninja/issues/940)
+        raise HttpError(
+            400,
+            "the request must contain `geocode` or `macro_health_code` or `uf`",
+        )
+
+    if (
+        sum(map(bool, [params.geocode, params.uf, params.macro_health_code]))
+        != 1
+    ):
+        raise HttpError(
+            400,
+            "the request must contain `geocode` or `macro_health_code` or `uf`",
+        )
+
+    if params.uf:
+        try:
+            state = State.objects.get(uf=params.uf.upper())
+        except State.DoesNotExist:
+            raise HttpError(400, f"Unknown UF: `{params.uf}`")
+        geocodes = list(
+            Municipio.objects.using("infodengue")
+            .filter(uf=state.name)
+            .values_list("geocodigo", flat=True)
+        )
+    elif params.macro_health_code:
+        geocodes = list(
+            Municipio.objects.using("infodengue")
+            .filter(regional_code=params.macro_health_code)
+            .values_list("geocodigo", flat=True)
+        )
+        if not geocodes:
+            raise HttpError(
+                400,
+                (
+                    "Unknown Macroregion Health (Macroregional de Saúde) "
+                    f"code: `{params.macro_health_code}`"
+                ),
+            )
+    else:
+        try:
+            geocodes = [
+                Municipio.objects.using("infodengue")
+                .get(geocodigo=params.geocode)
+                .geocodigo
+            ]
+        except Municipio.DoesNotExist:
+            raise HttpError(400, f"Unknown geocode: `{params.geocode}`")
+
+    try:
+        sweek = Week.fromstring(str(filters.start))
+        eweek = Week.fromstring(str(filters.end))
+
+        if sweek.startdate() > eweek.startdate():
+            sweek, eweek = eweek, sweek
+
+    except ValueError as err:
+        raise HttpError(400, f"`start` or `end` epiweek error: {err}")
+
+    try:
+        data = (
+            CopernicusBrasil.objects.using("infodengue")
+            .filter(
+                date__gte=sweek.startdate(),
+                date__lte=eweek.enddate(),
+                geocodigo__in=geocodes,
+            )
+            .values("epiweek", "geocodigo")
+            .annotate(
+                temp_min_avg=Round(Avg("temp_min"), 4),
+                temp_med_avg=Round(Avg("temp_med"), 4),
+                temp_max_avg=Round(Avg("temp_max"), 4),
+                temp_amplit_avg=Round(Avg(F("temp_max") - F("temp_min")), 4),
+                precip_tot_sum=Round(Sum("precip_tot"), 4),
+                umid_min_avg=Round(Avg("umid_min"), 4),
+                umid_med_avg=Round(Avg("umid_med"), 4),
+                umid_max_avg=Round(Avg("umid_max"), 4),
+            )
+        )
+    except OperationalError:
+        raise HttpError(500, "Server error. Please contact the moderation")
+
     return data
 
 

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from datetime import date
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, field_validator
 from ninja import Field, Schema, FilterSchema
 
 
@@ -47,6 +47,7 @@ class HistoricoAlertaSchema(Schema):
 class CopernicusBrasilSchema(Schema):
     date: date
     geocodigo: int
+    epiweek: int
     temp_min: float
     temp_med: float
     temp_max: float
@@ -60,6 +61,73 @@ class CopernicusBrasilSchema(Schema):
     umid_min: float
     umid_med: float
     umid_max: float
+
+
+class CopernicusBrasilWeeklyParams(BaseModel):
+    geocode: Optional[int] = None
+    macro_health_code: Optional[int] = None
+    # fmt: off
+    uf: Optional[str] = None
+    # fmt: on
+
+    @validator("geocode")
+    def validate_geocode(cls, value):
+        if len(str(value)) != 7:
+            raise ValueError("Municipality geocode must contain 7 digits")
+        return value
+
+    @validator("macro_health_code")
+    def validate_macro_health_code(cls, value):
+        if len(str(value)) != 5:
+            raise ValueError("Macro Health code must contain 5 digits")
+        return value
+
+    @validator("uf")
+    def validate_uf(cls, value):
+        if value.upper() not in [
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]:
+            raise ValueError('Unkown UF. Example: "SP"')
+        return value
+
+
+class CopernicusBrasilWeeklySchema(Schema):
+    epiweek: int  # YYYYWW
+    geocodigo: int  # City or GeoMacroSaude
+    temp_min_avg: float
+    temp_med_avg: float
+    temp_max_avg: float
+    temp_amplit_avg: float  # (temp_max - temp_min)
+    precip_tot_sum: float
+    umid_min_avg: float
+    umid_med_avg: float
+    umid_max_avg: float
 
 
 class ContaOvosSchema(Schema):
@@ -126,11 +194,25 @@ class HistoricoAlertaFilterSchema(FilterSchema):
 
 
 class CopernicusBrasilFilterSchema(FilterSchema):
-    """url/?paremeters to search for weather.copernicus_brasil table"""
+    """url/?paremeters to search for weather.copernicus_bra table"""
 
     start: date = Field("2024-01-01", q="date__gte")
     end: date = Field("2024-02-01", q="date__lte")
     geocode: Optional[int] = Field(None, q="geocodigo")
+
+
+class CopernicusBrasilWeeklyFilterSchema(FilterSchema):
+    """url/?paremeters to search for copernicus_brasil_weekly endpoint"""
+
+    start: int = Field(202401, q="epiweek__gte")
+    end: int = Field(202402, q="epiweek__lte")
+
+    @field_validator("start", "end")
+    @classmethod
+    def check_epiweek_length(cls, value: int) -> int:
+        if len(str(value)) != 6:
+            raise ValueError("Epiweek must be a 6-digit integer")
+        return value
 
 
 class ContaOvosParams(BaseModel):
