@@ -10,6 +10,17 @@
 
 <div class="row mb-3">
     <div class="col">
+        <label>{% translate "Start" %}:</label>
+        <input id="mosquito-select-start" name="mosquito-start" class="form-control" type="date">
+    </div>
+    <div class="col">
+        <label>{% translate "End" %}:</label>
+        <input id="mosquito-select-end" name="mosquito-end" class="form-control" type="date">
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
         <label>{% translate "Page" %}:</label>
         <input
             type="number"
@@ -72,16 +83,22 @@
   const mosquitoApiUrl = document.getElementById("mosquito-api-url");
   const defaultMosquitoApiUrl = "https://api.mosqlimate.org/api/datastore/mosquito/?";
 
+  const mosquitoStart = document.getElementById("mosquito-select-start");
+  const mosquitoEnd = document.getElementById("mosquito-select-end");
   const mosquitoPage = document.getElementById("mosquito-select-page");
   const mosquitoState = document.getElementById("mosquito-select-state");
   const mosquitoMunicipality = document.getElementById("mosquito-select-municipality");
 
+  mosquitoStart.addEventListener("input", updateMosquitoUrl);
+  mosquitoEnd.addEventListener("input", updateMosquitoUrl);
   mosquitoPage.addEventListener("input", updateMosquitoUrl);
   mosquitoState.addEventListener("input", updateMosquitoUrl);
   mosquitoMunicipality.addEventListener("input", updateMosquitoUrl);
 
   function updateMosquitoUrl() {
     const updatedMosquitoUrl = buildMosquitoApiUrl(
+      mosquitoStart.value,
+      mosquitoEnd.value,
       mosquitoPage.value,
       mosquitoState.value,
       mosquitoMunicipality.value,
@@ -90,24 +107,22 @@
   }
 
   function buildMosquitoApiUrl(
+    mosquitoStart = null,
+    mosquitoEnd = null,
     mosquitoPage = null,
     mosquitoState = null,
-    mosquitoMunicipality = null,
+    mosquitoMunicipality = null
   ) {
     let url = defaultMosquitoApiUrl;
-    if (mosquitoPage) {
-      const mosquitoPagePart = "page=" + mosquitoPage;
-      url = url + mosquitoPagePart;
-    }
-    if (mosquitoState) {
-      const mosquitoStatePart = "state=" + mosquitoState;
-      url = url + mosquitoStatePart;
-    }
-    if (mosquitoMunicipality) {
-      const mosquitoMunicipalityPart = "municipality=" + encodeURIComponent(mosquitoMunicipality);
-      url = url + mosquitoMunicipalityPart;
-    }
-    return url;
+    let params = new URLSearchParams();
+
+    if (mosquitoStart) params.append("date_start", mosquitoStart);
+    if (mosquitoEnd) params.append("date_end", mosquitoEnd);
+    if (mosquitoPage) params.append("page", mosquitoPage);
+    if (mosquitoState) params.append("state", mosquitoState);
+    if (mosquitoMunicipality) params.append("municipality", mosquitoMunicipality);
+
+    return params.toString() ? url + (url.endsWith("?") ? "" : "?") + params.toString() : url;
   }
 
   function updateMosquitoApiUrl(updatedMosquitoUrl) {

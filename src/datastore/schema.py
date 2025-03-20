@@ -1,6 +1,7 @@
 from typing import Optional
 
 from datetime import date
+from pydantic import BaseModel
 from ninja import Field, Schema, FilterSchema
 
 
@@ -130,3 +131,10 @@ class CopernicusBrasilFilterSchema(FilterSchema):
     start: date = Field("2024-01-01", q="date__gte")
     end: date = Field("2024-02-01", q="date__lte")
     geocode: Optional[int] = Field(None, q="geocodigo")
+
+
+class ContaOvosParams(BaseModel):
+    date_start: date = Field("2025-01-01")
+    date_end: date = Field("2025-01-30")
+    page: Optional[int] = Field(1)
+    state: Optional[str] = Field("MG")
