@@ -1,10 +1,13 @@
 from django.db import models
 
 
-class DengueGlobal(models.Model):
-    geocodigo = models.IntegerField(primary_key=True, db_column="geocodigo")
+class Municipio(models.Model):
+    geocodigo = models.IntegerField(
+        primary_key=True, db_column="geocodigo", db_index=True
+    )
     nome = models.CharField(db_column="nome")
     uf = models.CharField(db_column="uf")
+    regional_code = models.IntegerField(db_column="id_regional")
 
     class Meta:
         managed = False
@@ -200,6 +203,7 @@ class HistoricoAlertaZika(models.Model):
 class CopernicusBrasil(models.Model):
     date = models.DateField(db_column="date", primary_key=True)
     geocodigo = models.BigIntegerField(db_column="geocode")
+    epiweek = models.IntegerField(db_column="epiweek")
     temp_min = models.FloatField(db_column="temp_min")
     temp_med = models.FloatField(db_column="temp_med")
     temp_max = models.FloatField(db_column="temp_max")

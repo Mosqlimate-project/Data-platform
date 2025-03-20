@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from .charts import watermark
 from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
-from datastore.models import DengueGlobal, Sprint202425
+from datastore.models import Municipio, Sprint202425
 from registry.models import Prediction, PredictionDataRow
 
 
@@ -137,7 +137,7 @@ def hist_alerta_data(
             adm_1 = CODES_UF[int(adm_1)]
 
         geocodes = (
-            DengueGlobal.objects.using("infodengue")
+            Municipio.objects.using("infodengue")
             .filter(uf=UFs[adm_1])
             .values_list("geocodigo", flat=True)
         )
