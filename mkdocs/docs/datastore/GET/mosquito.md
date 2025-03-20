@@ -1,35 +1,37 @@
 ## Mosquito Abundance Data
 Here you get access to mosquito abundance data from the [Contaovos project](https://contaovos.dengue.mat.br/), co-developed by the Mosqlimate project. These data, described below, are based on eggtraps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.
 
-The request requires an API key provided by Contaovos moderation. To more information, please access
-[Contaovos website](https://contaovos.dengue.mat.br/pt-br/).
+To more information, please access
+[Contaovos API](https://contaovos.com/pt-br/api/) page.
 
 ## Parameters Table 
 ### Input
 | Parameter name | Required | Type | Description |
 |--|--|--|--|
-| key | yes | str | ContaOvos API key |
-| page | yes | int | Page to be displayed |
+| date_start | no | date | ISO Format. Example: "2024-01-01" |
+| date_end | no | date | ISO Format. Example: "2025-01-01" |
+| state | no | str | UF. Example: "MG" |
+| page | no | int | Page to be displayed |
+| municipality | no | str | City name. Example: "Ponta Porã" |
 
 ### Output
 | Parameter name | Type | Description |
 | -- | -- | -- |
-| complement | str | Location complement
-| district | str | Location district
-| eggs | int | Eggs count
-| latitude | float | Ovitrap latitude
-| loc_inst | str | Ovitrap local specification
-| longitude | float | Ovitrap longitude
-| municipality | str | Municipality name
-| number | str | Location number
-| ovitrap_id | str | Ovitrap ID
-| ovitrap_website_id | int | 
-| sector | str _(optional)_ | Location sector
-| street | str | Location street
-| time | str _(date)_ | RFC 1123 date format 
-| user | str | ContaOvos user
-| week | int | Epidemiological week
-| year | int | Year
+| counting_id | int ||
+| date | str ||
+| date_collect | str ||
+| eggs | int | Eggs count |
+| latitude | float | Ovitrap latitude |
+| longitude | float | Ovitrap longitude |
+| municipality | str | Municipality name |
+| municipality_code | str | Geocode. Example: 3304557 |
+| ovitrap_id | str | Ovitrap ID |
+| ovitrap_website_id | int |
+| state_code | str | Geocode. Example: 33 |
+| state_name | str ||
+| time | str _(date)_ | RFC 1123 date format |
+| week | int | Epidemiological week |
+| year | int | Year |
 
 
 ## Usage examples
@@ -38,13 +40,17 @@ The request requires an API key provided by Contaovos moderation. To more inform
     ```py
     import requests
 
-    mosquito_api = "https://api.mosqlimate.org/api/datastore/mosquito/"
+    contaovos_api = "https://contaovos.com/pt-br/api/lastcountingpublic"
 
-    key = "contaovos-api-key"
-    page = 1
-    parameters = f"?page={page}&key={key}&"
+    params = {
+        "date_start": "YYYY-MM-DD",
+        "date_end": "YYYY-MM-DD",
+        "page": 1,
+        "state": "STATE_CODE",
+        "municipality": "MUNICIPALITY_NAME",
+    }
 
-    resp = requests.get(mosquito_api + parameters)
+    resp = requests.get(contaovos_api, params=params)
 
     items = resp.json() # JSON data in dict format
     ```
@@ -53,13 +59,17 @@ The request requires an API key provided by Contaovos moderation. To more inform
     ```R
     library(httr)
 
-    mosquito_api <- "https://api.mosqlimate.org/api/datastore/mosquito/"
+    contaovos_api <- "https://contaovos.com/pt-br/api/lastcountingpublic"
 
-    key <- "contaovos-api-key"
-    page <- 1
+    params <- list(
+      date_start = "YYYY-MM-DD",
+      date_end = "YYYY-MM-DD",
+      page = 1,
+      state = "STATE_CODE",
+      municipality = "MUNICIPALITY_NAME"
+    )
 
-    url <- paste0(mosquito_api, "?page=", page, "&key=", key)
-    resp <- GET(url)
+    resp <- GET(contaovos_api, query = params)
 
     if (http_type(resp) == "application/json") {
       items <- content(resp, "parsed")
@@ -71,7 +81,7 @@ The request requires an API key provided by Contaovos moderation. To more inform
 === "curl"
     ```sh
     curl -X 'GET' \
-    'https://api.mosqlimate.org/api/datastore/mosquito/?key=contaovos-api-key&page=1' \
+    'https://contaovos.com/pt-br/api/lastcountingpublic?date_start=YYYY-MM-DD&date_end=YYYY-MM-DD&page=1&state=STATE_CODE&municipality=MUNICIPALITY_NAME' \
     -H 'accept: application/json' \
     -d ''
     ```

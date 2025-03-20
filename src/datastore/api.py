@@ -28,6 +28,7 @@ from .schema import (
     CopernicusBrasilFilterSchema,
     ContaOvosSchema,
     EpiScannerSchema,
+    ContaOvosParams,
 )
 
 
@@ -147,9 +148,19 @@ def get_copernicus_brasil(
     tags=["datastore", "contaovos"],
 )
 @csrf_exempt
-def get_contaovos(request, key: str, page: int):
-    url = "https://contaovos.dengue.mat.br/pt-br/api/lastcounting"
-    params = {"key": key, "page": page}
+def get_contaovos(
+    request,
+    params: ContaOvosParams = Query(...),
+    municipality: Optional[str] = None,
+):
+    url = "https://contaovos.com/pt-br/api/lastcountingpublic"
+    params = {
+        "date_start": params.date_start,
+        "date_end": params.date_end,
+        "page": params.page,
+        "state": params.state,
+        "municipality": municipality,
+    }
     response = requests.get(url, params=params, timeout=20)
 
     if response.status_code == 200:

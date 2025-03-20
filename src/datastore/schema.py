@@ -1,6 +1,7 @@
 from typing import Optional
 
 from datetime import date
+from pydantic import BaseModel
 from ninja import Field, Schema, FilterSchema
 
 
@@ -62,22 +63,21 @@ class CopernicusBrasilSchema(Schema):
 
 
 class ContaOvosSchema(Schema):
-    """https://contaovos.dengue.mat.br"""
+    """https://contaovos.com/pt-br/api/lastcountingpublic"""
 
-    complement: str
-    district: str
+    counting_id: int
+    date: str
+    date_collect: Optional[str]
     eggs: int
     latitude: float
-    loc_inst: str
     longitude: float
     municipality: str
-    number: str
+    municipality_code: str
     ovitrap_id: str
     ovitrap_website_id: int
-    sector: Optional[str]
-    street: str
+    state_code: str
+    state_name: str
     time: str
-    user: str
     week: int
     year: int
 
@@ -131,3 +131,10 @@ class CopernicusBrasilFilterSchema(FilterSchema):
     start: date = Field("2024-01-01", q="date__gte")
     end: date = Field("2024-02-01", q="date__lte")
     geocode: Optional[int] = Field(None, q="geocodigo")
+
+
+class ContaOvosParams(BaseModel):
+    date_start: date = Field("2025-01-01")
+    date_end: date = Field("2025-01-30")
+    page: Optional[int] = Field(1)
+    state: Optional[str] = Field("MG")
