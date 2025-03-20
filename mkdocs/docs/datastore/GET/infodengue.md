@@ -1,4 +1,4 @@
-## Infodengue data
+## [Infodengue data](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue)
 This endpoint gives access to data from the [Infodengue](https://info.dengue.mat.br/) project, which provide a number of epidemiological variables for all the Brazilian municipalities on a weekly time scale. The request parameters and data variables are described below.
 
 

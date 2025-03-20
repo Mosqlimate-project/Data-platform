@@ -1,4 +1,4 @@
-## Climate time series
+## [Climate time series](https://api.mosqlimate.org/api/docs#/datastore/datastore_api_get_copernicus_brasil)
 Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based [reanalysis data provided by Copernicus ERA5](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview). These series are on a daily timescale.
 
 ## Parameters Table 

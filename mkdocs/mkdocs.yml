@@ -105,6 +105,7 @@ nav:
     - "Datastore API": "datastore/index.md"
     - "Infodengue": "datastore/GET/infodengue.md"
     - "Climate": "datastore/GET/climate.md"
+    - "Climate Weekly": "datastore/GET/climate-weekly.md"
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
   - "Tutorials":
