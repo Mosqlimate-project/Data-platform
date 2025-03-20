@@ -1,6 +1,6 @@
 from ninja.pagination import PaginationBase
 from ninja import Schema
-from typing import Any, List
+from typing import Any, List, Optional
 
 
 class PagesPagination(PaginationBase):
@@ -11,9 +11,10 @@ class PagesPagination(PaginationBase):
         per_page: int = 300
 
     class Output(Schema):
-        items: List[Any]
-        pagination: dict
-        message: str
+        items: Optional[List[Any]] = None
+        pagination: Optional[dict] = None
+        message: Optional[str] = None
+        error: Optional[str] = None
 
     def paginate_queryset(
         self,
