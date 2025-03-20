@@ -263,8 +263,8 @@ class Prediction(models.Model):
     fields = [
         "date",
         "pred",
-        "lower",
-        "upper",
+        "lower_90",
+        "upper_90",
         "adm_0",
         "adm_1",
         "adm_2",
@@ -381,8 +381,8 @@ class PredictionDataRow(models.Model):
     )
     date = models.DateField(null=False)
     pred = models.FloatField(null=False)
-    lower = models.FloatField(null=False)
-    upper = models.FloatField(null=False)
+    lower_90 = models.FloatField(null=False)
+    upper_90 = models.FloatField(null=False)
     adm_0 = models.CharField(max_length=3, null=False, default="BRA")
     adm_1 = models.CharField(max_length=2, null=True)
     adm_2 = models.IntegerField(null=True)
