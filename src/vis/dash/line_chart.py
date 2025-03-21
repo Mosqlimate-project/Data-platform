@@ -81,7 +81,7 @@ def calculate_score(
         crps_normal(
             df.casos,
             df.pred,
-            (df.upper - df.lower) / (2 * z_value),
+            (df.upper_90 - df.lower_90) / (2 * z_value),
         )
     )
 
@@ -90,7 +90,7 @@ def calculate_score(
         for x in logs_normal(
             df.casos,
             df.pred,
-            (df.upper - df.lower) / (2 * z_value),
+            (df.upper_90 - df.lower_90) / (2 * z_value),
             negative=False,
         )
         if not np.isinf(x)
@@ -103,8 +103,8 @@ def calculate_score(
     )
 
     alpha = 1 - confidence_level
-    upper_bound = df.upper.values
-    lower_bound = df.lower.values
+    upper_bound = df.upper_90.values
+    lower_bound = df.lower_90.values
 
     penalty = (2 / alpha * np.maximum(0, lower_bound - df.casos.values)) + (
         2 / alpha * np.maximum(0, df.casos.values - upper_bound)

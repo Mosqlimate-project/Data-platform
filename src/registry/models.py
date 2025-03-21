@@ -263,12 +263,14 @@ class Prediction(models.Model):
     fields = [
         "date",
         "pred",
-        "lower",
-        "upper",
-        "adm_0",
-        "adm_1",
-        "adm_2",
-        "adm_3",
+        "lower_95",
+        "lower_90",
+        "lower_80",
+        "lower_50",
+        "upper_50",
+        "upper_80",
+        "upper_90",
+        "upper_95",
     ]
 
     def __str__(self):
@@ -381,12 +383,14 @@ class PredictionDataRow(models.Model):
     )
     date = models.DateField(null=False)
     pred = models.FloatField(null=False)
-    lower = models.FloatField(null=False)
-    upper = models.FloatField(null=False)
-    adm_0 = models.CharField(max_length=3, null=False, default="BRA")
-    adm_1 = models.CharField(max_length=2, null=True)
-    adm_2 = models.IntegerField(null=True)
-    adm_3 = models.IntegerField(null=True)
+    lower_95 = models.FloatField(null=True)
+    lower_90 = models.FloatField(null=False)
+    lower_80 = models.FloatField(null=True)
+    lower_50 = models.FloatField(null=True)
+    upper_50 = models.FloatField(null=True)
+    upper_80 = models.FloatField(null=True)
+    upper_90 = models.FloatField(null=False)
+    upper_95 = models.FloatField(null=True)
 
 
 def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:

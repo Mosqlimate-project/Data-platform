@@ -1,6 +1,5 @@
-import datetime
 import json
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 import pandas as pd
 from django.contrib.auth import get_user_model
@@ -17,15 +16,14 @@ from main.schema import (
     UnprocessableContentSchema,
 )
 from ninja import Query, Router
-from ninja.orm.fields import AnyObject
 from ninja.pagination import paginate
 from ninja.security import django_auth
 from users.auth import UidKeyAuth
 
 from .models import (
     Author,
-    ImplementationLanguage,
     Model,
+    ImplementationLanguage,
     Prediction,
     PredictionDataRow,
 )
@@ -37,13 +35,10 @@ from .schema import (
     ModelSchema,
     PredictionFilterSchema,
     PredictionSchema,
+    PredictionOut,
+    PredictionIn,
 )
 from .utils import calling_via_swagger
-from .validations import (
-    validate_create_model,
-    validate_implementation_language,
-    validate_prediction,
-)
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -215,24 +210,12 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    validation_result = validate_create_model(payload)
-
-    if validation_result is not None:
-        return validation_result
-
     uid_key_header = request.headers.get("X-UID-Key")
     if uid_key_header:
         uid, _ = uid_key_header.split(":")
         author = Author.objects.get(user__username=uid)
     else:
         return 403, {"message": "X-UID-Key header is missing"}
-
-    lang_validation_result = validate_implementation_language(
-        payload.implementation_language
-    )
-
-    if lang_validation_result is not None:
-        return lang_validation_result
 
     data = payload.dict()
     data["implementation_language"] = ImplementationLanguage.objects.get(
@@ -342,17 +325,9 @@ def delete_model(request, model_id: int):
 
 
 # [Model] Prediction
-class PredictionIn(Schema):
-    model: int
-    description: str = None
-    commit: str
-    predict_date: datetime.date  # YYYY-mm-dd
-    prediction: Optional[AnyObject] = None
-
-
 @router.get(
     "/predictions/",
-    response=List[PredictionSchema],
+    response=List[PredictionOut],
     tags=["registry", "predictions"],
 )
 @paginate(PagesPagination)
@@ -369,7 +344,7 @@ def list_predictions(
 
 @router.get(
     "/predictions/{predict_id}",
-    response={200: PredictionSchema, 404: NotFoundSchema},
+    response={200: PredictionOut, 404: NotFoundSchema},
     tags=["registry", "predictions"],
 )
 @csrf_exempt
@@ -395,61 +370,23 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
-    try:
-        model = Model.objects.get(pk=payload.model)
-    except Model.DoesNotExist:
-        return 404, {"message": f"Model '{payload.model}' not found"}
-
-    payload.model = model
-
-    validation_result = validate_prediction(payload)
-
-    # Returns the status code and the error message
-    # if the validation fails or None if it succeeds
-    if validation_result is not None:
-        return validation_result
+    payload.model = Model.objects.get(pk=payload.model)
 
     def parse_data(predict: Prediction, df: pd.DataFrame):
-        df = df.rename(columns={"dates": "date", "preds": "pred"})
-
-        for _, row in df.iterrows():  # noqa
-            adm_0 = "BRA"
-            try:
-                adm_1 = (
-                    None
-                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
-                    else row.adm_1
-                )
-            except AttributeError:
-                adm_1 = None
-            try:
-                adm_2 = (
-                    None
-                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
-                    else row.adm_2
-                )
-            except AttributeError:
-                adm_2 = None
-            try:
-                adm_3 = (
-                    None
-                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
-                    else row.adm_3
-                )
-            except AttributeError:
-                adm_3 = None
-
-            if not calling_via_swagger(request):
+        if not calling_via_swagger(request):
+            for _, row in df.iterrows():  # noqa
                 PredictionDataRow.objects.get_or_create(
                     predict=predict,
                     date=pd.to_datetime(row.date).date(),
                     pred=float(row.pred),
-                    upper=float(row.upper),
-                    lower=float(row.lower),
-                    adm_0=adm_0,
-                    adm_1=adm_1,
-                    adm_2=adm_2,
-                    adm_3=adm_3,
+                    lower_95=float(row.lower_95),
+                    lower_90=float(row.lower_90),
+                    lower_80=float(row.lower_80),
+                    lower_50=float(row.lower_50),
+                    upper_50=float(row.upper_50),
+                    upper_80=float(row.upper_80),
+                    upper_90=float(row.upper_90),
+                    upper_95=float(row.upper_95),
                 )
 
     df = pd.DataFrame(json.loads(payload.prediction))
