@@ -134,7 +134,7 @@ class PredictionDataRowOut(Schema):
 
 
 class PredictionSchema(Schema):
-    id: Optional[int]
+    id: int
     model: ModelSchema
     description: str = ""
     commit: str
@@ -147,8 +147,8 @@ class PredictionSchema(Schema):
 
 
 class PredictionOut(Schema):
-    id: int
-    model: ModelSchema
+    id: Optional[int] = None
+    model: ModelSchema | int
     description: str
     commit: str
     predict_date: dt  # YYYY-mm-dd
@@ -164,11 +164,11 @@ class PredictionIn(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
-    prediction: List[PredictionDataRowSchema]
     adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
     adm_3: Optional[int] = None
+    prediction: List[PredictionDataRowSchema]
 
     @field_validator("model")
     @classmethod
@@ -212,9 +212,11 @@ class PredictionIn(Schema):
         if not v:
             raise HttpError(422, "Empty prediction data")
         try:
-            pd.DataFrame(v)
+            data = [row.dict() for row in v]
+            print(pd.DataFrame(data=data))
         except Exception as e:
             raise HttpError(422, f"Unprocessable prediction data. Error: {e}")
+        return v
 
     @model_validator(mode="before")
     def validate_adm_levels(cls, values):

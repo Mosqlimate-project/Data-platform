@@ -1,4 +1,3 @@
-import json
 from typing import List, Literal
 
 import pandas as pd
@@ -18,8 +17,8 @@ from main.schema import (
 from ninja import Query, Router
 from ninja.pagination import paginate
 from ninja.security import django_auth
-from users.auth import UidKeyAuth
 
+from users.auth import UidKeyAuth
 from .models import (
     Author,
     Model,
@@ -37,8 +36,10 @@ from .schema import (
     PredictionSchema,
     PredictionOut,
     PredictionIn,
+    PredictionDataRowOut,
 )
 from .utils import calling_via_swagger
+from vis.brasil.models import State
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -283,10 +284,6 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
             if not calling_via_swagger(request):
                 model.save()
 
-                predictions = Prediction.objects.filter(model=model)
-                for prediction in predictions:
-                    prediction.parse_metadata()
-
             return 201, model
         except Author.DoesNotExist:
             return 404, {
@@ -359,7 +356,7 @@ def get_prediction(request, predict_id: int):
 @router.post(
     "/predictions/",
     response={
-        201: PredictionSchema,
+        201: PredictionOut,
         403: ForbiddenSchema,
         404: NotFoundSchema,
         422: UnprocessableContentSchema,
@@ -370,35 +367,64 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
-    payload.model = Model.objects.get(pk=payload.model)
-
-    def parse_data(predict: Prediction, df: pd.DataFrame):
+    def parse_data(predict: Prediction, data: List[dict]):
         if not calling_via_swagger(request):
-            for _, row in df.iterrows():  # noqa
+            for row in data:
                 PredictionDataRow.objects.get_or_create(
                     predict=predict,
-                    date=pd.to_datetime(row.date).date(),
-                    pred=float(row.pred),
-                    lower_95=float(row.lower_95),
-                    lower_90=float(row.lower_90),
-                    lower_80=float(row.lower_80),
-                    lower_50=float(row.lower_50),
-                    upper_50=float(row.upper_50),
-                    upper_80=float(row.upper_80),
-                    upper_90=float(row.upper_90),
-                    upper_95=float(row.upper_95),
+                    date=pd.to_datetime(row["date"]).date(),
+                    pred=row["pred"],
+                    lower_95=row["lower_95"],
+                    lower_90=row["lower_90"],
+                    lower_80=row["lower_80"],
+                    lower_50=row["lower_50"],
+                    upper_50=row["upper_50"],
+                    upper_80=row["upper_80"],
+                    upper_90=row["upper_90"],
+                    upper_95=row["upper_95"],
                 )
 
-    df = pd.DataFrame(json.loads(payload.prediction))
-    payload_dict = payload.dict()
-    del payload_dict["prediction"]
-    prediction = Prediction(**payload_dict)
+    if payload.adm_1:
+        adm_1 = State.objects.get(uf=payload.adm_1).geocode
+    elif payload.adm_2:
+        adm_1 = State.objects.get(geocode=str(payload.adm_2)[:2]).geocode
+    else:
+        adm_1 = None
+        raise NotImplementedError()
 
-    if not calling_via_swagger(request):
-        prediction.save()
-        parse_data(prediction, df)
-        prediction.parse_metadata()
+    df = pd.DataFrame(data=[r.dict() for r in payload.prediction])
 
+    model = Model.objects.get(pk=payload.model)
+    prediction = Prediction(
+        model=model,
+        description=payload.description,
+        commit=payload.commit,
+        predict_date=payload.predict_date,
+        adm_0_geocode=payload.adm_0,
+        adm_1_geocode=adm_1 or None,
+        adm_2_geocode=payload.adm_2 or None,
+        adm_3_geocode=payload.adm_3 or None,
+        date_ini_prediction=min(df.date),
+        date_end_prediction=max(df.date),
+    )
+
+    if calling_via_swagger(request):
+        data = [PredictionDataRowOut(**r.dict()) for r in payload.prediction]
+        return 201, PredictionOut(
+            id=None,
+            model=model.id,
+            description=prediction.description,
+            commit=prediction.commit,
+            predict_date=prediction.predict_date,
+            adm_0=prediction.adm_0_geocode,
+            adm_1=prediction.adm_1_geocode,
+            adm_2=prediction.adm_2_geocode,
+            adm_3=prediction.adm_3_geocode,
+            data=data,
+        )
+
+    prediction.save()
+    parse_data(prediction, [r.dict() for r in payload.prediction])
     return 201, prediction
 
 
@@ -428,7 +454,6 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         if not calling_via_swagger(request):
             # Not really required, since include_in_schema=False
-            prediction.parse_metadata()
             prediction.save()
 
         return 201, prediction

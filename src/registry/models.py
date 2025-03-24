@@ -243,7 +243,6 @@ class Prediction(models.Model):
         ],
         help_text=_("Color in hexadecimal format. E.g: #ffffff"),
     )
-    visualizable = models.BooleanField(default=False)
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
     adm_1_geocode = models.IntegerField(null=True, default=None)  # TODO
     adm_2_geocode = models.IntegerField(null=True, default=None)
