@@ -81,6 +81,9 @@ class LineChart {
   updateCases(dates, cases) {
     this.option.xAxis.data = dates;
     this.option.series[0].data = cases;
+    this.option.series[0].itemStyle = {
+      color: "#000000",
+    }
     this.chart.setOption(this.option, true);
   }
 
@@ -107,13 +110,21 @@ class LineChart {
         this.option.series.splice(i, 1);
         delete this.predictions[id];
       }
-      const u = this.option.series.findIndex((series) => series.name === `${id}-U`);
-      if (u !== -1) {
-        this.option.series.splice(u, 1);
+      const u50 = this.option.series.findIndex((series) => series.name === `${id}-upper_50`);
+      if (u50 !== -1) {
+        this.option.series.splice(u50, 1);
       }
-      const l = this.option.series.findIndex((series) => series.name === `${id}-L`);
-      if (l !== -1) {
-        this.option.series.splice(l, 1);
+      const u90 = this.option.series.findIndex((series) => series.name === `${id}-upper_90`);
+      if (u90 !== -1) {
+        this.option.series.splice(u90, 1);
+      }
+      const l50 = this.option.series.findIndex((series) => series.name === `${id}-lower_50`);
+      if (l50 !== -1) {
+        this.option.series.splice(l50, 1);
+      }
+      const l90 = this.option.series.findIndex((series) => series.name === `${id}-lower_90`);
+      if (l90 !== -1) {
+        this.option.series.splice(l90, 1);
       }
     }
 
@@ -146,71 +157,65 @@ class LineChart {
   }
 
   toggleConfidenceBounds(prediction_id) {
+    const self = this;
     const id = `${prediction_id}`;
     const pred = this.predictions[id];
     const pIndex = this.option.series.findIndex((series) => series.name === id);
 
     const hasBounds = this.option.series.some(series =>
-      series.name === `${id}-L` || series.name === `${id}-U`
+      series.name.includes(`${id}-lower`) || series.name.includes(`${id}-upper`)
     );
 
     if (!hasBounds) {
-      const pUpper = this.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.upper[i] : NaN;
-      });
+      function getBoundData(bound) {
+        return self.option.xAxis.data.map((label) => {
+          const i = pred.labels.indexOf(label);
+          return i !== -1 ? pred[bound][i] : NaN;
+        })
+      }
 
-      const pLower = this.option.xAxis.data.map((label) => {
-        const i = pred.labels.indexOf(label);
-        return i !== -1 ? pred.lower[i] : NaN;
-      });
+      function getBound(bound) {
+        const area = {
+          name: `${id}-${bound}`,
+          type: 'line',
+          data: getBoundData(bound),
+          lineStyle: {
+            color: pred.color,
+            opacity: 0
+          },
+          itemStyle: {
+            color: pred.color,
+          },
+          stack: `${id}`,
+          symbol: 'none',
+          showSymbol: false,
+        };
 
-      const lBounds = {
-        name: `${id}-L`,
-        type: 'line',
-        data: pLower,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
+        if (bound.includes("upper")) {
+          area["areaStyle"] = {
+            color: pred.color,
+            opacity: 0.3,
+          }
+        }
 
-      const uBounds = {
-        name: `${id}-U`,
-        type: 'line',
-        data: pUpper,
-        lineStyle: {
-          color: pred.color,
-          opacity: 0
-        },
-        itemStyle: {
-          color: pred.color,
-        },
-        areaStyle: {
-          color: pred.color,
-          opacity: 0.3,
-        },
-        stack: `${id}`,
-        symbol: 'none',
-        showSymbol: false,
-      };
+        return area;
+      }
 
-      this.option.series.splice(pIndex + 1, 0, lBounds, uBounds);
-    } else {
-      this.option.series = this.option.series.filter(series =>
-        series.name !== `${id}-L` && series.name !== `${id}-U`
+      this.option.series.splice(
+        pIndex + 1,
+        0,
+        getBound("lower_50"),
+        getBound("lower_90"),
+        getBound("upper_50"),
+        getBound("upper_90"),
       );
+    } else {
+      this.option.series = this.option.series.filter(series => !series.name.includes(`${id}-lower`) && !series.name.includes(`${id}-upper`));
     }
 
     this.option.legend.data = this.option.series
-      .map(series => series.name)
-      .filter(name => !name.includes('-U') && !name.includes('-L'));
+      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
+      .map(series => series.name);
 
     this.chart.setOption(this.option, true);
   }
@@ -240,43 +245,54 @@ class LineChart {
       },
     });
 
-    this.option.legend.data = this.option.series.map(series => series.name);
+    this.option.legend.data = this.option.series
+      .map(series => series.name)
+      .filter(name => !name.includes(`${id}-`));
     this.chart.setOption(this.option, true);
   }
 
   _updatePrediction(prediction) {
-    const id = `${prediction.id}`;
-    const pdata = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.data[i] : NaN;
-    });
-    const pupper = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.upper[i] : NaN;
-    });
-    const plower = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.lower[i] : NaN;
-    });
+    const self = this;
 
+    function getData(param) {
+      return self.option.xAxis.data.map((label) => {
+        const i = prediction.labels.indexOf(label);
+        return i !== -1 ? prediction[param][i] : NaN;
+      })
+    }
+
+    const id = `${prediction.id}`;
     const i = this.option.series.findIndex((series) => series.name === id);
-    const u = this.option.series.findIndex((series) => series.name === `${id}-U`);
-    const l = this.option.series.findIndex((series) => series.name === `${id}-L`);
+    const u50 = this.option.series.findIndex((series) => series.name === `${id}-upper_50`);
+    const u90 = this.option.series.findIndex((series) => series.name === `${id}-upper_90`);
+    const l50 = this.option.series.findIndex((series) => series.name === `${id}-lower_50`);
+    const l90 = this.option.series.findIndex((series) => series.name === `${id}-lower_90`);
 
     if (i !== -1) {
-      this.option.series[i].data = pdata;
+      this.option.series[i].data = getData("data");
       this.option.series[i].lineStyle.color = prediction.color;
     }
-    if (u !== -1) {
-      this.option.series[u].data = pupper;
-      this.option.series[u].lineStyle.color = prediction.color;
+    if (u50 !== -1) {
+      this.option.series[u50].data = getData("upper_50");
+      this.option.series[u50].lineStyle.color = prediction.color;
     }
-    if (l !== -1) {
-      this.option.series[l].data = plower;
-      this.option.series[l].lineStyle.color = prediction.color;
+    if (u90 !== -1) {
+      this.option.series[u90].data = getData("upper_90");
+      this.option.series[u90].lineStyle.color = prediction.color;
+    }
+    if (l50 !== -1) {
+      this.option.series[l50].data = getData("lower_50");
+      this.option.series[l50].lineStyle.color = prediction.color;
+    }
+    if (l90 !== -1) {
+      this.option.series[l90].data = getData("lower_90");
+      this.option.series[l90].lineStyle.color = prediction.color;
     }
 
-    this.option.legend.data = this.option.series.map(series => series.name);
+    this.option.legend.data = this.option.series
+      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
+      .map(series => series.name);
+
     this.chart.setOption(this.option, true);
   }
 

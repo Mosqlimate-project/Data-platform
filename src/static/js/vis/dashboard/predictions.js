@@ -779,8 +779,10 @@ class PredictionList {
       id: prediction.id,
       labels: prediction.chart.labels,
       data: prediction.chart.data,
-      upper: prediction.chart.upper,
-      lower: prediction.chart.lower,
+      upper_50: prediction.chart.upper_50,
+      upper_90: prediction.chart.upper_90,
+      lower_50: prediction.chart.lower_50,
+      lower_90: prediction.chart.lower_90,
       color: prediction.color
     })
     storage.set("prediction_ids", Array.from(prediction_ids));

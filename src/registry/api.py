@@ -350,7 +350,7 @@ def list_predictions(
 @csrf_exempt
 def get_prediction(request, predict_id: int):
     try:
-        prediction = Prediction.objects.get(pk=predict_id)  # TODO: get by id?
+        prediction = Prediction.objects.get(pk=predict_id)
         return 200, prediction
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}
@@ -459,7 +459,6 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         for attr, value in payload.items():
             setattr(prediction, attr, value)
-        # TODO: Add commit verification if commit has changed
 
         if not calling_via_swagger(request):
             # Not really required, since include_in_schema=False

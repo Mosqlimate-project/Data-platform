@@ -176,8 +176,14 @@ def get_predictions(request) -> JsonResponse:
         chart = {
             "labels": df["date"].tolist(),
             "data": list(map(round, df["pred"].tolist())),
-            "upper": list(map(round, df["upper"].tolist())),
-            "lower": list(map(round, df["lower"].tolist())),
+            "upper_50": list(
+                map(lambda x: round(x) if x else x, df["upper_50"].tolist())
+            ),
+            "upper_90": list(map(round, df["upper_90"].tolist())),
+            "lower_50": list(
+                map(lambda x: round(x) if x else x, df["lower_50"].tolist())
+            ),
+            "lower_90": list(map(round, df["lower_90"].tolist())),
         }
 
         p_res = {}
