@@ -321,13 +321,16 @@ def delete_model(request, model_id: int):
         return 404, {"message": "Model not found"}
 
 
-# [Model] Prediction
+class PagesPaginationLimited(PagesPagination):
+    max_per_page: int = 30
+
+
 @router.get(
     "/predictions/",
     response=List[PredictionOut],
     tags=["registry", "predictions"],
 )
-@paginate(PagesPagination)
+@paginate(PagesPaginationLimited)
 @csrf_exempt
 def list_predictions(
     request,
@@ -367,6 +370,11 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
+    model = Model.objects.get(pk=payload.model)
+
+    if request.user != model.author.user:
+        return 403, {"message": "You are not authorized to update this Model"}
+
     def parse_data(predict: Prediction, data: List[dict]):
         if not calling_via_swagger(request):
             for row in data:
@@ -394,7 +402,6 @@ def create_prediction(request, payload: PredictionIn):
 
     df = pd.DataFrame(data=[r.dict() for r in payload.prediction])
 
-    model = Model.objects.get(pk=payload.model)
     prediction = Prediction(
         model=model,
         description=payload.description,
@@ -411,6 +418,7 @@ def create_prediction(request, payload: PredictionIn):
     if calling_via_swagger(request):
         data = [PredictionDataRowOut(**r.dict()) for r in payload.prediction]
         return 201, PredictionOut(
+            message="Calling via swagger. This Prediction has not been saved",
             id=None,
             model=model.id,
             description=prediction.description,
@@ -424,6 +432,7 @@ def create_prediction(request, payload: PredictionIn):
         )
 
     prediction.save()
+    prediction.message = "Prediction saved successfully"
     parse_data(prediction, [r.dict() for r in payload.prediction])
     return 201, prediction
 

@@ -147,6 +147,7 @@ class PredictionSchema(Schema):
 
 
 class PredictionOut(Schema):
+    message: Optional[str] = None
     id: Optional[int] = None
     model: ModelSchema | int
     description: str
@@ -220,6 +221,7 @@ class PredictionIn(Schema):
 
     @model_validator(mode="before")
     def validate_adm_levels(cls, values):
+        model = Model.objects.get(pk=values.model)
         adm_1 = values.adm_1
         adm_2 = values.adm_2
         adm_3 = values.adm_3
@@ -237,6 +239,8 @@ class PredictionIn(Schema):
                 raise ValueError(f"unkown UF '{adm_1}'. Format: 'RJ'")
 
         if adm_2:
+            if model.ADM_level == 1:
+                raise ValueError(f"Model {model.id} ADM Level is 1")
             try:
                 City.objects.get(geocode=adm_2)
             except City.DoesNotExist:
