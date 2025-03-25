@@ -10,8 +10,31 @@ class LineChart {
           if (p.length === 0) return '';
 
           const date = p[0].axisValue;
-          const casesInfo = p.map(param => {
-            return `${param.marker} ${param.seriesName}: ${param.value} cases`;
+          const dataMap = {};
+
+          p.forEach(param => {
+            if (param.seriesName.includes("lower_90")) {
+              const id = param.seriesName.replace("-lower_90", "");
+              if (!dataMap[id]) dataMap[id] = { value: null, lower: param.value, upper: null };
+              else dataMap[id].lower = param.value;
+            } else if (param.seriesName.includes("upper_90")) {
+              const id = param.seriesName.replace("-upper_90", "");
+              if (!dataMap[id]) dataMap[id] = { value: null, lower: null, upper: param.value };
+              else dataMap[id].upper = param.value;
+            } else {
+              if (!dataMap[param.seriesName]) dataMap[param.seriesName] = { value: param.value, lower: null, upper: null };
+              else dataMap[param.seriesName].value = param.value;
+            }
+          });
+
+          const casesInfo = Object.entries(dataMap).map(([seriesName, info]) => {
+            if (seriesName === "Data") {
+              return `${params.find(p => p.seriesName === seriesName)?.marker} Data: ${info.value} cases`;
+            }
+            if (info.lower !== null && info.upper !== null) {
+              return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} (${info.lower}, ${info.upper}) cases`;
+            }
+            return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
           }).join('<br/>');
 
           return `<strong>${date}</strong><br/>${casesInfo}`;
@@ -215,7 +238,13 @@ class LineChart {
 
     this.option.legend.data = this.option.series
       .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
-      .map(series => series.name);
+      .map(series => ({
+        name: series.name,
+        textStyle: {
+          fontWeight: series.name === id && !hasBounds ? 'bold' : 'normal'
+        }
+      }));
+
 
     this.chart.setOption(this.option, true);
   }
