@@ -2,7 +2,8 @@ import os
 import json
 
 from django.urls import reverse
-from ninja import NinjaAPI, Router, Schema, Swagger
+from ninja import Router, Schema, Swagger
+from ninja import NinjaAPI as API
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse
@@ -21,14 +22,24 @@ MUN_FILE = settings.BASE_DIR / "static/data/geo/BR/municipios.json"
 with open(MUN_FILE, "r") as file:
     MUN_DATA = json.load(file)
 
+
+class NinjaAPI(API):
+    def get_openapi_schema(self, **kwargs) -> dict:
+        schema = super().get_openapi_schema(**kwargs)
+        schema.pop("BadRequestSchema", None)
+        return schema
+
+
 api = NinjaAPI(
     csrf=True,
-    title="API Demo",
+    title="Mosqlimate API",
     description=(
-        "<h3>This is a demonstration of Mosqlimate API.</h3>"
-        "POST calls won't generate any result on database."
-        "<br>"
-        "<p>See <a href=/docs/>Documentation</a> to more information.</h4></p>"
+        "<h3>Welcome to Mosqlimate API Reference</h3>"
+        "<p>In <a href=/api/docs>API Demo</a>, you can test the API calls to "
+        "Mosqlimate's Platform. Note that the POST calls won't save any result "
+        "in the database.</p>"
+        "<p>See <a href=/docs/overview>API Overview</a> to more detailed "
+        "information about the endpoints.</p>"
     ),
     version="1",
     docs=Swagger(),
