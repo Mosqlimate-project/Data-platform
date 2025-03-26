@@ -1,6 +1,4 @@
-import datetime
-import json
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 import pandas as pd
 from django.contrib.auth import get_user_model
@@ -17,15 +15,14 @@ from main.schema import (
     UnprocessableContentSchema,
 )
 from ninja import Query, Router
-from ninja.orm.fields import AnyObject
 from ninja.pagination import paginate
 from ninja.security import django_auth
-from users.auth import UidKeyAuth
 
+from users.auth import UidKeyAuth
 from .models import (
     Author,
-    ImplementationLanguage,
     Model,
+    ImplementationLanguage,
     Prediction,
     PredictionDataRow,
 )
@@ -37,13 +34,12 @@ from .schema import (
     ModelSchema,
     PredictionFilterSchema,
     PredictionSchema,
+    PredictionOut,
+    PredictionIn,
+    PredictionDataRowOut,
 )
 from .utils import calling_via_swagger
-from .validations import (
-    validate_create_model,
-    validate_implementation_language,
-    validate_prediction,
-)
+from vis.brasil.models import State
 
 router = Router()
 uidkey = UidKeyAuth()
@@ -215,24 +211,12 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    validation_result = validate_create_model(payload)
-
-    if validation_result is not None:
-        return validation_result
-
     uid_key_header = request.headers.get("X-UID-Key")
     if uid_key_header:
         uid, _ = uid_key_header.split(":")
         author = Author.objects.get(user__username=uid)
     else:
         return 403, {"message": "X-UID-Key header is missing"}
-
-    lang_validation_result = validate_implementation_language(
-        payload.implementation_language
-    )
-
-    if lang_validation_result is not None:
-        return lang_validation_result
 
     data = payload.dict()
     data["implementation_language"] = ImplementationLanguage.objects.get(
@@ -300,10 +284,6 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
             if not calling_via_swagger(request):
                 model.save()
 
-                predictions = Prediction.objects.filter(model=model)
-                for prediction in predictions:
-                    prediction.parse_metadata()
-
             return 201, model
         except Author.DoesNotExist:
             return 404, {
@@ -341,21 +321,16 @@ def delete_model(request, model_id: int):
         return 404, {"message": "Model not found"}
 
 
-# [Model] Prediction
-class PredictionIn(Schema):
-    model: int
-    description: str = None
-    commit: str
-    predict_date: datetime.date  # YYYY-mm-dd
-    prediction: Optional[AnyObject] = None
+class PagesPaginationLimited(PagesPagination):
+    max_per_page: int = 30
 
 
 @router.get(
     "/predictions/",
-    response=List[PredictionSchema],
+    response=List[PredictionOut],
     tags=["registry", "predictions"],
 )
-@paginate(PagesPagination)
+@paginate(PagesPaginationLimited)
 @csrf_exempt
 def list_predictions(
     request,
@@ -369,13 +344,13 @@ def list_predictions(
 
 @router.get(
     "/predictions/{predict_id}",
-    response={200: PredictionSchema, 404: NotFoundSchema},
+    response={200: PredictionOut, 404: NotFoundSchema},
     tags=["registry", "predictions"],
 )
 @csrf_exempt
 def get_prediction(request, predict_id: int):
     try:
-        prediction = Prediction.objects.get(pk=predict_id)  # TODO: get by id?
+        prediction = Prediction.objects.get(pk=predict_id)
         return 200, prediction
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}
@@ -384,7 +359,7 @@ def get_prediction(request, predict_id: int):
 @router.post(
     "/predictions/",
     response={
-        201: PredictionSchema,
+        201: PredictionOut,
         403: ForbiddenSchema,
         404: NotFoundSchema,
         422: UnprocessableContentSchema,
@@ -395,73 +370,70 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
-    try:
-        model = Model.objects.get(pk=payload.model)
-    except Model.DoesNotExist:
-        return 404, {"message": f"Model '{payload.model}' not found"}
+    model = Model.objects.get(pk=payload.model)
 
-    payload.model = model
+    if request.user != model.author.user:
+        return 403, {"message": "You are not authorized to update this Model"}
 
-    validation_result = validate_prediction(payload)
-
-    # Returns the status code and the error message
-    # if the validation fails or None if it succeeds
-    if validation_result is not None:
-        return validation_result
-
-    def parse_data(predict: Prediction, df: pd.DataFrame):
-        df = df.rename(columns={"dates": "date", "preds": "pred"})
-
-        for _, row in df.iterrows():  # noqa
-            adm_0 = "BRA"
-            try:
-                adm_1 = (
-                    None
-                    if (pd.isna(row.adm_1) or row.adm_1 == "NA")
-                    else row.adm_1
-                )
-            except AttributeError:
-                adm_1 = None
-            try:
-                adm_2 = (
-                    None
-                    if (pd.isna(row.adm_2) or row.adm_2 == "NA")
-                    else row.adm_2
-                )
-            except AttributeError:
-                adm_2 = None
-            try:
-                adm_3 = (
-                    None
-                    if (pd.isna(row.adm_3) or row.adm_3 == "NA")
-                    else row.adm_3
-                )
-            except AttributeError:
-                adm_3 = None
-
-            if not calling_via_swagger(request):
+    def parse_data(predict: Prediction, data: List[dict]):
+        if not calling_via_swagger(request):
+            for row in data:
                 PredictionDataRow.objects.get_or_create(
                     predict=predict,
-                    date=pd.to_datetime(row.date).date(),
-                    pred=float(row.pred),
-                    upper=float(row.upper),
-                    lower=float(row.lower),
-                    adm_0=adm_0,
-                    adm_1=adm_1,
-                    adm_2=adm_2,
-                    adm_3=adm_3,
+                    date=pd.to_datetime(row["date"]).date(),
+                    pred=row["pred"],
+                    lower_95=row["lower_95"],
+                    lower_90=row["lower_90"],
+                    lower_80=row["lower_80"],
+                    lower_50=row["lower_50"],
+                    upper_50=row["upper_50"],
+                    upper_80=row["upper_80"],
+                    upper_90=row["upper_90"],
+                    upper_95=row["upper_95"],
                 )
 
-    df = pd.DataFrame(json.loads(payload.prediction))
-    payload_dict = payload.dict()
-    del payload_dict["prediction"]
-    prediction = Prediction(**payload_dict)
+    if payload.adm_1:
+        adm_1 = State.objects.get(uf=payload.adm_1).geocode
+    elif payload.adm_2:
+        adm_1 = State.objects.get(geocode=str(payload.adm_2)[:2]).geocode
+    else:
+        adm_1 = None
+        raise NotImplementedError()
 
-    if not calling_via_swagger(request):
-        prediction.save()
-        parse_data(prediction, df)
-        prediction.parse_metadata()
+    df = pd.DataFrame(data=[r.dict() for r in payload.prediction])
 
+    prediction = Prediction(
+        model=model,
+        description=payload.description,
+        commit=payload.commit,
+        predict_date=payload.predict_date,
+        adm_0_geocode=payload.adm_0,
+        adm_1_geocode=adm_1 or None,
+        adm_2_geocode=payload.adm_2 or None,
+        adm_3_geocode=payload.adm_3 or None,
+        date_ini_prediction=min(df.date),
+        date_end_prediction=max(df.date),
+    )
+
+    if calling_via_swagger(request):
+        data = [PredictionDataRowOut(**r.dict()) for r in payload.prediction]
+        return 201, PredictionOut(
+            message="Calling via swagger. This Prediction has not been saved",
+            id=None,
+            model=model.id,
+            description=prediction.description,
+            commit=prediction.commit,
+            predict_date=prediction.predict_date,
+            adm_0=prediction.adm_0_geocode,
+            adm_1=prediction.adm_1_geocode,
+            adm_2=prediction.adm_2_geocode,
+            adm_3=prediction.adm_3_geocode,
+            data=data,
+        )
+
+    prediction.save()
+    prediction.message = "Prediction saved successfully"
+    parse_data(prediction, [r.dict() for r in payload.prediction])
     return 201, prediction
 
 
@@ -487,11 +459,9 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 
         for attr, value in payload.items():
             setattr(prediction, attr, value)
-        # TODO: Add commit verification if commit has changed
 
         if not calling_via_swagger(request):
             # Not really required, since include_in_schema=False
-            prediction.parse_metadata()
             prediction.save()
 
         return 201, prediction

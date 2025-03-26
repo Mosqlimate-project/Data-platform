@@ -14,10 +14,14 @@ The prediction itself, must be provided as a JSON object. Please refer to our vi
 ## Input parameters 
 | Parameter name | Type | Description |
 |--|--|--|
-| model_id | int | Model ID | 
+| model | int | Model ID | 
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
 | predict_date | date _(YYYY-mm-dd)_ | Date when Prediction was generated |
+| adm_0 | str _(ISO 3166-1)_ | Country code. Default: "BRA" |
+| adm_1 | str _(UF)_ | State abbreviation. Example: "RJ" |
+| adm_2 | int _(IBGE)_ | City geocode. Example: 3304557 |
+| adm_3 | int _(IBGE)_ | - |
 | prediction | dict _(JSON)_ | The Prediction result data |
 
 ## X-UID-Key
@@ -27,14 +31,18 @@ POST requests require [User API Token](uid-key.md) to be called.
 
 === "Python3"
     ```py
-    # Warning: this method generates real object in database if called with
+    import requests
+
+    # Warning: this method generates a real object in the database if called with
     # the correct UID Key
     def post_prediction(
-        model_id: int, 
-        description: str, 
-        commit: str, 
-        predict_date: str, 
-        prediction: dict
+        model_id: int,
+        description: str,
+        commit: str,
+        predict_date: str,
+        prediction: dict,
+        adm_1: str | None = None,
+        adm_2: int | None = None,
     ):
         url = "https://api.mosqlimate.org/api/registry/predictions/"
         headers = {"X-UID-Key": "See X-UID-Key documentation"}
@@ -43,20 +51,20 @@ POST requests require [User API Token](uid-key.md) to be called.
             "description": description,
             "commit": commit,
             "predict_date": predict_date,
-            "prediction": prediction
+            "prediction": prediction,
+            "adm_1": adm_1,
+            "adm_2": adm_2,
         }
-        return requests.post(url, json=prediction, headers=headers)
-
+        return requests.post(url, json=predict, headers=headers)
 
     # Example
     post_prediction(
-        model_id = 0, # Check the ID in models list or profile
-        description = "My Prediction description",
-        commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
-        predict_date = "2023-10-31",
-        prediction = {
-            "prediction": "example"
-        }
+        model_id=0,  # Check the ID in models list or profile
+        description="My Prediction description",
+        commit="3d1d2cd016fe38b6e7d517f724532de994d77618",
+        predict_date="2023-10-31",
+        adm_1="RJ",
+        prediction={"prediction": "example"},
     )
     ```
 
@@ -71,7 +79,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       description,
       commit,
       predict_date,
-      prediction
+      prediction,
+      adm_1 = NULL,
+      adm_2 = NULL
     ) {
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
       key = c("<USER>:<KEY>. See X-UID-Key documentation")
@@ -81,9 +91,11 @@ POST requests require [User API Token](uid-key.md) to be called.
         description = description,
         commit = commit,
         predict_date = predict_date,
-        prediction = prediction
+        prediction = prediction,
+        adm_1 = adm_1,
+        adm_2 = adm_2
       )
-      response <- POST(url, body = predict, add_headers(.headers=key),  encode = "json", verbose())
+      response <- POST(url, body = predict, add_headers(.headers=key), encode = "json", verbose())
       return(content(response, "text"))
     }
 
@@ -93,15 +105,14 @@ POST requests require [User API Token](uid-key.md) to be called.
       description = "My Prediction description",
       commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
       predict_date = "2023-10-31",
-      prediction = list(
-        prediction = "example"
-      )
+      adm_1 = "RJ",
+      prediction = list(...)
     )
     ```
 
 === "curl"
     ```sh
-    # Warning: this request generates real object in database if called with
+    # Warning: this request generates a real object in the database if called with
     # the correct UID Key
     curl -X 'POST' \
       'https://api.mosqlimate.org/api/registry/predictions/' \
@@ -113,8 +124,9 @@ POST requests require [User API Token](uid-key.md) to be called.
       "description": "My Prediction description",
       "commit": "3d1d2cd016fe38b6e7d517f724532de994d77618",
       "predict_date": "2023-10-31",
-      "prediction": {"prediction": "example"}
-    }'   
+      "adm_1": "RJ",
+      "prediction": {...}
+    }'
     ```
 
 ## Examples using the mosqlient package
@@ -125,24 +137,15 @@ In the package, there is a function called `upload_prediction` that can be used 
 
 Below is a usable example of the function for a model that predicts a horizon of 10 weeks for adm 1 level.
 ```py
-import numpy as np 
-import pandas as pd 
 from mosqlient import upload_prediction
-
-df_preds = pd.DataFrame()
-
-df_preds['date'] = pd.date_range(start='2024-08-04', periods=10)
-df_preds['lower'] = np.arange(100, 200, 10)
-df_preds['pred'] = np.arange(150, 250, 10)
-df_preds['upper'] = np.arange(200, 300, 10)
-df_preds['adm_1'] = 10*['PR']
 
 upload_prediction(
   model_id = 0, # Check the ID in models list or profile
   description = "My Prediction description",
   commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
   predict_date = "2023-10-31",
-  prediction =  df_preds,
+  adm_1 = "RJ",
+  prediction = list(dict(...)) | pd.DataFrame(...),
   api_key = "X-UID-Key"
   )
 ```
