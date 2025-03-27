@@ -69,7 +69,7 @@ def list_authors(
     filters: AuthorFilterSchema = Query(...),
 ):
     """
-    Lists all authors, can be filtered by name
+    Lists all authors, can be filtered by name.
     Authors that don't have any Model won't be listed
     """
     models_count = Author.objects.annotate(num_models=Count("model"))
@@ -299,25 +299,34 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 @router.delete(
     "/models/{model_id}",
     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+    auth=uidkey,
     tags=["registry", "models"],
-    include_in_schema=False,
 )
+@csrf_exempt
 def delete_model(request, model_id: int):
+    username, _ = request.headers.get("X-UID-Key").split(":")
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return 403, {"message": "Unauthorized. See Documentation"}
+
     try:
         model = Model.objects.get(pk=model_id)
 
-        if request.user != model.author.user:
-            return 403, {
-                "message": "You are not authorized to delete this Model"
+        if not user.is_staff:
+            if request.user != model.author.user:
+                return 403, {
+                    "message": "You are not authorized to delete this Model"
+                }
+
+        if calling_via_swagger(request):
+            return 200, {
+                "message": "Success. Calling via Swagger, Model not deleted"
             }
 
-        if not calling_via_swagger(request):
-            # Not really required, since include_in_schema=False
-            model.delete()
-
+        model.delete()
         return 200, {"message": f"Model {model.name} deleted successfully"}
-    except Author.DoesNotExist:
+    except Model.DoesNotExist:
         return 404, {"message": "Model not found"}
 
 
