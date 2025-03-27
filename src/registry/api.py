@@ -1,4 +1,5 @@
 from typing import List, Literal
+from typing_extensions import Annotated
 
 import pandas as pd
 from django.contrib.auth import get_user_model
@@ -14,9 +15,11 @@ from main.schema import (
     SuccessSchema,
     UnprocessableContentSchema,
 )
-from ninja import Query, Router
+from ninja import Query, Router, Field
+from ninja.errors import HttpError
 from ninja.pagination import paginate
 from ninja.security import django_auth
+from pydantic import field_validator
 
 from users.auth import UidKeyAuth
 from .models import (
@@ -42,7 +45,7 @@ from .utils import calling_via_swagger
 from vis.brasil.models import State
 
 router = Router()
-uidkey = UidKeyAuth()
+uidkey_auth = UidKeyAuth()
 User = get_user_model()
 
 
@@ -156,17 +159,61 @@ def delete_author(request, username: str):
 
 # [Model] Model
 class ModelIn(Schema):
-    name: str
-    description: str = None
-    repository: str  # TODO: Validate repository?
-    implementation_language: str
-    disease: Literal["dengue", "zika", "chikungunya"]
+    name: Annotated[str, Field(description="Model name")]
+    description: Annotated[
+        str, Field(default="", description="Model description")
+    ]
+    repository: Annotated[
+        str,
+        Field(
+            default="https://github.com/", description="Model git repository"
+        ),
+    ]
+    implementation_language: Annotated[
+        str,
+        Field(
+            default="python",
+            description="Model implementation programming language",
+        ),
+    ]
+    disease: Annotated[
+        Literal["dengue", "zika", "chikungunya"],
+        Field(default="dengue", description="Model for disease"),
+    ]
     temporal: bool
     spatial: bool
     categorical: bool
-    ADM_level: Literal[0, 1, 2, 3]
-    time_resolution: Literal["day", "week", "month", "year"]
-    sprint: bool = False
+    ADM_level: Annotated[
+        Literal[0, 1, 2, 3],
+        Field(
+            default=0,
+            description=(
+                "Administrative level. Country, State, Municipality and "
+                "SubMunicipality respectively"
+            ),
+        ),
+    ]
+    time_resolution: Annotated[
+        Literal["day", "week", "month", "year"],
+        Field(
+            default="week",
+            description=(
+                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
+            ),
+        ),
+    ]
+    sprint: Annotated[
+        bool, Field(default=False, description="Model for Sprint 2024/25")
+    ]
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v):
+        if len(v) < 50:
+            raise HttpError(422, "Description too short")
+        if len(v) > 500:
+            raise HttpError(422, "Description too long. Max: 500 characters")
+        return v
 
 
 @router.get(
@@ -206,7 +253,7 @@ def get_model(request, model_id: int):
         404: NotFoundSchema,
         422: UnprocessableContentSchema,
     },
-    auth=uidkey,
+    auth=uidkey_auth,
     tags=["registry", "models"],
 )
 @csrf_exempt
@@ -234,77 +281,80 @@ def create_model(request, payload: ModelIn):
 
 
 class UpdateModelForm(Schema):
-    # author: str
     name: str
-    description: str = None
+    disease: str
+    description: str
     repository: str
     implementation_language: str
     categorical: bool
     temporal: bool
     spatial: bool
+    sprint: bool
 
 
 @router.put(
     "/models/{model_id}",
     response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+    auth=uidkey_auth,
     include_in_schema=False,
 )
+@csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
+    username, _ = request.headers.get("X-UID-Key").split(":")
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return 403, {"message": "Unauthorized. See Documentation"}
+
     try:
         model = Model.objects.get(pk=model_id)
+    except Model.DoesNotExist:
+        return 404, {"message": "Model not found"}
 
-        if request.user != model.author.user:  # TODO: allow admins here
+    if not user.is_staff:
+        if user != model.author.user:
             return 403, {
                 "message": "You are not authorized to update this Model"
             }
 
-        try:
-            for attr, value in payload.items():
-                if attr == "implementation_language":
-                    try:
-                        lang = ImplementationLanguage.objects.get(
-                            language__iexact=value
-                        )
-                        value = lang
-                    except ImplementationLanguage.DoesNotExist:
-                        similar_lang = ImplementationLanguage.objects.filter(
-                            language__icontains=value
-                        )[0]
-                        if similar_lang:
-                            return 404, {
-                                "message": (
-                                    f"Unknown language '{value}', "
-                                    f"did you mean '{similar_lang}'?"
-                                )
-                            }
-                        return 404, {"message": f"Unknown language {value}"}
-                setattr(model, attr, value)
-
-            if not calling_via_swagger(request):
-                model.save()
-
-            return 201, model
-        except Author.DoesNotExist:
-            return 404, {
-                "message": (
-                    f"Author '{payload.author}' not found, use username"
-                    "instead"
+    for attr, value in payload.items():
+        if attr == "implementation_language":
+            try:
+                lang = ImplementationLanguage.objects.get(
+                    language__iexact=value
                 )
-            }
-    except Model.DoesNotExist:
-        return 404, {"message": "Model not found"}
+                value = lang
+            except ImplementationLanguage.DoesNotExist:
+                similar_lang = ImplementationLanguage.objects.filter(
+                    language__icontains=value
+                )[0]
+                if similar_lang:
+                    return 404, {
+                        "message": (
+                            f"Unknown language '{value}', "
+                            f"did you mean '{similar_lang}'?"
+                        )
+                    }
+                return 404, {"message": f"Unknown language {value}"}
+        setattr(model, attr, value)
+
+    if not calling_via_swagger(request):
+        model.save()
+
+    return 201, model
 
 
 @router.delete(
     "/models/{model_id}",
     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=uidkey,
+    auth=uidkey_auth,
     tags=["registry", "models"],
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
     username, _ = request.headers.get("X-UID-Key").split(":")
+
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -314,7 +364,7 @@ def delete_model(request, model_id: int):
         model = Model.objects.get(pk=model_id)
 
         if not user.is_staff:
-            if request.user != model.author.user:
+            if user != model.author.user:
                 return 403, {
                     "message": "You are not authorized to delete this Model"
                 }
@@ -374,7 +424,7 @@ def get_prediction(request, predict_id: int):
         422: UnprocessableContentSchema,
         500: InternalErrorSchema,
     },
-    auth=uidkey,
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
 @csrf_exempt
@@ -481,23 +531,37 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 @router.delete(
     "/predictions/{predict_id}",
     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
-    include_in_schema=False,
 )
+@csrf_exempt
 def delete_prediction(request, predict_id: int):
+    username, _ = request.headers.get("X-UID-Key").split(":")
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return 403, {"message": "Unauthorized. See Documentation"}
+
     try:
         prediction = Prediction.objects.get(pk=predict_id)
 
-        if request.user != prediction.model.author.user:
-            return 403, {
-                "message": "You are not authorized to delete this prediction"
+        if not user.is_staff:
+            if user != prediction.model.author.user:
+                return 403, {
+                    "message": (
+                        "You are not authorized to delete this prediction"
+                    )
+                }
+
+        if calling_via_swagger(request):
+            return 200, {
+                "message": (
+                    "Success. Calling via Swagger, Prediction not deleted"
+                )
             }
 
-        if not calling_via_swagger(request):
-            # Not really required, since include_in_schema=False
-            prediction.delete()
-
+        prediction.delete()
         return 200, {
             "message": f"Prediction {prediction.id} deleted successfully"
         }

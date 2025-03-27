@@ -130,6 +130,7 @@ class ModelSchema(Schema):
     time_resolution: Annotated[
         Literal["day", "week", "month", "year"],
         Field(
+            default="week",
             description=(
                 "Time resolution. Options: 'day', 'week', 'month' or 'year'"
             ),
@@ -417,35 +418,134 @@ class PredictionIn(Schema):
 class PredictionFilterSchema(FilterSchema):
     """url/?paremeters to search for Predictions"""
 
-    id: Optional[int] = Field(None, q="id__exact")
-    model_id: Optional[int] = Field(None, q="model__id__exact")
-    model_name: Optional[str] = Field(None, q="model__name__icontains")
-    model_ADM_level: Optional[int] = Field(None, q="model__ADM_level")
-    model_time_resolution: Optional[
-        Literal["day", "week", "month", "year"]
-    ] = Field(None, q="model__time_resolution__iexact")
-    model_disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
-        None, q="model__disease__iexact"
-    )
-    author_name: Optional[str] = Field(
-        None, q="model__author__user__name__icontains"
-    )
-    author_username: Optional[str] = Field(
-        None, q="model__author__user__username__icontains"
-    )
-    author_institution: Optional[str] = Field(
-        None, q="model__author__institution__icontains"
-    )
-    repository: Optional[str] = Field(None, q="model__repository__icontains")
-    implementation_language: Optional[str] = Field(
-        None, q="model__implementation_language__language__iexact"
-    )
+    id: Annotated[
+        Optional[int],
+        Field(default=None, q="id__exact", description="Prediction ID"),
+    ]
+    model_id: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="model__id__exact",
+            description="Model ID",
+        ),
+    ]
+    model_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__name__icontains",
+            description="Model name",
+        ),
+    ]
+    model_ADM_level: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="model__ADM_level",
+            description="Model administrative level",
+        ),
+    ]
+    model_time_resolution: Annotated[
+        Optional[Literal["day", "week", "month", "year"]],
+        Field(
+            default=None,
+            q="model__time_resolution__iexact",
+            description="Model time resolution",
+        ),
+    ]
+    model_disease: Annotated[
+        Optional[Literal["dengue", "zika", "chikungunya"]],
+        Field(
+            default=None,
+            q="model__disease__iexact",
+            description="Model disease.",
+        ),
+    ]
+    author_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__user__name__icontains",
+            description="Author name",
+        ),
+    ]
+    author_username: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__user__username__icontains",
+            description="Author username",
+        ),
+    ]
+    author_institution: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__institution__icontains",
+            description="Author institution",
+        ),
+    ]
+    repository: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__repository__icontains",
+            description="Model repository",
+        ),
+    ]
+    implementation_language: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__implementation_language__language__iexact",
+            description="Model implementation language. Example: 'python'",
+        ),
+    ]
     temporal: Optional[bool] = Field(None, q="model__temporal")
     spatial: Optional[bool] = Field(None, q="model__spatial")
     categorical: Optional[bool] = Field(None, q="model__categorical")
-    commit: Optional[str] = Field(None, q="commit")
-    predict_date: Optional[dt] = Field(None, q="predict_date")
-    start: Optional[dt] = Field(None, q="predict_date__gte")
-    end: Optional[dt] = Field(None, q="predict_date__lte")
-    tags: Optional[List[int]] = Field(None, q="model__tags__id__in")
-    sprint: Optional[bool] = Field(None, q="model__sprint")
+    commit: Annotated[
+        Optional[str],
+        Field(default=None, q="commit", description="Repository commit hash"),
+    ]
+    predict_date: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date",
+            description="Prediction's predict date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    start: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date__gte",
+            description="Prediction start date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    end: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date__lte",
+            description="Prediction end date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    tags: Annotated[
+        Optional[List[int]],
+        Field(
+            default=None,
+            q="model__tags__id__in",
+            description="List of Tag IDs",
+        ),
+    ]
+    sprint: Annotated[
+        Optional[bool],
+        Field(
+            default=None,
+            q="model__sprint",
+            description="Prediction for Sprint 2024/25",
+        ),
+    ]
