@@ -99,12 +99,12 @@ nav:
   - "Home": 
     - "Getting Started": "index.md"
     - "API Overview": "overview.md"
+    - "Authorization": "uid-key.md"
   - "Model Registry":
     - "Registry API": "registry/index.md"
     - "Fetch Authors": "registry/GET/authors.md"
     - "Fetch Models": "registry/GET/models.md"
     - "Fetch Predictions": "registry/GET/predictions.md"
-    - "Using the X-UID-Key Token": "registry/POST/uid-key.md"
     - "Inserting Models": "registry/POST/models.md"
     - "Inserting Predictions": "registry/POST/predictions.md"
   - "Datastore":
