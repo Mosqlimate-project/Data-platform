@@ -21,22 +21,6 @@ def get_prediction_description_by_id(id: int) -> str:
     return prediction.description
 
 
-@register.filter(name="is_prediction_visualizable")
-def is_prediction_visualizable(prediction: Prediction):
-    if prediction.visualizable:
-        return True
-    return False
-
-
-@register.filter(name="is_model_visualizable")
-def is_model_visualizable(model: Model):
-    predictions = Prediction.objects.filter(model=model)
-    for prediction in predictions:
-        if prediction.visualizable:
-            return True
-    return False
-
-
 @register.filter(name="is_empty")
 def is_empty(iter):
     if not iter or iter is None:

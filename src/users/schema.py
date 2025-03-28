@@ -1,9 +1,14 @@
-from ninja import Schema
+from typing_extensions import Annotated
+
+from ninja import Schema, Field
 
 
 class UserSchema(Schema):
-    name: str
-    username: str
+    name: Annotated[str, Field(description="User's full name")]
+    username: Annotated[
+        str,
+        Field(description="User's username. Fetched via GitHub integration"),
+    ]
 
 
 class UserInPost(Schema):

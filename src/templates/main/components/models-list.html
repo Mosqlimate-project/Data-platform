@@ -71,9 +71,7 @@
     </div>
     <div class="icons">
       <a href="{{ model.repository }}"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fa-github"></i></a>
-      {% if model|is_model_visualizable %}
-        <a href="{% url 'dashboard' %}?model={{model.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a>
-      {% endif %}
+      <!-- <a href="{% url 'dashboard' %}?model={{model.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a> -->
       {% if user == model.author.user %}
       <a href="{% url 'edit-model' model_id=model.id %}"><i class="fa-solid fa-pencil"></i></a>
       {% endif %}

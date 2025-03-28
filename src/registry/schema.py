@@ -1,4 +1,5 @@
 import requests
+from typing_extensions import Annotated
 from datetime import date as dt
 from typing import Optional, Literal, List
 from pydantic import validator, model_validator, field_validator
@@ -14,24 +15,61 @@ from .models import Model
 
 
 class ImplementationLanguageSchema(Schema):
-    language: str
+    language: Annotated[
+        str,
+        Field(
+            default="python",
+            max_length=50,
+            description="Implementation Language",
+        ),
+    ]
 
 
 class AuthorSchema(Schema):
     user: UserSchema
-    institution: Optional[str] = None
+    institution: Annotated[
+        str,
+        Field(default="", max_length=100, description="Author's association"),
+    ]
 
 
 class AuthorFilterSchema(FilterSchema):
     """url/?paremeters to search for Authors"""
 
-    name: Optional[str] = Field(None, q="user__name__icontains")
-    institution: Optional[str] = Field(None, q="institution__icontains")
-    username: Optional[str] = Field(None, q="user__username__icontains")
+    name: Annotated[
+        str,
+        Field(
+            None, q="user__name__icontains", description="Author's full name"
+        ),
+    ]
+    institution: Annotated[
+        str,
+        Field(
+            default=None,
+            q="institution__icontains",
+            max_length=100,
+            description="Author's association",
+        ),
+    ]
+    username: Annotated[
+        str,
+        Field(
+            default=None,
+            q="user__username__icontains",
+            description="Author's username",
+        ),
+    ]
 
 
 class TagSchema(Schema):
-    id: Optional[int]
+    id: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            description="Tag ID",
+            gt=0,
+        ),
+    ]
     name: str
     color: str
 
@@ -46,49 +84,171 @@ class TagSchema(Schema):
 
 
 class ModelSchema(Schema):
-    id: Optional[int]
-    name: str
-    description: str | None = None
+    id: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            description="Model ID",
+            gt=0,
+        ),
+    ]
+    name: Annotated[str, Field(description="Model name")]
+    description: Annotated[
+        str,
+        Field(
+            default="",
+            description="Model description",
+            max_length=500,
+        ),
+    ]
     author: AuthorSchema
-    repository: str
+    repository: Annotated[
+        str,
+        Field(
+            default="https://github.com/",
+            description="Model git repository",
+        ),
+    ]
     implementation_language: ImplementationLanguageSchema
-    disease: Literal["dengue", "chikungunya", "zika"] | None = None
+    disease: Annotated[
+        Literal["dengue", "chikungunya", "zika"],
+        Field(default="dengue", description="Model for disease"),
+    ]
     categorical: bool | None = None
     spatial: bool | None = None
     temporal: bool | None = None
-    ADM_level: Literal[0, 1, 2, 3] | None = None
-    time_resolution: Literal["day", "week", "month", "year"] | None = None
-    sprint: bool
+    ADM_level: Annotated[
+        Literal[0, 1, 2, 3],
+        Field(
+            default=0,
+            description=(
+                "Administrative level. Country, State, Municipality and "
+                "SubMunicipality respectively"
+            ),
+        ),
+    ]
+    time_resolution: Annotated[
+        Literal["day", "week", "month", "year"],
+        Field(
+            default="week",
+            description=(
+                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
+            ),
+        ),
+    ]
+    sprint: Annotated[
+        bool,
+        Field(
+            default=False,
+            description="Model for Sprint 2024/25",
+        ),
+    ]
 
 
 class ModelFilterSchema(FilterSchema):
     """url/?paremeters to search for Models"""
 
-    id: Optional[int] = Field(None, q="id__exact")
-    name: Optional[str] = Field(None, q="name__icontains")
-    author_name: Optional[str] = Field(None, q="author__user__name__icontains")
-    author_username: Optional[str] = Field(
-        None, q="author__user__username__icontains"
-    )
-    author_institution: Optional[str] = Field(
-        None, q="author__institution__icontains"
-    )
-    repository: Optional[str] = Field(None, q="repository__icontains")
-    implementation_language: Optional[str] = Field(
-        None, q="implementation_language__language__iexact"
-    )
-    disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
-        None, q="disease__iexact"
-    )
-    ADM_level: Optional[Literal[0, 1, 2, 3]] = Field(None, q="ADM_level")
+    id: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="id__exact",
+            description="Model ID",
+            gt=0,
+        ),
+    ]
+    name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="name__icontains",
+            description="Model name",
+        ),
+    ]
+    author_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="author__user__name__icontains",
+            description="Model's Author full name",
+        ),
+    ]
+    author_username: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="author__user__username__icontains",
+            description="Model's Author username",
+        ),
+    ]
+    author_institution: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="author__institution__icontains",
+            description="Model's Author association",
+        ),
+    ]
+    repository: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="repository__icontains",
+            description="Model git repository",
+        ),
+    ]
+    implementation_language: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="implementation_language__language__iexact",
+            description="Model implementation language",
+        ),
+    ]
+    disease: Annotated[
+        Optional[Literal["dengue", "zika", "chikungunya"]],
+        Field(
+            default=None, q="disease__iexact", description="Model for disease"
+        ),
+    ]
+    ADM_level: Annotated[
+        Optional[Literal[0, 1, 2, 3]],
+        Field(
+            default=None,
+            q="ADM_level",
+            description=(
+                "Administrative level. Country, State, Municipality and "
+                "SubMunicipality respectively"
+            ),
+        ),
+    ]
     temporal: Optional[bool] = Field(None, q="temporal")
     spatial: Optional[bool] = Field(None, q="spatial")
     categorical: Optional[bool] = Field(None, q="categorical")
-    time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
-        None, q="time_resolution__iexact"
-    )
-    tags: Optional[List[int]] = Field(None, q="tags__id__in")
-    sprint: Optional[bool] = Field(None, q="sprint")
+    time_resolution: Annotated[
+        Optional[Literal["day", "week", "month", "year"]],
+        Field(
+            default=None,
+            q="time_resolution__iexact",
+            description=(
+                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
+            ),
+        ),
+    ]
+    tags: Annotated[
+        Optional[List[int]],
+        Field(
+            default=None,
+            q="tags__id__in",
+            description="List of Model tags",
+        ),
+    ]
+    sprint: Annotated[
+        bool,
+        Field(
+            default=False, q="sprint", description="Model for Sprint 2024/25"
+        ),
+    ]
 
 
 class PredictionDataRowSchema(Schema):
@@ -258,35 +418,134 @@ class PredictionIn(Schema):
 class PredictionFilterSchema(FilterSchema):
     """url/?paremeters to search for Predictions"""
 
-    id: Optional[int] = Field(None, q="id__exact")
-    model_id: Optional[int] = Field(None, q="model__id__exact")
-    model_name: Optional[str] = Field(None, q="model__name__icontains")
-    model_ADM_level: Optional[int] = Field(None, q="model__ADM_level")
-    model_time_resolution: Optional[
-        Literal["day", "week", "month", "year"]
-    ] = Field(None, q="model__time_resolution__iexact")
-    model_disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
-        None, q="model__disease__iexact"
-    )
-    author_name: Optional[str] = Field(
-        None, q="model__author__user__name__icontains"
-    )
-    author_username: Optional[str] = Field(
-        None, q="model__author__user__username__icontains"
-    )
-    author_institution: Optional[str] = Field(
-        None, q="model__author__institution__icontains"
-    )
-    repository: Optional[str] = Field(None, q="model__repository__icontains")
-    implementation_language: Optional[str] = Field(
-        None, q="model__implementation_language__language__iexact"
-    )
+    id: Annotated[
+        Optional[int],
+        Field(default=None, q="id__exact", description="Prediction ID"),
+    ]
+    model_id: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="model__id__exact",
+            description="Model ID",
+        ),
+    ]
+    model_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__name__icontains",
+            description="Model name",
+        ),
+    ]
+    model_ADM_level: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="model__ADM_level",
+            description="Model administrative level",
+        ),
+    ]
+    model_time_resolution: Annotated[
+        Optional[Literal["day", "week", "month", "year"]],
+        Field(
+            default=None,
+            q="model__time_resolution__iexact",
+            description="Model time resolution",
+        ),
+    ]
+    model_disease: Annotated[
+        Optional[Literal["dengue", "zika", "chikungunya"]],
+        Field(
+            default=None,
+            q="model__disease__iexact",
+            description="Model disease.",
+        ),
+    ]
+    author_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__user__name__icontains",
+            description="Author name",
+        ),
+    ]
+    author_username: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__user__username__icontains",
+            description="Author username",
+        ),
+    ]
+    author_institution: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__author__institution__icontains",
+            description="Author institution",
+        ),
+    ]
+    repository: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__repository__icontains",
+            description="Model repository",
+        ),
+    ]
+    implementation_language: Annotated[
+        Optional[str],
+        Field(
+            default=None,
+            q="model__implementation_language__language__iexact",
+            description="Model implementation language. Example: 'python'",
+        ),
+    ]
     temporal: Optional[bool] = Field(None, q="model__temporal")
     spatial: Optional[bool] = Field(None, q="model__spatial")
     categorical: Optional[bool] = Field(None, q="model__categorical")
-    commit: Optional[str] = Field(None, q="commit")
-    predict_date: Optional[dt] = Field(None, q="predict_date")
-    start: Optional[dt] = Field(None, q="predict_date__gte")
-    end: Optional[dt] = Field(None, q="predict_date__lte")
-    tags: Optional[List[int]] = Field(None, q="model__tags__id__in")
-    sprint: Optional[bool] = Field(None, q="model__sprint")
+    commit: Annotated[
+        Optional[str],
+        Field(default=None, q="commit", description="Repository commit hash"),
+    ]
+    predict_date: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date",
+            description="Prediction's predict date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    start: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date__gte",
+            description="Prediction start date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    end: Annotated[
+        Optional[dt],
+        Field(
+            default=None,
+            q="predict_date__lte",
+            description="Prediction end date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    tags: Annotated[
+        Optional[List[int]],
+        Field(
+            default=None,
+            q="model__tags__id__in",
+            description="List of Tag IDs",
+        ),
+    ]
+    sprint: Annotated[
+        Optional[bool],
+        Field(
+            default=None,
+            q="model__sprint",
+            description="Prediction for Sprint 2024/25",
+        ),
+    ]

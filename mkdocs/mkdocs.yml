@@ -57,6 +57,7 @@ markdown_extensions:
   - abbr
   - attr_list
   - md_in_html
+  - pymdownx.details
   - pymdownx.caret
   - pymdownx.mark
   - pymdownx.tilde
@@ -74,6 +75,8 @@ markdown_extensions:
       separator: "_"
 
 plugins:
+  - neoteroi.mkdocsoad:
+      use_pymdownx: true
   - mkdocs-jupyter
   - search:
       separator: '[\s\-\.]+'
@@ -88,17 +91,20 @@ extra:
   social:
     - icon: "fontawesome/brands/github-alt"
       link: "https://github.com/Mosqlimate-project/Data-platform"
+extra_css:
+  - css/neoteroi-mkdocs.css
 
 # Page tree
 nav:
   - "Home": 
     - "Getting Started": "index.md"
+    - "API Overview": "overview.md"
+    - "Authorization": "uid-key.md"
   - "Model Registry":
     - "Registry API": "registry/index.md"
     - "Fetch Authors": "registry/GET/authors.md"
     - "Fetch Models": "registry/GET/models.md"
     - "Fetch Predictions": "registry/GET/predictions.md"
-    - "Using the X-UID-Key Token": "registry/POST/uid-key.md"
     - "Inserting Models": "registry/POST/models.md"
     - "Inserting Predictions": "registry/POST/predictions.md"
   - "Datastore":

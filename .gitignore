@@ -170,6 +170,7 @@ cython_debug/
 __pycache__
 MANIFEST
 dist/
+mkdocs/docs/swagger.json
 docs/_build/
 docs/locale/
 node_modules/

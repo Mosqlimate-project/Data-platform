@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from .charts import watermark
 from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
-from datastore.models import Municipio, Sprint202425
+from datastore.models import Municipio
 from registry.models import Prediction, PredictionDataRow
 
 
@@ -123,14 +123,7 @@ def hist_alerta_data(
     adm_1: Optional[str] = None,
     adm_2: Optional[int] = None,
 ) -> pd.DataFrame:
-    if sprint:
-        hist_alerta = Sprint202425.objects.using("infodengue").all()
-        date_field = "date"
-        geocode_field = "geocode"
-    else:
-        hist_alerta = historico_alerta_data_for(disease)
-        date_field = "data_iniSE"
-        geocode_field = "municipio_geocodigo"
+    hist_alerta = historico_alerta_data_for(disease)
 
     if str(adm_level) == "1":
         if str(adm_1).isdigit():
@@ -148,19 +141,17 @@ def hist_alerta_data(
 
     data = (
         hist_alerta.filter(
-            **{
-                f"{date_field}__gt": start_window_date,
-                f"{date_field}__lt": end_window_date,
-                f"{geocode_field}__in": geocodes,
-            },
+            data_iniSE__gt=start_window_date,
+            data_iniSE__lt=end_window_date,
+            municipio_geocodigo__in=geocodes,
         )
-        .values(date_field)
-        .annotate(casos=models.Sum("casos"))
-        .order_by(date_field)
+        .values("data_iniSE")
+        .annotate(casos=models.Sum("casprov" if sprint else "casos"))
+        .order_by("data_iniSE")
     )
 
-    df = pd.DataFrame.from_records(data, columns=[date_field, "casos"])
-    df.rename(columns={date_field: "date", "casos": "target"}, inplace=True)
+    df = pd.DataFrame.from_records(data, columns=["data_iniSE", "casos"])
+    df.rename(columns={"data_iniSE": "date", "casos": "target"}, inplace=True)
     df["date"] = pd.to_datetime(df["date"])
     df["legend"] = "Data"
     return df

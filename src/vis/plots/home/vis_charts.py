@@ -60,14 +60,12 @@ def historico_alerta_data_for(
     Gets the correct HistoricoAlerta model's data for the specific disease
     """
     if disease in ["chik", "chikungunya"]:
-        data = HistoricoAlertaChik.objects.using("infodengue").all()
+        return HistoricoAlertaChik.objects.using("infodengue")
     elif disease in ["deng", "dengue"]:
-        data = HistoricoAlerta.objects.using("infodengue").all()
+        return HistoricoAlerta.objects.using("infodengue")
     elif disease == "zika":
-        data = HistoricoAlertaZika.objects.using("infodengue").all()
-    else:
-        raise ValueError("Unknown disease. Options: dengue, zika, chik")
-    return data
+        return HistoricoAlertaZika.objects.using("infodengue")
+    raise ValueError("Unknown disease. Options: dengue, zika, chik")
 
 
 def get_total_cases(disease: str, uf: str, year: int) -> TotalCases:
