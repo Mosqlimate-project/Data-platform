@@ -67,6 +67,7 @@ class AuthorInPost(Schema):
     "/authors/", response=List[AuthorSchema], tags=["registry", "authors"]
 )
 @csrf_exempt
+@paginate(PagesPagination)
 def list_authors(
     request,
     filters: AuthorFilterSchema = Query(...),
@@ -363,6 +364,11 @@ def delete_model(request, model_id: int):
     try:
         model = Model.objects.get(pk=model_id)
 
+        if model.sprint:
+            return 403, {
+                "message": "Models for Sprint 2024/25 can't be deleted"
+            }
+
         if not user.is_staff:
             if user != model.author.user:
                 return 403, {
@@ -545,25 +551,24 @@ def delete_prediction(request, predict_id: int):
 
     try:
         prediction = Prediction.objects.get(pk=predict_id)
-
-        if not user.is_staff:
-            if user != prediction.model.author.user:
-                return 403, {
-                    "message": (
-                        "You are not authorized to delete this prediction"
-                    )
-                }
-
-        if calling_via_swagger(request):
-            return 200, {
-                "message": (
-                    "Success. Calling via Swagger, Prediction not deleted"
-                )
-            }
-
-        prediction.delete()
-        return 200, {
-            "message": f"Prediction {prediction.id} deleted successfully"
-        }
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}
+
+    if prediction.model.sprint:
+        return 403, {
+            "message": "Predictions for Sprint 2024/25 can't be deleted"
+        }
+
+    if not user.is_staff:
+        if user != prediction.model.author.user:
+            return 403, {
+                "message": ("You are not authorized to delete this prediction")
+            }
+
+    if calling_via_swagger(request):
+        return 200, {
+            "message": ("Success. Calling via Swagger, Prediction not deleted")
+        }
+
+    prediction.delete()
+    return 200, {"message": f"Prediction {prediction.id} deleted successfully"}

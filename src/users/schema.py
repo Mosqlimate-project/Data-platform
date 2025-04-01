@@ -1,10 +1,11 @@
 from typing_extensions import Annotated
+from typing import Optional
 
 from ninja import Schema, Field
 
 
 class UserSchema(Schema):
-    name: Annotated[str, Field(description="User's full name")]
+    name: Annotated[Optional[str], Field(None, description="User's full name")]
     username: Annotated[
         str,
         Field(description="User's username. Fetched via GitHub integration"),
