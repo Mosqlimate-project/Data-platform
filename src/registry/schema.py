@@ -96,7 +96,6 @@ class ModelSchema(Schema):
     description: Annotated[
         str,
         Field(
-            default="",
             description="Model description",
             max_length=500,
         ),
@@ -244,9 +243,9 @@ class ModelFilterSchema(FilterSchema):
         ),
     ]
     sprint: Annotated[
-        bool,
+        Optional[bool],
         Field(
-            default=False, q="sprint", description="Model for Sprint 2024/25"
+            default=None, q="sprint", description="Model for Sprint 2024/25"
         ),
     ]
 

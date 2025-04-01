@@ -161,9 +161,7 @@ def delete_author(request, username: str):
 # [Model] Model
 class ModelIn(Schema):
     name: Annotated[str, Field(description="Model name")]
-    description: Annotated[
-        str, Field(default="", description="Model description")
-    ]
+    description: Annotated[str, Field(description="Model description")]
     repository: Annotated[
         str,
         Field(
@@ -354,7 +352,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    username, _ = request.headers.get("X-UID-Key").split(":")
+    username, key = request.headers.get("X-UID-Key").split(":")
 
     try:
         user = User.objects.get(username=username)
@@ -370,7 +368,7 @@ def delete_model(request, model_id: int):
             }
 
         if not user.is_staff:
-            if user != model.author.user:
+            if user != model.author.user or user.uuid != key:
                 return 403, {
                     "message": "You are not authorized to delete this Model"
                 }
@@ -437,7 +435,14 @@ def get_prediction(request, predict_id: int):
 def create_prediction(request, payload: PredictionIn):
     model = Model.objects.get(pk=payload.model)
 
-    if request.user != model.author.user:
+    uid_key_header = request.headers.get("X-UID-Key")
+    if uid_key_header:
+        user, key = uid_key_header.split(":")
+        author = Author.objects.get(user__username=user)
+    else:
+        return 403, {"message": "X-UID-Key header is missing"}
+
+    if author.user != model.author.user or author.user.uuid != key:
         return 403, {"message": "You are not authorized to update this Model"}
 
     def parse_data(predict: Prediction, data: List[dict]):
@@ -542,7 +547,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    username, _ = request.headers.get("X-UID-Key").split(":")
+    username, key = request.headers.get("X-UID-Key").split(":")
 
     try:
         user = User.objects.get(username=username)
@@ -560,7 +565,7 @@ def delete_prediction(request, predict_id: int):
         }
 
     if not user.is_staff:
-        if user != prediction.model.author.user:
+        if user != prediction.model.author.user or user.uuid != key:
             return 403, {
                 "message": ("You are not authorized to delete this prediction")
             }
