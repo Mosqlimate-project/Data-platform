@@ -28,7 +28,7 @@ class ImplementationLanguageSchema(Schema):
 class AuthorSchema(Schema):
     user: UserSchema
     institution: Annotated[
-        str,
+        Optional[str],
         Field(default="", max_length=100, description="Author's association"),
     ]
 
@@ -96,7 +96,6 @@ class ModelSchema(Schema):
     description: Annotated[
         str,
         Field(
-            default="",
             description="Model description",
             max_length=500,
         ),
@@ -244,9 +243,9 @@ class ModelFilterSchema(FilterSchema):
         ),
     ]
     sprint: Annotated[
-        bool,
+        Optional[bool],
         Field(
-            default=False, q="sprint", description="Model for Sprint 2024/25"
+            default=None, q="sprint", description="Model for Sprint 2024/25"
         ),
     ]
 
@@ -531,6 +530,22 @@ class PredictionFilterSchema(FilterSchema):
             default=None,
             q="predict_date__lte",
             description="Prediction end date. Format: 'YYYY-mm-dd'",
+        ),
+    ]
+    adm_1_geocode: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="adm_1_geocode",
+            description="Adm 1 geocode. Example: 33",
+        ),
+    ]
+    adm_2_geocode: Annotated[
+        Optional[int],
+        Field(
+            default=None,
+            q="adm_2_geocode",
+            description="Adm 2 geocode. Example: 3304557",
         ),
     ]
     tags: Annotated[
