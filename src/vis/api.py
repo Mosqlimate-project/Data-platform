@@ -1,13 +1,20 @@
 from datetime import date
+from typing import Literal, List
 
 from ninja import Router
+from ninja.security import django_auth
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 
 from main.schema import UnprocessableContentSchema, ForbiddenSchema
 from users.auth import UidKeyAuth
-from .models import ResultsProbForecast, GeoMacroSaude
-from .schema import ResultsProbForecastSchema
+from .models import (
+    ResultsProbForecast,
+    GeoMacroSaude,
+    TotalCases,
+    TotalCases100kHab,
+)
+from .schema import ResultsProbForecastSchema, TotalCasesSchema
 
 
 router = Router()
@@ -67,6 +74,25 @@ uidkey = UidKeyAuth()
 #     ]
 #
 #     return res
+
+
+@router.get(
+    "/total-cases/",
+    response=List[TotalCasesSchema],
+    auth=django_auth,
+    include_in_schema=False,
+)
+def get_total_cases(
+    request,
+    year: int,
+    disease: Literal["dengue", "chikungunya", "zika"],
+    per_100k: bool = False,
+):
+    if per_100k:
+        total_cases = TotalCases100kHab
+    else:
+        total_cases = TotalCases
+    return total_cases.objects.filter(year=year, disease=disease)
 
 
 @router.post(
