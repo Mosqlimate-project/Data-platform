@@ -37,6 +37,8 @@
 /**
  * Initialize and configure ECharts chart.
  */
+const watermark = `{% static 'img/logo-mosqlimate.png' %}`
+
 function initializeEChart(disease, incidenceType) {
   var myChart = echarts.init(document.getElementById('floatingWindow'));
   const blueVioletPalette = [
@@ -61,6 +63,10 @@ function initializeEChart(disease, incidenceType) {
         'chikungunya_100k': {{ chikungunya.total_cases_100k|safe }},
         'zika_100k': {{ dengue.total_cases_100k|safe }},
       };
+
+      const totalCasesNational = diseaseDataMapping[disease].reduce((sum, uf) => {
+        return sum + uf.value;
+      }, 0);
 
       var diseaseName = {
           'dengue': 'Dengue',
@@ -92,8 +98,15 @@ function initializeEChart(disease, incidenceType) {
         },
         title: {
           text: map_title,
+          subtext: `Total cases in Brazil: ${totalCasesNational}`,
           left: 'center',
           padding: [20, 0, 0, 0]
+        },
+        tooltip: {
+          formatter: function(params) {
+            const suffix = incidenceType === 'total_cases_100k_hab' ? '/100k' : '';
+            return `${params.name}: ${params.value}${suffix} cases`;
+          }
         },
         visualMap: {
           left: 'right',
@@ -121,6 +134,21 @@ function initializeEChart(disease, incidenceType) {
             data: br_data,
             }
           ],
+        graphic: [
+          {
+            type: 'image',
+            right: '90%',
+            top: '80%',
+            silent: true,
+            style: {
+              image: watermark,
+              width: 150,
+              opacity: 0.3,
+            },
+            z: 10,
+            id: 'watermark'
+          }
+        ],
         };
 
       const barOption = {
@@ -186,7 +214,10 @@ function initializeEChart(disease, incidenceType) {
           universalTransition: true
         },
         tooltip: {
-          formatter: '{b}: {c} cases'
+          formatter: function(params) {
+            const suffix = incidenceType === 'total_cases_100k_hab' ? '/100k' : '';
+            return `${params.name}: ${params.value}${suffix} cases`;
+          }
         },
         responsive: true,
         maintainAspectRatio: false
