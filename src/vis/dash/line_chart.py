@@ -27,9 +27,11 @@ warnings.filterwarnings(
 
 
 def calculate_score(
-    prediction: Prediction,
+    prediction_id: int,
     confidence_level: float = 0.9,
 ) -> dict[str, float]:
+    prediction = Prediction.objects.get(id=prediction_id)
+
     scores = dict(
         mae=None,
         mse=None,
@@ -48,14 +50,15 @@ def calculate_score(
         adm_2=prediction.adm_2_geocode,
     )
 
-    if data_df.empty:
+    pred_df = prediction.to_dataframe()
+
+    if data_df.empty or pred_df.empty:
         return scores
 
     data_df.rename(columns={"target": "casos"}, inplace=True)
     data_df = data_df[["date", "casos"]]
     data_df.date = pd.to_datetime(data_df.date)
 
-    pred_df = prediction.to_dataframe()
     pred_df = pred_df.sort_values(by="date")
     pred_df.date = pd.to_datetime(pred_df.date)
 

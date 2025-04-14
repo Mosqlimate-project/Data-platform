@@ -383,9 +383,9 @@ class PredictionIn(Schema):
         model = Model.objects.get(pk=values.model)
         adm_1 = values.adm_1
         adm_2 = values.adm_2
-        adm_3 = values.adm_3
+        # adm_3 = values.adm_3
 
-        if sum(list(map(bool, [adm_1, adm_2, adm_3]))) != 1:
+        if sum(list(map(bool, [adm_1, adm_2]))) != 1:
             raise ValueError(
                 "[only] one of `adm_1`, `adm_2` or `adm_3` param is required"
             )
@@ -405,11 +405,11 @@ class PredictionIn(Schema):
             except City.DoesNotExist:
                 raise ValueError(f"unkown geocode '{adm_2}'. Format: 3304557")
 
-        if adm_3:
-            raise NotImplementedError(
-                "ADM 3 (Submunicipality) is not yet implemented. "
-                "Please contact the moderation"
-            )
+        # if adm_3:
+        #     raise NotImplementedError(
+        #         "ADM 3 (Submunicipality) is not yet implemented. "
+        #         "Please contact the moderation"
+        #     )
 
         return values
 

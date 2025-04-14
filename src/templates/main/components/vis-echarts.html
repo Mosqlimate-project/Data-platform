@@ -38,6 +38,63 @@
  * Initialize and configure ECharts chart.
  */
 const watermark = `{% static 'img/logo-mosqlimate.png' %}`
+const csrf = `{% csrf_token %}`;
+
+async function fetchTotalCases(chart, year, disease, per100k = false) {
+  const apiUrl = `/api/vis/total-cases/?year=${year}&disease=${disease}&per_100k=${per100k}`;
+
+  if (per100k) {
+    const title = `${disease} cases per 100k hab. by UF in ${year}`;
+  } else {
+    const title = `Total ${disease} cases by UF in ${year}`;
+  }
+
+  chart.showLoading({
+    spinnerRadius: 10,
+    maskColor: 'rgba(255, 255, 255, 0.8)'
+  });
+
+  const response = await fetch(apiUrl, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrf,
+    },
+  });
+
+  if (!response.ok) {
+    myChart.showLoading({
+      text: 'Error',
+      textColor: 'red',
+      maskColor: 'rgba(255, 255, 255, 0.8)',
+      showSpinner: false
+    });
+    throw new Error(`API error ${response.status}`);
+  }
+
+  const data = await response.json();
+  setData(chart, data);
+  myChart.hideLoading();
+  return data;
+}
+
+function setData(chart, data) {
+  const tot = data.reduce((sum, item) => {
+    return sum + item.value;
+  }, 0);
+  const option = {
+    title: {
+      subtext: `Total cases in Brazil: ${tot}`,
+    },
+    series: {
+      data: data.map(item => item.total_cases),
+    },
+    yAxis: {
+      data: data.map(item => item.uf),
+    },
+  };
+  chart.setOption(option);
+}
 
 function initializeEChart(disease, incidenceType) {
   var myChart = echarts.init(document.getElementById('floatingWindow'));
