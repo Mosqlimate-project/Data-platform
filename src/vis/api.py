@@ -2,7 +2,6 @@ from datetime import date
 from typing import Literal, List
 
 from ninja import Router
-from ninja.security import django_auth
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 
@@ -79,9 +78,10 @@ uidkey = UidKeyAuth()
 @router.get(
     "/total-cases/",
     response=List[TotalCasesSchema],
-    auth=django_auth,
+    # auth=django_auth,
     include_in_schema=False,
 )
+@csrf_exempt
 def get_total_cases(
     request,
     year: int,

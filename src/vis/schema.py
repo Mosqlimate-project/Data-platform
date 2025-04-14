@@ -7,7 +7,7 @@ from main.schema import Schema
 
 class TotalCasesSchema(Schema):
     uf: str
-    total_cases: int
+    total_cases: int | float
 
 
 class ResultsProbForecastSchema(Schema):

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import template
 from vis.models import TotalCases
 
@@ -11,5 +13,12 @@ def vis_echarts(context):
         TotalCases.objects.distinct("year").values_list("year", flat=True)
     )
     diseases = ["dengue", "chikungunya", "zika"]
-    context.update({"years": available_years, "diseases": diseases})
+    context.update(
+        {
+            "disease": "dengue",
+            "year": date.today().year,
+            "years": available_years,
+            "diseases": diseases,
+        }
+    )
     return context
