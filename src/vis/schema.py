@@ -5,6 +5,11 @@ from ninja import FilterSchema, Field
 from main.schema import Schema
 
 
+class TotalCasesSchema(Schema):
+    uf: str
+    total_cases: int | float
+
+
 class ResultsProbForecastSchema(Schema):
     disease: Literal["dengue", "chik", "chikungunya", "zika"]
     date: date

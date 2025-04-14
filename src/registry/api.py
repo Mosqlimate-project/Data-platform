@@ -368,7 +368,7 @@ def delete_model(request, model_id: int):
             }
 
         if not user.is_staff:
-            if user != model.author.user or user.uuid != key:
+            if user != model.author.user or str(user.uuid) != key:
                 return 403, {
                     "message": "You are not authorized to delete this Model"
                 }
@@ -442,7 +442,7 @@ def create_prediction(request, payload: PredictionIn):
     else:
         return 403, {"message": "X-UID-Key header is missing"}
 
-    if author.user != model.author.user or author.user.uuid != key:
+    if author.user != model.author.user or str(author.user.uuid) != key:
         return 403, {"message": "You are not authorized to update this Model"}
 
     def parse_data(predict: Prediction, data: List[dict]):
@@ -565,7 +565,7 @@ def delete_prediction(request, predict_id: int):
         }
 
     if not user.is_staff:
-        if user != prediction.model.author.user or user.uuid != key:
+        if user != prediction.model.author.user or str(user.uuid) != key:
             return 403, {
                 "message": ("You are not authorized to delete this prediction")
             }

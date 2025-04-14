@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from django.core.cache import cache
 
 from registry.models import Prediction, Model, Tag
-from vis.dash.line_chart import calculate_score
+from vis.tasks import update_prediction_scores
 
 
 @receiver(post_save, sender=Model)
@@ -25,7 +25,7 @@ def tags_post_save(sender, instance, created, **kwargs):
 
 
 @receiver(pre_save, sender=Prediction)
-def calculate_score_add_color(sender, instance, **kwargs):
+def add_color(sender, instance, **kwargs):
     def random_hex_color():
         r = random.randint(0, 255)
         g = random.randint(0, 255)
@@ -34,19 +34,11 @@ def calculate_score_add_color(sender, instance, **kwargs):
 
     if instance.color == "#000000":
         instance.color = random_hex_color()
-        instance.save()
 
-    scores = calculate_score(instance)
 
-    if scores != instance.scores:
-        # cache.delete("get_predictions")
-        cache.clear()  # TODO: should delete specific caches
-
-    instance.mae = scores["mae"]
-    instance.mse = scores["mse"]
-    instance.crps = scores["crps"]
-    instance.log_score = scores["log_score"]
-    instance.interval_score = scores["interval_score"]
+@receiver(post_save, sender=Prediction)
+def calculate_scores(sender, instance, **kwargs):
+    update_prediction_scores([instance.id])
 
 
 @receiver(post_save, sender=Prediction)

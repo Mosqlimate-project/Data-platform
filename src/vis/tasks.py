@@ -1,12 +1,15 @@
 import logging
 from typing import Optional
+
 from celery.schedules import crontab
 from celery.signals import worker_ready
 from django.db.models import Sum, Max
+from django.core.cache import cache
 
 from mosqlimate.celeryapp import app
 
 from registry.models import Prediction
+from vis.dash.line_chart import calculate_score
 from .models import TotalCases, TotalCases100kHab
 from .plots.home.vis_charts import (
     uf_ibge_mapping,
@@ -24,17 +27,32 @@ app.conf.beat_schedule = {
         "task": "vis.tasks.update_total_cases_100k_hab_task",
         "schedule": crontab(hour=1, minute=15),
     },
-    "update-prediction-scores-weekly": {
+    "update-prediction-scores-daily": {
         "task": "vis.tasks.update_prediction_scores",
-        "schedule": crontab(hour=3, minute=0, day_of_week=2),
+        "schedule": crontab(hour=3, minute=0),
     },
 }
 
 
 @app.task
-def update_prediction_scores():
-    for prediction in Prediction.objects.all():
-        prediction.save()
+def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
+    if not prediction_ids:
+        predictions = Prediction.objects.all()
+    else:
+        predictions = Prediction.objects.filter(id__in=prediction_ids)
+
+    for prediction in predictions:
+        scores = calculate_score(prediction.id)
+
+        if scores != prediction.scores:
+            # cache.delete("get_predictions")
+            cache.clear()
+            prediction.mae = scores["mae"]
+            prediction.mse = scores["mse"]
+            prediction.crps = scores["crps"]
+            prediction.log_score = scores["log_score"]
+            prediction.interval_score = scores["interval_score"]
+            prediction.save()
 
 
 @worker_ready.connect
