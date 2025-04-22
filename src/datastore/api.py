@@ -193,8 +193,7 @@ def get_copernicus_brasil_weekly(
     elif params.macro_health_code:
         try:
             geocodes = list(
-                GeoMacroSaude.objects.using("infodengue")
-                .get(geocode=params.macro_health_code)
+                GeoMacroSaude.objects.get(geocode=params.macro_health_code)
                 .cities.all()
                 .values_list("geocode", flat=True)
             )

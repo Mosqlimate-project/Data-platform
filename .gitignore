@@ -182,3 +182,4 @@ data/
 */staticfiles/
 */media/
 *cache/
+!macro_health_geocodes.json
