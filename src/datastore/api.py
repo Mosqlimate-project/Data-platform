@@ -18,7 +18,7 @@ from django.conf import settings
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
 from main.utils import UFs
 from registry.pagination import PagesPagination
-from vis.brasil.models import State
+from vis.brasil.models import State, GeoMacroSaude
 from .models import (
     Municipio,
     HistoricoAlerta,
@@ -191,18 +191,16 @@ def get_copernicus_brasil_weekly(
             .values_list("geocodigo", flat=True)
         )
     elif params.macro_health_code:
-        geocodes = list(
-            Municipio.objects.using("infodengue")
-            .filter(regional_code=params.macro_health_code)
-            .values_list("geocodigo", flat=True)
-        )
-        if not geocodes:
+        try:
+            geocodes = list(
+                GeoMacroSaude.objects.get(geocode=params.macro_health_code)
+                .cities.all()
+                .values_list("geocode", flat=True)
+            )
+        except GeoMacroSaude.DoesNotExist:
             raise HttpError(
                 400,
-                (
-                    "Unknown Macroregion Health (Macroregional de Saúde) "
-                    f"code: `{params.macro_health_code}`"
-                ),
+                f"Unknown Macro Health Geocode: `{params.macro_health_code}`",
             )
     else:
         try:
