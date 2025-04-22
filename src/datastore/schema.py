@@ -78,8 +78,8 @@ class CopernicusBrasilWeeklyParams(BaseModel):
 
     @validator("macro_health_code")
     def validate_macro_health_code(cls, value):
-        if len(str(value)) != 5:
-            raise ValueError("Macro Health code must contain 5 digits")
+        if len(str(value)) != 4:
+            raise ValueError("Macro Health code must contain 4 digits")
         return value
 
     @validator("uf")

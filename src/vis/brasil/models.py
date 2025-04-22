@@ -79,6 +79,12 @@ class City(models.Model):
     geocode = geomodels.CharField(primary_key=True, max_length=7, unique=True)
     name = models.CharField(null=False)
     microregion = models.ForeignKey(Microregion, on_delete=models.PROTECT)
+    macro_health = models.ForeignKey(
+        "GeoMacroSaude",
+        on_delete=models.PROTECT,
+        related_name="cities",
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.name}"
