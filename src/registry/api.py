@@ -64,7 +64,10 @@ class AuthorInPost(Schema):
 
 
 @router.get(
-    "/authors/", response=List[AuthorSchema], tags=["registry", "authors"]
+    "/authors/",
+    response=List[AuthorSchema],
+    auth=uidkey_auth,
+    tags=["registry", "authors"],
 )
 @csrf_exempt
 @paginate(PagesPagination)
@@ -84,6 +87,7 @@ def list_authors(
 @router.get(
     "/authors/{username}",
     response={200: AuthorSchema, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "authors"],
 )
 @csrf_exempt
@@ -127,35 +131,35 @@ def update_author(request, username: str, payload: AuthorInPost):
         return 404, {"message": "Author not found"}
 
 
-@router.delete(
-    "/authors/{username}",
-    response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
-    tags=["registry", "authors"],
-    include_in_schema=False,
-)
-def delete_author(request, username: str):
-    """
-    Deletes author
-    @note: This call is related to User and shouldn't be done only via API Call
-    """
-    try:
-        author = Author.objects.get(user__username=username)
-
-        if request.user != author.user:  # TODO: Enable admins here
-            return 403, {
-                "message": "You are not authorized to delete this author"
-            }
-
-        if not calling_via_swagger(request):
-            # Not really required, since include_in_schema=False
-            author.delete()
-
-        return 200, {
-            "message": f"Author '{author.user.name}' deleted successfully"
-        }
-    except Author.DoesNotExist:
-        return 404, {"message": "Author not found"}
+# @router.delete(
+#     "/authors/{username}",
+#     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+#     auth=django_auth,
+#     tags=["registry", "authors"],
+#     include_in_schema=False,
+# )
+# def delete_author(request, username: str):
+#     """
+#     Deletes author
+#     @note: This call is related to User and shouldn't be done only via API Call
+#     """
+#     try:
+#         author = Author.objects.get(user__username=username)
+#
+#         if request.user != author.user:  # TODO: Enable admins here
+#             return 403, {
+#                 "message": "You are not authorized to delete this author"
+#             }
+#
+#         if not calling_via_swagger(request):
+#             # Not really required, since include_in_schema=False
+#             author.delete()
+#
+#         return 200, {
+#             "message": f"Author '{author.user.name}' deleted successfully"
+#         }
+#     except Author.DoesNotExist:
+#         return 404, {"message": "Author not found"}
 
 
 # [Model] Model
@@ -216,7 +220,10 @@ class ModelIn(Schema):
 
 
 @router.get(
-    "/models/", response=List[ModelSchema], tags=["registry", "models"]
+    "/models/",
+    response=List[ModelSchema],
+    auth=uidkey_auth,
+    tags=["registry", "models"],
 )
 @paginate(PagesPagination)
 @csrf_exempt
@@ -233,6 +240,7 @@ def list_models(
 @router.get(
     "/models/{model_id}",
     response={200: ModelSchema, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "models"],
 )
 @csrf_exempt
@@ -391,6 +399,7 @@ class PagesPaginationLimited(PagesPagination):
 @router.get(
     "/predictions/",
     response=List[PredictionOut],
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
 @paginate(PagesPaginationLimited)
@@ -408,6 +417,7 @@ def list_predictions(
 @router.get(
     "/predictions/{predict_id}",
     response={200: PredictionOut, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
 @csrf_exempt

@@ -17,7 +17,7 @@ from .schema import ResultsProbForecastSchema, TotalCasesSchema
 
 
 router = Router()
-uidkey = UidKeyAuth()
+uidkey_auth = UidKeyAuth()
 
 
 # @router.get(
@@ -78,7 +78,7 @@ uidkey = UidKeyAuth()
 @router.get(
     "/total-cases/",
     response=List[TotalCasesSchema],
-    # auth=django_auth,
+    auth=uidkey_auth,
     include_in_schema=False,
 )
 @csrf_exempt
@@ -102,7 +102,7 @@ def get_total_cases(
         403: ForbiddenSchema,
         422: UnprocessableContentSchema,
     },
-    auth=uidkey,
+    auth=uidkey_auth,
     include_in_schema=True,
 )
 @csrf_exempt

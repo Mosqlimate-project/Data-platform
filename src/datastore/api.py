@@ -15,6 +15,7 @@ from django.db.models import F, Avg, Sum
 from django.db.models.functions import Round
 from django.conf import settings
 
+from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
 from main.utils import UFs
 from registry.pagination import PagesPagination
@@ -44,6 +45,7 @@ router = Router()
 
 paginator = PagesPagination
 paginator.max_per_page = 300
+uidkey_auth = UidKeyAuth()
 
 
 @router.get(
@@ -53,6 +55,7 @@ paginator.max_per_page = 300
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
+    auth=uidkey_auth,
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -109,6 +112,7 @@ def get_infodengue(
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
+    auth=uidkey_auth,
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -154,6 +158,7 @@ def get_copernicus_brasil(
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
+    auth=uidkey_auth,
     tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
@@ -255,6 +260,7 @@ def get_copernicus_brasil_weekly(
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
+    auth=uidkey_auth,
     tags=["datastore", "contaovos"],
 )
 @csrf_exempt
@@ -291,6 +297,7 @@ def get_contaovos(
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
+    auth=uidkey_auth,
     tags=["datastore", "episcanner"],
 )
 @csrf_exempt
@@ -312,7 +319,8 @@ def get_episcanner(
             settings.DJANGO_CONTAINER_DATA_PATH
             / "episcanner"
             / "episcanner.duckdb"
-        )
+        ),
+        read_only=True,
     )
 
     describe: pd.DataFrame = db.execute("DESCRIBE").fetchdf()
