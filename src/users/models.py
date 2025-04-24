@@ -39,8 +39,8 @@ class CustomUser(AbstractUser):
         self.name = self.get_full_name()
         super().save(*args, **kwargs)
 
-    def get_fullname(self):
-        return f"{self.first_name} {self.last_name}"
+    def api_key(self):
+        return f"{self.username}:{self.uuid}"
 
     objects = CustomUserManager()
 
