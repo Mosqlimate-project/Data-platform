@@ -17,10 +17,18 @@ class UidKeyAuth(APIKeyHeader):
     param_name = "X-UID-Key"
 
     def authenticate(self, request, uidkey):
+        session = request.session
+        user = request.user
+
+        if user.is_authenticated:
+            if not session.session_key:
+                session.save()
+            cache.set(session.session_key, user.api_key(), timeout=3600)
+
         if uidkey is None:
-            if not request.session.session_key:
-                request.session.save()
-            uidkey = cache.get(request.session.session_key, None)
+            if not session.session_key:
+                session.save()
+            uidkey = cache.get(session.session_key, None)
 
         if ":" in str(uidkey):
             uid, key = uidkey.split(":")

@@ -40,6 +40,8 @@ api = NinjaAPI(
         "in the database.</p>"
         "<p>See <a href=/docs/overview>API Overview</a> to more detailed "
         "information about the endpoints.</p>"
+        "<p>See <a href=/docs/uid-key>Authorization</a> to check how to "
+        "authenticate using your Api Key.</p>"
     ),
     version="1",
     docs=Swagger(),

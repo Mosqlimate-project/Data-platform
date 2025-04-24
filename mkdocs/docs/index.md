@@ -1,5 +1,5 @@
 # Welcome to the Mosqlimate API documentation
-The Mosqlimate API is focused on providing automatable  access to both Data and 
+The Mosqlimate API is focused on providing automatable access to both Data and 
 Forecasting models for arbovirus diseases. 
 
 ## Data 
@@ -9,12 +9,12 @@ temperature and precipitation, and Mosquito abundance data. The *geographical
 scope* of the API is Brazil, at the level of municipality.
 
 ## Models
-The model part of the API, is called [Model  Registry](https://api.mosqlimate.org/docs/registry/),
+The model part of the API, is called [Model Registry](https://api.mosqlimate.org/docs/registry/),
 and it allows registered users to upload metadata about open-source forecasting
 models that use Mosqlimate data. To register a model, a user needs to:
 
- - Have an account on the platform; 
- - Have the code of her model in a GitHub repository.
+ - Have an account on the platform;
+ - Have the code of their model in a GitHub repository.
 
 
 ## Predictions
@@ -25,6 +25,4 @@ ability to forecast dengue and other mosquito-borne diseases.
 
 ## Usage
 Detailed usage instructions with code examples can be found in the specific
-documentation of each of the API endpoint. For uploading  models and predictions into the platform, an account is required. 
-We encourage all users to register anyway
-so that we have an idea of who is using the platform, and target our development efforts to the needs of this community of practice.
+documentation of each of the API endpoint. For request data from the platform an account is required (see [Authorization](/docs/uid-key)).
