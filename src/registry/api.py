@@ -21,6 +21,7 @@ from ninja.pagination import paginate
 from ninja.security import django_auth
 from pydantic import field_validator
 
+from mosqlimate.api import authorize
 from users.auth import UidKeyAuth
 from .models import (
     Author,
@@ -43,6 +44,7 @@ from .schema import (
 )
 from .utils import calling_via_swagger
 from vis.brasil.models import State
+from main.models import APILog
 
 router = Router()
 uidkey_auth = UidKeyAuth()
@@ -64,7 +66,10 @@ class AuthorInPost(Schema):
 
 
 @router.get(
-    "/authors/", response=List[AuthorSchema], tags=["registry", "authors"]
+    "/authors/",
+    response=List[AuthorSchema],
+    auth=uidkey_auth,
+    tags=["registry", "authors"],
 )
 @csrf_exempt
 @paginate(PagesPagination)
@@ -76,6 +81,7 @@ def list_authors(
     Lists all authors, can be filtered by name.
     Authors that don't have any Model won't be listed
     """
+    APILog.from_request(request)
     models_count = Author.objects.annotate(num_models=Count("model"))
     authors = models_count.filter(num_models__gt=0)
     return filters.filter(authors).order_by("-updated")
@@ -84,11 +90,13 @@ def list_authors(
 @router.get(
     "/authors/{username}",
     response={200: AuthorSchema, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "authors"],
 )
 @csrf_exempt
 def get_author(request, username: str):
     """Gets author by Github username"""
+    APILog.from_request(request)
     try:
         author = Author.objects.get(user__username=username)
         return 200, author
@@ -108,6 +116,7 @@ def update_author(request, username: str, payload: AuthorInPost):
     Updates author. It is not possible to change Author's
     user and this post method can only be called by the user
     """
+    APILog.from_request(request)
     try:
         author = Author.objects.get(user__username=username)
 
@@ -127,35 +136,35 @@ def update_author(request, username: str, payload: AuthorInPost):
         return 404, {"message": "Author not found"}
 
 
-@router.delete(
-    "/authors/{username}",
-    response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
-    tags=["registry", "authors"],
-    include_in_schema=False,
-)
-def delete_author(request, username: str):
-    """
-    Deletes author
-    @note: This call is related to User and shouldn't be done only via API Call
-    """
-    try:
-        author = Author.objects.get(user__username=username)
-
-        if request.user != author.user:  # TODO: Enable admins here
-            return 403, {
-                "message": "You are not authorized to delete this author"
-            }
-
-        if not calling_via_swagger(request):
-            # Not really required, since include_in_schema=False
-            author.delete()
-
-        return 200, {
-            "message": f"Author '{author.user.name}' deleted successfully"
-        }
-    except Author.DoesNotExist:
-        return 404, {"message": "Author not found"}
+# @router.delete(
+#     "/authors/{username}",
+#     response={200: SuccessSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+#     auth=django_auth,
+#     tags=["registry", "authors"],
+#     include_in_schema=False,
+# )
+# def delete_author(request, username: str):
+#     """
+#     Deletes author
+#     @note: This call is related to User and shouldn't be done only via API Call
+#     """
+#     try:
+#         author = Author.objects.get(user__username=username)
+#
+#         if request.user != author.user:  # TODO: Enable admins here
+#             return 403, {
+#                 "message": "You are not authorized to delete this author"
+#             }
+#
+#         if not calling_via_swagger(request):
+#             # Not really required, since include_in_schema=False
+#             author.delete()
+#
+#         return 200, {
+#             "message": f"Author '{author.user.name}' deleted successfully"
+#         }
+#     except Author.DoesNotExist:
+#         return 404, {"message": "Author not found"}
 
 
 # [Model] Model
@@ -216,7 +225,10 @@ class ModelIn(Schema):
 
 
 @router.get(
-    "/models/", response=List[ModelSchema], tags=["registry", "models"]
+    "/models/",
+    response=List[ModelSchema],
+    auth=uidkey_auth,
+    tags=["registry", "models"],
 )
 @paginate(PagesPagination)
 @csrf_exempt
@@ -225,6 +237,7 @@ def list_models(
     filters: ModelFilterSchema = Query(...),
     **kwargs,
 ):
+    APILog.from_request(request)
     models = Model.objects.all()
     models = filters.filter(models)
     return models.order_by("-updated")
@@ -233,10 +246,12 @@ def list_models(
 @router.get(
     "/models/{model_id}",
     response={200: ModelSchema, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "models"],
 )
 @csrf_exempt
 def get_model(request, model_id: int):
+    APILog.from_request(request)
     try:
         model = Model.objects.get(pk=model_id)  # TODO: get model by id?
         return 200, model
@@ -257,12 +272,9 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    uid_key_header = request.headers.get("X-UID-Key")
-    if uid_key_header:
-        uid, _ = uid_key_header.split(":")
-        author = Author.objects.get(user__username=uid)
-    else:
-        return 403, {"message": "X-UID-Key header is missing"}
+    APILog.from_request(request)
+    user = authorize(request)
+    author = Author.objects.get(user=user)
 
     data = payload.dict()
     data["implementation_language"] = ImplementationLanguage.objects.get(
@@ -299,12 +311,8 @@ class UpdateModelForm(Schema):
 )
 @csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
-    username, _ = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    APILog.from_request(request)
+    user = authorize(request)
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -352,12 +360,8 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    username, key = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    APILog.from_request(request)
+    user = authorize(request)
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -368,7 +372,7 @@ def delete_model(request, model_id: int):
             }
 
         if not user.is_staff:
-            if user != model.author.user or str(user.uuid) != key:
+            if user != model.author.user:
                 return 403, {
                     "message": "You are not authorized to delete this Model"
                 }
@@ -379,7 +383,7 @@ def delete_model(request, model_id: int):
             }
 
         model.delete()
-        return 200, {"message": f"Model {model.name} deleted successfully"}
+        return 200, {"message": f"Model '{model.name}' deleted successfully"}
     except Model.DoesNotExist:
         return 404, {"message": "Model not found"}
 
@@ -391,6 +395,7 @@ class PagesPaginationLimited(PagesPagination):
 @router.get(
     "/predictions/",
     response=List[PredictionOut],
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
 @paginate(PagesPaginationLimited)
@@ -400,6 +405,7 @@ def list_predictions(
     filters: PredictionFilterSchema = Query(...),
     **kwargs,
 ):
+    APILog.from_request(request)
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
     return predictions.order_by("-updated")
@@ -408,10 +414,12 @@ def list_predictions(
 @router.get(
     "/predictions/{predict_id}",
     response={200: PredictionOut, 404: NotFoundSchema},
+    auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
 @csrf_exempt
 def get_prediction(request, predict_id: int):
+    APILog.from_request(request)
     try:
         prediction = Prediction.objects.get(pk=predict_id)
         return 200, prediction
@@ -433,16 +441,13 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
+    APILog.from_request(request)
     model = Model.objects.get(pk=payload.model)
 
-    uid_key_header = request.headers.get("X-UID-Key")
-    if uid_key_header:
-        user, key = uid_key_header.split(":")
-        author = Author.objects.get(user__username=user)
-    else:
-        return 403, {"message": "X-UID-Key header is missing"}
+    user = authorize(request)
+    author = Author.objects.get(user__username=user.username)
 
-    if author.user != model.author.user or str(author.user.uuid) != key:
+    if author.user != model.author.user:
         return 403, {"message": "You are not authorized to update this Model"}
 
     def parse_data(predict: Prediction, data: List[dict]):
@@ -519,6 +524,7 @@ def create_prediction(request, payload: PredictionIn):
     include_in_schema=False,
 )
 def update_prediction(request, predict_id: int, payload: PredictionIn):
+    APILog.from_request(request)
     try:
         prediction = Prediction.objects.get(pk=predict_id)
 
@@ -547,12 +553,8 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    username, key = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    APILog.from_request(request)
+    user = authorize(request)
 
     try:
         prediction = Prediction.objects.get(pk=predict_id)
@@ -565,7 +567,7 @@ def delete_prediction(request, predict_id: int):
         }
 
     if not user.is_staff:
-        if user != prediction.model.author.user or str(user.uuid) != key:
+        if user != prediction.model.author.user:
             return 403, {
                 "message": ("You are not authorized to delete this prediction")
             }
