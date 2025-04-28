@@ -28,17 +28,21 @@ class LineChart {
             }
           });
 
-          const casesInfo = Object.entries(dataMap).map(([seriesName, info]) => {
+        const casesInfo = Object.entries(dataMap)
+          .map(([seriesName, info]) => {
             if (seriesName === "Data") {
               return `${params.find(p => p.seriesName === seriesName)?.marker} Data: ${info.value} cases`;
             }
             if (info.lower !== null && info.upper !== null) {
               return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} (${info.lower}, ${info.upper}) cases`;
             }
-            if (!seriesName.includes("lower") || !seriesName.includes("lower")) {
+            if (!seriesName.includes("lower") && !seriesName.includes("upper")) {
               return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
             }
-          }).join('<br/>');
+            return null;
+          })
+          .filter(Boolean)
+          .join('<br/>');
 
           return `<strong>${date}</strong><br/>${casesInfo}`;
         }
@@ -203,8 +207,10 @@ class LineChart {
       }
 
       function getBound(bound) {
+        const name = `${id}-${bound}`;
+        const bound_n = bound.split("_")[1];
         const area = {
-          name: `${id}-${bound}`,
+          name: name,
           type: 'line',
           data: getBoundData(bound),
           lineStyle: {
@@ -214,7 +220,7 @@ class LineChart {
           itemStyle: {
             color: pred.color,
           },
-          stack: `${id}`,
+          stack: id + bound_n,
           symbol: 'none',
           showSymbol: false,
         };
@@ -223,7 +229,7 @@ class LineChart {
           area["areaStyle"] = {
             color: pred.color,
             opacity: 0.3,
-          }
+          };
         }
 
         return area;
