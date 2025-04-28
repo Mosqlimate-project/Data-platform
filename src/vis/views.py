@@ -160,7 +160,7 @@ def get_models(request) -> JsonResponse:
     return JsonResponse(context)
 
 
-@cache_page(60 * 120, key_prefix="get_predictions")
+@cache_page(60 * 5, key_prefix="get_predictions")
 def get_predictions(request) -> JsonResponse:
     model_ids = request.GET.getlist("model_id")
 

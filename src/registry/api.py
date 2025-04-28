@@ -21,6 +21,7 @@ from ninja.pagination import paginate
 from ninja.security import django_auth
 from pydantic import field_validator
 
+from mosqlimate.api import authorize
 from users.auth import UidKeyAuth
 from .models import (
     Author,
@@ -79,6 +80,8 @@ def list_authors(
     Lists all authors, can be filtered by name.
     Authors that don't have any Model won't be listed
     """
+    print(request.path)
+    print(dict(request.GET))
     models_count = Author.objects.annotate(num_models=Count("model"))
     authors = models_count.filter(num_models__gt=0)
     return filters.filter(authors).order_by("-updated")
@@ -265,12 +268,8 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    uid_key_header = request.headers.get("X-UID-Key")
-    if uid_key_header:
-        uid, _ = uid_key_header.split(":")
-        author = Author.objects.get(user__username=uid)
-    else:
-        return 403, {"message": "X-UID-Key header is missing"}
+    user = authorize(request)
+    author = Author.objects.get(user=user)
 
     data = payload.dict()
     data["implementation_language"] = ImplementationLanguage.objects.get(
@@ -307,12 +306,7 @@ class UpdateModelForm(Schema):
 )
 @csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
-    username, _ = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    user = authorize(request)
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -360,12 +354,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    username, key = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    user = authorize(request)
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -376,7 +365,7 @@ def delete_model(request, model_id: int):
             }
 
         if not user.is_staff:
-            if user != model.author.user or str(user.uuid) != key:
+            if user != model.author.user:
                 return 403, {
                     "message": "You are not authorized to delete this Model"
                 }
@@ -445,14 +434,10 @@ def get_prediction(request, predict_id: int):
 def create_prediction(request, payload: PredictionIn):
     model = Model.objects.get(pk=payload.model)
 
-    uid_key_header = request.headers.get("X-UID-Key")
-    if uid_key_header:
-        user, key = uid_key_header.split(":")
-        author = Author.objects.get(user__username=user)
-    else:
-        return 403, {"message": "X-UID-Key header is missing"}
+    user = authorize(request)
+    author = Author.objects.get(user__username=user.username)
 
-    if author.user != model.author.user or str(author.user.uuid) != key:
+    if author.user != model.author.user:
         return 403, {"message": "You are not authorized to update this Model"}
 
     def parse_data(predict: Prediction, data: List[dict]):
@@ -557,12 +542,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    username, key = request.headers.get("X-UID-Key").split(":")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return 403, {"message": "Unauthorized. See Documentation"}
+    user = authorize(request)
 
     try:
         prediction = Prediction.objects.get(pk=predict_id)
@@ -575,7 +555,7 @@ def delete_prediction(request, predict_id: int):
         }
 
     if not user.is_staff:
-        if user != prediction.model.author.user or str(user.uuid) != key:
+        if user != prediction.model.author.user:
             return 403, {
                 "message": ("You are not authorized to delete this prediction")
             }
