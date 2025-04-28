@@ -6,7 +6,14 @@
 
 {% block content %}
 <div class="card">
-  <div id="chart-chard" class="card-body">
+  <div id="adm-select-card" class="card-body">
+    <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  <div id="chart-card" class="card-body">
     <i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal"></i>
     <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
     <div id="date-picker"></div>
