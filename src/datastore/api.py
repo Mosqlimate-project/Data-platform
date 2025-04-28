@@ -18,6 +18,7 @@ from django.conf import settings
 from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
 from main.utils import UFs
+from main.models import APILog
 from registry.pagination import PagesPagination
 from vis.brasil.models import State, GeoMacroSaude
 from .models import (
@@ -73,6 +74,7 @@ def get_infodengue(
     # fmt: on
     **kwargs,
 ):
+    APILog.from_request(request)
     disease = disease.lower()  # pyright: ignore
 
     try:
@@ -129,6 +131,7 @@ def get_copernicus_brasil(
     # fmt: on
     **kwargs,
 ):
+    APILog.from_request(request)
     try:
         data = CopernicusBrasil.objects.using("infodengue").all()
     except OperationalError:
@@ -169,6 +172,7 @@ def get_copernicus_brasil_weekly(
     filters: CopernicusBrasilWeeklyFilterSchema = Query(...),
     **kwargs,
 ):
+    APILog.from_request(request)
     if not params.geocode and not params.macro_health_code and not params.uf:
         # NOTE: raising a HttpError is a workaround (django-ninja/issues/940)
         raise HttpError(
@@ -269,6 +273,7 @@ def get_contaovos(
     params: ContaOvosParams = Query(...),
     municipality: Optional[str] = None,
 ):
+    APILog.from_request(request)
     url = "https://contaovos.com/pt-br/api/lastcountingpublic"
     params = {
         "date_start": params.date_start,
@@ -314,6 +319,7 @@ def get_episcanner(
     year: int = datetime.datetime.now().year,
     # geocode: Optional[List[int]] = None
 ):
+    APILog.from_request(request)
     db = duckdb.connect(
         str(
             settings.DJANGO_CONTAINER_DATA_PATH

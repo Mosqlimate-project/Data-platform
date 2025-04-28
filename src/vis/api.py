@@ -78,7 +78,7 @@ uidkey_auth = UidKeyAuth()
 @router.get(
     "/total-cases/",
     response=List[TotalCasesSchema],
-    auth=uidkey_auth,
+    # auth=uidkey_auth,
     include_in_schema=False,
 )
 @csrf_exempt
