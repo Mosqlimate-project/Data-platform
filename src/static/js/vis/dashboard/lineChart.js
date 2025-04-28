@@ -2,6 +2,7 @@ class LineChart {
   constructor(containerId) {
     this.chart = echarts.init(document.getElementById(containerId));
     this.predictions = {};
+    this.bounds = [];
     this.option = {
       tooltip: {
         trigger: 'axis',
@@ -34,7 +35,9 @@ class LineChart {
             if (info.lower !== null && info.upper !== null) {
               return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} (${info.lower}, ${info.upper}) cases`;
             }
-            return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
+            if (!seriesName.includes("lower") || !seriesName.includes("lower")) {
+              return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
+            }
           }).join('<br/>');
 
           return `<strong>${date}</strong><br/>${casesInfo}`;
@@ -126,6 +129,7 @@ class LineChart {
 
   removePrediction(prediction_id) {
     const id = `${prediction_id}`;
+    this.bounds = this.bounds.filter(item => item !== id);
 
     if (this.predictions[id]) {
       const i = this.option.series.findIndex((series) => series.name === id);
@@ -158,6 +162,7 @@ class LineChart {
     this.option.series = this.option.series.slice(0, 1);
     this.predictions = {};
     this.chart.setOption(this.option);
+    this.bounds = [];
   }
 
   reapplyPredictions() {
@@ -232,8 +237,10 @@ class LineChart {
         getBound("upper_50"),
         getBound("upper_90"),
       );
+      this.bounds.push(id);
     } else {
       this.option.series = this.option.series.filter(series => !series.name.includes(`${id}-lower`) && !series.name.includes(`${id}-upper`));
+      this.bounds = this.bounds.filter(item => item !== id);
     }
 
     this.option.legend.data = this.option.series
@@ -241,10 +248,9 @@ class LineChart {
       .map(series => ({
         name: series.name,
         textStyle: {
-          fontWeight: series.name === id && !hasBounds ? 'bold' : 'normal'
+          fontWeight: this.bounds.includes(series.name) && !hasBounds ? 'bold' : 'normal'
         }
       }));
-
 
     this.chart.setOption(this.option, true);
   }
@@ -275,8 +281,14 @@ class LineChart {
     });
 
     this.option.legend.data = this.option.series
-      .map(series => series.name)
-      .filter(name => !name.includes(`${id}-`));
+      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
+      .map(series => ({
+        name: series.name,
+        textStyle: {
+          fontWeight: this.bounds.includes(series.name) ? 'bold' : 'normal'
+        }
+      }));
+
     this.chart.setOption(this.option, true);
   }
 
@@ -320,7 +332,13 @@ class LineChart {
 
     this.option.legend.data = this.option.series
       .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
-      .map(series => series.name);
+      .map(series => ({
+        name: series.name,
+        textStyle: {
+          fontWeight: this.bounds.includes(series.name) ? 'bold' : 'normal'
+        }
+      })
+      );
 
     this.chart.setOption(this.option, true);
   }
