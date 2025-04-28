@@ -81,7 +81,8 @@ def list_authors(
     Lists all authors, can be filtered by name.
     Authors that don't have any Model won't be listed
     """
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     models_count = Author.objects.annotate(num_models=Count("model"))
     authors = models_count.filter(num_models__gt=0)
     return filters.filter(authors).order_by("-updated")
@@ -96,7 +97,8 @@ def list_authors(
 @csrf_exempt
 def get_author(request, username: str):
     """Gets author by Github username"""
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     try:
         author = Author.objects.get(user__username=username)
         return 200, author
@@ -116,7 +118,6 @@ def update_author(request, username: str, payload: AuthorInPost):
     Updates author. It is not possible to change Author's
     user and this post method can only be called by the user
     """
-    APILog.from_request(request)
     try:
         author = Author.objects.get(user__username=username)
 
@@ -128,6 +129,7 @@ def update_author(request, username: str, payload: AuthorInPost):
         author.institution = payload.institution
 
         if not calling_via_swagger(request):
+            APILog.from_request(request)
             # Not really required, since include_in_schema=False
             author.save()
 
@@ -237,7 +239,8 @@ def list_models(
     filters: ModelFilterSchema = Query(...),
     **kwargs,
 ):
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     models = Model.objects.all()
     models = filters.filter(models)
     return models.order_by("-updated")
@@ -251,7 +254,8 @@ def list_models(
 )
 @csrf_exempt
 def get_model(request, model_id: int):
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     try:
         model = Model.objects.get(pk=model_id)  # TODO: get model by id?
         return 200, model
@@ -272,7 +276,6 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    APILog.from_request(request)
     user = authorize(request)
     author = Author.objects.get(user=user)
 
@@ -284,6 +287,7 @@ def create_model(request, payload: ModelIn):
     model = Model(author=author, **data)
 
     if not calling_via_swagger(request):
+        APILog.from_request(request)
         try:
             model.save()
         except IntegrityError:
@@ -311,7 +315,6 @@ class UpdateModelForm(Schema):
 )
 @csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
-    APILog.from_request(request)
     user = authorize(request)
 
     try:
@@ -347,6 +350,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
         setattr(model, attr, value)
 
     if not calling_via_swagger(request):
+        APILog.from_request(request)
         model.save()
 
     return 201, model
@@ -360,7 +364,6 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    APILog.from_request(request)
     user = authorize(request)
 
     try:
@@ -382,6 +385,7 @@ def delete_model(request, model_id: int):
                 "message": "Success. Calling via Swagger, Model not deleted"
             }
 
+        APILog.from_request(request)
         model.delete()
         return 200, {"message": f"Model '{model.name}' deleted successfully"}
     except Model.DoesNotExist:
@@ -405,7 +409,8 @@ def list_predictions(
     filters: PredictionFilterSchema = Query(...),
     **kwargs,
 ):
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     predictions = Prediction.objects.all()
     predictions = filters.filter(predictions)
     return predictions.order_by("-updated")
@@ -419,7 +424,8 @@ def list_predictions(
 )
 @csrf_exempt
 def get_prediction(request, predict_id: int):
-    APILog.from_request(request)
+    if not calling_via_swagger(request):
+        APILog.from_request(request)
     try:
         prediction = Prediction.objects.get(pk=predict_id)
         return 200, prediction
@@ -441,7 +447,6 @@ def get_prediction(request, predict_id: int):
 )
 @csrf_exempt
 def create_prediction(request, payload: PredictionIn):
-    APILog.from_request(request)
     model = Model.objects.get(pk=payload.model)
 
     user = authorize(request)
@@ -506,6 +511,7 @@ def create_prediction(request, payload: PredictionIn):
             data=data,
         )
 
+    APILog.from_request(request)
     prediction.save()
     prediction.message = "Prediction saved successfully"
     parse_data(prediction, [r.dict() for r in payload.prediction])
@@ -524,7 +530,6 @@ def create_prediction(request, payload: PredictionIn):
     include_in_schema=False,
 )
 def update_prediction(request, predict_id: int, payload: PredictionIn):
-    APILog.from_request(request)
     try:
         prediction = Prediction.objects.get(pk=predict_id)
 
@@ -537,6 +542,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
             setattr(prediction, attr, value)
 
         if not calling_via_swagger(request):
+            APILog.from_request(request)
             # Not really required, since include_in_schema=False
             prediction.save()
 
@@ -553,7 +559,6 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    APILog.from_request(request)
     user = authorize(request)
 
     try:
@@ -577,5 +582,6 @@ def delete_prediction(request, predict_id: int):
             "message": ("Success. Calling via Swagger, Prediction not deleted")
         }
 
+    APILog.from_request(request)
     prediction.delete()
     return 200, {"message": f"Prediction {prediction.id} deleted successfully"}
