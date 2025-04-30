@@ -5,6 +5,14 @@
 {% block title %}Datastore{% endblock %}
 
 {% block content %}
+<div class="container p-0">
+  {% if not user.is_authenticated %}
+  <div class="alert alert-warning" role="alert">
+    {% trans "You must be logged in to request data" %}
+  </div>
+  {% endif %}
+</div>
+
 <div class="container infodengue shadow p-5 mb-3 bg-body rounded">
   {% infodengue %}
 </div>
