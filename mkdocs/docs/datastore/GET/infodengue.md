@@ -62,25 +62,19 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
 },
 ```
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
-
-
 ## Usage examples
 
 === "Python3"
     ```py
-    import requests
+    import mosqlient
 
-    infodengue_api = "https://api.mosqlimate.org/api/datastore/infodengue/"
-
-    page = 1
-    pagination = f"?page={page}&per_page=100&"
-    filters = "disease=%s&start=%s&end=%s" % ("dengue", "2022-12-30", "2023-12-30")
-
-    resp = requests.get(infodengue_api + pagination + filters) # GET request
-
-    items = resp.json()["items"] # JSON data in dict format
-    resp.json()["pagination"] # Pagination*
+    mosqlient.get_infodengue(
+        api_key = api_key,
+        disease =  "dengue",
+        start_date = "2022-01-01",
+        end_date = "2023-01-01",
+        uf = 'AL'
+    ).head()
     ```
 
 === "R"
@@ -95,7 +89,10 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
     filters <- paste0("disease=dengue&start=2022-12-30&end=2023-12-30")
 
     url <- paste0(infodengue_api, pagination, filters)
-    resp <- GET(url)
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+    resp <- GET(url, headers=headers)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
 
@@ -107,29 +104,11 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
     ```sh
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/datastore/infodengue/?disease=dengue&start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
     ```
 
 
 *The response's pagination contains information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
 data by changing the `page` parameter on the URL. [See details](#details)
-
-
-## Example using the mosqlient package
-
-The mosqlient is a Python package created to facilitate the use of API. 
-
-In the package, there is a function called `get_infodengue` that returns a pandas DataFrame with the data. This function accepts as filters the parameters `start_date`, `end_date`, `diasese`, `geocode`, and `uf`, with the same types defined in the parameters table above. 
-
-Below is a usable example of fetching data from the `RJ` state.
-```py
-from mosqlient import get_infodengue
-
-# return a pd.DataFrame with the data 
-df = get_infodengue(
-    start_date='2022-12-30', 
-    end_date = '2023-01-30', 
-    disease = 'dengue',
-    uf = 'RJ')
-```

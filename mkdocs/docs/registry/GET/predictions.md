@@ -33,43 +33,21 @@
 },
 ```  
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
-
 
 ## Usage examples
 === "Python3"
     ```py
-    import requests
-
-    predictions_api = "https://api.mosqlimate.org/api/registry/predictions/"
-
-    page = 1
-    per_page = 5
-    pagination = "?page={page}&per_page={per_page}&"
+    import mosqlient
 
     # List all Predictions
-    requests.get(predictions_api + pagination).json()
-
-    # Filter by predict date
-    requests.get(predictions_api + pagination + "predict_date=2023-01-01").json()
+    mosqlient.get_predictions(api_key)
 
     # Filter using multiple parameters; predict date range
-    requests.get(predictions_api + pagination + "start=2023-01-01" + "&" + "end=2023-02-01").json()
-
-
-    # Advanced usage:
-    parameters = {
-        "page": 1,
-        "per_page": 50,
-        # Add parameters here
-    }
-
-    def get_predictions(parameters: dict):
-        predictions_api = "https://api.mosqlimate.org/api/registry/predictions/?"
-        parameters_url = "&".join([f"{p}={v}" for p,v in parameters.items()])
-        return requests.get(predictions_api + parameters_url).json()
-            
-    get_predictions(parameters)
+    mosqlient.get_predictions(
+        api_key,
+        start="2023-01-01",
+        end="2023-02-01"
+    )
     ```
 
 === "R"
@@ -77,25 +55,28 @@
     library(httr)
 
     predictions_api <- "https://api.mosqlimate.org/api/registry/predictions/"
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
 
     page <- 1
     per_page <- 5
     pagination <- paste0("?page=", page, "&per_page=", per_page, "&")
 
     # List all Predictions
-    response_all <- GET(paste0(predictions_api, pagination))
+    response_all <- GET(paste0(predictions_api, pagination), headers=headers)
     predictions_all <- content(response_all, "text") |> fromJSON()
 
     # Filter by predict date
     predict_date <- "2023-01-01"
-    response_date <- GET(paste0(predictions_api, pagination, "predict_date=", predict_date))
+    response_date <- GET(paste0(predictions_api, pagination, "predict_date=", predict_date), headers=headers)
     predictions_date <- content(response_date, "text") |> fromJSON()
 
     # Filter using multiple parameters; predict date range
     start_date <- "2023-01-01"
     end_date <- "2023-02-01"
     filters_combined <- paste0("start=", start_date, "&", "end=", end_date)
-    response_combined <- GET(paste0(predictions_api, pagination, filters_combined))
+    response_combined <- GET(paste0(predictions_api, pagination, filters_combined), headers=headers)
     predictions_combined <- content(response_combined, "text") |> fromJSON()
 
     # Advanced Usage
@@ -108,7 +89,7 @@
     get_predictions <- function(parameters) {
       predictions_api <- "https://api.mosqlimate.org/api/registry/predictions/?"
       parameters_url <- paste0(names(parameters), "=", unlist(parameters), collapse = "&")
-      response <- GET(paste0(predictions_api, parameters_url))
+      response <- GET(paste0(predictions_api, parameters_url), headers=headers)
       predictions <- content(response, "text") |> fromJSON()
       return(predictions)
     }
@@ -121,47 +102,18 @@
     # List all Predictions
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/predictions/?page=1&per_page=50' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Filter by predict date
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/predictions/?predict_date=2023-01-01&page=1&per_page=50' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Filter using multiple parameters; predict date range
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/predictions/?start=2023-01-01&end=2023-02-01&page=1&per_page=50' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
     ```
-
-
-## Examples using the mosqlient package
-
-The mosqlient is a Python package created to facilitate the use of API. 
-
-In the package, there is a function called `get_predictions` that returns a list of elements with information about the predictions. This function accepts as filters all the parameters in the parameters table above except `page` and `per_page`. 
-
-Below is a usable example of fetching the predictions filtering by `model_disease` and `model_ADM_level`.
-```py
-from mosqlient import get_predictions
-
-get_predictions(model_disease = 'dengue', model_ADM_level = 2)
-```
-
-Also, there is a specific function that filters the predictions by any parameter. This function is called `get_models_by_{parameter}`. The example below shows how it can be used to filter all the predictions from a specific model, referred to by his`model_id`, in the platform. Below is an example. 
-
-```py
-from mosqlient import get_predictions_by_model_id
-
-get_predictions_by_model_id(model_id = 6)
-```
-
-The functions above return a list of prediction elements, each representing the metadata associated with a single prediction. To obtain a DataFrame from the prediction, you can use the code below: 
-
-```py 
-from mosqlient import get_predictions_by_model_id    
-
-preds = get_predictions_by_model_id(model_id = 6)
-
-df_preds_0 = preds[0].to_dataframe()
-```

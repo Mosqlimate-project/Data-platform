@@ -115,6 +115,5 @@ nav:
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
   - "Tutorials":
-    - "Making asynchronous requests": "tutorials/AsyncRequests.ipynb"
     - "Making Concurrent requests": "tutorials/ConcurrentRequests.md"
   - "Back to API": "https://api.mosqlimate.org/"

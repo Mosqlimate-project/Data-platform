@@ -43,35 +43,19 @@ Through this API endpoint, you can fetch several climate variables that have bee
 },
 ```
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
-
-
 ## Usage examples
 
 === "Python"
     ```py
-    import requests
+    import mosqlient
 
-    climate_api = "https://api.mosqlimate.org/api/datastore/climate/"
-
-    page = 1 # total amount of pages is returned in the request
-    per_page = 100
-    pagination = f"?page={page}&per_page={per_page}&"
-    filters = "start=%s&end=%s" % ("2022-12-30", "2023-12-30")
-
-    resp = requests.get(climate_api + pagination + filters)
-
-    # Or you can add a geocode to the filters
-    geocode = 3304557
-    resp = requests.get(
-        climate_api + 
-        pagination + 
-        filters +
-        f"&geocode={geocode}"
+    mosqlient.get_climate(
+        api_key = api_key,
+        start_date = "2022-01-01",
+        end_date = "2023-01-01",
+        # uf = "RJ",
+        geocode = 3304557,
     )
-
-    items = resp.json()["items"] # JSON data in dict format
-    resp.json()["pagination"] # Pagination*
     ```
 
 === "R"
@@ -84,8 +68,12 @@ Through this API endpoint, you can fetch several climate variables that have bee
     pagination <- paste0("?page=", page, "&per_page=100&")
     filters <- paste0("start=2022-12-30&end=2023-12-30")
 
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+
     url <- paste0(climate_api, pagination, filters)
-    resp <- GET(url)
+    resp <- GET(url, headers=headers)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
 
@@ -97,32 +85,17 @@ Through this API endpoint, you can fetch several climate variables that have bee
     ```sh
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/datastore/climate/?start=2022-12-30&end=2023-12-30&page=1&per_page=100' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Or you can add a geocode to the filters
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/datastore/climate/?start=2022-12-30&end=2023-12-30&geocode=3304557&page=1&per_page=100' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     ```
 
 *The response's pagination contain information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
 data by changing the `page` parameter on the URL. [See details](#details)
-
-## Example using the mosqlient package
-
-The mosqlient is a Python package created to facilitate the use of API. 
-
-In the package, there is a function called `get_climate` that returns a pandas DataFrame with the data. This function accepts as filters the parameters `start_date`, `end_date`, `geocode`, and `uf`, with the same types defined in the parameters table above. 
-
-Below is a usable example of fetching data from the 3304557 (Rio de Janeiro) city.
-```py
-from mosqlient import get_climate
-
-# return a pd.DataFrame with the data 
-df = get_climate(
-    start_date='2022-12-30', 
-    end_date = '2023-01-30',
-    geocode = 3304557)
-```

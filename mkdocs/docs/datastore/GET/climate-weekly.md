@@ -40,29 +40,20 @@ One of the parameters is required: `geocode`, `uf` or `macro_health_code`
 },
 ```
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
-
 
 ## Usage examples
 
 === "Python"
     ```py
-    import requests
+    import mosqlient
 
-    climate_weekly_api = "https://api.mosqlimate.org/api/datastore/climate/weekly/"
-
-    params = {
-        "page": 1,
-        "per_page": 300,
-        "start": YYYYWW,
-        "end": YYYYWW,
-        "geocode": MUNICIPALITY_GEOCODE,
-        "uf": UF,
-        "macro_health_code": MACROHEALTH_CODE
-    }
-
-    resp = requests.get(climate_weekly_api, params=params)
-    items = resp.json() # JSON data in dict format
+    mosqlient.get_climate_weekly(
+        api_key = api_key,
+        start = "202201",
+        end = "202301",
+        # uf = "RJ",
+        geocode = 3304557,
+    )
     ```
 
 === "R"
@@ -82,7 +73,11 @@ One of the parameters is required: `geocode`, `uf` or `macro_health_code`
       macro_health_code = MACROHEALTH_CODE
     )
 
-    resp <- GET(climate_weekly_api, query = params)
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+
+    resp <- GET(climate_weekly_api, query = params, headers)
     items <- fromJSON(content(resp, "text", encoding = "UTF-8"))
     ```
 
@@ -90,18 +85,16 @@ One of the parameters is required: `geocode`, `uf` or `macro_health_code`
     ```sh
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/datastore/climate/weekly/?start=YYYYWW&end=YYYYWW&page=1&per_page=300' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Or you can add a geocode and other filters
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/datastore/climate/weekly/?start=YYYYWW&end=YYYYWW&geocode=MUNICIPALITY_GEOCODE&uf=UF&macro_health_code=MACROHEALTH_CODE&page=1&per_page=300' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
     ```
 
 *The response's pagination contain information about the amount of items returned
 by the API call. These information can be used to navigate between the queried
 data by changing the `page` parameter on the URL. [See details](#details)
-
-<!-- ## Example using the mosqlient package -->
-<!---->
-<!-- TODO -->
