@@ -76,14 +76,16 @@ class PredictionsDashboard(View):
 
         tags = {}
         for tag in all_tags:
-            if tag.group not in ["disease", "adm_level", "time_resolution"]:
-                # TODO: enable non-unique tag groups to be used
+            if tag.group not in [
+                "disease",
+                "adm_level",
+                "time_resolution",
+            ]:
                 continue
-
             tags[f"{tag.id}"] = {
                 "name": tag.name,
                 "color": tag.color,
-                "group": tag.group,
+                "group": tag.group or "others",
             }
 
         context["tags"] = json.dumps(tags)
@@ -141,6 +143,17 @@ def get_models(request) -> JsonResponse:
     for model in models:
         if not model.predictions.first():
             continue
+
+        tags = []
+
+        for tag in model.tags.all():
+            if tag.group in [
+                "disease",
+                "adm_level",
+                "time_resolution",
+            ]:
+                tags.append(tag.id)
+
         model_res = {}
         model_res["id"] = model.id
         model_res["author"] = {
@@ -150,7 +163,7 @@ def get_models(request) -> JsonResponse:
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
         model_res["time_resolution"] = model.time_resolution
-        model_res["tags"] = list(model.tags.all().values_list("id", flat=True))
+        model_res["tags"] = tags
         model_res["name"] = model.name
         model_res["updated"] = model.updated.date()
         model_res["description"] = model.description

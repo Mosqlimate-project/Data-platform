@@ -5,10 +5,34 @@
 {% block title %}Dashboard - Predictions{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div id="adm-select-card" class="card-body">
-    <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
-    </select>
+<div id="adm-select-card" class="card collapse show">
+  <div class="card-body">
+    <div class="row">
+      <div id="adm0-select" class="col">
+        <div class="d-flex align-items-center">
+          <span>{% trans "Country" %}:</span>
+          <select id="adm0-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        </div>
+      </div>
+      <div id="adm1-select" class="col">
+        <div class="d-flex align-items-center">
+          <span>{% trans "State" %}:</span>
+          <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        </div>
+      </div>
+      <div id="adm2-select" class="col">
+        <div class="d-flex align-items-center">
+          <span>{% trans "Municipality" %}:</span>
+          <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        </div>
+      </div>
+      <div id="adm3-select" class="col">
+        <div class="d-flex align-items-center">
+          <span>{% trans "Sub-Municipality" %}:</span>
+          <select id="adm3-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -105,6 +129,12 @@
           <img src="{% static 'img/vis/prediction-dashboard-show-boundaries.png' %}">
           {% trans " or line" %}
           <img src="{% static 'img/vis/prediction-dashboard-show-boundaries-2.png' %}">
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">{% trans "Interval Bounds" %}</p>
+          <p>{% trans "When the Confidence Interval is active, the Prediction will display the 50% and 90% bounds (upper and lower)" %}</p>
+          <img src="{% static 'img/vis/prediction-bounds-example.png' %}" style="width: 470px">
         </div>
       </div>
     </div>
