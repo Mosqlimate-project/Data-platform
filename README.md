@@ -1,9 +1,6 @@
 # Mosqlimate Data-platform
 The Mosqlimate data Platform, encompasses a data acess API as well as a deployment of MLflow framework for model versioning (not code versioning, but experiment versioning). The platfor will provide both an API to input data (data going into the models to feed predictions) and another for model predictions data which will be stored for visualization purposes.
 
-## --- UNDER CONSTRUCTION --- 
-We are still **under construction** so check back frequently to follow our development.
-
 ## Input data
 Our platform will provide geo-referenced **epidemiological**, **entomological** and **climate** data for the all of Brazil.
 Additional datasets mey be incorporated in the future, as they become available and are considered useful to modellers.
@@ -22,3 +19,7 @@ The registry will remain open, but some acceptance criteria must be met for incl
 1. Use only data made available through the Mosqlimate data API
 1. Be properly documented so that other users can run it.
 1. Adopt MLflow so that experiments are recorded in our platform.
+
+## Mosqlient
+Mosqlimate also has a Python client that enables requesting data interactively, check the
+Mosqlient documentation in the link: https://mosqlimate-client.readthedocs.io/en/latest/

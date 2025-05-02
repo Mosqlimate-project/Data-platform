@@ -38,28 +38,21 @@ To more information, please access
 
 === "Python3"
     ```py
-    import requests
+    import mosqlient
 
-    contaovos_api = "https://contaovos.com/pt-br/api/lastcountingpublic"
-
-    params = {
-        "date_start": "YYYY-MM-DD",
-        "date_end": "YYYY-MM-DD",
-        "page": 1,
-        "state": "STATE_CODE",
-        "municipality": "MUNICIPALITY_NAME",
-    }
-
-    resp = requests.get(contaovos_api, params=params)
-
-    items = resp.json() # JSON data in dict format
+    mosqlient.get_mosquito(
+        api_key = api_key,
+        date_start = "2024-01-01",
+        date_end = "2024-12-31",
+        state = "MG",
+    )
     ```
 
 === "R"
     ```R
     library(httr)
 
-    contaovos_api <- "https://contaovos.com/pt-br/api/lastcountingpublic"
+    contaovos_api <- "https://api.mosqlimate.org/api/datastore/mosquito"
 
     params <- list(
       date_start = "YYYY-MM-DD",
@@ -69,7 +62,11 @@ To more information, please access
       municipality = "MUNICIPALITY_NAME"
     )
 
-    resp <- GET(contaovos_api, query = params)
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+
+    resp <- GET(contaovos_api, query = params, headers)
 
     if (http_type(resp) == "application/json") {
       items <- content(resp, "parsed")
@@ -83,5 +80,6 @@ To more information, please access
     curl -X 'GET' \
     'https://contaovos.com/pt-br/api/lastcountingpublic?date_start=YYYY-MM-DD&date_end=YYYY-MM-DD&page=1&state=STATE_CODE&municipality=MUNICIPALITY_NAME' \
     -H 'accept: application/json' \
+    -H 'X-UID-Key: See X-UID-Key documentation' \
     -d ''
     ```

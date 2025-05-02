@@ -33,18 +33,13 @@ Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner too
 
 === "Python3"
     ```py
-    import requests
+    import mosqlient
 
-    episcanner_api = "https://api.mosqlimate.org/api/datastore/episcanner/"
-
-    params = {
-        "disease": "dengue",
-        "uf": "SP"
-    }
-
-    resp = requests.get(episcanner_api, params=params)
-
-    items = resp.json() # JSON data in dict format
+    mosqlient.get_episcanner(
+        api_key = api_key,
+        disease = "dengue",
+        uf = "SP"
+    )
     ```
 
 === "R"
@@ -58,7 +53,11 @@ Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner too
         uf = "SP"
     )
 
-    resp <- GET(episcanner_api, query = params)
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+
+    resp <- GET(episcanner_api, query = params, headers)
 
     items <- fromJSON(rawToChar(resp$content))
     ```
@@ -68,5 +67,6 @@ Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner too
     curl -X 'GET' \
     'https://api.mosqlimate.org/api/datastore/episcanner/?disease=dengue&uf=SP' \
     -H 'accept: application/json' \
+    -H 'X-UID-Key: See X-UID-Key documentation' \
     -d ''
     ```

@@ -11,12 +11,9 @@
 
 === "Python3"
     ```py
-    import requests
+    import mosqlient
 
-    authors_api = "https://api.mosqlimate.org/api/registry/authors/"
-
-    requests.get(authors_api).json() # GET request
-    requests.get(authors_api + "luabida").json() # GET request with parameter
+    mosqlient.get_authors(api_key)
     ```
 
 === "R"
@@ -25,18 +22,21 @@
     library(jsonlite)
 
     authors_api <- "https://api.mosqlimate.org/api/registry/authors/"
-
-    fromJSON(content(GET(authors_api), "text"))
-    fromJSON(content(GET(authors_api, "luabida"), "text")) # GET specific user
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
+    fromJSON(content(GET(authors_api, headers=headers), "text"))
     ```
 
 === "curl"
     ```sh
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/authors/' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/authors/luabida' \ # GET specific user
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
     ```

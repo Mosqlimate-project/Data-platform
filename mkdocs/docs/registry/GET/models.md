@@ -29,46 +29,20 @@
 },
 ```  
 
-> Note: for fetching a big amount of pages, please consider using [Async](../../tutorials/AsyncRequests.ipynb) code
-
 ## Usage examples
 
 === "Python3"
     ```py
-    import requests
-
-    models_api = "https://api.mosqlimate.org/api/registry/models/"
-
-    page = 1
-    per_page = 5
-    pagination = "?page={page}&per_page={per_page}&"
+    import mosqlient
 
     # List all Models
-    requests.get(models_api + pagination).json()
+    mosqlient.get_all_models(api_key)
 
     # get specific Model
-    requests.get(models_api + "1").json() # Model id
+    mosqlient.get_model_by_id(api_key, id)
 
-    # Filter by implementation language
-    requests.get(models_api + pagination + "implementation_language=python").json()
-
-    # combining filters
-    requests.get(models_api + pagination + "implementation_language=python" + "&" + "name=test").json()
-
-
-    # Advanced Usage:
-    parameters = {
-        "page": 1,
-        "per_page": 2,
-        # Add parameters here
-    }
-
-    def get_models(parameters: dict):
-        models_api = "https://api.mosqlimate.org/api/registry/models/?"
-        parameters_url = "&".join([f"{p}={v}" for p,v in parameters.items()])
-        return requests.get(models_api + parameters_url).json()
-            
-    get_models(parameters)
+    # get models with filters
+    mosqlient.get_models(api_key, **kwargs)
     ```
 
 === "R"
@@ -76,26 +50,29 @@
     library(httr)
 
     models_api <- "https://api.mosqlimate.org/api/registry/models/"
+    headers <- add_headers(
+      `X-UID-Key` = API_KEY
+    )
 
     page <- 1
     per_page <- 5
     pagination <- paste0("?page=", page, "&per_page=", per_page, "&")
 
     # List all Models
-    response_all <- GET(paste0(models_api, pagination))
+    response_all <- GET(paste0(models_api, pagination), headers=headers)
     all_models <- content(response_all, "text") |> fromJSON()
 
     # Get specific Model
-    response_specific <- GET(paste0(models_api, "1")) # Model id
+    response_specific <- GET(paste0(models_api, "1"), headers=headers) # Model id
     specific_model <- content(response_specific, "text") |> fromJSON()
 
     # Filter by implementation language
-    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"))
+    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"), headers=headers)
     models_python <- content(response_python, "text") |> fromJSON()
 
     # Combining filters
     filters_combined <- paste0("implementation_language=python", "&", "name=test")
-    response_combined <- GET(paste0(models_api, pagination, filters_combined))
+    response_combined <- GET(paste0(models_api, pagination, filters_combined), headers=headers)
     models_multi_filters <- content(response_combined, "text") |> fromJSON()
 
 
@@ -109,7 +86,7 @@
     get_models <- function(parameters) {
       models_api <- "https://api.mosqlimate.org/api/registry/models/?"
       parameters_url <- paste0(names(parameters), "=", unlist(parameters), collapse = "&")
-      response <- GET(paste0(models_api, parameters_url))
+      response <- GET(paste0(models_api, parameters_url), headers=headers)
       models <- content(response, "text") |> fromJSON()
       return(models)
     }
@@ -122,43 +99,24 @@
     # List all models
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/models/?page=1&per_page=5' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Get specific Model
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/models/1' \ # Model id
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Filter by implementation language
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/models/?implementation_language=python&page=1&per_page=5' \
-      -H 'accept: application/json'
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
 
     # Combining filters
     curl -X 'GET' \
       'https://api.mosqlimate.org/api/registry/models/?id=1&name=test&implementation_language=python&page=1&per_page=5' \
-      -H 'accept: application/json'
-
+      -H 'accept: application/json' \
+      -H 'X-UID-Key: See X-UID-Key documentation'
     ```
-
-## Examples using the mosqlient package
-
-The mosqlient is a Python package created to facilitate the use of API. 
-
-In the package, there is a function called `get_models` that returns a list of dictionaries with information about the models. This function accepts as filters all the parameters in the parameters table above except `page` and `per_page`. 
-
-Below is a usable example of fetching the models filtering by `implementation_language` and `author_name`.
-```py
-from mosqlient import get_models
-
-get_models(implementation_language = 'Python', 
-          author_name = 'Eduardo Correa Araujo')
-```
-
-Also, there is a specific function that filters the models by any parameter. This function is called `get_models_by_{parameter}`. The example below shows how it can be used to filter all the `dengue` models in the platform. 
-
-```py
-from mosqlient import get_models_by_disease
-
-get_models_by_disease(disease = 'dengue')
-```

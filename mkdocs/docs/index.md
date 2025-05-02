@@ -26,3 +26,6 @@ ability to forecast dengue and other mosquito-borne diseases.
 ## Usage
 Detailed usage instructions with code examples can be found in the specific
 documentation of each of the API endpoint. For request data from the platform an account is required (see [Authorization](/docs/uid-key)).
+
+## Mosqlient
+Mosqlient provides a Python Client to request data from the API interactively, you can check its documentation in the [Mosqlimate-client readthedocs](https://mosqlimate-client.readthedocs.io/en/latest/).
