@@ -66,7 +66,7 @@ class Tag(models.Model):
             "Ruby",
             "Rust",
             "Zig",
-        ]
+        ],
     ) -> int:
         languages = list(
             ImplementationLanguage.objects.values_list("language", flat=True)
@@ -82,7 +82,7 @@ class Tag(models.Model):
 
     @staticmethod
     def get_tag_id_by_disease(
-        disease: Literal["dengue", "zika", "chikungunya"]
+        disease: Literal["dengue", "zika", "chikungunya"],
     ) -> int:
         disease = "chikungunya" if disease == "chik" else disease
         try:
@@ -92,7 +92,7 @@ class Tag(models.Model):
 
     @staticmethod
     def get_tag_id_by_time_resolution(
-        time_resolution: Literal["day", "week", "month", "year"]
+        time_resolution: Literal["day", "week", "month", "year"],
     ) -> int:
         times_res = {
             "day": "Daily",

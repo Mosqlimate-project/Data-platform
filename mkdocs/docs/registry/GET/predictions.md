@@ -33,18 +33,20 @@
 },
 ```  
 
-
 ## Usage examples
+
+The Python examples use the `mosqlient` package, specifically designed for interacting with the API. For more information on how to use it, refer to the [documentation here](https://mosqlimate-client.readthedocs.io/en/latest/tutorials/API/registry/).
+
 === "Python3"
     ```py
     import mosqlient
 
     # List all Predictions
-    mosqlient.get_predictions(api_key)
+    mosqlient.get_predictions(X-UID-Key)
 
     # Filter using multiple parameters; predict date range
     mosqlient.get_predictions(
-        api_key,
+        X-UID-Key,
         start="2023-01-01",
         end="2023-02-01"
     )
@@ -53,10 +55,11 @@
 === "R"
     ```R
     library(httr)
+    library(jsonlite)
 
     predictions_api <- "https://api.mosqlimate.org/api/registry/predictions/"
     headers <- add_headers(
-      `X-UID-Key` = API_KEY
+      `X-UID-Key` = X-UID-Key
     )
 
     page <- 1
@@ -64,19 +67,19 @@
     pagination <- paste0("?page=", page, "&per_page=", per_page, "&")
 
     # List all Predictions
-    response_all <- GET(paste0(predictions_api, pagination), headers=headers)
+    response_all <- GET(paste0(predictions_api, pagination), headers)
     predictions_all <- content(response_all, "text") |> fromJSON()
 
     # Filter by predict date
     predict_date <- "2023-01-01"
-    response_date <- GET(paste0(predictions_api, pagination, "predict_date=", predict_date), headers=headers)
+    response_date <- GET(paste0(predictions_api, pagination, "predict_date=", predict_date), headers)
     predictions_date <- content(response_date, "text") |> fromJSON()
 
     # Filter using multiple parameters; predict date range
     start_date <- "2023-01-01"
     end_date <- "2023-02-01"
     filters_combined <- paste0("start=", start_date, "&", "end=", end_date)
-    response_combined <- GET(paste0(predictions_api, pagination, filters_combined), headers=headers)
+    response_combined <- GET(paste0(predictions_api, pagination, filters_combined), headers)
     predictions_combined <- content(response_combined, "text") |> fromJSON()
 
     # Advanced Usage
@@ -89,7 +92,7 @@
     get_predictions <- function(parameters) {
       predictions_api <- "https://api.mosqlimate.org/api/registry/predictions/?"
       parameters_url <- paste0(names(parameters), "=", unlist(parameters), collapse = "&")
-      response <- GET(paste0(predictions_api, parameters_url), headers=headers)
+      response <- GET(paste0(predictions_api, parameters_url), headers)
       predictions <- content(response, "text") |> fromJSON()
       return(predictions)
     }

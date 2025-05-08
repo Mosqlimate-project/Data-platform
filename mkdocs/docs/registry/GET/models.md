@@ -31,27 +31,30 @@
 
 ## Usage examples
 
+The Python examples use the `mosqlient` package, specifically designed for interacting with the API. For more information on how to use it, refer to the [documentation here](https://mosqlimate-client.readthedocs.io/en/latest/tutorials/API/registry/).
+
 === "Python3"
     ```py
     import mosqlient
 
     # List all Models
-    mosqlient.get_all_models(api_key)
+    mosqlient.get_all_models(X-UID-Key)
 
     # get specific Model
-    mosqlient.get_model_by_id(api_key, id)
+    mosqlient.get_model_by_id(X-UID-Key, id)
 
     # get models with filters
-    mosqlient.get_models(api_key, **kwargs)
+    mosqlient.get_models(X-UID-Key, **kwargs)
     ```
 
 === "R"
     ```R
     library(httr)
+    library(jsonlite)
 
     models_api <- "https://api.mosqlimate.org/api/registry/models/"
     headers <- add_headers(
-      `X-UID-Key` = API_KEY
+      `X-UID-Key` = X-UID-Key
     )
 
     page <- 1
@@ -59,22 +62,21 @@
     pagination <- paste0("?page=", page, "&per_page=", per_page, "&")
 
     # List all Models
-    response_all <- GET(paste0(models_api, pagination), headers=headers)
+    response_all <- GET(paste0(models_api, pagination), headers)
     all_models <- content(response_all, "text") |> fromJSON()
 
     # Get specific Model
-    response_specific <- GET(paste0(models_api, "1"), headers=headers) # Model id
+    response_specific <- GET(paste0(models_api, "1"), headers) # Model id
     specific_model <- content(response_specific, "text") |> fromJSON()
 
     # Filter by implementation language
-    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"), headers=headers)
+    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"), headers)
     models_python <- content(response_python, "text") |> fromJSON()
 
     # Combining filters
     filters_combined <- paste0("implementation_language=python", "&", "name=test")
-    response_combined <- GET(paste0(models_api, pagination, filters_combined), headers=headers)
+    response_combined <- GET(paste0(models_api, pagination, filters_combined),headers)
     models_multi_filters <- content(response_combined, "text") |> fromJSON()
-
 
     # Advanced Usage
     parameters <- list(
@@ -86,7 +88,7 @@
     get_models <- function(parameters) {
       models_api <- "https://api.mosqlimate.org/api/registry/models/?"
       parameters_url <- paste0(names(parameters), "=", unlist(parameters), collapse = "&")
-      response <- GET(paste0(models_api, parameters_url), headers=headers)
+      response <- GET(paste0(models_api, parameters_url), headers)
       models <- content(response, "text") |> fromJSON()
       return(models)
     }

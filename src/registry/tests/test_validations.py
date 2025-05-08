@@ -187,9 +187,9 @@ class TestValidCreateModel(TestCase):
         request = HttpRequest()
         request.method = "POST"
         request.POST = self.payload.dict()
-        request.META[
-            "HTTP_X_UID_KEY"
-        ] = f"{self.user.username}:{self.model.author}"
+        request.META["HTTP_X_UID_KEY"] = (
+            f"{self.user.username}:{self.model.author}"
+        )
 
         response = create_model(request, self.payload)
         self.assertEqual(response[0], 201)

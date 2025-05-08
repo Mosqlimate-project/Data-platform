@@ -34,7 +34,7 @@ def geo_obj_to_dataframe(obj: geomodels.Model) -> pd.DataFrame:
 
 
 def parse_gis_types_to_shapely(
-    value: Union[MultiPolygon, Polygon]
+    value: Union[MultiPolygon, Polygon],
 ) -> Union[sPolygon, sMultiPolygon]:
     if isinstance(value, Polygon):
         value = sPolygon(value.shell)
