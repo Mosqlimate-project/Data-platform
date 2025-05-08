@@ -147,7 +147,7 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
       
       headers <- add_headers(
-        `X-UID-Key` = API_KEY)
+        `X-UID-Key` = X-UID-Key)
       
       predict <- list(
         model = model_id,

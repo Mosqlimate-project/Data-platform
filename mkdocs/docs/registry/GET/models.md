@@ -38,13 +38,13 @@ The Python examples use the `mosqlient` package, specifically designed for inter
     import mosqlient
 
     # List all Models
-    mosqlient.get_all_models(api_key)
+    mosqlient.get_all_models(X-UID-Key)
 
     # get specific Model
-    mosqlient.get_model_by_id(api_key, id)
+    mosqlient.get_model_by_id(X-UID-Key, id)
 
     # get models with filters
-    mosqlient.get_models(api_key, **kwargs)
+    mosqlient.get_models(X-UID-Key, **kwargs)
     ```
 
 === "R"
@@ -54,7 +54,7 @@ The Python examples use the `mosqlient` package, specifically designed for inter
 
     models_api <- "https://api.mosqlimate.org/api/registry/models/"
     headers <- add_headers(
-      `X-UID-Key` = API_KEY
+      `X-UID-Key` = X-UID-Key
     )
 
     page <- 1

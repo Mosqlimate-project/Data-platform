@@ -15,7 +15,7 @@ The Python examples use the `mosqlient` package, specifically designed for inter
     ```py
     import mosqlient
 
-    mosqlient.get_authors(api_key)
+    mosqlient.get_authors(X-UID-Key)
     ```
 
 === "R"
@@ -25,7 +25,7 @@ The Python examples use the `mosqlient` package, specifically designed for inter
 
     authors_api <- "https://api.mosqlimate.org/api/registry/authors/"
 
-    response <- GET(authors_api, add_headers(`X-UID-Key` = API_KEY))
+    response <- GET(authors_api, add_headers(`X-UID-Key` = X-UID-Key))
 
     if (status_code(response) != 200) {
       stop("Request failed: ", status_code(response), "\n", content(response, "text"))

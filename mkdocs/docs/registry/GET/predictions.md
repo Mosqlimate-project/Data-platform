@@ -42,11 +42,11 @@ The Python examples use the `mosqlient` package, specifically designed for inter
     import mosqlient
 
     # List all Predictions
-    mosqlient.get_predictions(api_key)
+    mosqlient.get_predictions(X-UID-Key)
 
     # Filter using multiple parameters; predict date range
     mosqlient.get_predictions(
-        api_key,
+        X-UID-Key,
         start="2023-01-01",
         end="2023-02-01"
     )
@@ -59,7 +59,7 @@ The Python examples use the `mosqlient` package, specifically designed for inter
 
     predictions_api <- "https://api.mosqlimate.org/api/registry/predictions/"
     headers <- add_headers(
-      `X-UID-Key` = API_KEY
+      `X-UID-Key` = X-UID-Key
     )
 
     page <- 1
