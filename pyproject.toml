@@ -9,7 +9,7 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
-python = ">=3.11.0,<3.13"
+python = ">=3.11.0,<=3.12.4"
 django-ninja = "^1.2.2"
 django-extensions = "^3.2.1"
 dr-scaffold = "^2.1.2"
@@ -55,8 +55,8 @@ scikit-learn = "^1.6.1"
 
 [tool.poetry.group.pre-commit.dependencies]
 pre-commit = "^3.3.2"
-black = "^23.3.0"
-ruff = "^0.0.272"
+black = "^25.1.0"
+ruff = "^0.11.8"
 
 
 [tool.poetry.group.dev.dependencies]
