@@ -10,6 +10,7 @@ in the local variables, then asks for an input if the variable doesn't exist. A
 default_val will be returned. A default value will be overridden if it already
 exists on Environment and it won't ask for input.
 """
+
 import os
 import logging
 from pathlib import Path

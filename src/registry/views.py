@@ -23,5 +23,4 @@ class ModelView(View):
 
 def filter_predictions(
     request, ids: list[int], filters: dict[str, Any]
-) -> JsonResponse:
-    ...
+) -> JsonResponse: ...
