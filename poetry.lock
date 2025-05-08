@@ -1049,26 +1049,22 @@ files = [
 
 [[package]]
 name = "containers-sugar"
-version = "1.17.0"
+version = "1.13.0"
 description = "Simplify the usage of containers"
 optional = false
-python-versions = "<4,>=3.9"
+python-versions = "<4,>=3.8.1"
 files = [
-    {file = "containers_sugar-1.17.0-py3-none-any.whl", hash = "sha256:360f6a65702affca8725db28b0ca6044876b9d04196d86a4fa2607f631a035a9"},
-    {file = "containers_sugar-1.17.0.tar.gz", hash = "sha256:0b34f5880912f3539a0f04e18ebec917318a8ad0fe1f09cff7f9d4a7a08d672d"},
+    {file = "containers_sugar-1.13.0-py3-none-any.whl", hash = "sha256:35cf0b199cf728b37d7ea43ad1151a30d1eea7f6bc5c29546a82dbef8e2feef1"},
+    {file = "containers_sugar-1.13.0.tar.gz", hash = "sha256:f9619d94e0fa646e827d4add7cc3e897a3389b89b8f26ce85f5ce9b7c5abbaa1"},
 ]
 
 [package.dependencies]
 colorama = ">=0.4.6"
-compose-go = ">=1.27.0"
 Jinja2 = ">=2"
-jsonschema = ">=4"
-podman-compose = ">=1.3.0,<2.0.0"
 python-dotenv = ">=0.21.1"
 pyyaml = ">=6"
 sh = ">=2.0.0"
 typer = ">=0.9.0"
-xonsh = ">=0.15.0"
 
 [package.extras]
 tui = ["plotille (>=5)", "rich (>=10.11.0)", "textual (>=0.48)"]
@@ -4210,24 +4206,6 @@ packaging = "*"
 express = ["numpy"]
 
 [[package]]
-name = "podman-compose"
-version = "1.3.0"
-description = "A script to run docker-compose.yml using podman"
-optional = false
-python-versions = "*"
-files = [
-    {file = "podman_compose-1.3.0-py2.py3-none-any.whl", hash = "sha256:34599a9fd404bb80b587d5dda316d83928d7a33917e8a0adcd07f7aa6c52da4b"},
-    {file = "podman_compose-1.3.0.tar.gz", hash = "sha256:e65a70e8fa26bd195d2017ac5893149b40c0df5a0c20d480a338c4f60218b1fa"},
-]
-
-[package.dependencies]
-python-dotenv = "*"
-pyyaml = "*"
-
-[package.extras]
-devel = ["coverage", "parameterized", "pre-commit", "ruff"]
-
-[[package]]
 name = "pre-commit"
 version = "3.8.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -6800,4 +6778,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "68105b569e21e37d715ae5b843ca220f0994fa7a498448da55b1cfabd6a339f8"
+content-hash = "2ecdbadcd16558124aef3b5b25098370029ddac707964187bcac133e77ee4f1d"

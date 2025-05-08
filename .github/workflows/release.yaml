@@ -56,9 +56,27 @@ jobs:
       - name: Run semantic release (for tests)
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
-          makim release.dry
+          npx --yes \
+            -p semantic-release \
+            -p conventional-changelog-conventionalcommits \
+            -p "@semantic-release/commit-analyzer" \
+            -p "@semantic-release/release-notes-generator" \
+            -p "@semantic-release/changelog" \
+            -p "@semantic-release/github" \
+            -p "@semantic-release/git" \
+            -p "semantic-release-replace-plugin@1.2.7" \
+            semantic-release --dry-run --branches main
 
       - name: Release command
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          makim release.ci
+          npx --yes \
+            -p semantic-release \
+            -p conventional-changelog-conventionalcommits \
+            -p "@semantic-release/commit-analyzer" \
+            -p "@semantic-release/release-notes-generator" \
+            -p "@semantic-release/changelog" \
+            -p "@semantic-release/github" \
+            -p "@semantic-release/git" \
+            -p "semantic-release-replace-plugin@1.2.7" \
+            semantic-release --debug --ci --branches main
