@@ -9,6 +9,8 @@
 
 ## Usage examples
 
+The Python examples use the `mosqlient` package, specifically designed for interacting with the API. For more information on how to use it, refer to the [documentation here](https://mosqlimate-client.readthedocs.io/en/latest/tutorials/API/registry/).
+
 === "Python3"
     ```py
     import mosqlient
@@ -22,10 +24,15 @@
     library(jsonlite)
 
     authors_api <- "https://api.mosqlimate.org/api/registry/authors/"
-    headers <- add_headers(
-      `X-UID-Key` = API_KEY
-    )
-    fromJSON(content(GET(authors_api, headers=headers), "text"))
+
+    response <- GET(authors_api, add_headers(`X-UID-Key` = API_KEY))
+
+    if (status_code(response) != 200) {
+      stop("Request failed: ", status_code(response), "\n", content(response, "text"))
+    }
+
+    authors <- fromJSON(content(response, "text"))
+    print(authors)
     ```
 
 === "curl"
