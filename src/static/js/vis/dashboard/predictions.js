@@ -118,7 +118,21 @@ class Dashboard {
     $(`#date-picker`).bind("valuesChanged", function(e, data) {
       self.storage.set("start_window_date", data.values.min.toISOString().split('T')[0]);
       self.storage.set("end_window_date", data.values.max.toISOString().split('T')[0]);
-      self.update_casos();
+
+      const adm_level = self.tagList.get_adm_level();
+      const params = {
+        disease: self.tagList.get_disease(),
+        time_resolution: self.tagList.get_time_resolution(),
+        adm_level: adm_level,
+      };
+
+      if (adm_level === 1) {
+        params["adm_1"] = self.storage.get("adm_1");
+      } else if (adm_level === 2) {
+        params["adm_2"] = self.storage.get("adm_2");
+      }
+
+      self.update_casos(params);
     });
   }
 
@@ -145,6 +159,11 @@ class Dashboard {
   }
 
   async update_casos({ disease, time_resolution, adm_level, adm_1, adm_2 }) {
+    console.log(disease)
+    console.log(time_resolution)
+    console.log(adm_level)
+    console.log(adm_1)
+    console.log(adm_2)
     if (
       !disease ||
       !time_resolution ||
@@ -153,6 +172,7 @@ class Dashboard {
       (adm_level == 2 && !adm_2)
     ) {
       this.lineChart.clear();
+      console.log("asdjahskjsdhak")
       return;
     }
 
@@ -245,14 +265,6 @@ class Dashboard {
       $("#adm2-select").show()
       $("#adm3-select").show()
     }
-  }
-
-  /**
-  * @param {String} time_resolution
-  * "day", "week", "month" or "year"
-  */
-  set_time_resolution(time_resolution) {
-    this.lineChart.clear();
   }
 }
 
@@ -651,7 +663,14 @@ class PredictionList {
       this.dashboard.storage.set("adm_2", parseInt(adm, 10));
       res = predictions.filter(prediction => prediction.adm_2 == adm);
     }
-    // this.dashboard.update_casos();
+    const params = {
+      disease: this.dashboard.tagList.get_disease(),
+      time_resolution: this.dashboard.tagList.get_time_resolution(),
+      adm_level: adm_level,
+    };
+    params[`adm_${adm_level}`] = adm;
+
+    this.dashboard.update_casos(params);
 
     this.predictions_map = res.reduce((acc, prediction) => {
       const { description, ..._ } = prediction;
@@ -976,5 +995,31 @@ class TagList {
     }
 
     return null;
+  }
+
+  get_disease() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let disease;
+    for (const tag of tags) {
+      if (tag.group === "disease") {
+        disease = tag.name.toLowerCase()
+      }
+    }
+    return disease;
+  }
+
+  get_time_resolution() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let time_resolution;
+    for (const tag of tags) {
+      if (tag.group === "time_resolution") {
+        time_resolution = tag.name.toLowerCase()
+      }
+    }
+    return time_resolution;
   }
 }

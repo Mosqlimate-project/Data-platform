@@ -7,29 +7,29 @@
 {% block content %}
 <div id="adm-select-card" class="card collapse show">
   <div class="card-body">
-    <div class="row">
+    <div class="row gy-3">
       <div id="adm0-select" class="col">
-        <div class="d-flex align-items-center">
-          <span>{% trans "Country" %}:</span>
-          <select id="adm0-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        <div class="d-flex flex-column">
+          <span class="text-muted mb-1">{% trans "Country" %}:</span>
+          <select id="adm0-filter" class="form-select form-select-sm"></select>
         </div>
       </div>
-      <div id="adm1-select" class="col">
-        <div class="d-flex align-items-center">
-          <span>{% trans "State" %}:</span>
-          <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2"></select>
+      <div id="adm1-select" class="col-3">
+        <div class="d-flex flex-column">
+          <span class="text-muted mb-1">{% trans "State" %}:</span>
+          <select id="adm1-filter" class="form-select form-select-sm"></select>
         </div>
       </div>
       <div id="adm2-select" class="col">
-        <div class="d-flex align-items-center">
-          <span>{% trans "Municipality" %}:</span>
-          <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        <div class="d-flex flex-column">
+          <span class="text-muted mb-1">{% trans "Municipality" %}:</span>
+          <select id="adm2-filter" class="form-select form-select-sm"></select>
         </div>
       </div>
       <div id="adm3-select" class="col">
-        <div class="d-flex align-items-center">
-          <span>{% trans "Sub-Municipality" %}:</span>
-          <select id="adm3-filter" class="form-select form-select-sm w-auto ms-2"></select>
+        <div class="d-flex flex-column">
+          <span class="text-muted mb-1">{% trans "Sub-Municipality" %}:</span>
+          <select id="adm3-filter" class="form-select form-select-sm"></select>
         </div>
       </div>
     </div>
