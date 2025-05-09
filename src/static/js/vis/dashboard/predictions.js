@@ -518,6 +518,8 @@ class PredictionList {
   list(predictions) {
     if (predictions.length === 0) {
       this.dashboard.set_adm_level(null);
+      this.dashboard.storage.set("adm_1", null);
+      this.dashboard.storage.set("adm_2", null);
       this.paginate([]);
       return
     }
@@ -563,36 +565,29 @@ class PredictionList {
         self.clear()
         self.dashboard.lineChart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
-
-        const chartName = `${$(this).text() || ""}`;
-        self.dashboard.lineChart.option.yAxis[0].name = chartName;
-        self.dashboard.lineChart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
       });
     } else {
       const adm1List = this.extract_adm1(predictions);
-      console.log(adm1List);
 
-      if (!this.dashboard.storage.get("adm_2")) {
-        if (!this.dashboard.storage.get("adm_1")) {
-          const adm1 = adm1List[0][0];
+      let adm1 = this.dashboard.storage.get("adm_1");
+      let adm2 = this.dashboard.storage.get("adm_2");
+      if (!adm2 || !adm1List.some(([code]) => String(adm2).startsWith(String(code)))) {
+        if (!adm1 || !adm1List.some(([code]) => code === adm1)) {
+          adm1 = adm1List[0][0];
           const adm2List = this.extract_adm2(predictions, adm1);
           const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
-          console.log(adm2)
           this.dashboard.storage.set("adm_1", adm1);
           this.dashboard.storage.set("adm_2", adm2[0]);
         } else {
-          const adm1 = this.dashboard.storage.get("adm_1");
           const adm2List = this.extract_adm2(predictions, adm1);
-          console.log(adm2List);
-          const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
-          console.log(adm2);
+          adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
           this.dashboard.storage.set("adm_2", adm2[0]);
         }
       } else {
         this.dashboard.storage.set("adm_1", parseInt(String(this.dashboard.storage.get("adm_2")).slice(0, 2), 10));
       }
 
-      self.paginate(self.filter(predictions, 2, self.dashboard.storage.get("adm_2")));
+      this.paginate(this.filter(predictions, 2, this.dashboard.storage.get("adm_2")));
       const adm2List = this.extract_adm2(predictions, this.dashboard.storage.get("adm_1"));
 
       $('#adm1-filter').empty();
@@ -615,32 +610,29 @@ class PredictionList {
         }));
       });
 
-      $("#adm1-filter").on("change", function() {
+      $("#adm1-filter").off("change").on("change", function() {
         self.dashboard.lineChart.clearPredictions();
         self.clear()
 
-        let adm2_list = adm2List.filter(adm => String(adm).startsWith(String($(this).val())));
-        const adm2_names = get_adm_names(2, adm2_list);
-        adm2_list = adm2_list.sort((a, b) => adm2_names[a].localeCompare(adm2_names[b]));
+        const adm2List = self.extract_adm2(predictions, $(this).val());
 
         let adm2 = self.dashboard.storage.get("adm_2");
-        if (!adm2 || !adm2_list.includes(adm2) || !String(adm2).startsWith(String($(this).val()))) {
-          self.dashboard.storage.set("adm_2", adm2_list[0]);
+        if (!adm2 || !adm2List.some(([geocode]) => geocode === adm2) || !String(adm2).startsWith(String($(this).val()))) {
+          adm2 = adm2List[0][0]
+          self.dashboard.storage.set("adm_2", adm2);
         }
 
-        adm2_list.forEach(geocode => {
+        $('#adm2-filter').empty();
+        adm2List.forEach(([geocode, name]) => {
           const isSelected = geocode === self.dashboard.storage.get("adm_2");
           $('#adm2-filter').append($('<option>', {
             value: geocode,
-            text: adm2_names[geocode],
+            text: name,
             selected: isSelected
           }));
         });
 
         self.paginate(self.filter(predictions, 2, self.dashboard.storage.get("adm_2")));
-        const chartName = `${adm2_names[self.dashboard.storage.get("adm_2")]} - ${$(this).text()}`;
-        self.dashboard.lineChart.option.yAxis[0].name = chartName;
-        self.dashboard.lineChart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 3.5)];
       });
     }
 
