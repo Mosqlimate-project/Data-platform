@@ -1,5 +1,4 @@
 let d;
-
 document.addEventListener('DOMContentLoaded', function() {
   $('#tags-card .card-tools button').click()
   d = new Dashboard(dashboard);
@@ -74,16 +73,6 @@ class Model {
   }
 }
 
-class Prediction {
-  constructor(
-    id,
-    name,
-
-  ) {
-
-  }
-}
-
 
 class Dashboard {
   constructor(dashboard) {
@@ -97,7 +86,7 @@ class Dashboard {
       tag.color
     ));
 
-    this.storage = new Storage(dashboard);
+    this.storage = new Storage(this);
     this.lineChart = new LineChart('chart');
     this.modelList = new ModelList(this);
     this.predictionList = new PredictionList(this);
@@ -107,7 +96,9 @@ class Dashboard {
       this.models = models;
       this.modelList.loading(false);
       this.modelList.list(models);
+      this.storage.get("model_ids").forEach(id => this.modelList.select(id));
     });
+
 
 
     $(`#date-picker`).dateRangeSlider({
@@ -153,31 +144,7 @@ class Dashboard {
     return [];
   }
 
-  async update_casos() {
-    function parse_tag_name(param, name) {
-      if (['disease', 'time_resolution'].includes(param)) {
-        name = name.toLowerCase();
-      }
-      if (param == 'adm_level') {
-        name = parseInt(name.split('ADM ')[1]);
-      }
-      return name;
-    }
-
-    const params = {};
-    this.storage.get("tag_ids").forEach((tag_id) => {
-      const tag = this.tagList.all_tags[tag_id];
-      if (tag && tag.group) {
-        params[tag.group] = parse_tag_name(tag.group, tag.name);
-      }
-    });
-
-    let disease = params['disease'] || null;
-    let time_resolution = params['time_resolution'] || null;
-    let adm_level = params['adm_level'] || null;
-    let adm_1 = this.storage.get("adm_1");
-    let adm_2 = this.storage.get("adm_2");
-
+  async update_casos({ disease, time_resolution, adm_level, adm_1, adm_2 }) {
     if (
       !disease ||
       !time_resolution ||
@@ -241,10 +208,6 @@ class Dashboard {
     } catch (error) {
       console.error(error);
     }
-    if (this.storage.get("model_ids").length === 0) {
-      this.lineChart.clear();
-      this.predictionList.clear();
-    }
   }
 
   /**
@@ -282,8 +245,6 @@ class Dashboard {
       $("#adm2-select").show()
       $("#adm3-select").show()
     }
-
-    // this.update_casos()
   }
 
   /**
@@ -462,36 +423,6 @@ class ModelList {
     });
   }
 
-  // model_filter_by_tags(models, tag_ids) {
-  //   const tags = Object.fromEntries(
-  //     Object.entries(
-  //       this.dashboard.tagList.all_tags
-  //     ).filter(([key, value]) => tag_ids.includes(parseInt(key)))
-  //   );
-  //
-  //   const groups = Object.values(tags).map(tag => tag.group);
-  //   const unique_groups = groups.filter(
-  //     group => this.dashboard.tagList.unique_tag_groups.includes(group)
-  //   );
-  //
-  //   let filter;
-  //
-  //   if (Object.keys(tags).length > 0) {
-  //     if (unique_groups.length > 0) {
-  //       filter = models.filter(model => {
-  //         return model.tags && tag_ids.every(tag_id => model.tags.includes(tag_id));
-  //       });
-  //     } else {
-  //       filter = models.filter(model => {
-  //         return model.tags && model.tags.some(tag_id => tag_ids.includes(tag_id));
-  //       });
-  //     }
-  //     return filter;
-  //   } else {
-  //     return models;
-  //   }
-  // }
-
   select(model_id) {
     const model = this.dashboard.models.find(model => model.id === model_id);
 
@@ -503,7 +434,7 @@ class ModelList {
     this.dashboard.storage.set("model_ids", Array.from(selected_models));
 
     this.dashboard.tagList.select(model);
-    // this.dashboard.predictionList.update();
+    this.dashboard.predictionList.update();
   }
 
   unselect(model_id, from_tag = false) {
@@ -519,7 +450,7 @@ class ModelList {
     if (!from_tag) {
       this.dashboard.tagList.unselect(model);
     }
-    // this.dashboard.predictionList.update();
+    this.dashboard.predictionList.update();
   }
 }
 
@@ -535,7 +466,7 @@ class PredictionList {
     this.update(this.dashboard.storage.get("model_ids"));
   }
 
-  async update(model_ids = []) {
+  async update() {
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
     overlay.style.display = 'flex';
@@ -545,7 +476,11 @@ class PredictionList {
     overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
     $(overlay).appendTo("#predictions-card");
 
+    const model_ids = this.dashboard.storage.get("model_ids");
+
     if (model_ids.length === 0) {
+      this.dashboard.lineChart.clear();
+      this.clear();
       this.list([]);
       $(`#predictions-card .overlay`).remove();
       return;
@@ -582,13 +517,17 @@ class PredictionList {
 
   list(predictions) {
     if (predictions.length === 0) {
+      this.dashboard.set_adm_level(null);
+      this.paginate([]);
       return
     }
+
     predictions = [...predictions].sort((a, b) => {
       const aScore = a.scores[this.dashboard.storage.get("score")] ?? Infinity;
       const bScore = b.scores[this.dashboard.storage.get("score")] ?? Infinity;
       return aScore - bScore;
     });
+
     const self = this;
     const isAdm2 = predictions.some(prediction => prediction.adm_2 !== null);
 
@@ -598,9 +537,7 @@ class PredictionList {
       }
     })
 
-    let adm;
     if (!isAdm2) {
-      this.dashboard.set_adm_level(1)
       const adm1List = this.extract_adm1(predictions);
       if (
         !this.dashboard.storage.get("adm_1") ||
@@ -620,10 +557,10 @@ class PredictionList {
         }));
       });
 
-      self.paginate(self.filter(predictions, 1, adm))
+      self.paginate(self.filter(predictions, 1, this.dashboard.storage.get("adm_1")))
 
       $("#adm1-filter").on("change", function() {
-        self.dashboard.storage.set("prediction_ids", []);
+        self.clear()
         self.dashboard.lineChart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
 
@@ -632,23 +569,33 @@ class PredictionList {
         self.dashboard.lineChart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
       });
     } else {
-      this.dashboard.set_adm_level(2)
       const adm1List = this.extract_adm1(predictions);
-      const adm2List = this.extract_adm2(predictions, this.dashboard.storage.get("adm_1"));
+      console.log(adm1List);
 
-      if (!this.dashboard.storage.get("adm_2") || !adm2List.includes(this.dashboard.storage.get("adm_2"))) {
-        if (!this.dashboard.storage.get("adm_1") || !adm1List.includes(this.dashboard.storage.get("adm_1"))) {
-          const adm2 = adm2List.find(adm => String(adm).startsWith(String(adm1List[0])));
-          this.dashboard.storage.set("adm_2", adm2);
-          this.dashboard.storage.set("adm_1", adm1List[0]);
+      if (!this.dashboard.storage.get("adm_2")) {
+        if (!this.dashboard.storage.get("adm_1")) {
+          const adm1 = adm1List[0][0];
+          const adm2List = this.extract_adm2(predictions, adm1);
+          const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          console.log(adm2)
+          this.dashboard.storage.set("adm_1", adm1);
+          this.dashboard.storage.set("adm_2", adm2[0]);
         } else {
-          const adm2 = adm2List.find(adm => String(adm).startsWith(String(this.dashboard.storage.get("adm_1"))));
-          this.dashboard.storage.set("adm_2", adm2);
+          const adm1 = this.dashboard.storage.get("adm_1");
+          const adm2List = this.extract_adm2(predictions, adm1);
+          console.log(adm2List);
+          const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          console.log(adm2);
+          this.dashboard.storage.set("adm_2", adm2[0]);
         }
       } else {
         this.dashboard.storage.set("adm_1", parseInt(String(this.dashboard.storage.get("adm_2")).slice(0, 2), 10));
       }
 
+      self.paginate(self.filter(predictions, 2, self.dashboard.storage.get("adm_2")));
+      const adm2List = this.extract_adm2(predictions, this.dashboard.storage.get("adm_1"));
+
+      $('#adm1-filter').empty();
       adm1List.forEach(([code, name]) => {
         const isSelected = code === this.dashboard.storage.get("adm_1");
         $('#adm1-filter').append($('<option>', {
@@ -658,6 +605,7 @@ class PredictionList {
         }));
       });
 
+      $('#adm2-filter').empty();
       adm2List.forEach(([geocode, name]) => {
         const isSelected = geocode === this.dashboard.storage.get("adm_2");
         $('#adm2-filter').append($('<option>', {
@@ -668,8 +616,8 @@ class PredictionList {
       });
 
       $("#adm1-filter").on("change", function() {
-        self.dashboard.storage.set("prediction_ids", []);
         self.dashboard.lineChart.clearPredictions();
+        self.clear()
 
         let adm2_list = adm2List.filter(adm => String(adm).startsWith(String($(this).val())));
         const adm2_names = get_adm_names(2, adm2_list);
@@ -703,6 +651,7 @@ class PredictionList {
 
   filter(predictions, adm_level, adm) {
     let res;
+    this.dashboard.set_adm_level(adm_level);
     if (adm_level === 1) {
       this.dashboard.storage.set("adm_1", parseInt(adm, 10));
       res = predictions.filter(prediction => prediction.adm_1 == adm);
@@ -818,7 +767,7 @@ class PredictionList {
     const adm2Names = get_adm_names(2, adm2List);
     adm2List = adm2List.filter(adm => adm.toString().startsWith(adm1.toString()));
     adm2List = adm2List.sort((a, b) => adm2Names[a].localeCompare(adm2Names[b]));
-    return adm2List.map(value => [value, adm2Names[value]]);
+    return adm2List.map(geocode => [geocode, adm2Names[geocode]]);
   }
 
   set_score(score) {
@@ -932,7 +881,6 @@ class TagList {
 
     if (tag_ids.length === 0) {
       this.dashboard.modelList.list(this.dashboard.models);
-      this.dashboard.set_adm_level(null);
       return;
     }
 
@@ -951,8 +899,6 @@ class TagList {
     });
 
     this.dashboard.modelList.list(filter);
-    const adm_level = this.get_adm_level();
-    this.dashboard.set_adm_level(adm_level);
   }
 
   /**
