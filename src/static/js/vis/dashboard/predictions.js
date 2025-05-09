@@ -1,111 +1,13 @@
-let storage;
-let chart;
-
-let modelList;
-let predictionList;
-let tagList;
-
+let d;
 document.addEventListener('DOMContentLoaded', function() {
   $('#tags-card .card-tools button').click()
-  storage = new Storage(dashboard);
-  tagList = new TagList();
-
-  const dateSlider = $(`#date-picker`);
-  chart = new LineChart('chart');
-
-  chart.chart.on('finished', function() {
-    chart.chart.setOption({
-      graphic: {
-        type: 'image',
-        right: 10,
-        top: 0,
-        silent: true,
-        style: {
-          image: watermark,
-          width: 150,
-          opacity: 0.3,
-        },
-        z: 10
-      }
-    });
-  });
-
-  chart.chart.on('legendselectchanged', (params) => {
-    chart.chart.setOption({ animation: false });
-    chart.chart.dispatchAction({ type: 'legendSelect', name: params.name });
-    chart.chart.setOption({ animation: true });
-    if (params.name == 'Data') {
-      return
-    }
-    chart.toggleConfidenceBounds(params.name);
-  });
-
-  chart.chart.on('click', function(params) {
-    if (params.seriesName === "Data") {
-      return;
-    }
-    chart.toggleConfidenceBounds(params.seriesName);
-  });
-
+  d = new Dashboard(dashboard);
 
   try {
     dateSlider.dateRangeSlider("destroy");
   } catch (err) {
     // console.log(err)
   }
-
-  dateSlider.dateRangeSlider({
-    bounds: {
-      min: new Date(min_window_date),
-      max: new Date(max_window_date),
-    },
-    defaultValues: {
-      min: new Date(storage.get("start_window_date")),
-      max: new Date(storage.get("end_window_date")),
-    },
-    range: {
-      min: { days: 90 },
-    },
-  });
-
-  $('[data-widget="pushmenu"]').on('click', function() {
-    setTimeout(() => {
-      dateSlider.dateRangeSlider("resize");
-      chart.resize();
-    }, 350)
-  });
-
-  dateSlider.bind("valuesChanged", function(e, data) {
-    storage.set("start_window_date", data.values.min.toISOString().split('T')[0]);
-    storage.set("end_window_date", data.values.max.toISOString().split('T')[0]);
-    update_casos(dashboard);
-  });
-
-  modelList = new ModelList(dashboard);
-  predictionList = new PredictionList(dashboard);
-
-  $(".prediction-row").on("mouseenter", function() {
-    const index = chart.getIndex($(this).data("id"));
-    if (index !== -1) {
-      chart.chart.dispatchAction({
-        type: 'highlight',
-        seriesIndex: index,
-        dataIndex: 0
-      });
-    }
-  });
-
-  $(".prediction-row").on("mouseleave", function() {
-    const index = chart.getIndex($(this).data("id"));
-    if (index !== -1) {
-      chart.chart.dispatchAction({
-        type: 'downplay',
-        seriesIndex: index,
-        dataIndex: 0
-      });
-    }
-  });
-
 });
 
 
@@ -125,111 +27,260 @@ function get_adm_names(admLevel, geocodes) {
   return JSON.parse(request.responseText);
 }
 
-
-async function update_casos(dashboard) {
-  function parse_tag_name(param, name) {
-    if (['disease', 'time_resolution'].includes(param)) {
-      name = name.toLowerCase();
-    }
-    if (param == 'adm_level') {
-      name = parseInt(name.split('ADM ')[1]);
-    }
-    return name;
+class Tag {
+  constructor(id, name, group, color) {
+    this.id = id;
+    this.name = name;
+    this.color = color;
+    this.group = group;
   }
+}
 
-  const params = {};
-  storage.get("tag_ids").forEach((tag_id) => {
-    const tag = tagList.all_tags[tag_id];
-    if (tag && tag.group) {
-      params[tag.group] = parse_tag_name(tag.group, tag.name);
-    }
-  });
-
-  let disease = params['disease'] || null;
-  let time_resolution = params['time_resolution'] || null;
-  let adm_level = params['adm_level'] || null;
-  let adm_1 = storage.get("adm_1");
-  let adm_2 = storage.get("adm_2");
-
-  if (
-    !disease ||
-    !time_resolution ||
-    !adm_level ||
-    (adm_level == 1 && !adm_1) ||
-    (adm_level == 2 && !adm_2)
+/**
+ * @typedef {Object} Author
+ * @property {string} name
+ * @property {string} user
+ */
+class Model {
+  /**
+   * @param {number} id
+   * @param {string} name
+   * @param {Author} author
+   * @param {string} description
+   * @param {string} disease
+   * @param {string} time_resolution
+   * @param {number[]} tags
+   * @param {string} updated
+   */
+  constructor(
+    id,
+    name,
+    author,
+    description,
+    disease,
+    time_resolution,
+    tags,
+    updated,
   ) {
-    chart.clear();
-    return;
+    this.id = id;
+    this.name = name;
+    this.author = author;
+    this.description = description;
+    this.disease = disease;
+    this.time_resolution = time_resolution;
+    this.tags = tags;
+    this.updated = updated;
+  }
+}
+
+
+class Dashboard {
+  constructor(dashboard) {
+    const self = this;
+    this.dashboard = dashboard;
+
+    this.tags = Object.entries(all_tags).map(([id, tag]) => new Tag(
+      parseInt(id, 10),
+      tag.name,
+      tag.group,
+      tag.color
+    ));
+
+    this.storage = new Storage(this);
+    this.lineChart = new LineChart('chart');
+    this.modelList = new ModelList(this);
+    this.predictionList = new PredictionList(this);
+    this.tagList = new TagList(this);
+
+    this.fetch().then(models => {
+      this.models = models;
+      this.modelList.loading(false);
+      this.modelList.list(models);
+      this.storage.get("model_ids").forEach(id => this.modelList.select(id));
+    });
+
+
+
+    $(`#date-picker`).dateRangeSlider({
+      bounds: {
+        min: new Date(min_window_date),
+        max: new Date(max_window_date),
+      },
+      defaultValues: {
+        min: new Date(self.storage.get("start_window_date")),
+        max: new Date(self.storage.get("end_window_date")),
+      },
+      range: {
+        min: { days: 90 },
+      },
+    });
+
+    $(`#date-picker`).bind("valuesChanged", function(e, data) {
+      self.storage.set("start_window_date", data.values.min.toISOString().split('T')[0]);
+      self.storage.set("end_window_date", data.values.max.toISOString().split('T')[0]);
+
+      const adm_level = self.tagList.get_adm_level();
+      const params = {
+        disease: self.tagList.get_disease(),
+        time_resolution: self.tagList.get_time_resolution(),
+        adm_level: adm_level,
+      };
+
+      if (adm_level === 1) {
+        params["adm_1"] = self.storage.get("adm_1");
+      } else if (adm_level === 2) {
+        params["adm_2"] = self.storage.get("adm_2");
+      }
+
+      self.update_casos(params);
+    });
   }
 
+  /**
+  * @returns {Model[]}
+  */
+  async fetch() {
+    const response = await fetch(`/vis/get-models/?dashboard=${this.dashboard}`);
+    if (response.ok) {
+      const data = await response.json();
+      return data['items'].map(model => new Model(
+        model.id,
+        model.name,
+        model.author,
+        model.description,
+        model.disease,
+        model.time_resolution,
+        model.tags,
+        model.updated
+      )
+      );
+    }
+    return [];
+  }
 
-  const url_params = new URLSearchParams();
-  url_params.append('dashboard', dashboard);
-  url_params.append('disease', disease);
-  url_params.append('adm-level', adm_level);
-  url_params.append('adm-1', adm_1);
-  url_params.append('adm-2', adm_2);
+  async update_casos({ disease, time_resolution, adm_level, adm_1, adm_2 }) {
+    console.log(disease)
+    console.log(time_resolution)
+    console.log(adm_level)
+    console.log(adm_1)
+    console.log(adm_2)
+    if (
+      !disease ||
+      !time_resolution ||
+      !adm_level ||
+      (adm_level == 1 && !adm_1) ||
+      (adm_level == 2 && !adm_2)
+    ) {
+      this.lineChart.clear();
+      console.log("asdjahskjsdhak")
+      return;
+    }
 
-  try {
-    const res = await new Promise((resolve, reject) => {
-      $.ajax({
-        type: 'GET',
-        url: '/vis/get-hist-alerta-data/?',
-        data: url_params.toString(),
-        success: function(response) {
-          resolve(response);
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          reject(errorThrown);
-        },
+    const url_params = new URLSearchParams();
+    url_params.append('dashboard', this.dashboard);
+    url_params.append('disease', disease);
+    url_params.append('adm-level', adm_level);
+    url_params.append('adm-1', adm_1);
+    url_params.append('adm-2', adm_2);
+
+    try {
+      const res = await new Promise((resolve, reject) => {
+        $.ajax({
+          type: 'GET',
+          url: '/vis/get-hist-alerta-data/?',
+          data: url_params.toString(),
+          success: function(response) {
+            resolve(response);
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            reject(errorThrown);
+          },
+        });
       });
-    });
 
-    const startDate = new Date(storage.get("start_window_date"));
-    const endDate = new Date(storage.get("end_window_date"));
+      const startDate = new Date(this.storage.get("start_window_date"));
+      const endDate = new Date(this.storage.get("end_window_date"));
 
-    const dateKeys = Object.keys(res).map(date => new Date(date));
-    const minDate = new Date(Math.min(...dateKeys));
-    const maxDate = new Date(Math.max(...dateKeys));
+      const dateKeys = Object.keys(res).map(date => new Date(date));
+      const minDate = new Date(Math.min(...dateKeys));
+      const maxDate = new Date(Math.max(...dateKeys));
 
-    for (let d = new Date(minDate); d < startDate; d.setDate(d.getDate() + 7)) {
-      res[d.toISOString().split('T')[0]] = NaN;
-    }
-
-    for (let d = new Date(maxDate); d < endDate; d.setDate(d.getDate() + 7)) {
-      res[d.toISOString().split('T')[0]] = NaN;
-    }
-
-    Object.keys(res).forEach(date => {
-      const currentDate = new Date(date);
-      if (currentDate > endDate) {
-        delete res[date];
+      for (let d = new Date(minDate); d < startDate; d.setDate(d.getDate() + 7)) {
+        res[d.toISOString().split('T')[0]] = NaN;
       }
-      if (currentDate < startDate) {
-        delete res[date];
-      }
-    });
 
-    chart.updateCases(Object.keys(res), Object.values(res));
-    chart.reapplyPredictions();
-  } catch (error) {
-    console.error(error);
+      for (let d = new Date(maxDate); d < endDate; d.setDate(d.getDate() + 7)) {
+        res[d.toISOString().split('T')[0]] = NaN;
+      }
+
+      Object.keys(res).forEach(date => {
+        const currentDate = new Date(date);
+        if (currentDate > endDate) {
+          delete res[date];
+        }
+        if (currentDate < startDate) {
+          delete res[date];
+        }
+      });
+
+      this.lineChart.updateCases(Object.keys(res), Object.values(res));
+      this.lineChart.reapplyPredictions();
+    } catch (error) {
+      console.error(error);
+    }
   }
-  if (storage.get("model_ids").length === 0) {
-    chart.clear();
-    predictionList.clear();
+
+  /**
+  * @param {Number} adm_level
+  * 0, 1, 2 or 3
+  */
+  set_adm_level(adm_level) {
+    if (!adm_level) {
+      $("#adm-select-card").slideUp();
+    } else {
+      $("#adm-select-card").slideDown();
+    }
+
+    if (adm_level === 0) {
+      $("#adm0-select").show()
+      $("#adm1-select").hide()
+      $("#adm2-select").hide()
+      $("#adm3-select").hide()
+    }
+    if (adm_level === 1) {
+      $("#adm0-select").hide()
+      $("#adm1-select").show()
+      $("#adm2-select").hide()
+      $("#adm3-select").hide()
+    }
+    if (adm_level === 2) {
+      $("#adm0-select").hide()
+      $("#adm1-select").show()
+      $("#adm2-select").show()
+      $("#adm3-select").hide()
+    }
+    if (adm_level === 3) {
+      $("#adm0-select").show()
+      $("#adm1-select").show()
+      $("#adm2-select").show()
+      $("#adm3-select").show()
+    }
   }
 }
 
 
 class Storage {
+  /**
+   * @param {Dashboard} dashboard
+   */
   constructor(dashboard) {
     this.dashboard = dashboard;
+    let d = dashboard.dashboard;
 
     let data = localStorage.getItem("dashboards");
     if (!data) { data = {} } else { data = JSON.parse(data) };
-    if (!data[this.dashboard]) {
-      data[this.dashboard] = {
+    if (!data[d]) {
+      data[d] = {
         prediction_ids: null,
         model_ids: null,
         tag_ids: null,
@@ -240,71 +291,67 @@ class Storage {
         score: null,
       }
     }
-    data[this.dashboard].prediction_ids = data[this.dashboard].prediction_ids || [];
+    data[d].prediction_ids = data[d].prediction_ids || [];
     if (model_id) {
-      data[this.dashboard].model_ids = [model_id];
+      data[d].model_ids = [model_id];
     } else {
-      data[this.dashboard].model_ids = data[this.dashboard].model_ids || [];
+      data[d].model_ids = data[d].model_ids || [];
     }
-    data[this.dashboard].tag_ids = data[this.dashboard].tag_ids || [];
-    if (!data[this.dashboard].start_window_date) {
-      data[this.dashboard].start_window_date = min_window_date;
+    data[d].tag_ids = data[d].tag_ids || [];
+    if (!data[d].start_window_date) {
+      data[d].start_window_date = min_window_date;
     }
-    if (!data[this.dashboard].end_window_date) {
-      data[this.dashboard].end_window_date = max_window_date;
+    if (!data[d].end_window_date) {
+      data[d].end_window_date = max_window_date;
     }
-    data[this.dashboard].adm_1 = data[this.dashboard].adm_1 || null;
-    data[this.dashboard].adm_2 = data[this.dashboard].adm_2 || null;
-    data[this.dashboard].score = data[this.dashboard].score || "mae";
+    data[d].adm_1 = data[d].adm_1 || null;
+    data[d].adm_2 = data[d].adm_2 || null;
+    data[d].score = data[d].score || "mae";
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
 
   get(param) {
     const data = JSON.parse(localStorage.getItem("dashboards"));
-    return data[this.dashboard][param];
+    return data[this.dashboard.dashboard][param];
   }
 
   set(param, value) {
     let data = JSON.parse(localStorage.getItem("dashboards"));
-    data[this.dashboard][param] = value;
+    data[this.dashboard.dashboard][param] = value;
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
 }
 
+
+
 class ModelList {
+  /**
+   * @param {Dashboard} dashboard
+   */
   constructor(dashboard) {
     this.dashboard = dashboard;
-    this.get_data();
+    this.models = [];
+    this.models_copy = [];
+    this.loading(true);
   }
 
-  async get_data() {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.style.display = 'flex';
-    overlay.style.flexDirection = 'column';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
-    $(overlay).appendTo("#models-card");
-
-    const response = await fetch(`/vis/get-models/?dashboard=${this.dashboard}`);
-    if (response.ok) {
-      const models = await response.json();
-      this.all_models = models['items'];
-      this.all_models_map = models['items'].reduce((acc, model) => {
-        const { description, ..._ } = model;
-        acc[model.id] = _;
-        return acc;
-      }, {});
-      const filter = this.model_filter_by_tags(this.all_models, storage.get("tag_ids"));
-      this.current_models = filter;
-      this.list(this.current_models);
+  loading(isLoading) {
+    if (isLoading) {
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      overlay.style.display = 'flex';
+      overlay.style.flexDirection = 'column';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
+      $(overlay).appendTo("#models-card");
+    } else {
       $(`#models-card .overlay`).remove();
     }
   }
 
   model_search(query) {
-    const items = modelList.current_models.filter((model) =>
+    const models = this.models_copy.filter((model) =>
       model.id.toString().toLowerCase().includes(query.toLowerCase()) ||
       model.name.toLowerCase().includes(query.toLowerCase()) ||
       model.disease.toLowerCase().includes(query.toLowerCase()) ||
@@ -312,7 +359,8 @@ class ModelList {
       model.author.name.toLowerCase().includes(query.toLowerCase()) ||
       model.author.user.toLowerCase().includes(query.toLowerCase())
     );
-    this.list(items);
+
+    this.list(models);
   }
 
   li(model) {
@@ -331,9 +379,14 @@ class ModelList {
   }
 
   list(models) {
+    if (!this.models_copy.length) {
+      this.models_copy = [...models];
+    }
+    this.models = models;
+
     models.sort((a, b) => {
-      const aChecked = storage.get("model_ids").includes(a.id);
-      const bChecked = storage.get("model_ids").includes(b.id);
+      const aChecked = this.dashboard.storage.get("model_ids").includes(a.id);
+      const bChecked = this.dashboard.storage.get("model_ids").includes(b.id);
       if (aChecked && !bChecked) return -1;
       if (!aChecked && bChecked) return 1;
       return 0;
@@ -360,7 +413,7 @@ class ModelList {
 
         $(".checkbox-model").each(function() {
           const model_id = parseInt($(this).val(), 10);
-          if (storage.get("model_ids").includes(model_id)) {
+          if (self.dashboard.storage.get("model_ids").includes(model_id)) {
             $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
           }
         });
@@ -369,124 +422,63 @@ class ModelList {
           event.stopPropagation();
           const model_id = parseInt(event.target.value, 10);
           if ($(event.target).prop("checked")) {
-            self.model_select(model_id);
+            self.select(model_id);
           } else {
-            self.model_unselect(model_id, true);
+            self.unselect(model_id);
           }
         });
       },
     });
 
     $("input[name='models-search']").off("input").on("input", function() {
-      self.model_search(this.value, models);
+      self.model_search(this.value);
     });
   }
 
-  model_filter_by_tags(models, tag_ids) {
-    const tags = Object.fromEntries(
-      Object.entries(tagList.all_tags).filter(([key, value]) => tag_ids.includes(parseInt(key)))
-    );
+  select(model_id) {
+    const model = this.dashboard.models.find(model => model.id === model_id);
 
-    const groups = Object.values(tags).map(tag => tag.group);
-    const unique_groups = groups.filter(group => tagList.unique_tag_groups.includes(group));
-
-    let filter;
-
-    if (Object.keys(tags).length > 0) {
-      if (unique_groups.length > 0) {
-        filter = models.filter(model => {
-          return model.tags && tag_ids.every(tag_id => model.tags.includes(tag_id));
-        });
-      } else {
-        filter = models.filter(model => {
-          return model.tags && model.tags.some(tag_id => tag_ids.includes(tag_id));
-        });
-      }
-      return filter;
-    } else {
-      return models;
-    }
-  }
-
-  model_select(model_id) {
-    let model_ids = new Set(storage.get("model_ids"));
-    let tag_ids = new Set(storage.get("tag_ids"));
-
-    $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
+    $(`.checkbox-model[value="${model.id}"]`).prop("checked", true);
     $("input[name='models-search']").val("");
 
-    model_ids.add(model_id);
-    this.all_models_map[model_id].tags.forEach(tag_id => {
-      if (tagList.all_tags[tag_id]) {
-        tag_ids.add(tag_id)
-      }
-    });
+    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
+    selected_models.add(model.id);
+    this.dashboard.storage.set("model_ids", Array.from(selected_models));
 
-    storage.set("model_ids", Array.from(model_ids));
-    storage.set("tag_ids", Array.from(tag_ids));
-
-    tag_ids.forEach(id => tagList.tag_select(id));
-
-    const models = this.model_filter_by_tags(this.current_models, storage.get("tag_ids"));
-    this.current_models = models;
-    this.list(models);
-    predictionList.get_data();
+    this.dashboard.tagList.select(model);
+    this.dashboard.predictionList.update();
   }
 
-  model_unselect(model_id, checkbox = false) {
-    let model_ids = new Set(storage.get("model_ids"));
-    let tag_ids = new Set(storage.get("tag_ids"));
+  unselect(model_id, from_tag = false) {
+    const model = this.dashboard.models.find(model => model.id === model_id);
 
     $(`.checkbox-model[value="${model_id}"]`).prop("checked", false);
     $("input[name='models-search']").val("");
 
-    if (!this.all_models_map[model_id] || !model_ids.has(model_id)) {
-      return;
+    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
+    selected_models.delete(model.id);
+    this.dashboard.storage.set("model_ids", Array.from(selected_models));
+
+    if (!from_tag) {
+      this.dashboard.tagList.unselect(model);
     }
-
-    model_ids.delete(model_id);
-
-    if (checkbox) {
-      const model_tags = this.all_models_map[model_id].tags;
-      model_tags.forEach(tag_id => {
-        if (
-          tag_ids.has(tag_id) &&
-          !Array.from(model_ids).some(other_model_id =>
-            this.all_models_map[other_model_id].tags.includes(tag_id)
-          )
-        ) {
-          tag_ids.delete(tag_id);
-          tagList.tag_unselect(tag_id);
-          storage.set("tag_ids", Array.from(tag_ids));
-        }
-      });
-    }
-
-    storage.set("model_ids", Array.from(model_ids));
-    storage.set("tag_ids", Array.from(tag_ids));
-
-    let models;
-    if (storage.get("model_ids").length > 0) {
-      models = this.model_filter_by_tags(this.current_models, storage.get("tag_ids"));
-    } else {
-      models = this.model_filter_by_tags(this.all_models, storage.get("tag_ids"));
-    }
-    this.current_models = models;
-    this.list(models);
-    predictionList.get_data();
+    this.dashboard.predictionList.update();
   }
 }
 
 
 class PredictionList {
+  /**
+   * @param {Dashboard} dashboard
+   */
   constructor(dashboard) {
     this.dashboard = dashboard;
+    this.predictions = [];
     this.predictions_map = {};
-    this.current_predictions = [];
-    this.get_data();
+    this.update(this.dashboard.storage.get("model_ids"));
   }
 
-  async get_data() {
+  async update() {
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
     overlay.style.display = 'flex';
@@ -496,14 +488,18 @@ class PredictionList {
     overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
     $(overlay).appendTo("#predictions-card");
 
-    const url = new URL('/vis/get-predictions/', window.location.origin);
-    storage.get("model_ids").forEach(id => url.searchParams.append('model_id', id))
+    const model_ids = this.dashboard.storage.get("model_ids");
 
-    if (storage.get("model_ids").length === 0) {
+    if (model_ids.length === 0) {
+      this.dashboard.lineChart.clear();
+      this.clear();
       this.list([]);
       $(`#predictions-card .overlay`).remove();
       return;
     }
+
+    const url = new URL('/vis/get-predictions/', window.location.origin);
+    model_ids.forEach(id => url.searchParams.append('model_id', id))
 
     const response = await fetch(url);
     if (response.ok) {
@@ -514,7 +510,7 @@ class PredictionList {
   }
 
   li(prediction) {
-    const selected = storage.get("prediction_ids").includes(prediction.id);
+    const selected = this.dashboard.storage.get("prediction_ids").includes(prediction.id);
 
     return `
     <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${prediction.id}">
@@ -525,139 +521,131 @@ class PredictionList {
       <td style="width: 40px;"><a href="/registry/model/${prediction.model}/">${prediction.model}</a></td>
       <td style="width: 110px;">${prediction.start_date}</td>
       <td style="width: 110px;">${prediction.end_date}</td>
-      <td style="width: 150px;">${prediction.scores[storage.get("score")] || "-"}</td>
+      <td style="width: 150px;">${prediction.scores[this.dashboard.storage.get("score")] || "-"}</td>
     </tr>
     <tr class="expandable-body d-none"><td colspan="6"><p>${prediction.description}</p></td></tr>
   `;
   }
 
   list(predictions) {
+    if (predictions.length === 0) {
+      this.dashboard.set_adm_level(null);
+      this.dashboard.storage.set("adm_1", null);
+      this.dashboard.storage.set("adm_2", null);
+      this.paginate([]);
+      return
+    }
+
     predictions = [...predictions].sort((a, b) => {
-      const aScore = a.scores[storage.get("score")] ?? Infinity;
-      const bScore = b.scores[storage.get("score")] ?? Infinity;
+      const aScore = a.scores[this.dashboard.storage.get("score")] ?? Infinity;
+      const bScore = b.scores[this.dashboard.storage.get("score")] ?? Infinity;
       return aScore - bScore;
     });
 
     const self = this;
     const isAdm2 = predictions.some(prediction => prediction.adm_2 !== null);
 
-    storage.get("prediction_ids").forEach(id => {
+    this.dashboard.storage.get("prediction_ids").forEach(id => {
       if (!predictions.some(prediction => prediction.id === id)) {
         self.unselect(id)
       }
     })
 
-    let adm;
     if (!isAdm2) {
-      let adm1List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))];
-
-      if (!storage.get("adm_1") || !adm1List.includes(storage.get("adm_1"))) {
-        storage.set("adm_1", adm1List[0]);
+      const adm1List = this.extract_adm1(predictions);
+      if (
+        !this.dashboard.storage.get("adm_1") ||
+        !adm1List.some(([value, _]) => value === this.dashboard.storage.get("adm_1"))
+      ) {
+        this.dashboard.storage.set("adm_1", adm1List[0][0]);
       }
 
-      adm = storage.get("adm_1")
-      storage.set("adm_level", 1)
+      $('#adm1-filter').empty();
 
-      const adm1_names = get_adm_names(1, adm1List);
-      adm1List = adm1List.sort((a, b) => adm1_names[a].localeCompare(adm1_names[b]));
-
-      const adm1_select = `
-        <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2">
-          ${adm1List.map(ADM => `
-            <option value="${ADM}" ${ADM === adm ? 'selected' : ''}>${adm1_names[ADM]}</option>
-          `).join("")}
-        </select>
-      `;
-
-      $("#predictions-card .card-header .card-tools").html(adm1_select);
-
-      self.paginate(self.filter(predictions, 1, adm))
-
-      $("#adm1-filter").on("change", function() {
-        storage.set("prediction_ids", []);
-        chart.clearPredictions();
-        self.paginate(self.filter(predictions, 1, $(this).val()));
-
-        const chartName = `${adm1_names[$(this).val()] || ""}`;
-        chart.option.yAxis[0].name = chartName;
-        chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 2)];
+      adm1List.forEach(([value, text]) => {
+        const isSelected = value === this.dashboard.storage.get("adm_1");
+        $('#adm1-filter').append($('<option>', {
+          value: value,
+          text: text,
+          selected: isSelected
+        }));
       });
 
-      $("#adm1-filter").change();
+      self.paginate(self.filter(predictions, 1, this.dashboard.storage.get("adm_1")))
+
+      $("#adm1-filter").on("change", function() {
+        self.clear()
+        self.dashboard.lineChart.clearPredictions();
+        self.paginate(self.filter(predictions, 1, $(this).val()));
+      });
     } else {
-      let adm2List = [...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))];
-      let adm1List = [...new Set(adm2List.map(adm => parseInt(String(adm).slice(0, 2), 10)))];
+      const adm1List = this.extract_adm1(predictions);
 
-      storage.set("adm_level", 2);
-
-      if (!storage.get("adm_2") || !adm2List.includes(storage.get("adm_2"))) {
-        if (!storage.get("adm_1") || !adm1List.includes(storage.get("adm_1"))) {
-          const adm2 = adm2List.find(adm => String(adm).startsWith(String(adm1List[0])));
-          storage.set("adm_2", adm2);
-          storage.set("adm_1", adm1List[0]);
+      let adm1 = this.dashboard.storage.get("adm_1");
+      let adm2 = this.dashboard.storage.get("adm_2");
+      if (!adm2 || !adm1List.some(([code]) => String(adm2).startsWith(String(code)))) {
+        if (!adm1 || !adm1List.some(([code]) => code === adm1)) {
+          adm1 = adm1List[0][0];
+          const adm2List = this.extract_adm2(predictions, adm1);
+          const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          this.dashboard.storage.set("adm_1", adm1);
+          this.dashboard.storage.set("adm_2", adm2[0]);
         } else {
-          const adm2 = adm2List.find(adm => String(adm).startsWith(String(storage.get("adm_1"))));
-          storage.set("adm_2", adm2);
+          const adm2List = this.extract_adm2(predictions, adm1);
+          adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          this.dashboard.storage.set("adm_2", adm2[0]);
         }
       } else {
-        storage.set("adm_1", parseInt(String(storage.get("adm_2")).slice(0, 2), 10));
+        this.dashboard.storage.set("adm_1", parseInt(String(this.dashboard.storage.get("adm_2")).slice(0, 2), 10));
       }
 
-      const adm1_names = get_adm_names(1, adm1List);
-      const adm1_list = adm1List.sort((a, b) => adm1_names[a].localeCompare(adm1_names[b]));
+      this.paginate(this.filter(predictions, 2, this.dashboard.storage.get("adm_2")));
+      const adm2List = this.extract_adm2(predictions, this.dashboard.storage.get("adm_1"));
 
-      let adm2_list = adm2List.filter(adm => adm.toString().startsWith(storage.get("adm_1").toString()));
-      const adm2_names = get_adm_names(2, adm2_list);
-      adm2_list.sort((a, b) => adm2_names[a].localeCompare(adm2_names[b]));
-
-      const adm1_select = `
-        <select id="adm1-filter" class="form-select form-select-sm w-auto ms-2">
-          ${adm1_list.map(ADM => `
-            <option value="${ADM}" ${ADM === storage.get("adm_1") ? 'selected' : ''}>${adm1_names[ADM]}</option>
-          `).join("")}
-        </select>
-      `;
-
-      const adm2_select = `
-        <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
-          ${adm2_list.map(ADM => `
-            <option value="${ADM}" ${ADM === storage.get("adm_2") ? 'selected' : ''}>${adm2_names[ADM]}</option>
-          `).join("")}
-        </select>
-      `;
-
-      $("#predictions-card .card-header .card-tools").html(adm1_select + adm2_select);
-
-      $("#adm1-filter").on("change", function() {
-        storage.set("prediction_ids", []);
-        chart.clearPredictions();
-
-        let adm2_list = adm2List.filter(adm => String(adm).startsWith(String($(this).val())));
-        const adm2_names = get_adm_names(2, adm2_list);
-        adm2_list = adm2_list.sort((a, b) => adm2_names[a].localeCompare(adm2_names[b]));
-
-        let adm2 = storage.get("adm_2");
-        if (!adm2 || !adm2_list.includes(adm2) || !String(adm2).startsWith(String($(this).val()))) {
-          storage.set("adm_2", adm2_list[0]);
-        }
-
-        const adm2_select = `
-          <select id="adm2-filter" class="form-select form-select-sm w-auto ms-2">
-            ${adm2_list.map(ADM => `
-              <option value="${ADM}" ${ADM === storage.get("adm_2") ? 'selected' : ''}>${adm2_names[ADM]}</option>
-            `).join("")}
-          </select>
-        `;
-
-        $("#adm2-filter").replaceWith(adm2_select);
-        self.paginate(self.filter(predictions, 2, storage.get("adm_2")));
-
-        const chartName = `${adm2_names[storage.get("adm_2")]} - ${adm1_names[$(this).val()]}`;
-        chart.option.yAxis[0].name = chartName;
-        chart.option.yAxis[0].nameTextStyle.padding = [0, 0, 5, Math.min(chartName.length * 3.5)];
+      $('#adm1-filter').empty();
+      adm1List.forEach(([code, name]) => {
+        const isSelected = code === this.dashboard.storage.get("adm_1");
+        $('#adm1-filter').append($('<option>', {
+          value: code,
+          text: name,
+          selected: isSelected
+        }));
       });
 
-      $("#adm1-filter").change();
+      $('#adm2-filter').empty();
+      adm2List.forEach(([geocode, name]) => {
+        const isSelected = geocode === this.dashboard.storage.get("adm_2");
+        $('#adm2-filter').append($('<option>', {
+          value: geocode,
+          text: name,
+          selected: isSelected
+        }));
+      });
+
+      $("#adm1-filter").off("change").on("change", function() {
+        self.dashboard.lineChart.clearPredictions();
+        self.clear()
+
+        const adm2List = self.extract_adm2(predictions, $(this).val());
+
+        let adm2 = self.dashboard.storage.get("adm_2");
+        if (!adm2 || !adm2List.some(([geocode]) => geocode === adm2) || !String(adm2).startsWith(String($(this).val()))) {
+          adm2 = adm2List[0][0]
+          self.dashboard.storage.set("adm_2", adm2);
+        }
+
+        $('#adm2-filter').empty();
+        adm2List.forEach(([geocode, name]) => {
+          const isSelected = geocode === self.dashboard.storage.get("adm_2");
+          $('#adm2-filter').append($('<option>', {
+            value: geocode,
+            text: name,
+            selected: isSelected
+          }));
+        });
+
+        self.paginate(self.filter(predictions, 2, self.dashboard.storage.get("adm_2")));
+      });
     }
 
     $("#predictions-clear-all").on("click", function() {
@@ -667,14 +655,22 @@ class PredictionList {
 
   filter(predictions, adm_level, adm) {
     let res;
+    this.dashboard.set_adm_level(adm_level);
     if (adm_level === 1) {
-      storage.set("adm_1", parseInt(adm, 10));
+      this.dashboard.storage.set("adm_1", parseInt(adm, 10));
       res = predictions.filter(prediction => prediction.adm_1 == adm);
     } else {
-      storage.set("adm_2", parseInt(adm, 10));
+      this.dashboard.storage.set("adm_2", parseInt(adm, 10));
       res = predictions.filter(prediction => prediction.adm_2 == adm);
     }
-    update_casos(this.dashboard);
+    const params = {
+      disease: this.dashboard.tagList.get_disease(),
+      time_resolution: this.dashboard.tagList.get_time_resolution(),
+      adm_level: adm_level,
+    };
+    params[`adm_${adm_level}`] = adm;
+
+    this.dashboard.update_casos(params);
 
     this.predictions_map = res.reduce((acc, prediction) => {
       const { description, ..._ } = prediction;
@@ -693,7 +689,7 @@ class PredictionList {
       pageSize: 5,
       callback: function(data, pagination) {
         const body = data.map((item) => self.li(item)).join("");
-        const score = storage.get("score");
+        const score = self.dashboard.storage.get("score");
         $(`#predictions-list`).html(`
         <thead>
           <tr>
@@ -730,7 +726,7 @@ class PredictionList {
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
           const td = $(`#td-${prediction_id}`);
-          if (storage.get("prediction_ids").includes(prediction_id)) {
+          if (self.dashboard.storage.get("prediction_ids").includes(prediction_id)) {
             $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
             self.select(self.predictions_map[prediction_id]);
             td.addClass('selected');
@@ -766,16 +762,35 @@ class PredictionList {
     });
   }
 
+  extract_adm1(predictions) {
+    let adm1List = [
+      ...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))
+    ];
+    const adm1Names = get_adm_names(1, adm1List);
+    adm1List = adm1List.sort((a, b) => adm1Names[a].localeCompare(adm1Names[b]));
+    return adm1List.map(value => [value, adm1Names[value]]);
+  }
+
+  extract_adm2(predictions, adm1) {
+    let adm2List = [
+      ...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))
+    ];
+    const adm2Names = get_adm_names(2, adm2List);
+    adm2List = adm2List.filter(adm => adm.toString().startsWith(adm1.toString()));
+    adm2List = adm2List.sort((a, b) => adm2Names[a].localeCompare(adm2Names[b]));
+    return adm2List.map(geocode => [geocode, adm2Names[geocode]]);
+  }
+
   set_score(score) {
-    storage.set("score", score);
+    this.dashboard.storage.set("score", score);
     location.reload();
   }
 
   select(prediction) {
-    let prediction_ids = new Set(storage.get("prediction_ids"));
+    let prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
 
     prediction_ids.add(prediction.id);
-    chart.addPrediction({
+    this.dashboard.lineChart.addPrediction({
       id: prediction.id,
       labels: prediction.chart.labels,
       data: prediction.chart.data,
@@ -785,7 +800,7 @@ class PredictionList {
       lower_90: prediction.chart.lower_90,
       color: prediction.color
     })
-    storage.set("prediction_ids", Array.from(prediction_ids));
+    this.dashboard.storage.set("prediction_ids", Array.from(prediction_ids));
 
     const td = $(`#td-${prediction.id}`);
     td.addClass('selected');
@@ -793,10 +808,10 @@ class PredictionList {
   }
 
   unselect(prediction_id) {
-    let prediction_ids = new Set(storage.get("prediction_ids"));
+    let prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
     prediction_ids.delete(prediction_id);
-    chart.removePrediction(prediction_id)
-    storage.set("prediction_ids", Array.from(prediction_ids));
+    this.dashboard.lineChart.removePrediction(prediction_id)
+    this.dashboard.storage.set("prediction_ids", Array.from(prediction_ids));
 
     const td = $(`#td-${prediction_id}`);
     td.removeClass('selected');
@@ -806,25 +821,28 @@ class PredictionList {
   }
 
   clear() {
-    storage.get("prediction_ids").forEach(id => this.unselect(id));
+    this.dashboard.storage.get("prediction_ids").forEach(id => this.unselect(id));
   }
 }
 
 
 class TagList {
-  constructor() {
-    this.all_tags = all_tags;
-    this.unique_tag_groups = ["disease", "adm_level", "time_resolution"];
+  /**
+   * @param {Dashboard} dashboard
+   */
+  constructor(dashboard) {
+    const self = this;
+    this.dashboard = dashboard;
+    this.unique_tag_groups = ["disease", "adm_level", "time_resolution", "output"];
 
-    const grouped_tags = Object.entries(this.all_tags).reduce((groups, [id, tag]) => {
+    const grouped_tags = this.dashboard.tags.reduce((groups, tag) => {
       const key = tag.group || 'Others';
       if (!groups[key]) groups[key] = [];
-      groups[key].push({ id, ...tag });
+      groups[key].push(tag);
       groups[key].sort((a, b) => a.name.localeCompare(b.name));
       return groups;
     }, {});
 
-    const self = this;
     $.each(grouped_tags, function(group, tags) {
       const group_div = $('<div></div>')
         .attr('id', `tag-group-${group}`)
@@ -848,7 +866,7 @@ class TagList {
             }
           });
 
-        if (storage.get("tag_ids").includes(parseInt(tag.id))) {
+        if (self.dashboard.storage.get("tag_ids").includes(parseInt(tag.id))) {
           tag_btn.addClass('active');
         }
 
@@ -864,87 +882,144 @@ class TagList {
           });
         }
       }
-
       $('#tags-card .card-body').append(group_div);
     });
   }
 
+  filter() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const model_ids = this.dashboard.storage.get("model_ids");
 
-  tag_select(tag_id) {
-    if (!this.all_tags[tag_id]) return;
+    if (tag_ids.length === 0) {
+      this.dashboard.modelList.list(this.dashboard.models);
+      return;
+    }
 
-    const group = this.all_tags[tag_id].group;
-    let model_ids = new Set(storage.get("model_ids"));
-    let tag_ids = new Set(storage.get("tag_ids"));
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+    const models = this.dashboard.models.filter(model => model_ids.includes(model.id));
 
-    tag_ids.add(tag_id);
+    const filter = this.dashboard.models.filter(model => {
+      const modelTags = model.tags.map(id => parseInt(id, 10));
+      return tags.every(tag => modelTags.includes(tag.id));
+    });
 
-    model_ids.forEach(model_id => {
-      const model = modelList.all_models_map[model_id];
-      if (!model.tags.includes(tag_id)) {
-        modelList.model_unselect(model_id);
-        model_ids.delete(model_id);
+    models.forEach(model => {
+      if (!filter.includes(model)) {
+        this.dashboard.modelList.unselect(model.id, true);
       }
     });
 
-    if (!$(`#tag-${tag_id}`).hasClass('active')) {
-      $(`#tag-${tag_id}`).addClass('active');
+    this.dashboard.modelList.list(filter);
+  }
+
+  /**
+   * @param {Model} model
+   */
+  select(model) {
+    model.tags.forEach(id => {
+      this.tag_select(id, false)
+    })
+    this.filter();
+  }
+
+  /**
+   * @param {Model} model
+   */
+  unselect(model) {
+    const models = this.dashboard.models.filter(model => this.dashboard.storage.get("model_ids").includes(model.id));
+    model.tags.forEach(id => {
+      const tagInUse = models.some(otherModel => {
+        return otherModel.id !== model.id && otherModel.tags.includes(id);
+      });
+      if (!tagInUse) {
+        this.tag_unselect(id, false);
+      }
+    });
+    this.filter();
+  }
+
+  tag_select(tag_id, update = true) {
+    const tag = this.dashboard.tags.find(tag => tag.id === tag_id);
+    if (!tag) { return }
+
+    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
+    tag_ids.add(tag.id);
+    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
+
+    if (!$(`#tag-${tag.id}`).hasClass('active')) {
+      $(`#tag-${tag.id}`).addClass('active');
     }
 
-    if (this.unique_tag_groups.includes(group)) {
-      $(`#tag-group-${group}`).find('button').each(function() {
+    if (this.unique_tag_groups.includes(tag.group)) {
+      $(`#tag-group-${tag.group}`).find('button').each(function() {
         if (!$(this).hasClass('active')) {
           $(this).prop('disabled', true);
         }
       });
     }
 
-    storage.set("model_ids", Array.from(model_ids));
-    storage.set("tag_ids", Array.from(tag_ids));
-
-    let models;
-    if (storage.get("model_ids").length > 0) {
-      models = modelList.model_filter_by_tags(modelList.current_models, storage.get("tag_ids"));
-    } else {
-      models = modelList.model_filter_by_tags(modelList.all_models, storage.get("tag_ids"));
+    if (update) {
+      this.filter();
     }
-    modelList.current_models = models;
-    modelList.list(models);
   }
 
-  tag_unselect(tag_id) {
-    if (!this.all_tags[tag_id]) return;
+  tag_unselect(tag_id, update = true) {
+    const tag = this.dashboard.tags.find(tag => String(tag.id) === String(tag_id));
+    if (!tag) { return }
 
-    const group = this.all_tags[tag_id].group;
-    let model_ids = new Set(storage.get("model_ids"));
-    let tag_ids = new Set(storage.get("tag_ids"));
+    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
+    tag_ids.delete(tag.id);
+    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
 
-    model_ids.forEach(model_id => {
-      const model = modelList.all_models_map[model_id];
-      if (model.tags.includes(tag_id)) {
-        modelList.model_unselect(model_id);
+    $(`#tag-${tag.id}`).removeClass('active');
+    if (this.unique_tag_groups.includes(tag.group)) {
+      $(`#tag-group-${tag.group}`).find('button').prop('disabled', false);
+    }
+
+    if (update) {
+      this.filter()
+    }
+  }
+
+  get_adm_level() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    for (const tag of tags) {
+      if (tag.group === "adm_level" && tag.name.includes("ADM ")) {
+        const level = parseInt(tag.name.split("ADM ")[1], 10);
+        if (!isNaN(level)) {
+          return level;
+        }
       }
-    });
-
-    tag_ids.delete(tag_id);
-    $(`#tag-${tag_id}`).removeClass('active');
-
-    if (this.unique_tag_groups.includes(group)) {
-      $(`#tag-group-${group}`).find('button').prop('disabled', false);
     }
 
-    storage.set("tag_ids", Array.from(tag_ids));
+    return null;
+  }
 
-    let models;
-    if (storage.get("model_ids").length > 0) {
-      models = modelList.model_filter_by_tags(modelList.current_models, storage.get("tag_ids"));
-    } else {
-      models = modelList.model_filter_by_tags(modelList.all_models, storage.get("tag_ids"));
+  get_disease() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let disease;
+    for (const tag of tags) {
+      if (tag.group === "disease") {
+        disease = tag.name.toLowerCase()
+      }
     }
-    if (storage.get("model_ids").length === 0 && tag_ids.size === 0) {
-      models = modelList.model_filter_by_tags(modelList.all_models, storage.get("tag_ids"));
+    return disease;
+  }
+
+  get_time_resolution() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let time_resolution;
+    for (const tag of tags) {
+      if (tag.group === "time_resolution") {
+        time_resolution = tag.name.toLowerCase()
+      }
     }
-    modelList.current_models = models;
-    modelList.list(models);
+    return time_resolution;
   }
 }

@@ -3,6 +3,7 @@ class LineChart {
     this.chart = echarts.init(document.getElementById(containerId));
     this.predictions = {};
     this.bounds = [];
+
     this.option = {
       tooltip: {
         trigger: 'axis',
@@ -28,21 +29,21 @@ class LineChart {
             }
           });
 
-        const casesInfo = Object.entries(dataMap)
-          .map(([seriesName, info]) => {
-            if (seriesName === "Data") {
-              return `${params.find(p => p.seriesName === seriesName)?.marker} Data: ${info.value} cases`;
-            }
-            if (info.lower !== null && info.upper !== null) {
-              return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} (${info.lower}, ${info.upper}) cases`;
-            }
-            if (!seriesName.includes("lower") && !seriesName.includes("upper")) {
-              return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
-            }
-            return null;
-          })
-          .filter(Boolean)
-          .join('<br/>');
+          const casesInfo = Object.entries(dataMap)
+            .map(([seriesName, info]) => {
+              if (seriesName === "Data") {
+                return `${params.find(p => p.seriesName === seriesName)?.marker} Data: ${info.value} cases`;
+              }
+              if (info.lower !== null && info.upper !== null) {
+                return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} (${info.lower}, ${info.upper}) cases`;
+              }
+              if (!seriesName.includes("lower") && !seriesName.includes("upper")) {
+                return `${params.find(p => p.seriesName === seriesName)?.marker || ''} ${seriesName}: ${info.value} cases`;
+              }
+              return null;
+            })
+            .filter(Boolean)
+            .join('<br/>');
 
           return `<strong>${date}</strong><br/>${casesInfo}`;
         }
@@ -105,6 +106,73 @@ class LineChart {
         }
       ]
     };
+
+    const self = this;
+
+    this.chart.on('finished', function() {
+      self.chart.setOption({
+        graphic: {
+          type: 'image',
+          right: 10,
+          top: 0,
+          silent: true,
+          style: {
+            image: watermark,
+            width: 150,
+            opacity: 0.3,
+          },
+          z: 10
+        }
+      });
+    });
+
+    this.chart.on('legendselectchanged', (params) => {
+      self.chart.setOption({ animation: false });
+      self.chart.dispatchAction({ type: 'legendSelect', name: params.name });
+      self.chart.setOption({ animation: true });
+      if (params.name == 'Data') {
+        return
+      }
+      self.toggleConfidenceBounds(params.name);
+    });
+
+    this.chart.on('click', function(params) {
+      if (params.seriesName === "Data") {
+        return;
+      }
+      self.toggleConfidenceBounds(params.seriesName);
+    });
+
+    $('[data-widget="pushmenu"]').on('click', function() {
+      setTimeout(() => {
+        $(`#date-picker`).dateRangeSlider("resize");
+        self.resize();
+      }, 350)
+    });
+
+
+    $(".prediction-row").on("mouseenter", function() {
+      const index = self.getIndex($(this).data("id"));
+      if (index !== -1) {
+        self.chart.dispatchAction({
+          type: 'highlight',
+          seriesIndex: index,
+          dataIndex: 0
+        });
+      }
+    });
+
+    $(".prediction-row").on("mouseleave", function() {
+      const index = self.getIndex($(this).data("id"));
+      if (index !== -1) {
+        self.chart.dispatchAction({
+          type: 'downplay',
+          seriesIndex: index,
+          dataIndex: 0
+        });
+      }
+    });
+
     this.chart.setOption(this.option, true);
   }
 
