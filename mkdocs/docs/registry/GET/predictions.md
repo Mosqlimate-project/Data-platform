@@ -50,6 +50,15 @@ The Python examples use the `mosqlient` package, specifically designed for inter
         start="2023-01-01",
         end="2023-02-01"
     )
+
+    # get a single prediction by id
+    pred = mosqlient.get_predictions(
+        X-UID-Key,
+        id = id
+    )
+
+    # transform into a DataFrame: 
+    pred[0].to_dataframe()
     ```
 
 === "R"
