@@ -1,5 +1,5 @@
 ## [EpiScanner Data](https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner)
-Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner tool](https://info.dengue.mat.br/epi-scanner/), co-developed by the InfoDengue project. These data, described below, are based on the analyze of the expansion of dengue, zika and chikungunya in Brazil using up-to-date incidence data from Infodengue.
+Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner tool](https://info.dengue.mat.br/epi-scanner/), co-developed by the InfoDengue project. The dataset provides estimates of epidemiological parameters for each city and year in Brazil, focusing on Dengue and Chikungunya. Detailed information on the methodology used to compute these parameters can be found [here](https://arxiv.org/abs/2407.21286).
 
 ## Parameters Table 
 ### Input
@@ -45,6 +45,7 @@ Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner too
 === "R"
     ```R
     library(httr)
+    library(jsonlite)
 
     episcanner_api <- "https://api.mosqlimate.org/api/datastore/episcanner/"
 
