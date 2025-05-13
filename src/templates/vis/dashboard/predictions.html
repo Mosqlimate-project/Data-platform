@@ -17,7 +17,9 @@
       <div id="adm1-select" class="col-3">
         <div class="d-flex flex-column">
           <span class="text-muted mb-1">{% trans "State" %}:</span>
-          <select id="adm1-filter" class="form-select form-select-sm"></select>
+          <select id="adm1-filter" class="form-select form-select-sm">
+            <option value="" disabled selected>{% trans "Select a state" %}</option>
+          </select>
         </div>
       </div>
       <div id="adm2-select" class="col">

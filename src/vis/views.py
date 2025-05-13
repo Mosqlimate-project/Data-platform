@@ -160,6 +160,11 @@ def get_models(request) -> JsonResponse:
             "name": model.author.user.name,
             "user": model.author.user.username,
         }
+        model_res["adm_1_list"] = list(
+            model.predictions.all()
+            .values_list("adm_1_geocode", flat=True)
+            .distinct()
+        )
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
         model_res["time_resolution"] = model.time_resolution

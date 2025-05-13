@@ -1,4 +1,12 @@
 let d;
+let disease = null;
+let time_resolution = null;
+let adm_level = null;
+let adm_1 = null;
+let adm_2 = null;
+let min_date = null;
+let max_date = null;
+
 document.addEventListener('DOMContentLoaded', function() {
   $('#tags-card .card-tools button').click()
   d = new Dashboard(dashboard);
@@ -49,6 +57,8 @@ class Model {
    * @param {string} description
    * @param {string} disease
    * @param {string} time_resolution
+   * @param {number} adm_level
+   * @param {number[]} adm_1_list
    * @param {number[]} tags
    * @param {string} updated
    */
@@ -59,6 +69,8 @@ class Model {
     description,
     disease,
     time_resolution,
+    adm_level,
+    adm_1_list,
     tags,
     updated,
   ) {
@@ -68,6 +80,8 @@ class Model {
     this.description = description;
     this.disease = disease;
     this.time_resolution = time_resolution;
+    this.adm_level = adm_level;
+    this.adm_1_list = adm_1_list;
     this.tags = tags;
     this.updated = updated;
   }
@@ -97,6 +111,9 @@ class Dashboard {
       this.modelList.loading(false);
       this.modelList.list(models);
       this.storage.get("model_ids").forEach(id => this.modelList.select(id));
+      if (this.storage.get("model_ids").length == 0) {
+        this.set_adm_level(null);
+      }
     });
 
 
@@ -150,6 +167,8 @@ class Dashboard {
         model.description,
         model.disease,
         model.time_resolution,
+        model.adm_level,
+        model.adm_1_list,
         model.tags,
         model.updated
       )
@@ -158,12 +177,40 @@ class Dashboard {
     return [];
   }
 
+  has_changed(vals) {
+    const {
+      disease: _disease,
+      time_resolution: _time_resolution,
+      adm_level: _adm_level,
+      adm_1: _adm_1,
+      adm_2: _adm_2,
+      start_window_date: _min_date,
+      end_window_date: _max_date
+    } = vals;
+
+    if (
+      disease === _disease &&
+      time_resolution === _time_resolution &&
+      adm_level === _adm_level &&
+      adm_1 === _adm_1 &&
+      adm_2 === _adm_2 &&
+      min_date === _min_date &&
+      max_date === _max_date
+    ) {
+      return false;
+    }
+
+    disease = _disease;
+    time_resolution = _time_resolution;
+    adm_level = _adm_level;
+    adm_1 = _adm_1;
+    adm_2 = _adm_2;
+    min_date = _min_date;
+    max_date = _max_date;
+    return true;
+  }
+
   async update_casos({ disease, time_resolution, adm_level, adm_1, adm_2 }) {
-    console.log(disease)
-    console.log(time_resolution)
-    console.log(adm_level)
-    console.log(adm_1)
-    console.log(adm_2)
     if (
       !disease ||
       !time_resolution ||
@@ -172,7 +219,13 @@ class Dashboard {
       (adm_level == 2 && !adm_2)
     ) {
       this.lineChart.clear();
-      console.log("asdjahskjsdhak")
+      return;
+    }
+
+    const start_window_date = this.storage.get("start_window_date");
+    const end_window_date = this.storage.get("end_window_date");
+
+    if (!this.has_changed({ disease, time_resolution, adm_level, adm_1, adm_2, start_window_date, end_window_date })) {
       return;
     }
 
@@ -180,14 +233,18 @@ class Dashboard {
     url_params.append('dashboard', this.dashboard);
     url_params.append('disease', disease);
     url_params.append('adm-level', adm_level);
-    url_params.append('adm-1', adm_1);
-    url_params.append('adm-2', adm_2);
+
+    if (adm_level === 1) {
+      url_params.append('adm-1', adm_1);
+    } else if (adm_level === 2) {
+      url_params.append('adm-2', adm_2);
+    }
 
     try {
       const res = await new Promise((resolve, reject) => {
         $.ajax({
           type: 'GET',
-          url: '/vis/get-hist-alerta-data/?',
+          url: '/vis/get-hist-alerta-data/',
           data: url_params.toString(),
           success: function(response) {
             resolve(response);
@@ -198,8 +255,8 @@ class Dashboard {
         });
       });
 
-      const startDate = new Date(this.storage.get("start_window_date"));
-      const endDate = new Date(this.storage.get("end_window_date"));
+      const startDate = new Date(start_window_date);
+      const endDate = new Date(end_window_date);
 
       const dateKeys = Object.keys(res).map(date => new Date(date));
       const minDate = new Date(Math.min(...dateKeys));
@@ -236,9 +293,11 @@ class Dashboard {
   */
   set_adm_level(adm_level) {
     if (!adm_level) {
-      $("#adm-select-card").slideUp();
-    } else {
-      $("#adm-select-card").slideDown();
+      $("#adm0-select").hide()
+      $("#adm1-select").show()
+      this.clear_adm_level()
+      $("#adm2-select").hide()
+      $("#adm3-select").hide()
     }
 
     if (adm_level === 0) {
@@ -265,6 +324,39 @@ class Dashboard {
       $("#adm2-select").show()
       $("#adm3-select").show()
     }
+  }
+
+  clear_adm_level() {
+    const self = this;
+
+    $("#adm1-filter").empty()
+    $('#adm1-filter').append($('<option>', {
+      value: "",
+      text: "Select a State",
+      selected: true,
+      disabled: true,
+    }));
+
+    const adm1List = this.modelList.extract_adm1(this.modelList.models);
+
+    adm1List.forEach(([code, name]) => {
+      $('#adm1-filter').append($('<option>', {
+        value: code,
+        text: name,
+        selected: false
+      }));
+    });
+
+    $("#adm1-filter").off("change").on("change", function() {
+      const adm1 = $(this).val();
+      if (!adm1 || adm1 === "") {
+        self.storage.set("adm_1", null);
+        self.modelList.list(self.models);
+      } else {
+        self.storage.set("adm_1", parseInt(adm1));
+        self.modelList.list(self.models.filter(model => model.adm_1_list.includes(parseInt(adm1))));
+      }
+    });
   }
 }
 
@@ -447,6 +539,20 @@ class ModelList {
 
     this.dashboard.tagList.select(model);
     this.dashboard.predictionList.update();
+
+    const params = {
+      disease: this.dashboard.tagList.get_disease(),
+      time_resolution: this.dashboard.tagList.get_time_resolution(),
+      adm_level: model.adm_level,
+    };
+
+    if (adm_level === 1) {
+      params["adm_1"] = this.dashboard.storage.get("adm_1");
+    } else if (adm_level === 2) {
+      params["adm_2"] = this.dashboard.storage.get("adm_2");
+    }
+
+    this.dashboard.update_casos(params);
   }
 
   unselect(model_id, from_tag = false) {
@@ -463,6 +569,12 @@ class ModelList {
       this.dashboard.tagList.unselect(model);
     }
     this.dashboard.predictionList.update();
+  }
+
+  extract_adm1(models) {
+    let adm1List = [...new Set(models.flatMap(model => model.adm_1_list))];
+    const adm1Names = get_adm_names(1, adm1List);
+    return adm1List.map(value => [value, adm1Names[value]]);
   }
 }
 
@@ -530,8 +642,8 @@ class PredictionList {
   list(predictions) {
     if (predictions.length === 0) {
       this.dashboard.set_adm_level(null);
-      this.dashboard.storage.set("adm_1", null);
-      this.dashboard.storage.set("adm_2", null);
+      // this.dashboard.storage.set("adm_1", null);
+      // this.dashboard.storage.set("adm_2", null);
       this.paginate([]);
       return
     }
@@ -557,7 +669,7 @@ class PredictionList {
         !this.dashboard.storage.get("adm_1") ||
         !adm1List.some(([value, _]) => value === this.dashboard.storage.get("adm_1"))
       ) {
-        this.dashboard.storage.set("adm_1", adm1List[0][0]);
+        this.dashboard.storage.set("adm_1", parseInt(adm1List[0][0]));
       }
 
       $('#adm1-filter').empty();
@@ -573,7 +685,7 @@ class PredictionList {
 
       self.paginate(self.filter(predictions, 1, this.dashboard.storage.get("adm_1")))
 
-      $("#adm1-filter").on("change", function() {
+      $("#adm1-filter").off("change").on("change", function() {
         self.clear()
         self.dashboard.lineChart.clearPredictions();
         self.paginate(self.filter(predictions, 1, $(this).val()));
@@ -588,12 +700,12 @@ class PredictionList {
           adm1 = adm1List[0][0];
           const adm2List = this.extract_adm2(predictions, adm1);
           const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
-          this.dashboard.storage.set("adm_1", adm1);
-          this.dashboard.storage.set("adm_2", adm2[0]);
+          this.dashboard.storage.set("adm_1", parseInt(adm1));
+          this.dashboard.storage.set("adm_2", parseInt(adm2[0]));
         } else {
           const adm2List = this.extract_adm2(predictions, adm1);
           adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
-          this.dashboard.storage.set("adm_2", adm2[0]);
+          this.dashboard.storage.set("adm_2", parseInt(adm2[0]));
         }
       } else {
         this.dashboard.storage.set("adm_1", parseInt(String(this.dashboard.storage.get("adm_2")).slice(0, 2), 10));
@@ -626,6 +738,7 @@ class PredictionList {
         self.dashboard.lineChart.clearPredictions();
         self.clear()
 
+        self.dashboard.storage.set("adm_1", parseInt($(this).val()));
         const adm2List = self.extract_adm2(predictions, $(this).val());
 
         let adm2 = self.dashboard.storage.get("adm_2");
@@ -668,7 +781,7 @@ class PredictionList {
       time_resolution: this.dashboard.tagList.get_time_resolution(),
       adm_level: adm_level,
     };
-    params[`adm_${adm_level}`] = adm;
+    params[`adm_${adm_level}`] = parseInt(adm);
 
     this.dashboard.update_casos(params);
 
