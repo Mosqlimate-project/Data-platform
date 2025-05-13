@@ -92,7 +92,7 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
     headers <- add_headers(
       `X-UID-Key` = API_KEY
     )
-    resp <- GET(url, headers=headers)
+    resp <- GET(url, headers)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
 

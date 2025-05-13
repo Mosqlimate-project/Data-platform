@@ -73,7 +73,7 @@ Through this API endpoint, you can fetch several climate variables that have bee
     )
 
     url <- paste0(climate_api, pagination, filters)
-    resp <- GET(url, headers=headers)
+    resp <- GET(url, headers)
     content <- content(resp, "text")
     json_content <- fromJSON(content)
 
