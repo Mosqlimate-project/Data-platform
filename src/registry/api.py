@@ -219,7 +219,7 @@ class ModelIn(Schema):
     @field_validator("description")
     @classmethod
     def validate_description(cls, v):
-        if len(v) < 50:
+        if len(v) == 0:
             raise HttpError(422, "Description too short")
         if len(v) > 500:
             raise HttpError(422, "Description too long. Max: 500 characters")
