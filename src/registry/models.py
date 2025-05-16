@@ -259,9 +259,9 @@ class Prediction(models.Model):
         related_name="predictions",
     )
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
-    adm_1_geocode = models.IntegerField(null=True, default=None)  # TODO
-    adm_2_geocode = models.IntegerField(null=True, default=None)
-    adm_3_geocode = models.IntegerField(null=True, default=None)  # TODO
+    adm_1_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
+    adm_2_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
+    adm_3_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
     date_ini_prediction = models.DateTimeField(null=True, default=None)
     date_end_prediction = models.DateTimeField(null=True, default=None)
     # scores

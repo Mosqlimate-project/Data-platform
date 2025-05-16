@@ -165,7 +165,7 @@ def get_models(request) -> JsonResponse:
         }
         model_res["adm_1_list"] = list(
             model.predictions.all()
-            .values_list("adm_1_geocode", flat=True)
+            .values_list("adm_1__geocode", flat=True)
             .distinct()
         )
         model_res["disease"] = model.disease
@@ -211,8 +211,8 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
-        p_res["adm_1"] = p.adm_1_geocode
-        p_res["adm_2"] = p.adm_2_geocode
+        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else None
+        p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))

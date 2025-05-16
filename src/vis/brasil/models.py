@@ -89,6 +89,10 @@ class City(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+    @property
+    def state(self) -> State:
+        return self.microregion.mesoregion.state
+
     class Meta:
         app_label = "vis"
         db_table = "brasil_cities"

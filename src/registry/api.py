@@ -43,7 +43,7 @@ from .schema import (
     PredictionDataRowOut,
 )
 from .utils import calling_via_swagger
-from vis.brasil.models import State
+from vis.brasil.models import State, City
 from main.models import APILog
 
 router = Router()
@@ -473,11 +473,14 @@ def create_prediction(request, payload: PredictionIn):
                 )
 
     if payload.adm_1:
-        adm_1 = State.objects.get(uf=payload.adm_1).geocode
+        adm_1 = State.objects.get(uf=payload.adm_1)
+        adm_2 = None
     elif payload.adm_2:
-        adm_1 = State.objects.get(geocode=str(payload.adm_2)[:2]).geocode
+        adm_1 = None
+        adm_2 = City.objects.get(geocode=str(payload.adm_2))
     else:
         adm_1 = None
+        adm_2 = None
         raise NotImplementedError()
 
     df = pd.DataFrame(data=[r.dict() for r in payload.prediction])
@@ -487,10 +490,10 @@ def create_prediction(request, payload: PredictionIn):
         description=payload.description,
         commit=payload.commit,
         predict_date=payload.predict_date,
-        adm_0_geocode=payload.adm_0,
-        adm_1_geocode=adm_1 or None,
-        adm_2_geocode=payload.adm_2 or None,
-        adm_3_geocode=payload.adm_3 or None,
+        # adm_0_geocode=payload.adm_0,
+        adm_1=adm_1 or None,
+        adm_2=adm_2 or None,
+        # adm_3_geocode=payload.adm_3 or None,
         date_ini_prediction=min(df.date),
         date_end_prediction=max(df.date),
     )
@@ -504,10 +507,9 @@ def create_prediction(request, payload: PredictionIn):
             description=prediction.description,
             commit=prediction.commit,
             predict_date=prediction.predict_date,
-            adm_0=prediction.adm_0_geocode,
-            adm_1=prediction.adm_1_geocode,
-            adm_2=prediction.adm_2_geocode,
-            adm_3=prediction.adm_3_geocode,
+            # adm_0=prediction.adm_0_geocode,
+            adm_1=prediction.adm_1.uf,
+            adm_2=int(prediction.adm_2.geocode),
             data=data,
         )
 
