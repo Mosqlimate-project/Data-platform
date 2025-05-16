@@ -312,10 +312,10 @@ class PredictionOut(Schema):
     description: str
     commit: str
     predict_date: dt  # YYYY-mm-dd
-    adm_0: str = "BRA"
-    adm_1: Optional[str] = None
-    adm_2: Optional[int] = None
-    adm_3: Optional[int] = None
+    # adm_0: str = "BRA"
+    adm_1: str = Field(None, alias="adm_1.uf")
+    adm_2: int = Field(None, alias="adm_2.geocode")
+    # adm_3: Optional[int] = None
     data: List[PredictionDataRowOut]
 
 
@@ -324,10 +324,10 @@ class PredictionIn(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
-    adm_0: str = "BRA"
+    # adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
-    adm_3: Optional[int] = None
+    # adm_3: Optional[int] = None
     prediction: List[PredictionDataRowSchema]
 
     @field_validator("model")
