@@ -5,6 +5,7 @@ from collections import defaultdict
 from hashlib import blake2b
 
 from dateutil import parser
+import pandas as pd
 
 from django.conf import settings
 from django.db import models
@@ -129,7 +130,9 @@ def get_hist_alerta_data(request) -> JsonResponse:
         return JsonResponse({}, status=400)
 
     res = hist_alerta.set_index("date")["target"].to_dict()
-    res = {str(k.date()): int(v) for k, v in res.items()}
+    res = {
+        str(k.date()): int(v) if pd.notnull(v) else 0 for k, v in res.items()
+    }
     return JsonResponse(res)
 
 

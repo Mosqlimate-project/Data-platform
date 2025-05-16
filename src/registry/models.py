@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from main.utils import UF_CODES
 from vis.dash import errors
+from vis.brasil.models import State, City
 
 
 def get_plangs_path() -> str:
@@ -242,6 +243,20 @@ class Prediction(models.Model):
             ),
         ],
         help_text=_("Color in hexadecimal format. E.g: #ffffff"),
+    )
+    adm_1 = models.ForeignKey(
+        State,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name="predictions",
+    )
+    adm_2 = models.ForeignKey(
+        City,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name="predictions",
     )
     adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
     adm_1_geocode = models.IntegerField(null=True, default=None)  # TODO
