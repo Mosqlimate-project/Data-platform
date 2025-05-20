@@ -287,6 +287,10 @@ class Dashboard {
     }
   }
 
+  set_date_range(start, end) {
+    $("#date-picker").dateRangeSlider("values", new Date(start), new Date(end));
+  }
+
   /**
   * @param {Number} adm_level
   * 0, 1, 2 or 3
@@ -354,7 +358,8 @@ class Dashboard {
         self.modelList.list(self.models);
       } else {
         self.storage.set("adm_1", parseInt(adm1));
-        self.modelList.list(self.models.filter(model => model.adm_1_list.includes(parseInt(adm1))));
+        const models = self.models.filter(model => model.adm_1_list.includes(parseInt(adm1)));
+        self.modelList.list(models);
       }
     });
   }
@@ -875,6 +880,26 @@ class PredictionList {
     });
   }
 
+  get_min_max_dates(predictions) {
+    const min = new Date(Math.min(...predictions.map(prediction => new Date(prediction.start_date))));
+    const max = new Date(Math.max(...predictions.map(prediction => new Date(prediction.end_date))));
+
+    return [min, max]
+  }
+
+  async update_date_slider() {
+    const prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
+    let minDate, maxDate;
+
+    if (prediction_ids.size) {
+      const predictions = this.current_predictions.filter(p => Array.from(prediction_ids).includes(p.id));
+      [minDate, maxDate] = this.get_min_max_dates(predictions);
+    } else {
+      [minDate, maxDate] = this.get_min_max_dates(this.current_predictions);
+    }
+    this.dashboard.set_date_range(minDate, maxDate);
+  }
+
   extract_adm1(predictions) {
     let adm1List = [
       ...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))
@@ -918,6 +943,7 @@ class PredictionList {
     const td = $(`#td-${prediction.id}`);
     td.addClass('selected');
     td.css("background-color", prediction.color);
+    this.update_date_slider();
   }
 
   unselect(prediction_id) {
@@ -931,6 +957,7 @@ class PredictionList {
     td.css("background-color", '');
     $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", false);
     $("#select-all-checkbox").prop("checked", false);
+    this.update_date_slider();
   }
 
   clear() {

@@ -5,6 +5,7 @@ from collections import defaultdict
 from hashlib import blake2b
 
 from dateutil import parser
+import pandas as pd
 
 from django.conf import settings
 from django.db import models
@@ -129,7 +130,9 @@ def get_hist_alerta_data(request) -> JsonResponse:
         return JsonResponse({}, status=400)
 
     res = hist_alerta.set_index("date")["target"].to_dict()
-    res = {str(k.date()): int(v) for k, v in res.items()}
+    res = {
+        str(k.date()): int(v) if pd.notnull(v) else 0 for k, v in res.items()
+    }
     return JsonResponse(res)
 
 
@@ -161,9 +164,12 @@ def get_models(request) -> JsonResponse:
             "user": model.author.user.username,
         }
         model_res["adm_1_list"] = list(
-            model.predictions.all()
-            .values_list("adm_1_geocode", flat=True)
-            .distinct()
+            map(
+                int,
+                model.predictions.all()
+                .values_list("adm_1__geocode", flat=True)
+                .distinct(),
+            )
         )
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
@@ -208,8 +214,8 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
-        p_res["adm_1"] = p.adm_1_geocode
-        p_res["adm_2"] = p.adm_2_geocode
+        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else None
+        p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
@@ -231,12 +237,14 @@ def get_adm_names(request):
     if str(adm_level) == "1":
         states = State.objects.filter(geocode__in=geocodes)
         for uf in states:
-            res[uf.geocode] = uf.name
+            if uf:
+                res[uf.geocode] = uf.name
 
     if str(adm_level) == "2":
         cities = City.objects.filter(geocode__in=geocodes)
         for mun in cities:
-            res[mun.geocode] = mun.name
+            if mun:
+                res[mun.geocode] = mun.name
 
     return JsonResponse(res)
 
