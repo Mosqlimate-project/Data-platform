@@ -164,9 +164,12 @@ def get_models(request) -> JsonResponse:
             "user": model.author.user.username,
         }
         model_res["adm_1_list"] = list(
-            model.predictions.all()
-            .values_list("adm_1__geocode", flat=True)
-            .distinct()
+            map(
+                int,
+                model.predictions.all()
+                .values_list("adm_1__geocode", flat=True)
+                .distinct(),
+            )
         )
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
@@ -234,12 +237,14 @@ def get_adm_names(request):
     if str(adm_level) == "1":
         states = State.objects.filter(geocode__in=geocodes)
         for uf in states:
-            res[uf.geocode] = uf.name
+            if uf:
+                res[uf.geocode] = uf.name
 
     if str(adm_level) == "2":
         cities = City.objects.filter(geocode__in=geocodes)
         for mun in cities:
-            res[mun.geocode] = mun.name
+            if mun:
+                res[mun.geocode] = mun.name
 
     return JsonResponse(res)
 

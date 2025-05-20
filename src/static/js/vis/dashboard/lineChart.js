@@ -230,6 +230,13 @@ class LineChart {
     this.chart.setOption(this.option, true);
   }
 
+  getMinMaxDates(predictions) {
+    const min = new Date(Math.min(...predictions.map(prediction => new Date(prediction.start_date))));
+    const max = new Date(Math.max(...predictions.map(prediction => new Date(prediction.end_date))));
+
+    return [min, max]
+  }
+
   clearPredictions() {
     this.option.series = this.option.series.slice(0, 1);
     this.predictions = {};
