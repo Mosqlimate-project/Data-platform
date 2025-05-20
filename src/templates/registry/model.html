@@ -1,6 +1,7 @@
 {% extends 'main/base.html' %}
 {% load static %}
 {% load i18n %}
+{% load misc %}
 {% block title %}Model {{ model.id }}{% endblock %}
 
 {% block content %}
@@ -60,6 +61,10 @@
           <tr>
             <th scope="row" class="fw-normal">{% trans "Implementation Language" %}</th>
             <td class="d-flex justify-content-center">{{ model.implementation_language }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Repository" %}</th>
+            <td class="d-flex justify-content-center"><a href="{{ model.repository }}">{{ model.repository|short_repository_link }}</a></td>
           </tr>
         </tbody>
       </table>

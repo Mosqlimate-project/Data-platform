@@ -353,7 +353,6 @@ class Dashboard {
 
     $("#adm1-filter").off("change").on("change", function() {
       const adm1 = $(this).val();
-      console.log(adm1)
       if (!adm1 || adm1 === "") {
         self.storage.set("adm_1", null);
         self.modelList.list(self.models);
