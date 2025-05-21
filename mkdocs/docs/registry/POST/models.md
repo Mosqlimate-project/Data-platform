@@ -12,7 +12,7 @@
 | temporal | bool | Is the model temporal? |
 | spatial | bool | Is the model spatial? |
 | categorical | bool | Is the model categorical? |
-| ADM_level | str _(iexact)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| adm_level | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | str _(iexact)_ | Options are: day, week, month or year |
 | sprint | bool | Model for Sprint 2024/25 |
 

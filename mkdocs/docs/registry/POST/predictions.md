@@ -56,16 +56,15 @@ Example of the JSON object:
 > The methods presented in this documentation generate real objects in database. To test Mosqlimate API request methods without inserting data, please refer to [API Demo](https://api.mosqlimate.org/api/docs)
 
 ## Input parameters 
+The table below lists the parameters required to register a forecast. If your model refers to `adm_level = 1`, you only need to fill in the `adm_1` parameter and leave `adm_2` as null. The opposite applies if your model refers to `adm_level = 2`.
 | Parameter name | Type | Description |
 |--|--|--|
 | model | int | Model ID | 
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
 | predict_date | date _(YYYY-mm-dd)_ | Date when Prediction was generated |
-| adm_0 | str _(ISO 3166-1)_ | Country code. Default: "BRA" |
 | adm_1 | str _(UF)_ | State abbreviation. Example: "RJ" |
 | adm_2 | int _(IBGE)_ | City geocode. Example: 3304557 |
-| adm_3 | int _(IBGE)_ | - |
 | prediction | dict _(JSON)_ | The Prediction data.|
 
 ## X-UID-Key
@@ -143,9 +142,7 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
         predict_date = predict_date,
         prediction = prediction,
         adm_1 = adm_1, 
-        adm_0="BRA",
         adm_2 = NULL,
-        adm_3=NULL
         )
       
       predict_json <- toJSON(predict, auto_unbox = TRUE, null = "null")
