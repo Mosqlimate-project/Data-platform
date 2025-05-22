@@ -6,7 +6,7 @@
 | id | no | int | Prediction ID |
 | model_id | no | int | Model ID |
 | model_name | no | str _(icontains)_ | Model name | 
-| model_ADM_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| model_adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | model_time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
 | author_name | no | str _(icontains)_ | Author name |
 | author_username | no | str | Author username |

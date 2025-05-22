@@ -14,7 +14,7 @@
 | spatial | no | bool | Is the model spatial? |
 | categorical | no | bool | Is the model categorical? |
 | type | no | str _(icontains)_ | Model type. E.g: nowcast / forecast |
-| ADM_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
 
 #### Details
