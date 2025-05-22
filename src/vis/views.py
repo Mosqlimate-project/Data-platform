@@ -157,20 +157,33 @@ def get_models(request) -> JsonResponse:
             ]:
                 tags.append(tag.id)
 
+        if model.ADM_level == 1:
+            adm_1_list = list(
+                map(
+                    int,
+                    model.predictions.all()
+                    .values_list("adm_1__geocode", flat=True)
+                    .distinct(),
+                )
+            )
+        elif model.ADM_level == 2:
+            adm_1_list = list(
+                {
+                    int(p.adm_2.state.geocode)
+                    for p in model.predictions.select_related("adm_2")
+                    if p.adm_2 and p.adm_2.state
+                }
+            )
+        else:
+            continue
+
         model_res = {}
         model_res["id"] = model.id
         model_res["author"] = {
             "name": model.author.user.name,
             "user": model.author.user.username,
         }
-        model_res["adm_1_list"] = list(
-            map(
-                int,
-                model.predictions.all()
-                .values_list("adm_1__geocode", flat=True)
-                .distinct(),
-            )
-        )
+        model_res["adm_1_list"] = adm_1_list
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.ADM_level
         model_res["time_resolution"] = model.time_resolution
