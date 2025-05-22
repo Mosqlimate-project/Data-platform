@@ -227,7 +227,7 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
-        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else None
+        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else p.adm_2.state.geocode
         p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
