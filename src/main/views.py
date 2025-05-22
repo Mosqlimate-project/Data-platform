@@ -353,7 +353,7 @@ class EditPredictionView(View):
         prediction = get_object_or_404(Prediction, pk=prediction_id)
         models = Model.objects.filter(
             author__user=prediction.model.author.user,
-            ADM_level=prediction.model.ADM_level,
+            adm_level=prediction.model.adm_level,
         )
 
         if request.user != prediction.model.author.user:

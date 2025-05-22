@@ -45,7 +45,7 @@ def calculate_score(
         disease=prediction.model.disease,
         start_window_date=prediction.date_ini_prediction,
         end_window_date=prediction.date_end_prediction,
-        adm_level=int(prediction.model.ADM_level),
+        adm_level=int(prediction.model.adm_level),
         adm_1=prediction.adm_1.uf if prediction.adm_1 else None,
         adm_2=int(prediction.adm_2.geocode) if prediction.adm_2 else None,
     )

@@ -9,7 +9,7 @@ from ninja import Router
 from registry.api import PredictionIn, create_prediction, ModelIn, create_model
 from registry.models import Author, ImplementationLanguage, Model, Prediction
 from registry.validations import (
-    validate_ADM_level,
+    validate_adm_level,
     validate_implementation_language,
     validate_repository,
     validate_time_resolution,
@@ -103,7 +103,7 @@ class TestValidCreatePrediction(TestCase):
         payload = PredictionIn(
             model=self.model.pk,
             description="Test description",
-            ADM_level=1,
+            adm_level=1,
             commit="76eb927067cf54ae52da53503a14519d78a37da8",
             predict_date="2023-11-16",
             prediction=self.data,
@@ -135,7 +135,7 @@ class TestValidCreatePrediction(TestCase):
         payload = PredictionIn(
             model=self.model.pk,
             description="x" * 501,
-            ADM_level=4,
+            adm_level=4,
             commit="76eb927067cf54ae52da53503a14519d78a37da8",
             predict_date="2023-11-08",
             prediction=self.data,
@@ -179,7 +179,7 @@ class TestValidCreateModel(TestCase):
             temporal=True,
             spatial=True,
             categorical=True,
-            ADM_level=3,
+            adm_level=3,
             time_resolution="month",
         )
 
@@ -199,7 +199,7 @@ class TestValidCreateModel(TestCase):
         self.assertEqual(
             self.payload.repository, "https://github.com/testuser/test-repo"
         )
-        self.assertEqual(self.payload.ADM_level, 3)
+        self.assertEqual(self.payload.adm_level, 3)
         self.assertEqual(self.payload.implementation_language, "Python")
         self.assertEqual(self.payload.time_resolution, "month")
 
@@ -211,12 +211,12 @@ class TestValidCreateModel(TestCase):
             "Model repository must be on Github",
         )
 
-    def test_validate_ADM_level(self):
-        self.assertIsNone(validate_ADM_level(self.payload.ADM_level))
-        invalid_ADM_level = 4
+    def test_validate_adm_level(self):
+        self.assertIsNone(validate_adm_level(self.payload.adm_level))
+        invalid_adm_level = 4
         self.assertEqual(
-            validate_ADM_level(invalid_ADM_level),
-            "ADM_level must be 0, 1, 2 or 3 "
+            validate_adm_level(invalid_adm_level),
+            "adm_level must be 0, 1, 2 or 3 "
             "(National, State, Municipality, or Sub Municipality)",
         )
 

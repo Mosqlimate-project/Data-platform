@@ -198,7 +198,7 @@ class Model(models.Model):
     disease = models.CharField(
         choices=Diseases.choices, null=True
     )  # TODO: change to false
-    ADM_level = models.IntegerField(
+    adm_level = models.IntegerField(
         choices=ADM_levels.choices, null=True
     )  # TODO: Change to false
     time_resolution = models.CharField(
@@ -326,7 +326,7 @@ class Prediction(models.Model):
         }
 
     def _add_adm_geocode(self):
-        level = self.model.ADM_level
+        level = self.model.adm_level
         column = f"adm_{level}"
 
         try:
@@ -415,7 +415,7 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
                 model.implementation_language
             ),
             Tag.get_tag_id_by_disease(model.disease),
-            Tag.get_tag_id_by_adm_level(model.ADM_level),
+            Tag.get_tag_id_by_adm_level(model.adm_level),
             Tag.get_tag_id_by_time_resolution(model.time_resolution),
         ]
     )

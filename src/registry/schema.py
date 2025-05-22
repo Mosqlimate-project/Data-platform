@@ -116,7 +116,7 @@ class ModelSchema(Schema):
     categorical: bool | None = None
     spatial: bool | None = None
     temporal: bool | None = None
-    ADM_level: Annotated[
+    adm_level: Annotated[
         Literal[0, 1, 2, 3],
         Field(
             default=0,
@@ -210,11 +210,11 @@ class ModelFilterSchema(FilterSchema):
             default=None, q="disease__iexact", description="Model for disease"
         ),
     ]
-    ADM_level: Annotated[
+    adm_level: Annotated[
         Optional[Literal[0, 1, 2, 3]],
         Field(
             default=None,
-            q="ADM_level",
+            q="adm_level",
             description=(
                 "Administrative level. Country, State, Municipality and "
                 "SubMunicipality respectively"
@@ -398,7 +398,7 @@ class PredictionIn(Schema):
                 raise ValueError(f"unkown UF '{adm_1}'. Format: 'RJ'")
 
         if adm_2:
-            if model.ADM_level == 1:
+            if model.adm_level == 1:
                 raise ValueError(f"Model {model.id} ADM Level is 1")
             try:
                 City.objects.get(geocode=adm_2)
@@ -437,11 +437,11 @@ class PredictionFilterSchema(FilterSchema):
             description="Model name",
         ),
     ]
-    model_ADM_level: Annotated[
+    model_adm_level: Annotated[
         Optional[int],
         Field(
             default=None,
-            q="model__ADM_level",
+            q="model__adm_level",
             description="Model administrative level",
         ),
     ]

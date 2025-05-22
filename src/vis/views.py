@@ -157,7 +157,7 @@ def get_models(request) -> JsonResponse:
             ]:
                 tags.append(tag.id)
 
-        if model.ADM_level == 1:
+        if model.adm_level == 1:
             adm_1_list = list(
                 map(
                     int,
@@ -166,7 +166,7 @@ def get_models(request) -> JsonResponse:
                     .distinct(),
                 )
             )
-        elif model.ADM_level == 2:
+        elif model.adm_level == 2:
             adm_1_list = list(
                 {
                     int(p.adm_2.state.geocode)
@@ -185,7 +185,7 @@ def get_models(request) -> JsonResponse:
         }
         model_res["adm_1_list"] = adm_1_list
         model_res["disease"] = model.disease
-        model_res["adm_level"] = model.ADM_level
+        model_res["adm_level"] = model.adm_level
         model_res["time_resolution"] = model.time_resolution
         model_res["tags"] = tags
         model_res["name"] = model.name
