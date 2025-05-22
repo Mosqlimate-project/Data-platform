@@ -16,6 +16,7 @@ RUN apt-get update -y \
   build-essential \
   curl \
   nginx \
+  gettext \
   tini \
   sudo \
   tzdata \

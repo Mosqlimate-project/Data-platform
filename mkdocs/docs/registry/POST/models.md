@@ -133,7 +133,7 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
         "spatial": true,
         "temporal": true,
         "categorical": true,
-        "ADM_level": 0,
+        "adm_level": 0,
         "time_resolution": "week",
         "sprint": false
     }'

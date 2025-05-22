@@ -41,9 +41,6 @@ class PagesPagination(PaginationBase):
             page 3 = query[10:15]
             ...
             page 9 = query[40:45]
-
-        Notes:
-            - If the requested page is < 1 or > last page, return rather 1 or last page
         """
         total_items: int = self._items_count(queryset)
         page: int = pagination.page
@@ -72,9 +69,6 @@ class PagesPagination(PaginationBase):
         if page < 1:
             page = 1
             message = "Incorrect page, displaying page 1"
-        elif page > total_pages:
-            page = total_pages
-            message = f"Incorrect page, displaying page {page}"
 
         items = queryset[(page - 1) * per_page : page * per_page]
 

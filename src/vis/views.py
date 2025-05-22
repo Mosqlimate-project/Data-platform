@@ -157,22 +157,35 @@ def get_models(request) -> JsonResponse:
             ]:
                 tags.append(tag.id)
 
+        if model.adm_level == 1:
+            adm_1_list = list(
+                map(
+                    int,
+                    model.predictions.all()
+                    .values_list("adm_1__geocode", flat=True)
+                    .distinct(),
+                )
+            )
+        elif model.adm_level == 2:
+            adm_1_list = list(
+                {
+                    int(p.adm_2.state.geocode)
+                    for p in model.predictions.select_related("adm_2")
+                    if p.adm_2 and p.adm_2.state
+                }
+            )
+        else:
+            continue
+
         model_res = {}
         model_res["id"] = model.id
         model_res["author"] = {
             "name": model.author.user.name,
             "user": model.author.user.username,
         }
-        model_res["adm_1_list"] = list(
-            map(
-                int,
-                model.predictions.all()
-                .values_list("adm_1__geocode", flat=True)
-                .distinct(),
-            )
-        )
+        model_res["adm_1_list"] = adm_1_list
         model_res["disease"] = model.disease
-        model_res["adm_level"] = model.ADM_level
+        model_res["adm_level"] = model.adm_level
         model_res["time_resolution"] = model.time_resolution
         model_res["tags"] = tags
         model_res["name"] = model.name
@@ -214,7 +227,7 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
-        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else None
+        p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else p.adm_2.state.geocode
         p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()

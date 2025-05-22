@@ -193,7 +193,7 @@ class ModelIn(Schema):
     temporal: bool
     spatial: bool
     categorical: bool
-    ADM_level: Annotated[
+    adm_level: Annotated[
         Literal[0, 1, 2, 3],
         Field(
             default=0,
