@@ -14,6 +14,38 @@ class Municipio(models.Model):
         db_table = '"Municipio"'
 
 
+class HistoricoAlertaPartial(models.Model):
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
+    SE = models.IntegerField(null=False, db_column="SE")
+    casos_est = models.FloatField(db_column="casos_est")
+    casos_est_min = models.IntegerField(db_column="casos_est_min")
+    casos_est_max = models.IntegerField(db_column="casos_est_max")
+    casos = models.IntegerField(db_column="casos")
+    municipio_geocodigo = models.IntegerField(
+        null=False, db_column="municipio_geocodigo"
+    )
+    p_rt1 = models.FloatField(db_column="p_rt1")
+    p_inc100k = models.FloatField(db_column="p_inc100k")
+    nivel = models.SmallIntegerField(db_column="nivel")
+    id = models.BigAutoField(primary_key=True, db_column="id")
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
+    receptivo = models.SmallIntegerField(db_column="receptivo")
+    transmissao = models.SmallIntegerField(db_column="transmissao")
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
+    casprov = models.IntegerField(db_column="casprov")
+
+    class Meta:
+        managed = False
+        db_table = '"Historico_alerta"'
+
+
 class HistoricoAlerta(models.Model):
     data_iniSE = models.DateField(
         null=False, db_column="data_iniSE", db_index=True
@@ -76,6 +108,38 @@ class HistoricoAlerta(models.Model):
         db_table = '"Historico_alerta"'
 
 
+class HistoricoAlertaChikPartial(models.Model):
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
+    SE = models.IntegerField(null=False, db_column="SE")
+    casos_est = models.FloatField(db_column="casos_est")
+    casos_est_min = models.IntegerField(db_column="casos_est_min")
+    casos_est_max = models.IntegerField(db_column="casos_est_max")
+    casos = models.IntegerField(db_column="casos")
+    municipio_geocodigo = models.IntegerField(
+        null=False, db_column="municipio_geocodigo"
+    )
+    p_rt1 = models.FloatField(db_column="p_rt1")
+    p_inc100k = models.FloatField(db_column="p_inc100k")
+    nivel = models.SmallIntegerField(db_column="nivel")
+    id = models.BigAutoField(primary_key=True, db_column="id")
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
+    receptivo = models.SmallIntegerField(db_column="receptivo")
+    transmissao = models.SmallIntegerField(db_column="transmissao")
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
+    casprov = models.IntegerField(db_column="casprov")
+
+    class Meta:
+        managed = False
+        db_table = '"Historico_alerta_chik"'
+
+
 class HistoricoAlertaChik(models.Model):
     data_iniSE = models.DateField(
         null=False, db_column="data_iniSE", db_index=True
@@ -136,6 +200,38 @@ class HistoricoAlertaChik(models.Model):
     class Meta:
         managed = False
         db_table = '"Historico_alerta_chik"'
+
+
+class HistoricoAlertaZikaPartial(models.Model):
+    data_iniSE = models.DateField(
+        null=False, db_column="data_iniSE", db_index=True
+    )
+    SE = models.IntegerField(null=False, db_column="SE")
+    casos_est = models.FloatField(db_column="casos_est")
+    casos_est_min = models.IntegerField(db_column="casos_est_min")
+    casos_est_max = models.IntegerField(db_column="casos_est_max")
+    casos = models.IntegerField(db_column="casos")
+    municipio_geocodigo = models.IntegerField(
+        null=False, db_column="municipio_geocodigo"
+    )
+    p_rt1 = models.FloatField(db_column="p_rt1")
+    p_inc100k = models.FloatField(db_column="p_inc100k")
+    nivel = models.SmallIntegerField(db_column="nivel")
+    id = models.BigAutoField(primary_key=True, db_column="id")
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
+    municipio_nome = models.CharField(
+        max_length=128, db_column="municipio_nome"
+    )
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
+    receptivo = models.SmallIntegerField(db_column="receptivo")
+    transmissao = models.SmallIntegerField(db_column="transmissao")
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
+    casprov = models.IntegerField(db_column="casprov")
+
+    class Meta:
+        managed = False
+        db_table = '"Historico_alerta_zika"'
 
 
 class HistoricoAlertaZika(models.Model):
