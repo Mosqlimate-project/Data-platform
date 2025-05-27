@@ -60,7 +60,7 @@ THIRD_PARTY_APPS = [
     "vectortiles",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
+LOCAL_APPS = ["main", "datastore", "registry", "users", "vis", "maps"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
