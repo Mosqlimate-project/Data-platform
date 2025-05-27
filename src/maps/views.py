@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from vectortiles.views import MVTView
 
-from .layers import CentroidLayer, PolygonLayer
+from .layers import CentroidLayer, PolygonLayer, MultipolygonLayer
 
 
 class CentroidTileView(MVTView):
@@ -9,7 +9,7 @@ class CentroidTileView(MVTView):
 
 
 class MultiLayerTileView(MVTView):
-    layer_classes = [CentroidLayer, PolygonLayer]
+    layer_classes = [CentroidLayer, PolygonLayer, MultipolygonLayer]
 
 
 def centroid_map(request):
