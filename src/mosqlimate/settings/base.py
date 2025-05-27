@@ -68,7 +68,7 @@ LOCAL_APPS = [
     "users",
     "vis",
     "chatbot",
-    "maps"
+    "maps",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

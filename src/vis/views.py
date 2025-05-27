@@ -1,4 +1,3 @@
-from django.views.generic import TemplateView
 import os
 import json
 from pathlib import Path
@@ -383,7 +382,3 @@ class MacroForecastMap(View):
         return FileResponse(
             open(macro_html_file, "rb"), content_type="text/html"
         )
-
-
-class GeoCityMapView(TemplateView):
-    template_name = "vis/maps/city.html"

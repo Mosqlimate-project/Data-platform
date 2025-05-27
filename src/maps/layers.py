@@ -1,6 +1,6 @@
 from vectortiles import VectorLayer
 
-from .models import CentroidTest, PolygonTest
+from .models import CentroidTest, PolygonTest, MultipolygonTest
 
 
 class CentroidLayer(VectorLayer):
@@ -16,4 +16,12 @@ class PolygonLayer(VectorLayer):
     id = "polygons"
     tile_fields = ("name",)
     geom_field = "area"
+    min_zoom = 0
+
+
+class MultipolygonLayer(VectorLayer):
+    model = MultipolygonTest
+    id = "multipolygons"
+    tile_fields = ("name",)
+    geom_field = "geom"
     min_zoom = 0

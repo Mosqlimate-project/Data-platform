@@ -58,6 +58,18 @@
       }
     });
 
+    map.addLayer({
+      id: 'multipolygon_layer',
+      type: 'fill',
+      source: 'multilayer',
+      'source-layer': 'multipolygons',
+      paint: {
+        'fill-color': '#0080ff',
+        'fill-opacity': 0.3,
+        'fill-outline-color': '#000000'
+      }
+    });
+
     map.on('click', 'centroids_points', (e) => {
       const props = e.features[0].properties;
       new maplibregl.Popup()
