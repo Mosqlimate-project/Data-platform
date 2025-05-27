@@ -1606,6 +1606,27 @@ files = [
 Django = ">=3.2,<6.0"
 
 [[package]]
+name = "django-vectortiles"
+version = "1.0.1"
+description = "Django vector tile generation"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "django_vectortiles-1.0.1-py3-none-any.whl", hash = "sha256:37e08d23a525a8cf052e2e9bf7011fa7152c7dd2ad1a3c73d1ca668c6e38e739"},
+    {file = "django_vectortiles-1.0.1.tar.gz", hash = "sha256:5f2145fd47010200ca1bdeefe5faf20a3389f700ea9fc822cb7f7c7a4d8721f7"},
+]
+
+[package.dependencies]
+django = "*"
+mercantile = "*"
+
+[package.extras]
+dev = ["black", "coverage", "django-debug-toolbar", "djangorestframework", "factory-boy", "flake8", "isort", "mapbox-vector-tile", "protobuf (<4.21.0)", "psycopg2-binary", "sphinx-rtd-theme"]
+mapbox = ["mapbox-vector-tile", "protobuf (<4.21.0)"]
+python = ["mapbox-vector-tile", "protobuf (<4.21.0)"]
+test = ["black", "coverage", "djangorestframework", "factory-boy", "flake8", "isort", "psycopg2-binary"]
+
+[[package]]
 name = "dpd-components"
 version = "0.1.0"
 description = "Django Plotly Dash component suite"
@@ -3274,6 +3295,24 @@ files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
+
+[[package]]
+name = "mercantile"
+version = "1.2.1"
+description = "Web mercator XYZ tile utilities"
+optional = false
+python-versions = "*"
+files = [
+    {file = "mercantile-1.2.1-py3-none-any.whl", hash = "sha256:30f457a73ee88261aab787b7069d85961a5703bb09dc57a170190bc042cd023f"},
+    {file = "mercantile-1.2.1.tar.gz", hash = "sha256:fa3c6db15daffd58454ac198b31887519a19caccee3f9d63d17ae7ff61b3b56b"},
+]
+
+[package.dependencies]
+click = ">=3.0"
+
+[package.extras]
+dev = ["check-manifest"]
+test = ["hypothesis", "pytest"]
 
 [[package]]
 name = "mergedeep"
@@ -6778,4 +6817,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "2ecdbadcd16558124aef3b5b25098370029ddac707964187bcac133e77ee4f1d"
+content-hash = "9bff2999afc3595f51dd2a33d341e5cfb96ddc3f2798239c25833e50d74eee6b"

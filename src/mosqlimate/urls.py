@@ -14,6 +14,7 @@ urlpatterns = [
     path("vis/", include("vis.urls")),
     path("registry/", include("registry.urls")),
     path("datastore/", include("datastore.urls")),
+    path("maps/", include("maps.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
