@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
 ]
 
 DJANGO_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -58,7 +59,7 @@ THIRD_PARTY_APPS = [
     "channels_redis",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
+LOCAL_APPS = ["main", "datastore", "registry", "users", "vis", "chatbot"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -101,6 +102,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mosqlimate.wsgi.application"
+ASGI_APPLICATION = "mosqlimate.asgi.application"
 
 
 MESSAGE_TAGS = {
