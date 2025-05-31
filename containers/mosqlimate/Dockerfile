@@ -10,24 +10,23 @@ ENV TZ=America/Sao_Paulo
 ARG UID
 ARG GID
 
-RUN apt-get update -y \
-  && apt-get install -y \
-  apt-utils \
-  build-essential \
-  curl \
-  nginx \
-  gettext \
-  tini \
-  sudo \
-  tzdata \
-  openssl \
-  binutils \
-  libproj-dev \
-  gdal-bin \
-  software-properties-common \
-  && rm -rf /var/lib/apt/lists/* \
-  /var/cache/apt/archives \
-  /tmp/*
+RUN apt-get update -y && \
+    apt-get install -y \
+    build-essential \
+    curl \
+    nginx \
+    gettext \
+    tini \
+    sudo \
+    tzdata \
+    openssl \
+    binutils \
+    libproj-dev \
+    gdal-bin \
+    software-properties-common && \
+    rm -rf /var/lib/apt/lists/* \
+    /var/cache/apt/archives \
+    /tmp/*
 
 # Workaround for error: (OSError: /lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.30' not found)
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update -y && \

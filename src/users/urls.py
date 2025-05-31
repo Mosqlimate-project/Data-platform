@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from .views import ProfileView, redirect_to_user_profile
 
 urlpatterns = [
-    path("<username>/", ProfileView.as_view(), name="profile"),
+    path("<str:username>/", ProfileView.as_view(), name="profile"),
     path("accounts/logout/", logout, name="account_logout"),
     path("accounts/github/login/", oauth2_login, name="github_login"),
     path(
