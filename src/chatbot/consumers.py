@@ -28,20 +28,20 @@ class ChatConsumer(WebsocketConsumer):
         else:
             user = None
 
-        try:
-            self.session = ChatSession.objects.get(
-                user=user, session_key=self.session_key
-            )
-        except ChatSession.DoesNotExist:
-            self.session = ChatSession.objects.create(
-                user=user, session_key=self.session_key
-            )
+        self.session, _ = ChatSession.objects.get_or_create(
+            user=user, session_key=self.session_key
+        )
 
         self.accept()
 
-        messages: list[Message] = Message.objects.filter(
-            session=self.session
-        ).order_by("timestamp")
+        if user:
+            messages: list[Message] = Message.objects.filter(
+                session__user=user
+            ).order_by("timestamp")
+        else:
+            messages: list[Message] = Message.objects.filter(
+                session=self.session
+            ).order_by("timestamp")
 
         for message in messages:
             msg = {"msg": message.content, "source": message.sender}
