@@ -32,7 +32,7 @@
 <script>
     const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
     const chatSocket = new WebSocket(
-        wss_protocol + window.location.host + "/ws/chat/"
+        wss_protocol + window.location.host + `/ws/chat/{{ session_key }}/`
     );
 
     const chatMessages = []; 
