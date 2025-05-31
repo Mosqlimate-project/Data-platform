@@ -78,6 +78,7 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "users.middleware.SessionCacheMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"

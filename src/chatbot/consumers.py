@@ -28,19 +28,22 @@ class ChatConsumer(WebsocketConsumer):
         else:
             user = None
 
-        self.session, _ = ChatSession.objects.get_or_create(
-            user=user, session_key=self.session_key
-        )
+        try:
+            self.session = ChatSession.objects.get(
+                user=user, session_key=self.session_key
+            )
+        except ChatSession.DoesNotExist:
+            self.session = ChatSession.objects.create(
+                user=user, session_key=self.session_key
+            )
 
         self.accept()
 
         messages: list[Message] = Message.objects.filter(
             session=self.session
         ).order_by("timestamp")
-        print(messages)
 
         for message in messages:
-            print(message)
             msg = {"msg": message.content, "source": message.sender}
             self.send(text_data=json.dumps({"text": msg}))
 
