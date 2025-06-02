@@ -4,6 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.conf import settings
 
 from .models import ChatSession, Message
 from .tasks import generate_bot_answer
@@ -53,12 +54,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         response = json.loads(text_data)
-        message = response["text"]
-
-        await self.save_message("user", message)
+        question = response["text"]
 
         await self.send(
-            text_data=json.dumps({"text": {"msg": message, "source": "user"}})
+            text_data=json.dumps({"text": {"msg": question, "source": "user"}})
         )
 
         await self.send(
@@ -67,13 +66,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
-        answer = await self.generate_answer()
+        await self.save_message("user", question)
 
-        await self.save_message("bot", answer)
-
-        await self.send(
-            text_data=json.dumps({"text": {"msg": answer, "source": "bot"}})
-        )
+        try:
+            answer = await self.generate_answer(question)
+            await self.save_message("bot", answer)
+            await self.send(
+                text_data=json.dumps(
+                    {"text": {"msg": answer, "source": "bot"}}
+                )
+            )
+        except Exception as e:
+            if settings.DEBUG:
+                await self.send(text_data=json.dumps({"error": str(e)}))
+            else:
+                await self.send(
+                    text_data=json.dumps(
+                        {"error": "An error occured, please try again"}
+                    )
+                )
 
     async def chat_message(self, event):
         text = event["text"]
@@ -85,6 +96,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         await sync_to_async(self.session.update_activity)()
 
-    async def generate_answer(self):
-        asnwer = generate_bot_answer(self.session.pk)
-        return asnwer
+    async def generate_answer(self, question):
+        answer = generate_bot_answer(question)
+        print(answer)
+        return answer

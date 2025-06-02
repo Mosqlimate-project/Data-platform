@@ -1,7 +1,9 @@
 {% extends 'main/base.html' %}
+{% load static %}
 {% load i18n %}
 {% load plotly_dash %}
 {% load vis_echarts_components %}
+{% load floating_chat %}
 
 {% block title %}{% translate "Home" %}{% endblock %}
 
@@ -31,4 +33,10 @@
 
   <!-- footer -->
   <div style="margin-bottom: 100px;"></div>
+  {% chatbot session_key %}
+
+  <script src="{% static 'js/chatbot/chat.js' %}"></script>
+  <script>
+    initChatbot("{{ session_key }}");
+  </script>
 {% endblock %}

@@ -22,7 +22,6 @@ urlpatterns = [
     path("docs/", views.docs, name="docs"),
     path("api/", api.urls),
     path("", views.home, name="home"),
-    path("chat/", include("chatbot.urls")),
     path("", include("users.urls")),
     path("django_plotly_dash/", include("django_plotly_dash.urls")),
 ]
