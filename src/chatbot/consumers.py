@@ -1,89 +1,90 @@
 import json
 
-from asgiref.sync import async_to_sync
-from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import transaction
 
 from .models import ChatSession, Message
+from .tasks import generate_bot_answer
 
 
 User = get_user_model()
 
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         self.session_key = self.scope["url_route"]["kwargs"]["session_key"]
 
         if not self.session_key:
-            self.close(code=4000)
+            await self.close(code=4000)
             return
 
         api_key = cache.get(self.session_key, None)
 
         if api_key:
             username = str(api_key.split(":")[0])
-            user = User.objects.get(username=username)
+            user = await sync_to_async(User.objects.get)(username=username)
         else:
             user = None
 
-        self.session, _ = ChatSession.objects.get_or_create(
-            user=user, session_key=self.session_key
-        )
+        self.session, _ = await sync_to_async(
+            ChatSession.objects.get_or_create
+        )(user=user, session_key=self.session_key)
 
-        self.accept()
+        await self.accept()
 
         if user:
-            messages: list[Message] = Message.objects.filter(
-                session__user=user
-            ).order_by("timestamp")
+            messages = await sync_to_async(list)(
+                Message.objects.filter(session__user=user).order_by(
+                    "timestamp"
+                )
+            )
         else:
-            messages: list[Message] = Message.objects.filter(
-                session=self.session
-            ).order_by("timestamp")
+            messages = await sync_to_async(list)(
+                Message.objects.filter(session=self.session).order_by(
+                    "timestamp"
+                )
+            )
 
         for message in messages:
             msg = {"msg": message.content, "source": message.sender}
-            self.send(text_data=json.dumps({"text": msg}))
+            await self.send(text_data=json.dumps({"text": msg}))
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         response = json.loads(text_data)
         message = response["text"]
 
-        with transaction.atomic():
-            Message.objects.create(
-                session=self.session, content=message, sender="user"
-            )
-            self.session.update_activity()
+        await self.save_message("user", message)
 
-        async_to_sync(self.channel_layer.send)(
-            self.channel_name,
-            {
-                "type": "chat.message",
-                "text": {"msg": message, "source": "user"},
-            },
+        await self.send(
+            text_data=json.dumps({"text": {"msg": message, "source": "user"}})
         )
 
-        answer = f"session {self.session.pk} user: {self.session.user}"
-
-        with transaction.atomic():
-            Message.objects.create(
-                session=self.session, content=answer, sender="bot"
+        await self.send(
+            text_data=json.dumps(
+                {"text": {"msg": "waiting", "source": "system"}}
             )
-            self.session.update_activity()
-
-        async_to_sync(self.channel_layer.send)(
-            self.channel_name,
-            {
-                "type": "chat.message",
-                "text": {
-                    "msg": answer,
-                    "source": "bot",
-                },
-            },
         )
 
-    def chat_message(self, event):
+        answer = await self.generate_answer()
+
+        await self.save_message("bot", answer)
+
+        await self.send(
+            text_data=json.dumps({"text": {"msg": answer, "source": "bot"}})
+        )
+
+    async def chat_message(self, event):
         text = event["text"]
-        self.send(text_data=json.dumps({"text": text}))
+        await self.send(text_data=json.dumps({"text": text}))
+
+    async def save_message(self, sender, content):
+        await sync_to_async(Message.objects.create)(
+            session=self.session, content=content, sender=sender
+        )
+        await sync_to_async(self.session.update_activity)()
+
+    async def generate_answer(self):
+        asnwer = generate_bot_answer(self.session.pk)
+        return asnwer
