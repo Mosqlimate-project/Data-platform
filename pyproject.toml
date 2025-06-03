@@ -52,6 +52,7 @@ scipy = "^1.15.2"
 scoringrules = "^0.7.1"
 scikit-learn = "^1.6.1"
 mosqlimate-assistant = { git = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git", rev = "1.0.1" }
+watchdog = "^6.0.0"
 
 
 [tool.poetry.group.pre-commit.dependencies]

@@ -15,11 +15,14 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from channels.sessions import SessionMiddlewareStack
 
-from chatbot import routing
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mosqlimate.settings")
 
 asgi = get_asgi_application()
+
+# fmt: off
+from chatbot import routing  # noqa: E402
+# fmt: on
 
 application = ProtocolTypeRouter(
     {

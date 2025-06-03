@@ -4,7 +4,6 @@ services:
       - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
       - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
-    command: python -m gunicorn -w 4 -b 0.0.0.0:${DJANGO_PORT} --timeout 90 mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker
     networks:
       - infodengue-prod_infodengue
 

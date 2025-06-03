@@ -4,6 +4,7 @@ from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.views import View
+from django.http import JsonResponse
 
 from users.forms import (
     UpdateModelForm,
@@ -41,6 +42,10 @@ def build_url_path(params) -> str:
 
 
 # --
+
+
+def status(request):
+    return JsonResponse({"status": "ok"})
 
 
 def home(request):
