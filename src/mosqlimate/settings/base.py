@@ -191,6 +191,7 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
+CHATBOT_TOKEN = env("CHATBOT_TOKEN")
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

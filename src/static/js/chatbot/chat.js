@@ -1,29 +1,33 @@
 function initChatbot(sessionKey) {
-  const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
   const chatSocket = new WebSocket(
-    wss_protocol + window.location.host + `/ws/chat/${sessionKey}/`
+    (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + `/ws/chat/${sessionKey}/`
   );
 
   const chatMessages = [];
-
-  const chatHeader = document.querySelector("#chat-header");
   const chatLog = document.querySelector("#chat-log");
   const chatMessageInput = document.querySelector("#chat-message-input");
   const chatMessageSubmit = document.querySelector("#chat-message-submit");
 
   function renderMessages() {
-    let str = '<ul class="space-y-2">';
-    chatMessages.forEach(function(msg) {
-      str += `
-                <li class="flex ${msg.source === "bot" ? "justify-start" : "justify-end"}">
-                    <div class="relative max-w-xl px-4 py-2 rounded-lg shadow-md
-                        ${msg.source === "bot" ? "text-gray-700 bg-white border border-gray-200" : "bg-blue-600 text-black"}">
-                        <span class="block font-normal">${escapeHTML(msg.msg)}</span>
-                    </div>
-                </li>
-            `;
+    let filteredMessages = chatMessages.filter(msg => msg.source !== "system");
+    let lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg && lastMsg.source === "bot") {
+      filteredMessages = chatMessages.filter(msg => msg.source !== "system");
+    } else {
+      filteredMessages = chatMessages;
+    }
+    let str = "";
+    filteredMessages.forEach(msg => {
+      let containerClass = "", bubbleClass = "message-bubble";
+      if (msg.source === "bot") {
+        containerClass = "bot-message";
+      } else if (msg.source === "user") {
+        containerClass = "user-message";
+      } else if (msg.source === "system") {
+        containerClass = "system-message";
+      }
+      str += `<div class="${containerClass}"><div class="${bubbleClass}"><span>${escapeHTML(msg.msg)}</span></div></div>`;
     });
-    str += "</ul>";
     chatLog.innerHTML = str;
     chatLog.scrollTop = chatLog.scrollHeight;
   }
@@ -34,40 +38,31 @@ function initChatbot(sessionKey) {
     return div.innerHTML;
   }
 
-  chatSocket.onopen = function() {
-    chatHeader.innerHTML = "Chatbot";
-  };
-
-  chatSocket.onmessage = function(e) {
+  chatSocket.onmessage = e => {
     const data = JSON.parse(e.data);
-    const message = data.text;
-    if (message?.msg && message?.source) {
-      chatMessages.push(message);
+    if (data.text?.msg && data.text?.source) {
+      chatMessages.push(data.text);
       renderMessages();
     }
   };
 
-  chatSocket.onclose = function() {
-    const msg = { msg: "Disconnected. Reload to reconnect.", source: "bot-info" };
-    chatMessages.push(msg);
+  chatSocket.onclose = () => {
+    chatMessages.push({ msg: "Disconnected. Reload to reconnect.", source: "system" });
     renderMessages();
     chatMessageInput.disabled = true;
     chatMessageSubmit.disabled = true;
   };
 
-  chatSocket.onerror = function() {
-    const msg = { msg: "An error occurred. Reload the page.", source: "bot-error" };
-    chatMessages.push(msg);
+  chatSocket.onerror = () => {
+    chatMessages.push({ msg: "An error occurred. Reload the page.", source: "system" });
     renderMessages();
     chatMessageInput.disabled = true;
     chatMessageSubmit.disabled = true;
   };
 
-  chatMessageInput.onkeyup = function(e) {
-    if (e.key === 'Enter') chatMessageSubmit.click();
-  };
+  chatMessageInput.onkeyup = e => { if (e.key === 'Enter') chatMessageSubmit.click(); };
 
-  chatMessageSubmit.onclick = function() {
+  chatMessageSubmit.onclick = () => {
     const message = chatMessageInput.value.trim();
     if (message.length > 0 && chatSocket.readyState === WebSocket.OPEN) {
       chatSocket.send(JSON.stringify({ text: message }));

@@ -98,5 +98,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def generate_answer(self, question):
         answer = generate_bot_answer(question)
-        print(answer)
+        if not isinstance(answer, str):
+            answer = json.dumps(answer)
         return answer
