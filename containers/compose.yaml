@@ -25,7 +25,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: python manage.py runserver 0.0.0.0:${DJANGO_PORT}
+    command: daphne -b 0.0.0.0 -p ${DJANGO_PORT} mosqlimate.asgi:application
     networks:
       - mosqlimate
 
