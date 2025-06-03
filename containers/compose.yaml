@@ -2,6 +2,8 @@ services:
   django:
     hostname: mosqlimate-django
     restart: unless-stopped
+    environment:
+        PYTHONUNBUFFERED: 1
     build:
       context: ..
       dockerfile: containers/mosqlimate/Dockerfile

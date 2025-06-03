@@ -8,7 +8,4 @@ def generate_bot_answer(question: str):
 
     assistant = AssistantGemini(settings.CHATBOT_TOKEN)
 
-    try:
-        return assistant.query_llm(question)
-    except Exception as e:
-        return e
+    return assistant.query_llm(question)
