@@ -4,6 +4,7 @@ from . import views
 from .api import api
 
 urlpatterns = [
+    path("status", views.status, name="status"),
     path("datastore/", views.DataStoreView.as_view(), name="datastore"),
     path("models/", views.ModelsView.as_view(), name="models"),
     path("add-model/", views.AddModelView.as_view(), name="add-model"),
