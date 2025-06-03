@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
 ]
 
 DJANGO_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -58,7 +59,7 @@ THIRD_PARTY_APPS = [
     "channels_redis",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users", "vis"]
+LOCAL_APPS = ["main", "datastore", "registry", "users", "vis", "chatbot"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "users.middleware.SessionCacheMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"
@@ -95,12 +97,14 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "chatbot.context_processors.session_key",
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = "mosqlimate.wsgi.application"
+ASGI_APPLICATION = "mosqlimate.asgi.application"
 
 
 MESSAGE_TAGS = {
@@ -187,6 +191,7 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
+CHATBOT_TOKEN = env("CHATBOT_TOKEN")
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
