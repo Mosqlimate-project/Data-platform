@@ -1,4 +1,6 @@
+import asyncio
 import json
+import logging
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -11,6 +13,7 @@ from .tasks import generate_bot_answer
 
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -69,14 +72,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.save_message("user", question)
 
         try:
-            answer = await self.generate_answer(question)
+            answer = await asyncio.wait_for(
+                self.generate_answer(question), timeout=30
+            )
             await self.save_message("bot", answer)
             await self.send(
                 text_data=json.dumps(
                     {"text": {"msg": answer, "source": "bot"}}
                 )
             )
+        except asyncio.TimeoutError:
+            await self.send(
+                text_data=json.dumps(
+                    {"error": "The response took too long. Please try again."}
+                )
+            )
         except Exception as e:
+            logger.exception(f"Error in ChatConsumer: {e}")
             if settings.DEBUG:
                 await self.send(text_data=json.dumps({"error": str(e)}))
             else:
