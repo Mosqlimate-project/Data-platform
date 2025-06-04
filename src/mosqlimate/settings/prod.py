@@ -4,10 +4,11 @@ SESSION_COOKIE_SECURE = True
 
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://api.mosqlimate.org",
+    "https://*.mosqlimate.org",
     "http://localhost",
     "http://0.0.0.0:8042",
     "http://django",
