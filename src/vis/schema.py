@@ -1,8 +1,25 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, Annotated
 from datetime import date
 
 from ninja import FilterSchema, Field
 from main.schema import Schema
+
+
+class HistoricoAlertaCases(Schema):
+    date: date
+    cases: int
+
+
+class HistoricoAlertaCasesIn(Schema):
+    sprint: Annotated[bool, Field(False)]
+    disease: Annotated[
+        Literal["dengue", "zika", "chikungunya"], Field("dengue")
+    ]
+    start: date
+    end: date
+    adm_level: Literal[1, 2]
+    adm_1: Optional[str] = None
+    adm_2: Optional[int] = None
 
 
 class TotalCasesSchema(Schema):
