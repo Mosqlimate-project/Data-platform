@@ -1,0 +1,107 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load misc %}
+{% block title %}Prediction {{ prediction.id }}{% endblock %}
+
+{% block content %}
+  <div class="container shadow p-5 mb-3 bg-body rounded font-golos">
+    <center>
+      <h1>
+        <span>Prediction {{ prediction.id }}</span>
+        <div class="icons">
+            {% if user.is_authenticated %}
+            {% if user.username == prediction.author.user.username %}
+            <a href="{% url 'edit-model' model_id=prediction.id %}" title="Edit Model"><i class="fa-solid fa-pencil fs-6 edit-model"></i></a>
+            {% endif %}
+            {% endif %}
+            <a href="{{ prediction.repository }}" title="Repository" target="_blank" rel="noopener noreferrer"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fs-6 fa-github"></i></a>
+        </div>
+      </h1>
+    </center>
+    <center>
+      {% for tag in tags %}
+      <span 
+        class="badge rounded-pill model-tag" 
+        style="background-color: {{ tag.color }};"
+      >
+        {{ tag.name }}
+      </span>
+      {% endfor %}
+    </center>
+    <center><hr style="width:70%;"></center>
+
+    <div class="container" style="width: 70%;">
+      <center>
+        <div>
+          <h3>{{ prediction.name }}</h3>
+        </div>
+      </center>
+
+      <br>
+
+      <table class="table table-bordered">
+        <tbody>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Model" %}</th>
+            <td class="d-flex justify-content-center"><a href="{% url 'model' prediction.model.id %}" title="{{ prediction.model.id }}" style="text-decoration:none;">{{ prediction.model.id }}</a></td>
+          </tr>
+          <tr>
+            <th scope="row" class="fw-normal">{% trans "Author" %}</th>
+          <td class="d-flex justify-content-center"><a href="{% url 'profile' prediction.model.author.user.username %}" title="{{ prediction.model.author.user.username }}" style="text-decoration:none;">{{ prediction.model.author }}</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <br>
+
+      <h4>{% trans "Description" %}:</h4>
+      <div>{{ prediction.description }}</div>
+    </div>
+
+  </div>
+
+<script>
+ const prediction = {{ data|safe }};
+ console.log(prediction);
+</script>
+
+<style>
+h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 .icons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 0px;
+  right: 0px;
+  width: 20px;
+  gap: 5px;
+}
+
+.icons a {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.fa-solid {
+  height: 13px;
+  font-size: 13px;
+  color: #9a9996;
+}
+</style>
+
+{% endblock %}
