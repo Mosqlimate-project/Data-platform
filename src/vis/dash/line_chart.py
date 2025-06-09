@@ -144,8 +144,8 @@ def hist_alerta_data(
 
     data = (
         hist_alerta.filter(
-            data_iniSE__gt=start_window_date,
-            data_iniSE__lt=end_window_date,
+            data_iniSE__gte=start_window_date,
+            data_iniSE__lte=end_window_date,
             municipio_geocodigo__in=geocodes,
         )
         .values("data_iniSE")

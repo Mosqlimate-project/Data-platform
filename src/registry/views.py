@@ -44,12 +44,13 @@ class PredictionView(View):
             adm_1=prediction.adm_1.uf if prediction.adm_1 else None,
             adm_2=prediction.adm_2.geocode if prediction.adm_2 else None,
         )
-        cases = get_cases(request, payload)
+        cases = [c.model_dump() for c in get_cases(request, payload)]
 
         context = {
             "prediction": prediction,
+            "color": prediction.color,
             "tags": tags,
             "data": json.dumps(data, cls=DjangoJSONEncoder),
-            "cases": cases,
+            "cases": json.dumps(cases, cls=DjangoJSONEncoder),
         }
         return render(request, self.template_name, context)

@@ -43,6 +43,8 @@ Through this API endpoint, you can fetch several climate variables that have bee
 },
 ```
 
+Details about how the satellite data are processed and aggregated at municipality level are available [here](https://github.com/AlertaDengue/satellite-weather-downloader)
+
 ## Usage examples
 
 === "Python"
