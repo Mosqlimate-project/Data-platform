@@ -11,12 +11,8 @@
     <h1>
       <span>Prediction {{ prediction.id }}</span>
       <div class="icons">
-          {% if user.is_authenticated %}
-          {% if user.username == prediction.author.user.username %}
-          <a href="{% url 'edit-model' model_id=prediction.id %}" title="Edit Model"><i class="fa-solid fa-pencil fs-6 edit-model"></i></a>
-          {% endif %}
-          {% endif %}
-          <a href="{{ prediction.repository }}" title="Repository" target="_blank" rel="noopener noreferrer"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fs-6 fa-github"></i></a>
+        <a href="{{ prediction.model.repository }}/commit/{{prediction.commit}}" title="Repository" target="_blank" rel="noopener noreferrer"><i alt="{% trans 'Repository' %}" class="fa-solid fa-brands fs-6 fa-github"></i></a>
+        <a href="{% url 'dashboard' %}?prediction_id={{prediction.id}}{% if prediction.model.sprint %}&dashboard=sprint{% endif %}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a> 
       </div>
     </h1>
   </center>
