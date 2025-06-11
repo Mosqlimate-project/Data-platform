@@ -1,0 +1,4 @@
+# HSTS 1.0 Known Hosts database for GNU Wget.
+# Edit at your own risk.
+# <hostname>	<port>	<incl. subdomains>	<created>	<max-age>
+api.mosqlimate.org	0	0	1749417520	3600

@@ -83,3 +83,29 @@ To more information, please access
     -H 'X-UID-Key: See X-UID-Key documentation' \
     -d ''
     ```
+
+### Fetching all pages (provisory)
+As this endpoint is a 3rd party API, `mosqlient` isn't able of fetching all pages asynchronously.
+To fetch all pages it will be necessary to loop until there's no more pages to fetch.
+A simple while loop can do the hack:
+```py
+import pandas as pd
+import mosqlient
+
+params = dict(
+  api_key = api_key,
+  date_start = "2024-01-01",
+  date_end = "2024-12-31",
+  state = "MG",
+)
+results = []
+page = 1
+while True:
+    df = mosqlient.get_mosquito(**params, page=page)
+    if df.empty:
+        break
+    results.append(df)
+    page += 1
+
+result = pd.concat(results)
+```
