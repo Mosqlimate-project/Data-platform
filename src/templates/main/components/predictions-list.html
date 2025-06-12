@@ -36,7 +36,7 @@
   {% for prediction in predictions %}
   <div class="list-group-item row list-group-item-action align-items-start prediction-item">
     <div class="col-1">
-      <p class="mb-1 model-id">{{ prediction.id }}</p>
+      <p class="mb-1 model-id"><a href="/registry/prediction/{{prediction.id}}/" target="_blank">{{ prediction.id }}</a></p>
     </div>
     <div class="col-1" style="padding-left: 0;">
       {% with image_path='img/plangs/'|add:prediction.model.implementation_language.svg_path %}
@@ -66,7 +66,7 @@
       <p class="mb-1 description">{{ prediction.description }}</p>
     </div>
     <div class="icons">
-      <!-- <a href="{% url 'dashboard' %}?predict={{prediction.id}}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a> -->
+      <a href="{% url 'dashboard' %}?prediction_id={{prediction.id}}{% if prediction.model.sprint %}&dashboard=sprint{% endif %}"><i alt="{% trans 'Visualize' %}" class="fa-solid fa-square-poll-vertical"></i></a> 
       {{user.authenticated}}
       {% if user == prediction.model.author.user %}
         <a href="{% url 'edit-prediction' prediction_id=prediction.id %}"><i class="fa-solid fa-pencil"></i></a>

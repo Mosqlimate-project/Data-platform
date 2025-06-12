@@ -388,7 +388,11 @@ class Storage {
         score: null,
       }
     }
-    data[d].prediction_ids = data[d].prediction_ids || [];
+    if (prediction_id) {
+      data[d].prediction_ids = [prediction_id];
+    } else {
+      data[d].prediction_ids = data[d].prediction_ids || [];
+    }
     if (model_id) {
       data[d].model_ids = [model_id];
     } else {
@@ -401,8 +405,16 @@ class Storage {
     if (!data[d].end_window_date) {
       data[d].end_window_date = max_window_date;
     }
-    data[d].adm_1 = data[d].adm_1 || null;
-    data[d].adm_2 = data[d].adm_2 || null;
+    if (adm_1_v) {
+      data[d].adm_1 = adm_1_v;
+    } else {
+      data[d].adm_1 = data[d].adm_1 || null;
+    }
+    if (adm_2_v) {
+      data[d].adm_2 = adm_2_v;
+    } else {
+      data[d].adm_2 = data[d].adm_2 || null;
+    }
     data[d].score = data[d].score || "mae";
     localStorage.setItem("dashboards", JSON.stringify(data));
   }
@@ -634,8 +646,8 @@ class PredictionList {
       <td style="width: 40px;" class="${selected ? 'selected' : ''}" id="td-${prediction.id}">
         <input type="checkbox" value="${prediction.id}" id="checkbox-${prediction.id}" class="checkbox-prediction">
       </td>
-      <td style="width: 40px;">${prediction.id}</td>
-      <td style="width: 40px;"><a href="/registry/model/${prediction.model}/">${prediction.model}</a></td>
+      <td style="width: 40px;"><a href="/registry/prediction/${prediction.id}/" target="_blank">${prediction.id}</a></td>
+      <td style="width: 40px;"><a href="/registry/model/${prediction.model}/" target="_blank">${prediction.model}</a></td>
       <td style="width: 110px;">${prediction.start_date}</td>
       <td style="width: 110px;">${prediction.end_date}</td>
       <td style="width: 150px;">${prediction.scores[this.dashboard.storage.get("score")] || "-"}</td>
@@ -921,6 +933,9 @@ class PredictionList {
 
   set_score(score) {
     this.dashboard.storage.set("score", score);
+    const url = new URL(window.location);
+    url.searchParams.delete("prediction_id");
+    history.pushState(null, "", url);
     location.reload();
   }
 

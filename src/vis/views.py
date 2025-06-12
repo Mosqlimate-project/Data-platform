@@ -58,8 +58,33 @@ class PredictionsDashboard(View):
 
     def get(self, request):
         dashboard = request.GET.get("dashboard", "predictions")
+        model_id = request.GET.get("model_id", -1)
+        prediction_id = request.GET.get("prediction_id", -1)
         sprint = dashboard == "sprint"
         context = {}
+
+        context["adm_1"] = None
+        context["adm_2"] = None
+
+        try:
+            model = Model.objects.get(pk=model_id, sprint=sprint)
+            context["model_id"] = model.id
+        except Model.DoesNotExist:
+            context["model_id"] = None
+
+        try:
+            p = Prediction.objects.get(pk=prediction_id, model__sprint=sprint)
+            context["model_id"] = p.model.id
+            context["prediction_id"] = p.id
+            context["adm_1"] = (
+                p.adm_1.geocode if p.adm_1 else p.adm_2.state.geocode
+            )
+            context["adm_2"] = p.adm_2.geocode if p.adm_2 else None
+        except Prediction.DoesNotExist:
+            context["model_id"] = None
+            context["prediction_id"] = None
+            context["adm_1"] = None
+            context["adm_2"] = None
 
         all_tags = set(
             Tag.objects.filter(model_tags__sprint=sprint).distinct()
