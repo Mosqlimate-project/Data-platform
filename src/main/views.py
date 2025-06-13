@@ -321,7 +321,6 @@ class PredictionsView(View):
             "author_institution": get("author_institution", ""),
             "repository": get("repository", ""),
             "implementation_language": get("implementation_language", ""),
-            "type": get("type", ""),
             "commit": get("commit", ""),
             "start": get("start", ""),
             "end": get("end", ""),

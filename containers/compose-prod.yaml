@@ -6,7 +6,6 @@ services:
       - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
     networks:
       - infodengue-prod_infodengue
-    command: python -m gunicorn -w 4 -b 0.0.0.0:${DJANGO_PORT} mosqlimate.asgi:application -k uvicorn.workers.UvicornWorker
 
   worker:
     networks:
