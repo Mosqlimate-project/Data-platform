@@ -1,6 +1,7 @@
+import io
 import json
 
-from django.views import View
+from django.views import View, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -46,11 +47,33 @@ class PredictionView(View):
         )
         cases = [c.model_dump() for c in get_cases(request, payload)]
 
+        df = prediction.to_dataframe()
+        df = df.fillna("-").applymap(
+            lambda x: round(x, 2) if isinstance(x, float) else x
+        )
+        table = df.to_html(
+            classes="table table-bordered", index=False, border=0
+        ).replace("<td>", '<td style="white-space: nowrap; width: 1%;">')
+
         context = {
             "prediction": prediction,
             "color": prediction.color,
             "tags": tags,
             "data": json.dumps(data, cls=DjangoJSONEncoder),
             "cases": json.dumps(cases, cls=DjangoJSONEncoder),
+            "table": table,
         }
         return render(request, self.template_name, context)
+
+
+def prediction_download_csv(request, prediction_id: int):
+    prediction: Prediction = get_object_or_404(Prediction, pk=prediction_id)
+    df = prediction.to_dataframe()
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=True)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type="text/csv")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Prediction{prediction.id}.csv"'
+    )
+    return response

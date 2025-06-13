@@ -28,12 +28,21 @@
   </center>
   <center><hr style="width:70%;"></center>
 
+  <div class="d-flex justify-content-center gap-2 my-3">
+    <a href="{% url 'prediction-csv' prediction_id=prediction.id %}" class="btn btn-secondary">
+      Download CSV
+    </a>
+    <a href="{% url 'dashboard' %}?prediction_id={{prediction.id}}{% if prediction.model.sprint %}&dashboard=sprint{% endif %}" class="btn btn-secondary">
+      Dashboard
+    </a>
+  </div>
+
   <div class="container" style="width: 70%;">
     <table class="table table-bordered">
       <tbody>
         <tr>
           <th scope="row" class="fw-normal">{% trans "Model" %}</th>
-          <td class="d-flex justify-content-center"><a href="{% url 'model' prediction.model.id %}" title="{{ prediction.model.id }}" style="text-decoration:none;">{{ prediction.model.id }}</a></td>
+          <td class="d-flex justify-content-center"><a href="{% url 'model' prediction.model.id %}" title="{{ prediction.model.id }}" style="text-decoration:none;">{{ prediction.model.name }}</a></td>
         </tr>
         <tr>
           <th scope="row" class="fw-normal">{% trans "Author" %}</th>
@@ -56,6 +65,17 @@
         <!--<i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal"></i>-->
         <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
       </div>
+    </div>
+
+    <br>
+
+    <div style="display: flex; justify-content: center;">
+      <details style="width: 100%; max-width: 1200px;">
+        <summary style="cursor: pointer; font-weight: bold;">{% trans "Show Table" %}</summary>
+        <div style="margin-top: 10px; display: flex; justify-content: center;">
+          {{ table|safe }}
+        </div>
+      </details>
     </div>
   </div>
 
@@ -165,7 +185,7 @@
       legend: {
         show: true,
         top: 15,
-        data: [],
+        data: ['Data', id],
       },
       grid: {
         top: '10%',
@@ -200,9 +220,12 @@
           symbol: 'circle',
           symbolKeepAspect: true,
           sampling: 'none',
-          symbolSize: 3,
+          symbolSize: 5,
           lineStyle: {
             width: 0,
+          },
+          itemStyle: {
+            color: "#000000",
           },
         },
         {
@@ -282,9 +305,7 @@
       const name = String(series.name);
       return !name.includes("lower") && !name.includes("upper");
     })
-    .map(series => ({
-      name: series.name,
-    }));
+    .map(series => String(series.name));
 
   chart.setOption(option);
 

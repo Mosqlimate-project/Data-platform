@@ -9,4 +9,9 @@ urlpatterns = [
         views.PredictionView.as_view(),
         name="prediction",
     ),
+    path(
+        "prediction-csv/<prediction_id>/",
+        views.prediction_download_csv,
+        name="prediction-csv",
+    ),
 ]
