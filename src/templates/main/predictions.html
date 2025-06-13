@@ -93,11 +93,11 @@
         <div class="row mb-3 dates-row">
           <div class="col">
             <label for="predictAfter">{% trans 'Start' %}</label>
-            <input id="predictAfter" class="form-control" type="date" name="start" value="{{ request.session.predict_after_than|default_if_none:'' }}">
+            <input id="predictAfter" class="form-control" type="date" name="start">
           </div>
           <div class="col">
             <label for="predictBefore">{% trans 'End' %}</label>
-            <input id="predictBefore" class="form-control" type="date" name="end" value="{{ request.session.predict_before_than|default_if_none:'' }}">
+            <input id="predictBefore" class="form-control" type="date" name="end">
           </div>
         </div>
 
