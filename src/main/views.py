@@ -1,3 +1,6 @@
+import os
+import requests
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, reverse, redirect, get_object_or_404
@@ -52,8 +55,37 @@ def home(request):
     return render(request, "main/home.html", {})
 
 
-def about(response):
-    return render(response, "main/about.html", {})
+def about(request):
+    playlist_ids = {
+        "pt-br": "PLh4FLfhFN5iqW1REXTLME-e-LOaBrUvq4",
+        "en": "PLh4FLfhFN5iqlf7hd4l-ROxo0MY3mECb-",
+    }
+
+    accept_lang = request.headers.get("Accept-Language", "").lower()
+    locale = "en"
+
+    if accept_lang.startswith("pt-br"):
+        locale = "pt-br"
+
+    playlist_id = playlist_ids.get(locale, playlist_ids["en"])
+
+    url = "https://www.googleapis.com/youtube/v3/playlistItems"
+    params = {
+        "part": "snippet",
+        "playlistId": playlist_id,
+        "maxResults": 10,
+        "key": os.getenv("YOUTUBE_API_KEY"),
+    }
+
+    response = requests.get(url, params=params)
+    videos = []
+    if response.ok:
+        data = response.json()
+        for item in data.get("items", []):
+            video_id = item["snippet"]["resourceId"]["videoId"]
+            videos.append(video_id)
+
+    return render(request, "main/about.html", {"videos": videos})
 
 
 def docs(response):

@@ -1,7 +1,8 @@
 import io
 import json
 
-from django.views import View, HttpResponse
+from django.http import HttpResponse
+from django.views import View
 from django.shortcuts import render, get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
 
