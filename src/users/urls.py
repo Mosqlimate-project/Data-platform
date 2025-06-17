@@ -6,9 +6,10 @@ from allauth.socialaccount.providers.github.views import (
 )
 from django.contrib.auth.decorators import login_required
 
-from .views import ProfileView, redirect_to_user_profile
+from .views import ProfileView, redirect_to_user_profile, APIReportView
 
 urlpatterns = [
+    path("report/api/<str:app>/", APIReportView.as_view(), name="api_report"),
     path("<str:username>/", ProfileView.as_view(), name="profile"),
     path("accounts/logout/", logout, name="account_logout"),
     path("accounts/github/login/", oauth2_login, name="github_login"),

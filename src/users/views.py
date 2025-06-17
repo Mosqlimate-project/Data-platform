@@ -1,3 +1,5 @@
+from typing import Literal
+
 from allauth.account.decorators import verified_email_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
@@ -57,6 +59,23 @@ class ProfileView(View):
             )  # TODO: Find a way to retrieve form errors
 
         return redirect("profile", username=username)
+
+
+class APIReportView(View):
+    template_name = "users/report/api.html"
+
+    def get(self, request, app: Literal["registry", "datastore"]):
+        context = {}
+
+        # if not request.user.is_staff:
+        #     return redirect("home")
+
+        if app not in ["datastore", "registry"]:
+            return redirect("api_report", app="datastore")
+
+        context["app"] = app
+
+        return render(request, self.template_name, context)
 
 
 def redirect_to_user_profile(request):
