@@ -23,13 +23,17 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
-          <a href="{% url 'api_report' app='datastore' %}" class="nav-link {% if request.path == '/report/api/datastore/' %}active{% endif %}">
+          <a href="{% url 'api_report' app='datastore' %}" class="nav-link {% if app == 'datastore' %}active{% endif %}">
             <i class="nav-icon fas fa-database"></i>
             <p>/datastore/</p>
           </a>
         </li>
       </ul>
     </nav>
+
+    {% if app == 'datastore' %}
+      {% include 'users/report/sidebar-datastore.html' with endpoints=endpoints endpoint=endpoint %}
+    {% endif %}
 
   </div>
 </aside>

@@ -3,7 +3,7 @@ from typing import Literal
 from allauth.account.decorators import verified_email_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.utils.translation import gettext as _
 from django.views import View
 
@@ -65,15 +65,32 @@ class APIReportView(View):
     template_name = "users/report/api.html"
 
     def get(self, request, app: Literal["registry", "datastore"]):
-        context = {}
-
-        # if not request.user.is_staff:
-        #     return redirect("home")
-
         if app not in ["datastore", "registry"]:
             return redirect("api_report", app="datastore")
 
-        context["app"] = app
+        endpoints = []
+
+        if app == "datastore":
+            endpoints = [
+                "infodengue",
+                "climate",
+                "climate/weekly",
+                "mosquito",
+                "episcanner",
+            ]
+
+        endpoint = request.GET.get("endpoint")
+        if not endpoint and endpoints:
+            return redirect(
+                f"{reverse('api_report', kwargs={'app': app})}"
+                + f"?endpoint={endpoints[0]}"
+            )
+
+        context = {
+            "app": app,
+            "endpoints": endpoints,
+            "endpoint": endpoint,
+        }
 
         return render(request, self.template_name, context)
 
