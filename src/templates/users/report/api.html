@@ -7,44 +7,97 @@
 {% block content %}
 <div class="container-fluid">
   <div class="content-header">
-    <div class="container">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1 class="m-0">/api/{{app}}/{{endpoint}}/</h1>
-        </div>
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">/api/{{app}}/{{endpoint}}/</h1>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <h3 class="card-title">{% trans "Usage" %}</h3>
+  <div class="card" style="height: 500px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="card-title mb-0">{% trans "API Usage - Requests by day" %}</h3>
+      <div class="ms-auto">
+        <button class="btn btn-outline-primary me-1" onclick="usageChart(30, this)">1M</button>
+        <button class="btn btn-outline-primary me-1" onclick="usageChart(90, this)">3M</button>
+        <button class="btn btn-outline-primary" onclick="usageChart(180, this)">6M</button>
+        <button class="btn btn-outline-primary" onclick="usageChart(365, this)">1Y</button>
+      </div>
     </div>
-    <div class="card-body">
-      <div id="usage-chart" style="width: 100%; height: 400px;"></div>
+    <div class="card-body p-0">
+      <div id="usage-chart" style="width: 100%; height: 100%;"></div>
     </div>
   </div>
 </div>
 
 <script>
-  const csrf_token = `{{ csrf_token }}`;
-  const endpoint = `/api/{{ app|escapejs }}/{{ endpoint|escapejs }}/`;
+const csrf_token = `{{ csrf_token }}`;
+const endpoint = `/api/{{ app|escapejs }}/{{ endpoint|escapejs }}/`;
 
-  async function fetchUsage(start) {
-    const url = `/api/log/usage-by-day/?endpoint=${encodeURIComponent(endpoint)}&start=${start}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-CSRFToken': csrf_token,
-        'Accept': 'application/json',
-      },
-      credentials: 'include'
-    });
+async function fetchUsage(start) {
+  const url = `/api/log/usage-by-day/?endpoint=${encodeURIComponent(endpoint)}&start=${start}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'X-CSRFToken': csrf_token,
+      'Accept': 'application/json',
+    },
+    credentials: 'include'
+  });
 
-    if (!response.ok) {
-      return [];
-    }
-    return await response.json();
+  if (!response.ok) {
+    return [];
   }
+  return await response.json();
+}
+
+async function usageChart(days, btn) {
+  document.querySelectorAll('.card-header .btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(end.getDate() - days);
+
+  const data = await fetchUsage(start.toISOString().slice(0, 10));
+  const dataMap = {};
+  data.forEach(d => dataMap[d.day] = d.count);
+
+  const dates = [];
+  const counts = [];
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    dates.push(key);
+    counts.push(dataMap[key] || 0);
+  }
+
+  const chartDom = document.getElementById('usage-chart');
+  const usage = echarts.init(chartDom);
+
+  usage.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => `${params[0].value} requests`
+    },
+    xAxis: {
+      type: 'category',
+      data: dates
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [{
+      data: counts,
+      type: 'bar'
+    }]
+  });
+
+  window.addEventListener('resize', () => usage.resize());
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.card-header .btn')?.click();
+});
 </script>
 {% endblock %}
