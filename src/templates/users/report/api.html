@@ -18,11 +18,33 @@
 
   <div class="card">
     <div class="card-header">
-      <h3 class="card-title">{% trans "" %}</h3>
+      <h3 class="card-title">{% trans "Usage" %}</h3>
     </div>
     <div class="card-body">
-      <div id="chart-container" style="width: 100%; height: 400px;"></div>
+      <div id="usage-chart" style="width: 100%; height: 400px;"></div>
     </div>
   </div>
 </div>
+
+<script>
+  const csrf_token = `{{ csrf_token }}`;
+  const endpoint = `/api/{{ app|escapejs }}/{{ endpoint|escapejs }}/`;
+
+  async function fetchUsage(start) {
+    const url = `/api/log/usage-by-day/?endpoint=${encodeURIComponent(endpoint)}&start=${start}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-CSRFToken': csrf_token,
+        'Accept': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+    return await response.json();
+  }
+</script>
 {% endblock %}

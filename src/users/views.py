@@ -80,7 +80,7 @@ class APIReportView(View):
             ]
 
         endpoint = request.GET.get("endpoint")
-        if not endpoint and endpoints:
+        if endpoints and (not endpoint or endpoint not in endpoints):
             return redirect(
                 f"{reverse('api_report', kwargs={'app': app})}"
                 + f"?endpoint={endpoints[0]}"

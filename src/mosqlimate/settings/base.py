@@ -291,7 +291,7 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",
+        "level": DJANGO_LOG_LEVEL,
     },
     "loggers": {
         "django": {
