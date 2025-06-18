@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load report_filters %}
+
+<div class="user-panel mt-3 pb-3 mb-3 d-flex">
+  <nav class="mt-2" style="width:100%">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+      <small><p class="category">endpoints</p></small>
+      {% for endpoint_ in endpoints %}
+        <li class="nav-item">
+          <a class="nav-link {% if endpoint_ == endpoint %}active{% endif %}" href="?endpoint={{ endpoint_|urllib_parse }}">
+            {{ endpoint_ }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</div>
+
+
+<style>
+.nav-link {
+  width: 100%;
+  text-align: start;
+}
+
+.nav-link.active {
+  background-color: #6976B7 !important;
+}
+
+.nav-text {
+  color: lightgray;
+}
+
+.category {
+  margin-bottom: 0;
+  color: gray;
+}
+</style>

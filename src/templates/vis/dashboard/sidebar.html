@@ -30,7 +30,7 @@
       <nav class="mt-2" style="width:100%">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
           <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
               <i class="nav-icon fas fa-line-chart"></i>
               <p>{% trans "Predictions" %}</p>
             </a>
@@ -41,8 +41,6 @@
 
     {% if request.resolver_match.url_name == 'dashboard' %}
       {% include 'vis/dashboard/sidebar-predictions.html' %}
-    {% elif request.resolver_match.url_name == 'dashboard' %}
-      {% include 'vis/dashboard/sidebar-forecast-map.html' %}
     {% endif %}
   </div>
 </aside>

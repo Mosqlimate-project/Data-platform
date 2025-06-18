@@ -12,6 +12,7 @@ from registry.api import router as registry_router
 from datastore.api import router as datastore_router
 from vis.api import router as vis_router
 from users.api import router as users_router
+from main.APILog.api import router as log_router
 from users.auth import InvalidUIDKey
 from main.schema import NotFoundSchema
 from main.utils import UF_CODES, UFs
@@ -54,6 +55,7 @@ api.add_router("/registry/", router=registry_router)
 api.add_router("/user/", router=users_router)
 api.add_router("/datastore/", router=datastore_router)
 api.add_router("/vis/", router=vis_router)
+api.add_router("/log/", router=log_router)
 
 
 @api.exception_handler(InvalidUIDKey)

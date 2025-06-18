@@ -1,5 +1,8 @@
 ## [Climate time series](https://api.mosqlimate.org/api/docs#/datastore/datastore_api_get_copernicus_brasil)
-Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based [reanalysis data provided by Copernicus ERA5](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview). These series are on a daily timescale.
+Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based [reanalysis data provided by Copernicus ERA5](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview). 
+
+These series are on a daily timescale. Details about how the satellite data are processed and aggregated at municipality level are available [here](https://github.com/AlertaDengue/satellite-weather-downloader).
+
 
 ## Parameters Table 
 ### Input
@@ -42,8 +45,6 @@ Through this API endpoint, you can fetch several climate variables that have bee
 	'per_page': 100		    	# *request parameter
 },
 ```
-
-Details about how the satellite data are processed and aggregated at municipality level are available [here](https://github.com/AlertaDengue/satellite-weather-downloader)
 
 ## Usage examples
 
