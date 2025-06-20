@@ -7,7 +7,7 @@
       <small><p class="category">endpoints</p></small>
       {% for endpoint_ in endpoints %}
         <li class="nav-item">
-          <a class="nav-link {% if endpoint_ == endpoint %}active{% endif %}" href="?endpoint={{ endpoint_|urllib_parse }}">
+          <a class="nav-link {% if endpoint_ == endpoint %}active{% endif %}" href="#" onclick="endpointOption(this)">
             {{ endpoint_ }}
           </a>
         </li>
@@ -16,6 +16,20 @@
   </nav>
 </div>
 
+<script>
+  function endpointOption(btn) {
+    const endpoint = btn.textContent.trim();
+    const url = new URL(window.location);
+
+    if (btn.classList.contains('active')) {
+      url.searchParams.delete('endpoint');
+    } else {
+      url.searchParams.set('endpoint', endpoint);
+    }
+
+    window.location.href = url.pathname + '?' + url.searchParams.toString();
+  }
+</script>
 
 <style>
 .nav-link {
