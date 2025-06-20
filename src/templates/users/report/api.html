@@ -53,11 +53,26 @@
 
     <div class="col-md-6">
       <div class="card">
+        {% if not endpoint %}
+        <div class="card-header card-header-usage-by-endpoint d-flex justify-content-between align-items-center">
+          <h3 class="card-title mb-0">{% trans "Top 20 endpoints" %}</h3>
+        {% else %}
         <div class="card-header">
           <h3 class="card-title mb-0">{% trans "Another Chart" %}</h3>
+        {% endif %}
+          {% if not endpoint %}
+          <div class="ms-auto">
+            <button class="btn btn-outline-primary me-1" onclick="byEndpointChart(30, this)">1M</button>
+            <button class="btn btn-outline-primary me-1" onclick="byEndpointChart(90, this)">3M</button>
+            <button class="btn btn-outline-primary me-1" onclick="byEndpointChart(180, this)">6M</button>
+            <button class="btn btn-outline-primary" onclick="byEndpointChart(365, this)">1Y</button>
+          </div>
+          {% endif %}
         </div>
         <div class="card-body p-0" style="height: 500px;">
-          <div id="another-chart" style="width: 100%; height: 100%;"></div>
+          {% if not endpoint %}
+          <div id="by-endpoint-chart" style="width: 100%; height: 100%;"></div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -166,7 +181,7 @@ async function byUserChart(days, btn) {
       left: '15%',
       right: '10%',
       top: '0%',
-      bottom: '3%',
+      bottom: '4%',
       containLabel: true
     },
     tooltip: {
@@ -197,9 +212,61 @@ async function byUserChart(days, btn) {
   window.addEventListener('resize', () => usage.resize());
 }
 
+async function byEndpointChart(days, btn) {
+  document.querySelectorAll('.card-header-usage-by-endpoint .btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days);
+
+  const data = await fetchUsage("usage-by-endpoint", start.toISOString().slice(0, 10));
+
+  const endpoints = Object.keys(data);
+  const counts = Object.values(data);
+
+  const chartDom = document.getElementById('by-endpoint-chart');
+  const usage = echarts.init(chartDom);
+
+  const option = {
+    grid: {
+      left: '15%',
+      right: '10%',
+      top: '0%',
+      bottom: '4%',
+      containLabel: true
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter: params => `${params[0].name}: ${params[0].value} requests`,
+    },
+    xAxis: {
+      type: 'value',
+      name: 'Requests',
+      boundaryGap: [0, 0.01],
+    },
+    yAxis: {
+      type: 'category',
+      data: endpoints,
+      inverse: true,
+      name: 'Endpoints',
+    },
+    series: [{
+      type: 'bar',
+      data: counts,
+      itemStyle: { color: '#3b82f6' },
+    }],
+  };
+
+  usage.setOption(option);
+  window.addEventListener('resize', () => usage.resize());
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.card-header-usage-by-day .btn')?.click();
   document.querySelector('.card-header-usage-by-user .btn')?.click();
+  document.querySelector('.card-header-usage-by-endpoint .btn')?.click();
 });
 </script>
 {% endblock %}
