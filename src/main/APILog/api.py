@@ -1,3 +1,4 @@
+from typing import Optional
 from dateutil import parser
 
 from ninja import Router
@@ -11,13 +12,41 @@ router = Router()
 
 
 @router.get(
+    "/usage-by-endpoint/",
+    include_in_schema=False,
+)
+def usage_by_endpoint(request, start: str):
+    logs = (
+        APILog.objects.filter(
+            date__gte=parser.parse(start),
+            # user__is_staff=False TODO: enable it
+        )
+        .values("endpoint")
+        .annotate(count=Count("id"))
+        .order_by("endpoint")[:20]
+    )
+    return {log["endpoint"].strip("/api/"): log["count"] for log in logs}
+
+
+@router.get(
     "/usage-by-day/",
     include_in_schema=False,
 )
-def usage_by_day(request, endpoint: str, start: str):
+def usage_by_day(request, start: str, endpoint: Optional[str] = None):
+    if endpoint:
+        logs = APILog.objects.filter(
+            endpoint=endpoint,
+            date__gte=parser.parse(start),
+            # user__is_staff=False TODO: enable it
+        )
+    else:
+        logs = APILog.objects.filter(
+            date__gte=parser.parse(start),
+            # user__is_staff=False TODO: enable it
+        )
+
     return list(
-        APILog.objects.filter(endpoint=endpoint, date__gte=parser.parse(start))
-        .annotate(day=TruncDate("date"))
+        logs.annotate(day=TruncDate("date"))
         .values("day")
         .annotate(count=Count("id"))
         .order_by("day")
@@ -28,10 +57,21 @@ def usage_by_day(request, endpoint: str, start: str):
     "/usage-by-user/",
     include_in_schema=False,
 )
-def usage_by_user(request, endpoint: str, start: str):
+def usage_by_user(request, start: str, endpoint: Optional[str] = None):
+    if endpoint:
+        logs = APILog.objects.filter(
+            endpoint=endpoint,
+            date__gte=parser.parse(start),
+            # user__is_staff=False TODO: enable it
+        )
+    else:
+        logs = APILog.objects.filter(
+            date__gte=parser.parse(start),
+            # user__is_staff=False TODO: enable it
+        )
+
     return list(
-        APILog.objects.filter(endpoint=endpoint, date__gte=parser.parse(start))
-        .values(
+        logs.values(
             username=F("user__username"),
             institution=F("user__author__institution"),
         )

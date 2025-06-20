@@ -1,0 +1,12 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  {{ block.super }}
+
+  <div class="dashboard-module">
+    <h2>API Logs</h2>
+    <ul>
+      <li><a href="{% url 'api_report' app='datastore' %}">Datastore</a></li>
+    </ul>
+  </div>
+{% endblock %}
