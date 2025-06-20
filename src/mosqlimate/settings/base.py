@@ -57,9 +57,19 @@ THIRD_PARTY_APPS = [
     "dpd_static_support",
     "channels",
     "channels_redis",
+    "django.contrib.gis",
+    "vectortiles",
 ]
 
-LOCAL_APPS = ["main", "datastore", "registry", "users", "vis", "chatbot"]
+LOCAL_APPS = [
+    "main",
+    "datastore",
+    "registry",
+    "users",
+    "vis",
+    "chatbot",
+    "maps",
+]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
