@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-25 15:35-0300\n"
+"POT-Creation-Date: 2025-06-25 15:56-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr ""
 msgid "Month"
 msgstr ""
 
-#: registry/models.py:172 templates/datastore/components/episcanner.html:37
+#: registry/models.py:172 templates/datastore/components/episcanner.html:36
 #: templates/main/components/vis-echarts.html:17 users/forms.py:42
 #: users/forms.py:76
 msgid "Year"
@@ -178,33 +178,66 @@ msgstr ""
 msgid "You have signed out."
 msgstr ""
 
-#: templates/datastore/components/climate.html:13
+#: templates/datastore/components/climate.html:7
+msgid ""
+"Through this API endpoint, you can fetch several climate variables that have "
+"been extracted for all brazilian municipalities from the satellite-based "
+"reanalysis data provided by"
+msgstr ""
+
+#: templates/datastore/components/climate.html:7
+msgid "These series are on a daily timescale. Access the dataset documentation"
+msgstr ""
+
+#: templates/datastore/components/climate.html:7
+#: templates/datastore/components/episcanner.html:8
+#: templates/datastore/components/infodengue.html:9
+#: templates/datastore/components/mosquito.html:8
+msgid "here"
+msgstr ""
+
+#: templates/datastore/components/climate.html:12
 #: templates/datastore/components/infodengue.html:24
 #: templates/datastore/components/mosquito.html:13
 #: templates/main/predictions.html:95
 msgid "Start"
 msgstr ""
 
-#: templates/datastore/components/climate.html:17
+#: templates/datastore/components/climate.html:16
 #: templates/datastore/components/infodengue.html:28
 #: templates/datastore/components/mosquito.html:17
 #: templates/main/predictions.html:99
 msgid "End"
 msgstr ""
 
-#: templates/datastore/components/climate.html:21
+#: templates/datastore/components/climate.html:20
 #: templates/datastore/components/infodengue.html:34
 #: vis/plots/forecast_map.py:321
 msgid "Geocode"
 msgstr ""
 
-#: templates/datastore/components/climate.html:47
-#: templates/datastore/components/episcanner.html:52
+#: templates/datastore/components/climate.html:46
+#: templates/datastore/components/episcanner.html:51
 #: templates/datastore/components/infodengue.html:60
 msgid "Required inputs"
 msgstr ""
 
-#: templates/datastore/components/episcanner.html:16
+#: templates/datastore/components/episcanner.html:7
+msgid "This endpoint retrieves information from the"
+msgstr ""
+
+#: templates/datastore/components/episcanner.html:8
+msgid ""
+"project, which provide analyzed data of the expansion of dengue, zika and "
+"chikungunya in Brazil using up-to-date incidence data from Infodengue. "
+"Access the dataset documentation"
+msgstr ""
+
+#: templates/datastore/components/episcanner.html:10
+msgid "If no year is provided, the default value will be the current year"
+msgstr ""
+
+#: templates/datastore/components/episcanner.html:15
 #: templates/datastore/components/infodengue.html:14
 #: templates/main/components/vis-echarts.html:9
 #: templates/registry/model.html:50
@@ -213,8 +246,34 @@ msgstr ""
 msgid "Disease"
 msgstr ""
 
-#: templates/datastore/components/episcanner.html:26
+#: templates/datastore/components/episcanner.html:25
 msgid "UF"
+msgstr ""
+
+#: templates/datastore/components/infodengue.html:7
+msgid "This endpoint gives access to data from the"
+msgstr ""
+
+#: templates/datastore/components/infodengue.html:8
+msgid ""
+"project, which provide a number of epidemiological variables for all the "
+"Brazilian municipalities on a weekly time scale. Access the dataset "
+"documentation"
+msgstr ""
+
+#: templates/datastore/components/mosquito.html:8
+msgid "This endpoint is a redirect to the"
+msgstr ""
+
+#: templates/datastore/components/mosquito.html:8
+msgid "Contaovos API"
+msgstr ""
+
+#: templates/datastore/components/mosquito.html:8
+msgid ""
+"co-developed by the Mosqlimate project. These data are based on egg traps "
+"distributed throughout Brasil according to a monitoring design specified by "
+"the Ministry of Health. Access the dataset documentation"
 msgstr ""
 
 #: templates/datastore/components/mosquito.html:24
