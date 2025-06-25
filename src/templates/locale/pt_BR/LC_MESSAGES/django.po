@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-13 13:31-0300\n"
+"POT-Creation-Date: 2025-06-25 11:20-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Formulário inválido"
 msgid "Model updated successfully"
 msgstr "Modelo atualizado com sucesso"
 
-#: main/views.py:276 main/views.py:442
+#: main/views.py:276 main/views.py:441
 msgid "Unauthorized"
 msgstr "Não autorizado"
 
@@ -42,19 +42,19 @@ msgstr "Modelo excluído"
 msgid "Cannot delete Model"
 msgstr "Não é possível excluir o Modelo"
 
-#: main/views.py:439
+#: main/views.py:438
 msgid "Prediction updated successfully"
 msgstr "Previsão atualizada com sucesso"
 
-#: main/views.py:447
+#: main/views.py:446
 msgid "Failed to update prediction: "
 msgstr "Falha ao atualizar a previsão: "
 
-#: main/views.py:457
+#: main/views.py:456
 msgid "Prediction deleted"
 msgstr "Previsão excluída"
 
-#: main/views.py:459
+#: main/views.py:458
 msgid "Error deleting prediction"
 msgstr "Erro ao excluir previsão"
 
@@ -151,7 +151,8 @@ msgstr "Modelo"
 
 #: registry/models.py:220 templates/main/components/navbar.html:38
 #: templates/main/models.html:6 templates/main/models.html:11
-#: templates/users/profile.html:56 templates/vis/dashboard/base.html:52
+#: templates/users/profile.html:56 templates/users/report/base.html:47
+#: templates/vis/dashboard/base.html:52
 msgid "Models"
 msgstr "Modelos"
 
@@ -163,8 +164,8 @@ msgstr "Previsão"
 #: templates/main/predictions.html:5 templates/main/predictions.html:9
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
-#: templates/users/profile.html:65 templates/vis/dashboard/base.html:55
-#: templates/vis/dashboard/sidebar.html:35
+#: templates/users/profile.html:65 templates/users/report/base.html:50
+#: templates/vis/dashboard/base.html:55 templates/vis/dashboard/sidebar.html:35
 msgid "Predictions"
 msgstr "Previsões"
 
@@ -234,7 +235,7 @@ msgid "Something went wrong"
 msgstr "Algo deu errado"
 
 #: templates/main/about.html:5 templates/main/components/navbar.html:23
-#: templates/vis/dashboard/base.html:37
+#: templates/users/report/base.html:32 templates/vis/dashboard/base.html:37
 msgid "About"
 msgstr "Sobre"
 
@@ -359,22 +360,22 @@ msgid "Repository"
 msgstr "Repositório"
 
 #: templates/main/components/models-list.html:74
-#: templates/main/components/predictions-list.html:69
+#: templates/main/components/predictions-list.html:68
 #: templates/registry/prediction.html:15
 msgid "Visualize"
 msgstr "Visualizar"
 
 #: templates/main/components/navbar.html:20 templates/main/home.html:7
-#: templates/vis/dashboard/base.html:33
+#: templates/users/report/base.html:28 templates/vis/dashboard/base.html:33
 msgid "Home"
 msgstr "Início"
 
-#: templates/main/components/navbar.html:26
+#: templates/main/components/navbar.html:26 templates/users/report/base.html:35
 #: templates/vis/dashboard/base.html:40
 msgid "Documentation"
 msgstr "Documentação"
 
-#: templates/main/components/navbar.html:29
+#: templates/main/components/navbar.html:29 templates/users/report/base.html:38
 #: templates/vis/dashboard/base.html:43
 msgid "API Demo"
 msgstr "API Demo"
@@ -435,15 +436,6 @@ msgid "Mosqlimate Data API"
 msgstr "API de Dados Mosqlimate"
 
 #: templates/main/home.html:13
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "      This platform makes available data to be used in the forecast of "
-#| "Arbovirus diseases in Brazil. It also serves as an open registry of <a "
-#| "href=\"https://api.mosqlimate.org/models/\">forecasting models</a> for "
-#| "such diseases in Brazil. Relevant climate data is also made available to "
-#| "help include climate influence into the modeling.\n"
-#| "      "
 msgid ""
 "\n"
 "      This platform makes available data to be used in the forecast of "
@@ -462,14 +454,6 @@ msgstr ""
 "      "
 
 #: templates/main/home.html:18
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "      Currently, only data for dengue, chikungunya and zika are available "
-#| "through this platform. More datasets will be made available in time. All "
-#| "the data made available are in the public domain and are official data "
-#| "made available by the Brazilian Ministry of Health.\n"
-#| "      "
 msgid ""
 "\n"
 "      Currently, only data for dengue, chikungunya and zika are available "
@@ -487,16 +471,6 @@ msgstr ""
 "      "
 
 #: templates/main/home.html:23
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "      The purpose of this platform is to enhance the comparability of "
-#| "forecasting models by making it possible for all models to learn from the "
-#| "same data. The model registry is open to anyone willing to contribute but "
-#| "will require creating a user account first. The Mosqlimate project "
-#| "reserves the right to curate the model collection and decide which one to "
-#| "make available through the platform.\n"
-#| "      "
 msgid ""
 "\n"
 "      The purpose of this platform is to enhance the comparability of "
@@ -694,6 +668,28 @@ msgstr "Atualizar"
 msgid "Hide"
 msgstr "Esconder"
 
+#: templates/users/report/api.html:5
+#, fuzzy
+#| msgid "API Demo"
+msgid "API Report"
+msgstr "API Demo"
+
+#: templates/users/report/api.html:23
+msgid "Requests by day"
+msgstr ""
+
+#: templates/users/report/api.html:40
+msgid "Requests by user"
+msgstr ""
+
+#: templates/users/report/api.html:58
+msgid "Top 20 endpoints"
+msgstr ""
+
+#: templates/users/report/api.html:61
+msgid "Another Chart"
+msgstr ""
+
 #: templates/vis/charts/prediction-table.html:16
 msgid "Locality"
 msgstr "Localidade"
@@ -771,11 +767,11 @@ msgstr "O superusuário deve ter is_staff=True."
 msgid "Superuser must have is_superuser=True."
 msgstr "O superusuário deve ter is_superuser=True."
 
-#: users/views.py:51
+#: users/views.py:53
 msgid "Author updated successfully"
 msgstr "Autor atualizado com sucesso"
 
-#: users/views.py:53
+#: users/views.py:55
 msgid "Invalid request"
 msgstr "Requisição inválida"
 

@@ -51,7 +51,7 @@ mosqlient = "^1.7.0"
 scipy = "^1.15.2"
 scoringrules = "^0.7.1"
 scikit-learn = "^1.6.1"
-mosqlimate-assistant = { git = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git", rev = "1.2.0" }
+mosqlimate-assistant = { git = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git", rev = "1.2.1" }
 watchdog = "^6.0.0"
 websockets = "^15.0.1"
 django-vectortiles = "^1.0.1"
