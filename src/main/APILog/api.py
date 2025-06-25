@@ -4,6 +4,7 @@ from dateutil import parser
 from ninja import Router
 from django.db.models.functions import TruncDate
 from django.db.models import Count, F
+from django.db.models.fields.json import KeyTextTransform
 
 
 from main.models import APILog
@@ -79,6 +80,33 @@ def usage_by_user(request, start: str, endpoint: Optional[str] = None):
             username=F("user__username"),
             institution=F("user__author__institution"),
         )
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+
+
+@router.get(
+    "/usage-by-uf/",
+    include_in_schema=False,
+)
+def usage_by_uf(request, start: str, endpoint: Optional[str] = None):
+    if endpoint:
+        logs = APILog.objects.filter(
+            endpoint=endpoint,
+            date__gte=parser.parse(start),
+            params__has_key="uf",
+            # user__is_staff=False TODO: enable it
+        )
+    else:
+        logs = APILog.objects.filter(
+            date__gte=parser.parse(start),
+            params__has_key="uf",
+            # user__is_staff=False TODO: enable it
+        )
+
+    return list(
+        logs.annotate(uf=KeyTextTransform("uf", "params"))
+        .values("uf")
         .annotate(count=Count("id"))
         .order_by("-count")
     )

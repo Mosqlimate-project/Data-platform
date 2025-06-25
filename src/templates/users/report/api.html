@@ -51,29 +51,37 @@
       </div>
     </div>
 
-    <div class="col-md-4">
-      <div class="card">
+  <div class="col-md-4">
+    <div class="card">
+      {% if not endpoint %}
+      <div class="card-header card-header-usage-by-endpoint d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">{% trans "Top 20 endpoints" %}</h3>
+      {% else %}
+      <div class="card-header card-header-usage-by-uf d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">{% trans "Requests by UF" %}</h3>
+      {% endif %}
         {% if not endpoint %}
-        <div class="card-header card-header-usage-by-endpoint d-flex justify-content-between align-items-center">
-          <h3 class="card-title mb-0">{% trans "Top 20 endpoints" %}</h3>
+        <div class="ms-auto">
+          <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(30, this)">1M</button>
+          <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(90, this)">3M</button>
+          <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(180, this)">6M</button>
+          <button class="btn btn-outline-warning" onclick="byEndpointChart(365, this)">1Y</button>
+        </div>
         {% else %}
-        <div class="card-header">
-          <h3 class="card-title mb-0">{% trans "Another Chart" %}</h3>
+        <div class="ms-auto">
+          <button class="btn btn-outline-warning me-1" onclick="byUfChart(30, this)">1M</button>
+          <button class="btn btn-outline-warning me-1" onclick="byUfChart(90, this)">3M</button>
+          <button class="btn btn-outline-warning me-1" onclick="byUfChart(180, this)">6M</button>
+          <button class="btn btn-outline-warning" onclick="byUfChart(365, this)">1Y</button>
+        </div>
         {% endif %}
-          {% if not endpoint %}
-          <div class="ms-auto">
-            <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(30, this)">1M</button>
-            <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(90, this)">3M</button>
-            <button class="btn btn-outline-warning me-1" onclick="byEndpointChart(180, this)">6M</button>
-            <button class="btn btn-outline-warning" onclick="byEndpointChart(365, this)">1Y</button>
-          </div>
-          {% endif %}
-        </div>
-        <div class="card-body p-0" style="height: 500px;">
-          {% if not endpoint %}
-          <div id="by-endpoint-chart" style="width: 100%; height: 100%;"></div>
-          {% endif %}
-        </div>
+      </div>
+      <div class="card-body p-0" style="height: 500px;">
+        {% if not endpoint %}
+        <div id="by-endpoint-chart" style="width: 100%; height: 100%;"></div>
+        {% else %}
+        <div id="by-uf-chart" style="width: 100%; height: 100%;"></div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -87,6 +95,37 @@ const app = `{{ app|escapejs }}`;
 let endpoint_p;
 if (endpoint && endpoint !== '') {
   endpoint_p = `/api/${app}/${endpoint}/`;
+}
+
+let ufChart;
+const ufs = {
+    "AC": {"code": "12", "name": "Acre"},
+    "AL": {"code": "27", "name": "Alagoas"},
+    "AM": {"code": "13", "name": "Amazonas"},
+    "AP": {"code": "16", "name": "Amapá"},
+    "BA": {"code": "29", "name": "Bahia"},
+    "CE": {"code": "23", "name": "Ceará"},
+    "DF": {"code": "53", "name": "Distrito Federal"},
+    "ES": {"code": "32", "name": "Espírito Santo"},
+    "GO": {"code": "52", "name": "Goiás"},
+    "MA": {"code": "21", "name": "Maranhão"},
+    "MG": {"code": "31", "name": "Minas Gerais"},
+    "MS": {"code": "50", "name": "Mato Grosso do Sul"},
+    "MT": {"code": "51", "name": "Mato Grosso"},
+    "PA": {"code": "15", "name": "Pará"},
+    "PB": {"code": "25", "name": "Paraíba"},
+    "PE": {"code": "26", "name": "Pernambuco"},
+    "PI": {"code": "22", "name": "Piauí"},
+    "PR": {"code": "41", "name": "Paraná"},
+    "RJ": {"code": "33", "name": "Rio de Janeiro"},
+    "RN": {"code": "24", "name": "Rio Grande do Norte"},
+    "RO": {"code": "11", "name": "Rondônia"},
+    "RR": {"code": "14", "name": "Roraima"},
+    "RS": {"code": "43", "name": "Rio Grande do Sul"},
+    "SC": {"code": "42", "name": "Santa Catarina"},
+    "SE": {"code": "28", "name": "Sergipe"},
+    "SP": {"code": "35", "name": "São Paulo"},
+    "TO": {"code": "17", "name": "Tocantins"},
 }
 
 async function fetchUsage(app, endp, start, endpoint) {
@@ -322,10 +361,73 @@ async function byEndpointChart(days, btn) {
   window.addEventListener('resize', () => usage.resize());
 }
 
+async function byUfChart(days, btn) {
+  document.querySelectorAll('.card-header-usage-by-uf .btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - days);
+
+  const data = await fetchUsage(app, "usage-by-uf", start.toISOString().slice(0, 10), endpoint_p);
+  const ufRequests = [];
+
+  data.forEach(item => {
+    if (ufs[item.uf]) {
+      ufRequests.push({
+        name: ufs[item.uf].name,
+        value: item.count,
+      });
+    }
+  });
+
+  const maxValue = Math.max(...ufRequests.map(d => d.value), 0);
+
+  if (!ufChart) {
+    $.get("{% static 'data/geo/BR.json' %}", function (brJson) {
+      echarts.registerMap('BR', brJson);
+      ufChart = echarts.init(document.getElementById('by-uf-chart'));
+
+      ufChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: p => `${p.name}: ${p.value || 0} requests`
+        },
+        visualMap: {
+          min: 0,
+          max: maxValue,
+          left: 'left',
+          bottom: '5%',
+          inRange: {
+            color: ['#fef3c7', '#fcd34d', '#f59e0b', '#b45309']
+          },
+          calculable: true
+        },
+        series: [{
+          name: 'Requests by UF',
+          type: 'map',
+          map: 'BR',
+          label: { show: false },
+          data: ufRequests,
+        }]
+      });
+    });
+  } else {
+    ufChart.setOption({
+      visualMap: { max: maxValue },
+      series: [{ data: ufRequests }]
+    });
+  }
+
+  window.addEventListener('resize', () => ufChart.resize());
+}
+
+
 window.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.card-header-usage-by-day .btn')?.click();
   document.querySelector('.card-header-usage-by-user .btn')?.click();
   document.querySelector('.card-header-usage-by-endpoint .btn')?.click();
+  document.querySelector('.card-header-usage-by-uf .btn')?.click();
 });
 </script>
 {% endblock %}
