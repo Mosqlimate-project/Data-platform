@@ -6,7 +6,6 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.conf import settings
 
 from .models import ChatSession, Message
 from .tasks import generate_bot_answer
@@ -89,14 +88,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         except Exception as e:
             logger.exception(f"Error in ChatConsumer: {e}")
-            if settings.DEBUG:
-                await self.send(text_data=json.dumps({"error": str(e)}))
-            else:
-                await self.send(
-                    text_data=json.dumps(
-                        {"error": "An error occured, please try again"}
-                    )
-                )
+            # if settings.DEBUG:
+            await self.send(text_data=json.dumps({"error": str(e)}))
+            # else:
+            #     await self.send(
+            #         text_data=json.dumps(
+            #             {"error": "An error occured, please try again"}
+            #         )
+            #     )
 
     async def chat_message(self, event):
         text = event["text"]

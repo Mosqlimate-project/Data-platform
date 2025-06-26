@@ -3336,22 +3336,6 @@ tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<10.0.0"
 typing-extensions = ">=4.7"
 
 [[package]]
-name = "langchain-ollama"
-version = "0.3.3"
-description = "An integration package connecting Ollama and LangChain"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "langchain_ollama-0.3.3-py3-none-any.whl", hash = "sha256:f1c745a4b59d36bb51995c23c6b0fbc20f71956715659425ab88639a14b213cd"},
-    {file = "langchain_ollama-0.3.3.tar.gz", hash = "sha256:7d6ed75bfb706751b83173fe886b72ae25bb0b1bd7f3eb2622821c4149f7807b"},
-]
-
-[package.dependencies]
-langchain-core = ">=0.3.60,<1.0.0"
-ollama = ">=0.4.8,<1.0.0"
-
-[[package]]
 name = "langchain-text-splitters"
 version = "0.3.8"
 description = "LangChain text splitting utilities"
@@ -3913,7 +3897,7 @@ analyze = ["altair (>=5.3.0,<6.0.0)", "epiweeks (>=2.3.0,<3.0.0)", "matplotlib (
 
 [[package]]
 name = "mosqlimate-assistant"
-version = "1.2.3"
+version = "1.4.0"
 description = "Add your description here"
 optional = false
 python-versions = ">=3.11,<3.13"
@@ -3926,8 +3910,8 @@ epiweeks = ">=2.3.0"
 faiss-cpu = ">=1.10.0"
 langchain = ">=0.3.20"
 langchain-community = ">=0.3.19"
-langchain-ollama = ">=0.2.3"
 mosqlient = ">=1.7.3"
+numpy = ">=2.2.5"
 ollama = ">=0.4.8"
 openai = ">=1.76.0"
 pandas = ">=2.2.3"
@@ -3939,8 +3923,8 @@ requests = ">=2.32.3"
 [package.source]
 type = "git"
 url = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git"
-reference = "1.2.3"
-resolved_reference = "b21782611969d0be9e9427c2429a2d0c63c4b82d"
+reference = "1.4.0"
+resolved_reference = "95bac6e22f0f07cf494a7c77f1422e21c87146db"
 
 [[package]]
 name = "msgpack"
@@ -7853,4 +7837,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "a19919720ff982861a9f660ad86d6dc7d7b444362bef0ed87b6560d2304143ff"
+content-hash = "d69e7dc7e5d45538d98ad66965e54061d2301af3a10aa1808fbe4b1c1778d71f"

@@ -112,7 +112,7 @@ function initChatbot(sessionKey) {
       chatMessageInput.value = "";
       disableInput();
       removeSystemMessages();
-      startResponseTimeout();
+      // startResponseTimeout();
     }
   };
 }

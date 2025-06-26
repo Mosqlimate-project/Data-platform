@@ -134,9 +134,21 @@ services:
     networks:
       - mosqlimate
 
+  ollama:
+    image: ollama/ollama
+    hostname: mosqlimate-ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - mosqlimate
+    restart: unless-stopped
+
 networks:
   mosqlimate:
     driver: bridge
 
 volumes:
   redis:
+  ollama:
