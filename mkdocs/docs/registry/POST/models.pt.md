@@ -1,42 +1,41 @@
-> **WARNING**  
-> The methods presented in this documentation generate real objects in database. To test Mosqlimate API request methods without inserting data, please refer to [API Demo](https://api.mosqlimate.org/api/docs)
+> **AVISO**  
+> Os métodos apresentados nesta documentação geram objetos reais no banco de dados. Para testar os métodos de requisição da API Mosqlimate sem inserir dados, consulte a [Demonstração da API](https://api.mosqlimate.org/api/docs).
 
-## Input parameters 
-| Parameter name | Type | Description |
-|--|--|--|
-| name | str | Model name | 
-| description | str or None | Model description |
-| repository | str | Github repository URL |
-| implementation_language | str | Implementation language |
-| disease | str _(iexact)_ | Model disease. Options: Dengue, Zika and Chikungunya |
-| temporal | bool | Is the model temporal? |
-| spatial | bool | Is the model spatial? |
-| categorical | bool | Is the model categorical? |
-| adm_level | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
-| time_resolution | str _(iexact)_ | Options are: day, week, month or year |
-| sprint | bool | Model for Sprint 2024/25 |
+## Parâmetros de entrada
+| Nome do Parâmetro | Tipo | Descrição |
+|---|---|---|
+| name | str | Nome do modelo |
+| description | str ou None | Descrição do modelo |
+| repository | str | URL do repositório Github |
+| implementation_language | str | Linguagem de implementação |
+| disease | str _(iexact)_ | Doença do modelo. Opções: Dengue, Zika e Chikungunya |
+| temporal | bool | O modelo é temporal? |
+| spatial | bool | O modelo é espacial? |
+| categorical | bool | O modelo é categórico? |
+| adm_level | int _(0, 1, 2 ou 3)_ | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Submunicipal) |
+| time_resolution | str _(iexact)_ | Opções: dia, semana, mês ou ano |
+| sprint | bool | Modelo para o Sprint 2024/25 |
 
-
-### Implementation Language
-Currently, Mosqlimate supports the following implementation languages:
+### Linguagem de Implementação
+Atualmente, o Mosqlimate suporta as seguintes linguagens de implementação:
 
 |||||
-|--|--|--|--|
-| Python | C | C# | C++ | 
+|---|---|---|---|
+| Python | C | C# | C++ |
 | CoffeeScript | .NET | Erlang | Go |
 | Haskell | JavaScript | Java | Kotlin |
 | Lua | R | Ruby | Rust |
 | Zig |
 ||||
 
-If you don't see your Implementation Language in the list, please contact the moderation.
+Se a sua Linguagem de Implementação não estiver na lista, entre em contato com a moderação.
 
 ## X-UID-Key
-POST requests require [User API Token](uid-key.md) to be called.
+Requisições POST exigem [Token de API do Usuário](uid-key.pt.md) para serem chamadas.
 
-## Usage examples
+## Exemplos de uso
 
-The `mosqlient` package also accepts a pandas DataFrame with the required keys as an alternative to a JSON in the prediction parameter. For more details, refer to the [documentation here](https://mosqlimate-client.readthedocs.io/en/latest/tutorials/API/registry/).
+O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necessárias como alternativa a um JSON no parâmetro de previsão. Para mais detalhes, consulte a [documentação aqui](https://mosqlimate-client.readthedocs.io/en/latest/tutorials/API/registry/).
 
 === "Python3"
     ```py

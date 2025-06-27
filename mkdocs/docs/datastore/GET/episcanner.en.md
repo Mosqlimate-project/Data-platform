@@ -1,5 +1,5 @@
 ## [EpiScanner Data](https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner)
-Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner tool](https://info.dengue.mat.br/epi-scanner/), co-developed by the InfoDengue project. The dataset provides estimates of epidemiological parameters for each city and year in Brazil, focusing on Dengue and Chikungunya. Detailed information on the methodology used to compute these parameters can be found [here](https://arxiv.org/abs/2407.21286).
+Here you get access to Real-time Epidemic Scanner data from the [Epi-Scanner tool](https://info.dengue.mat.br/epi-scanner/), co-developed by the InfoDengue project. The dataset provides estimates of epidemiological parameters for each city and year in Brazil, focusing on Dengue and Chikungunya. Detailed information on the methodology used to compute these parameters can be found [here](https://royalsocietypublishing.org/doi/full/10.1098/rsos.241261).
 
 ## Parameters Table 
 ### Input

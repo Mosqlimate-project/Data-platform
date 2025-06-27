@@ -82,6 +82,28 @@ plugins:
       separator: '[\s\-\.]+'
       lang:
         - en
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: pt
+          name: Português
+          build: true
+          nav_translations:
+            General: Início
+            Getting Started: Primeiros Passos
+            API Overview: Visão Geral
+            Authorization: Autenticação
+            Model Registry: Registro de Modelos
+            Back to API: Voltar à API
+            Fetch Authors: Buscar Autores
+            Fetch Models: Buscar Modelos
+            Fetch Predictions: Buscar Previsões
+            Inserting Models: Inserir Modelos
+            Inserting Predictions: Inserir Previsões
 
 # Customization
 extra_javascript:
@@ -114,6 +136,4 @@ nav:
     - "Climate Weekly": "datastore/GET/climate-weekly.md"
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
-  - "Tutorials":
-    - "Making Concurrent requests": "tutorials/ConcurrentRequests.md"
   - "Back to API": "https://api.mosqlimate.org/"
