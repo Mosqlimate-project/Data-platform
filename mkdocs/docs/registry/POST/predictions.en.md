@@ -68,7 +68,7 @@ The table below lists the parameters required to register a forecast. If your mo
 | prediction | dict _(JSON)_ | The Prediction data.|
 
 ## X-UID-Key
-POST requests require [User API Token](uid-key.md) to be called.
+POST requests require [User API Token](uid-key.en.md) to be called.
 
 ## Usage examples
 

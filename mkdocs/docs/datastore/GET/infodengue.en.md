@@ -45,7 +45,7 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
 | tempmed | float _(°C)_ | Average daily temperatures along the week
 | tempmin | float _(°C)_ | Average daily minimum temperatures along the week
 | casprov | int | Probable number of cases per week (cases - discarded cases)
-| casprov_est | float | TBD 
+| casprov_est | float | Probable number of estimated cases per week 
 | casprov_est_min | int | credibility interval of the probable number of cases
 | casprov_est_max | int | credibility interval of the probable number of cases
 | casconf | int | Cases effectively confirmed with laboratory testing
