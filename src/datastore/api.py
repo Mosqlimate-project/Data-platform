@@ -1,6 +1,6 @@
 import datetime
 import requests
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
 import duckdb
 import pandas as pd
@@ -21,15 +21,19 @@ from main.utils import UFs
 from main.models import APILog
 from registry.pagination import PagesPagination
 from vis.brasil.models import State, GeoMacroSaude
-from .models import (
+from datastore.models import (
     Municipio,
     HistoricoAlerta,
+    HistoricoAlertaPartial,
     HistoricoAlertaZika,
+    HistoricoAlertaZikaPartial,
     HistoricoAlertaChik,
+    HistoricoAlertaChikPartial,
     CopernicusBrasil,
 )
 from .schema import (
     HistoricoAlertaSchema,
+    HistoricoAlertaPartialSchema,
     HistoricoAlertaFilterSchema,
     CopernicusBrasilSchema,
     CopernicusBrasilWeeklySchema,
@@ -52,7 +56,9 @@ uidkey_auth = UidKeyAuth()
 @router.get(
     "/infodengue/",
     response={
-        200: List[HistoricoAlertaSchema],
+        200: Union[
+            List[HistoricoAlertaSchema], List[HistoricoAlertaPartialSchema]
+        ],
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
@@ -72,24 +78,31 @@ def get_infodengue(
         "SE", "TO", "DF"
     ]] = None,
     # fmt: on
+    full: bool = False,
     **kwargs,
 ):
     APILog.from_request(request)
     disease = disease.lower()  # pyright: ignore
 
-    try:
-        if disease in ["chik", "chikungunya"]:
+    if disease in ["chik", "chikungunya"]:
+        if full:
             data = HistoricoAlertaChik.objects.using("infodengue").all()
-        elif disease in ["deng", "dengue"]:
+        else:
+            data = HistoricoAlertaChikPartial.objects.using("infodengue").all()
+    elif disease in ["deng", "dengue"]:
+        if full:
             data = HistoricoAlerta.objects.using("infodengue").all()
-        elif disease == "zika":
+        else:
+            data = HistoricoAlertaPartial.objects.using("infodengue").all()
+    elif disease == "zika":
+        if full:
             data = HistoricoAlertaZika.objects.using("infodengue").all()
         else:
-            return 404, {
-                "message": "Unknown disease. Options: dengue, zika, chikungunya"
-            }
-    except OperationalError:
-        return 500, {"message": "Server error. Please contact the moderation"}
+            data = HistoricoAlertaZikaPartial.objects.using("infodengue").all()
+    else:
+        return 404, {
+            "message": "Unknown disease. Options: dengue, zika, chikungunya"
+        }
 
     if uf:
         uf = uf.upper()  # pyright: ignore
