@@ -55,6 +55,7 @@ mosqlimate-assistant = { git = "https://github.com/Mosqlimate-project/mosqlimate
 watchdog = "^6.0.0"
 websockets = "^15.0.1"
 django-vectortiles = "^1.0.1"
+markdown = "^3.8.2"
 
 
 [tool.poetry.group.pre-commit.dependencies]

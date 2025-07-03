@@ -47,12 +47,25 @@ class Prediction {
     this.scores = prediction.scores;
     this.color = prediction.color;
 
-    this.labels = prediction.chart.labels;
-    this.data = prediction.chart.data;
-    this.upper_50 = prediction.chart.upper_50;
-    this.upper_90 = prediction.chart.upper_90;
-    this.lower_50 = prediction.chart.lower_50;
-    this.lower_90 = prediction.chart.lower_90;
+    this._chart = null;
+  }
+
+  get data() { return this._load().then(c => c.data) }
+  get labels() { return this._load().then(c => c.labels) }
+  get upper_50() { return this._load().then(c => c.upper_50) }
+  get upper_90() { return this._load().then(c => c.upper_90) }
+  get lower_50() { return this._load().then(c => c.lower_50) }
+  get lower_90() { return this._load().then(c => c.lower_90) }
+
+  async _load() {
+    if (!this._chart) {
+      const url = new URL('/vis/get-prediction-data/', window.location.origin);
+      url.searchParams.append('prediction_id', this.id);
+      const res = await fetch(url);
+      const json = await res.json();
+      this._chart = json.data;
+    }
+    return this._chart;
   }
 
   li() {
@@ -83,12 +96,12 @@ class Prediction {
 
     Storage.current.dashboard.lineChart.addPrediction({
       id: this.id,
-      labels: this.chart.labels,
-      data: this.chart.data,
-      upper_50: this.chart.upper_50,
-      upper_90: this.chart.upper_90,
-      lower_50: this.chart.lower_50,
-      lower_90: this.chart.lower_90,
+      labels: this.labels,
+      data: this.data,
+      upper_50: this.upper_50,
+      upper_90: this.upper_90,
+      lower_50: this.lower_50,
+      lower_90: this.lower_90,
       color: this.color
     })
     Storage.current.dashboard.predictionList.update();
