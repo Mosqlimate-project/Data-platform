@@ -92,8 +92,6 @@ plugins:
         - locale: pt
           name: Português
           build: true
-          site_name: "Documentação da API Mosqlimate"
-          site_description: "Documentação da API Mosqlimate"
           nav_translations:
             General: Início
             Getting Started: Primeiros Passos

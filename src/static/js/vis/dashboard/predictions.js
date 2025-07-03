@@ -8,6 +8,7 @@ let min_date = null;
 let max_date = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+  $('#tags-card .card-tools button').click()
   d = new Dashboard(dashboard);
 
   try {
@@ -34,81 +35,14 @@ function get_adm_names(admLevel, geocodes) {
   return JSON.parse(request.responseText);
 }
 
-
-class Prediction {
-  constructor(prediction) {
-    this.id = prediction.id;
-    this.model = prediction.model;
-    this.start_date = prediction.start_date;
-    this.end_date = prediction.end_date;
-    this.description = prediction.description;
-    this.adm_1 = prediction.adm_1;
-    this.adm_2 = prediction.adm_2;
-    this.scores = prediction.scores;
-    this.color = prediction.color;
-
-    this.labels = prediction.chart.labels;
-    this.data = prediction.chart.data;
-    this.upper_50 = prediction.chart.upper_50;
-    this.upper_90 = prediction.chart.upper_90;
-    this.lower_50 = prediction.chart.lower_50;
-    this.lower_90 = prediction.chart.lower_90;
-  }
-
-  li() {
-    return `
-      <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${this.id}">
-        <td style="width: 40px;" class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-        </td>
-        <td style="width: 40px;"><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-        <td style="width: 40px;"><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-        <td style="width: 110px;">${this.start_date}</td>
-        <td style="width: 110px;">${this.end_date}</td>
-        <td style="width: 150px;">${this.scores[Storage.score] ?? "-"}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="6"><p>${this.description}</p></td></tr>
-    `;
-  }
-
-  select() {
-    const td = $(`#td-${this.id}`);
-    td.addClass('selected');
-    td.css("background-color", this.color);
-    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", true);
-
-    let prediction_ids = new Set(Storage.prediction_ids);
-    prediction_ids.add(this.id);
-    Storage.prediction_ids = Array.from(prediction_ids);
-
-    Storage.current.dashboard.lineChart.addPrediction({
-      id: this.id,
-      labels: this.chart.labels,
-      data: this.chart.data,
-      upper_50: this.chart.upper_50,
-      upper_90: this.chart.upper_90,
-      lower_50: this.chart.lower_50,
-      lower_90: this.chart.lower_90,
-      color: this.color
-    })
-    Storage.current.dashboard.predictionList.update();
-  }
-
-  unselect() {
-    const td = $(`#td-${this.id}`);
-    td.removeClass('selected');
-    td.css("background-color", '');
-    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", false);
-
-    let prediction_ids = new Set(Storage.prediction_ids);
-    prediction_ids.delete(this.id);
-    Storage.prediction_ids = Array.from(prediction_ids);
-
-    Storage.current.dashboard.lineChart.removePrediction(this.id);
-    Storage.current.dashboard.predictionList.update();
+class Tag {
+  constructor(id, name, group, color) {
+    this.id = id;
+    this.name = name;
+    this.color = color;
+    this.group = group;
   }
 }
-
 
 /**
  * @typedef {Object} Author
@@ -150,64 +84,6 @@ class Model {
     this.adm_1_list = adm_1_list;
     this.tags = tags;
     this.updated = updated;
-
-    this._predictionsPromise = null;
-  }
-
-  /**
-   * @returns {Promise<Prediction[]>}
-   */
-  get predictions() {
-    if (!this._predictionsPromise) {
-      const url = new URL('/vis/get-predictions/', window.location.origin);
-      url.searchParams.append('model_id', this.id);
-
-      this._predictionsPromise = fetch(url)
-        .then(res => res.ok ? res.json() : { items: [] })
-        .then(data => data.items.map(item => new Prediction(item)));
-    }
-    return this._predictionsPromise;
-  }
-
-  li() {
-    return `
-      <tr data-widget="expandable-table" aria-expanded="false">
-        <td style="max-width: 40px;">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-model">
-        </td>
-        <td><a href="/registry/model/${this.id}/">${this.id}</a></td>
-        <td class="truncate-name" title="${this.name}">${this.name}</td>
-        <td class="truncate-name"><a href="/${this.author.username}/">${this.author.name}</a></td>
-        <td class="truncate-name">${this.updated}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="5"><p>${this.description}</p></td></tr>
-    `;
-  }
-
-  select() {
-    $(`.checkbox-model[value="${this.id}"]`).prop("checked", true);
-    $("input[name='models-search']").val("");
-
-    let selected_models = new Set(Storage.model_ids);
-    selected_models.add(this.id);
-    Storage.model_ids = Array.from(selected_models);
-
-    Storage.current.dashboard.modelList.update();
-    Storage.current.dashboard.predictionList.update();
-    Storage.current.dashboard.update();
-  }
-
-  unselect() {
-    $(`.checkbox-model[value="${this.id}"]`).prop("checked", false);
-    $("input[name='models-search']").val("");
-
-    let selected_models = new Set(Storage.model_ids);
-    selected_models.delete(this.id);
-    Storage.model_ids = Array.from(selected_models);
-
-    Storage.current.dashboard.modelList.update();
-    Storage.current.dashboard.predictionList.update();
-    Storage.current.dashboard.update();
   }
 }
 
@@ -217,17 +93,25 @@ class Dashboard {
     const self = this;
     this.dashboard = dashboard;
 
-    new Storage(this);
+    this.tags = Object.entries(all_tags).map(([id, tag]) => new Tag(
+      parseInt(id, 10),
+      tag.name,
+      tag.group,
+      tag.color
+    ));
+
+    this.storage = new Storage(this);
     this.lineChart = new LineChart('chart');
     this.modelList = new ModelList(this);
     this.predictionList = new PredictionList(this);
+    this.tagList = new TagList(this);
 
     this.fetch().then(models => {
       this.models = models;
       this.modelList.loading(false);
       this.modelList.list(models);
-      Storage.model_ids.forEach(id => this.modelList.select(id));
-      if (Storage.model_ids.length == 0) {
+      this.storage.get("model_ids").forEach(id => this.modelList.select(id));
+      if (this.storage.get("model_ids").length == 0) {
         this.set_adm_level(null);
       }
     });
@@ -240,8 +124,8 @@ class Dashboard {
         max: new Date(max_window_date),
       },
       defaultValues: {
-        min: new Date(Storage.start_window_date),
-        max: new Date(Storage.end_window_date),
+        min: new Date(self.storage.get("start_window_date")),
+        max: new Date(self.storage.get("end_window_date")),
       },
       range: {
         min: { days: 90 },
@@ -249,10 +133,8 @@ class Dashboard {
     });
 
     $(`#date-picker`).bind("valuesChanged", function(e, data) {
-      const start = data.values.min.toISOString().split('T')[0];
-      const end = data.values.max.toISOString().split('T')[0];
-      Storage.start_window_date = start;
-      Storage.end_window_date = end;
+      self.storage.set("start_window_date", data.values.min.toISOString().split('T')[0]);
+      self.storage.set("end_window_date", data.values.max.toISOString().split('T')[0]);
 
       const adm_level = self.tagList.get_adm_level();
       const params = {
@@ -262,9 +144,9 @@ class Dashboard {
       };
 
       if (adm_level === 1) {
-        params["adm_1"] = Storage.adm_1;
+        params["adm_1"] = self.storage.get("adm_1");
       } else if (adm_level === 2) {
-        params["adm_2"] = Storage.adm_2;
+        params["adm_2"] = self.storage.get("adm_2");
       }
 
       self.update_casos(params);
@@ -340,8 +222,8 @@ class Dashboard {
       return;
     }
 
-    const start_window_date = Storage.start_window_date;
-    const end_window_date = Storage.end_window_date;
+    const start_window_date = this.storage.get("start_window_date");
+    const end_window_date = this.storage.get("end_window_date");
 
     if (!this.has_changed({ disease, time_resolution, adm_level, adm_1, adm_2, start_window_date, end_window_date })) {
       return;
@@ -472,10 +354,10 @@ class Dashboard {
     $("#adm1-filter").off("change").on("change", function() {
       const adm1 = $(this).val();
       if (!adm1 || adm1 === "") {
-        Storage.adm_1 = null;
+        self.storage.set("adm_1", null);
         self.modelList.list(self.models);
       } else {
-        Storage.adm_1 = parseInt(adm1);
+        self.storage.set("adm_1", parseInt(adm1));
         const models = self.models.filter(model => model.adm_1_list.includes(parseInt(adm1)));
         self.modelList.list(models);
       }
@@ -484,248 +366,71 @@ class Dashboard {
 }
 
 
-/**
- * @typedef {Object} StorageData
- * @property {number[]|null} prediction_ids
- * @property {number[]|null} model_ids
- * @property {number[]|null} tag_ids
- * @property {string|null} start_window_date
- * @property {string|null} end_window_date
- * @property {number|null} adm_1
- * @property {number|null} adm_2
- * @property {string|null} score
- */
-
-/**
- * @typedef {Object} Dashboard
- * @property {string} dashboard
- */
 class Storage {
-  /** @type {Storage | null} */
-  static current = null;
-
   /**
    * @param {Dashboard} dashboard
    */
   constructor(dashboard) {
-    /** @type {Dashboard} */
     this.dashboard = dashboard;
+    let d = dashboard.dashboard;
 
-    const data = JSON.parse(localStorage.getItem("dashboards") || "{}");
-    const d = this.dashboard.dashboard;
-
-    data[d] = data[d] || {
-      prediction_ids: null,
-      model_ids: null,
-      tag_ids: null,
-      start_window_date: null,
-      end_window_date: null,
-      adm_1: null,
-      adm_2: null,
-      score: null,
-    };
-
-    data[d].prediction_ids = typeof prediction_id !== "undefined" ? [prediction_id] : data[d].prediction_ids || [];
-    data[d].model_ids = typeof model_id !== "undefined" ? [model_id] : data[d].model_ids || [];
+    let data = localStorage.getItem("dashboards");
+    if (!data) { data = {} } else { data = JSON.parse(data) };
+    if (!data[d]) {
+      data[d] = {
+        prediction_ids: null,
+        model_ids: null,
+        tag_ids: null,
+        start_window_date: null,
+        end_window_date: null,
+        adm_1: null,
+        adm_2: null,
+        score: null,
+      }
+    }
+    if (prediction_id) {
+      data[d].prediction_ids = [prediction_id];
+    } else {
+      data[d].prediction_ids = data[d].prediction_ids || [];
+    }
+    if (model_id) {
+      data[d].model_ids = [model_id];
+    } else {
+      data[d].model_ids = data[d].model_ids || [];
+    }
     data[d].tag_ids = data[d].tag_ids || [];
-
-    if (!data[d].start_window_date) data[d].start_window_date = min_window_date;
-    if (!data[d].end_window_date) data[d].end_window_date = max_window_date;
-
-    data[d].adm_1 = typeof adm_1_v !== "undefined" ? adm_1_v : data[d].adm_1 ?? null;
-    data[d].adm_2 = typeof adm_2_v !== "undefined" ? adm_2_v : data[d].adm_2 ?? null;
+    if (!data[d].start_window_date) {
+      data[d].start_window_date = min_window_date;
+    }
+    if (!data[d].end_window_date) {
+      data[d].end_window_date = max_window_date;
+    }
+    if (adm_1_v) {
+      data[d].adm_1 = adm_1_v;
+    } else {
+      data[d].adm_1 = data[d].adm_1 || null;
+    }
+    if (adm_2_v) {
+      data[d].adm_2 = adm_2_v;
+    } else {
+      data[d].adm_2 = data[d].adm_2 || null;
+    }
     data[d].score = data[d].score || "mae";
-
-    /** @type {Object<string, StorageData>} */
-    this._data = data;
-
-    this._save();
-    Storage.current = this;
+    localStorage.setItem("dashboards", JSON.stringify(data));
   }
 
-  _save() {
-    localStorage.setItem("dashboards", JSON.stringify(this._data));
+  get(param) {
+    const data = JSON.parse(localStorage.getItem("dashboards"));
+    return data[this.dashboard.dashboard][param];
   }
 
-  /** @returns {StorageData} */
-  get data() {
-    return this._data[this.dashboard.dashboard];
-  }
-
-  /** @param {StorageData} data */
-  set data(data) {
-    this._data[this.dashboard.dashboard] = data;
-    this._save();
-  }
-
-  /** @returns {number[]|null} */
-  get prediction_ids() {
-    return this.data.prediction_ids;
-  }
-
-  /** @param {number[]|null} val */
-  set prediction_ids(val) {
-    this.data.prediction_ids = val;
-    this._save();
-  }
-
-  /** @returns {number[]|null} */
-  get model_ids() {
-    return this.data.model_ids;
-  }
-
-  /** @param {number[]|null} val */
-  set model_ids(val) {
-    this.data.model_ids = val;
-    this._save();
-  }
-
-  /** @returns {number[]|null} */
-  get tag_ids() {
-    return this.data.tag_ids;
-  }
-
-  /** @param {number[]|null} val */
-  set tag_ids(val) {
-    this.data.tag_ids = val;
-    this._save();
-  }
-
-  /** @returns {string|null} */
-  get start_window_date() {
-    return this.data.start_window_date;
-  }
-
-  /** @param {string|null} val */
-  set start_window_date(val) {
-    this.data.start_window_date = val;
-    this._save();
-  }
-
-  /** @returns {string|null} */
-  get end_window_date() {
-    return this.data.end_window_date;
-  }
-
-  /** @param {string|null} val */
-  set end_window_date(val) {
-    this.data.end_window_date = val;
-    this._save();
-  }
-
-  /** @returns {number|null} */
-  get adm_1() {
-    return this.data.adm_1;
-  }
-
-  /** @param {number|null} val */
-  set adm_1(val) {
-    this.data.adm_1 = val;
-    this._save();
-  }
-
-  /** @returns {number|null} */
-  get adm_2() {
-    return this.data.adm_2;
-  }
-
-  /** @param {number|null} val */
-  set adm_2(val) {
-    this.data.adm_2 = val;
-    this._save();
-  }
-
-  /** @returns {string|null} */
-  get score() {
-    return this.data.score;
-  }
-
-  /** @param {string|null} val */
-  set score(val) {
-    this.data.score = val;
-    this._save();
-  }
-
-  /** @returns {number[]|null} */
-  static get prediction_ids() {
-    return Storage.current?.prediction_ids ?? null;
-  }
-
-  /** @param {number[]|null} val */
-  static set prediction_ids(val) {
-    if (Storage.current) Storage.current.prediction_ids = val;
-  }
-
-  /** @returns {number[]|null} */
-  static get model_ids() {
-    return Storage.current?.model_ids ?? null;
-  }
-
-  /** @param {number[]|null} val */
-  static set model_ids(val) {
-    if (Storage.current) Storage.current.model_ids = val;
-  }
-
-  /** @returns {number[]|null} */
-  static get tag_ids() {
-    return Storage.current?.tag_ids ?? null;
-  }
-
-  /** @param {number[]|null} val */
-  static set tag_ids(val) {
-    if (Storage.current) Storage.current.tag_ids = val;
-  }
-
-  /** @returns {string|null} */
-  static get start_window_date() {
-    return Storage.current?.start_window_date ?? null;
-  }
-
-  /** @param {string|null} val */
-  static set start_window_date(val) {
-    if (Storage.current) Storage.current.start_window_date = val;
-  }
-
-  /** @returns {string|null} */
-  static get end_window_date() {
-    return Storage.current?.end_window_date ?? null;
-  }
-
-  /** @param {string|null} val */
-  static set end_window_date(val) {
-    if (Storage.current) Storage.current.end_window_date = val;
-  }
-
-  /** @returns {number|null} */
-  static get adm_1() {
-    return Storage.current?.adm_1 ?? null;
-  }
-
-  /** @param {number|null} val */
-  static set adm_1(val) {
-    if (Storage.current) Storage.current.adm_1 = val;
-  }
-
-  /** @returns {number|null} */
-  static get adm_2() {
-    return Storage.current?.adm_2 ?? null;
-  }
-
-  /** @param {number|null} val */
-  static set adm_2(val) {
-    if (Storage.current) Storage.current.adm_2 = val;
-  }
-
-  /** @returns {string|null} */
-  static get score() {
-    return Storage.current?.score ?? null;
-  }
-
-  /** @param {string|null} val */
-  static set score(val) {
-    if (Storage.current) Storage.current.score = val;
+  set(param, value) {
+    let data = JSON.parse(localStorage.getItem("dashboards"));
+    data[this.dashboard.dashboard][param] = value;
+    localStorage.setItem("dashboards", JSON.stringify(data));
   }
 }
+
 
 
 class ModelList {
@@ -767,9 +472,19 @@ class ModelList {
     this.list(models);
   }
 
-  select(model_id) {
-    const model = this.models.find(m => m.id === model_id);
-    if (model) model.select();
+  li(model) {
+    return `
+      <tr data-widget="expandable-table" aria-expanded="false">
+        <td style="max-width: 40px;">
+          <input type="checkbox" value="${model.id}" id="checkbox-${model.id}" class="checkbox-model">
+        </td>
+        <td><a href="/registry/model/${model.id}/">${model.id}</a></td>
+        <td class="truncate-name" title="${model.name}">${model.name}</td>
+        <td class="truncate-name"><a href="/${model.author.username}/">${model.author.name}</a></td>
+        <td class="truncate-name">${model.updated}</td>
+      </tr>
+      <tr class="expandable-body d-none"><td colspan="5"><p>${model.description}</p></td></tr>
+    `;
   }
 
   list(models) {
@@ -779,8 +494,8 @@ class ModelList {
     this.models = models;
 
     models.sort((a, b) => {
-      const aChecked = Storage.model_ids.includes(a.id);
-      const bChecked = Storage.model_ids.includes(b.id);
+      const aChecked = this.dashboard.storage.get("model_ids").includes(a.id);
+      const bChecked = this.dashboard.storage.get("model_ids").includes(b.id);
       if (aChecked && !bChecked) return -1;
       if (!aChecked && bChecked) return 1;
       return 0;
@@ -791,7 +506,7 @@ class ModelList {
       dataSource: models,
       pageSize: 5,
       callback: function(data, pagination) {
-        const body = data.map((model) => model.li()).join("");
+        const body = data.map((item) => self.li(item)).join("");
         $(`#models-list`).html(`
           <thead>
             <tr>
@@ -807,7 +522,7 @@ class ModelList {
 
         $(".checkbox-model").each(function() {
           const model_id = parseInt($(this).val(), 10);
-          if (Storage.model_ids.includes(model_id)) {
+          if (self.dashboard.storage.get("model_ids").includes(model_id)) {
             $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
           }
         });
@@ -829,12 +544,57 @@ class ModelList {
     });
   }
 
+  select(model_id) {
+    const model = this.dashboard.models.find(model => model.id === model_id);
+
+    $(`.checkbox-model[value="${model.id}"]`).prop("checked", true);
+    $("input[name='models-search']").val("");
+
+    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
+    selected_models.add(model.id);
+    this.dashboard.storage.set("model_ids", Array.from(selected_models));
+
+    this.dashboard.tagList.select(model);
+    this.dashboard.predictionList.update();
+
+    const params = {
+      disease: this.dashboard.tagList.get_disease(),
+      time_resolution: this.dashboard.tagList.get_time_resolution(),
+      adm_level: model.adm_level,
+    };
+
+    if (adm_level === 1) {
+      params["adm_1"] = this.dashboard.storage.get("adm_1");
+    } else if (adm_level === 2) {
+      params["adm_2"] = this.dashboard.storage.get("adm_2");
+    }
+
+    this.dashboard.update_casos(params);
+  }
+
+  unselect(model_id, from_tag = false) {
+    const model = this.dashboard.models.find(model => model.id === model_id);
+
+    $(`.checkbox-model[value="${model_id}"]`).prop("checked", false);
+    $("input[name='models-search']").val("");
+
+    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
+    selected_models.delete(model.id);
+    this.dashboard.storage.set("model_ids", Array.from(selected_models));
+
+    if (!from_tag) {
+      this.dashboard.tagList.unselect(model);
+    }
+    this.dashboard.predictionList.update();
+  }
+
   extract_adm1(models) {
     let adm1List = [...new Set(models.flatMap(model => model.adm_1_list))];
     const adm1Names = get_adm_names(1, adm1List);
     return adm1List.map(value => [value, adm1Names[value]]);
   }
 }
+
 
 class PredictionList {
   /**
@@ -843,9 +603,8 @@ class PredictionList {
   constructor(dashboard) {
     this.dashboard = dashboard;
     this.predictions = [];
-    this.sort_by = "score";
-    this.sort_direction = "desc"
-    this.update();
+    this.predictions_map = {};
+    this.update(this.dashboard.storage.get("model_ids"));
   }
 
   async update() {
@@ -858,51 +617,64 @@ class PredictionList {
     overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
     $(overlay).appendTo("#predictions-card");
 
-    if (Storage.model_ids.length === 0) {
-      Storage.current.dashboard.lineChart.clear();
-      this.predictions = [];
-    } else {
+    const model_ids = this.dashboard.storage.get("model_ids");
 
+    if (model_ids.length === 0) {
+      this.dashboard.lineChart.clear();
+      this.clear();
+      this.list([]);
+      $(`#predictions-card .overlay`).remove();
+      return;
     }
 
-    this.sort();
-    this.list();
-    $(`#predictions-card .overlay`).remove();
+    const url = new URL('/vis/get-predictions/', window.location.origin);
+    model_ids.forEach(id => url.searchParams.append('model_id', id))
+
+    const response = await fetch(url);
+    if (response.ok) {
+      const res = await response.json();
+      this.list(res['items']);
+      $(`#predictions-card .overlay`).remove();
+    }
   }
 
-  sort(by = this.sort_by, direction = this.sort_direction) {
-    this.sort_by = by
-    this.sort_direction = direction
+  li(prediction) {
+    const selected = this.dashboard.storage.get("prediction_ids").includes(prediction.id);
 
-    const selected_ids = new Set(Storage.current.prediction_ids || [])
-    this.predictions.sort((a, b) => {
-      let aVal, bVal
-      if (selected_ids.has(a.id) && !selected_ids.has(b.id)) return -1
-      if (!selected_ids.has(a.id) && selected_ids.has(b.id)) return 1
-      if (by !== "score") {
-        aVal = a[by]
-        bVal = b[by]
-      } else {
-        aVal = a.scores?.[Storage.current.score] ?? Infinity
-        bVal = b.scores?.[Storage.current.score] ?? Infinity
-      }
-      if (aVal < bVal) return direction === "asc" ? -1 : 1
-      if (aVal > bVal) return direction === "asc" ? 1 : -1
-      return 0
-    })
-    this.list()
+    return `
+    <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${prediction.id}">
+      <td style="width: 40px;" class="${selected ? 'selected' : ''}" id="td-${prediction.id}">
+        <input type="checkbox" value="${prediction.id}" id="checkbox-${prediction.id}" class="checkbox-prediction">
+      </td>
+      <td style="width: 40px;"><a href="/registry/prediction/${prediction.id}/" target="_blank">${prediction.id}</a></td>
+      <td style="width: 40px;"><a href="/registry/model/${prediction.model}/" target="_blank">${prediction.model}</a></td>
+      <td style="width: 110px;">${prediction.start_date}</td>
+      <td style="width: 110px;">${prediction.end_date}</td>
+      <td style="width: 150px;">${prediction.scores[this.dashboard.storage.get("score")] || "-"}</td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="6"><p>${prediction.description}</p></td></tr>
+  `;
   }
 
-  list() {
-    if (this.predictions.length === 0) {
+  list(predictions) {
+    if (predictions.length === 0) {
+      this.dashboard.set_adm_level(null);
+      // this.dashboard.storage.set("adm_1", null);
+      // this.dashboard.storage.set("adm_2", null);
       this.paginate([]);
       return
     }
 
+    predictions = [...predictions].sort((a, b) => {
+      const aScore = a.scores[this.dashboard.storage.get("score")] ?? Infinity;
+      const bScore = b.scores[this.dashboard.storage.get("score")] ?? Infinity;
+      return aScore - bScore;
+    });
+
     const self = this;
     const isAdm2 = predictions.some(prediction => prediction.adm_2 !== null);
 
-    Storage.prediction_ids.forEach(id => {
+    this.dashboard.storage.get("prediction_ids").forEach(id => {
       if (!predictions.some(prediction => prediction.id === id)) {
         self.unselect(id)
       }
@@ -911,8 +683,8 @@ class PredictionList {
     if (!isAdm2) {
       const adm1List = this.extract_adm1(predictions);
       if (
-        !Storage.adm_1 ||
-        !adm1List.some(([value, _]) => value === Storage.adm_1)
+        !this.dashboard.storage.get("adm_1") ||
+        !adm1List.some(([value, _]) => value === this.dashboard.storage.get("adm_1"))
       ) {
         this.dashboard.storage.set("adm_1", parseInt(adm1List[0][0]));
       }
@@ -920,7 +692,7 @@ class PredictionList {
       $('#adm1-filter').empty();
 
       adm1List.forEach(([value, text]) => {
-        const isSelected = value === Storage.adm_1;
+        const isSelected = value === this.dashboard.storage.get("adm_1");
         $('#adm1-filter').append($('<option>', {
           value: value,
           text: text,
@@ -928,7 +700,7 @@ class PredictionList {
         }));
       });
 
-      self.paginate(self.filter(predictions, 1, Storage.adm_1))
+      self.paginate(self.filter(predictions, 1, this.dashboard.storage.get("adm_1")))
 
       $("#adm1-filter").off("change").on("change", function() {
         self.clear()
@@ -938,8 +710,8 @@ class PredictionList {
     } else {
       const adm1List = this.extract_adm1(predictions);
 
-      let adm1 = Storage.adm_1;
-      let adm2 = Storage.adm_2;
+      let adm1 = this.dashboard.storage.get("adm_1");
+      let adm2 = this.dashboard.storage.get("adm_2");
       if (!adm2 || !adm1List.some(([code]) => String(adm2).startsWith(String(code)))) {
         if (!adm1 || !adm1List.some(([code]) => code === adm1)) {
           adm1 = adm1List[0][0];
@@ -953,15 +725,15 @@ class PredictionList {
           this.dashboard.storage.set("adm_2", parseInt(adm2[0]));
         }
       } else {
-        this.dashboard.storage.set("adm_1", parseInt(String(Storage.adm_2).slice(0, 2), 10));
+        this.dashboard.storage.set("adm_1", parseInt(String(this.dashboard.storage.get("adm_2")).slice(0, 2), 10));
       }
 
-      this.paginate(this.filter(predictions, 2, Storage.adm_2));
-      const adm2List = this.extract_adm2(predictions, Storage.adm_1);
+      this.paginate(this.filter(predictions, 2, this.dashboard.storage.get("adm_2")));
+      const adm2List = this.extract_adm2(predictions, this.dashboard.storage.get("adm_1"));
 
       $('#adm1-filter').empty();
       adm1List.forEach(([code, name]) => {
-        const isSelected = code === Storage.adm_1;
+        const isSelected = code === this.dashboard.storage.get("adm_1");
         $('#adm1-filter').append($('<option>', {
           value: code,
           text: name,
@@ -971,7 +743,7 @@ class PredictionList {
 
       $('#adm2-filter').empty();
       adm2List.forEach(([geocode, name]) => {
-        const isSelected = geocode === Storage.adm_2;
+        const isSelected = geocode === this.dashboard.storage.get("adm_2");
         $('#adm2-filter').append($('<option>', {
           value: geocode,
           text: name,
@@ -983,18 +755,18 @@ class PredictionList {
         self.dashboard.lineChart.clearPredictions();
         self.clear()
 
-        Storage.adm_1 = parseInt($(this).val());
+        self.dashboard.storage.set("adm_1", parseInt($(this).val()));
         const adm2List = self.extract_adm2(predictions, $(this).val());
 
-        let adm2 = Storage.adm_2;
+        let adm2 = self.dashboard.storage.get("adm_2");
         if (!adm2 || !adm2List.some(([geocode]) => geocode === adm2) || !String(adm2).startsWith(String($(this).val()))) {
-          adm2 = adm2List[0][0];
-          Storage.adm_2 = adm2;
+          adm2 = adm2List[0][0]
+          self.dashboard.storage.set("adm_2", adm2);
         }
 
         $('#adm2-filter').empty();
         adm2List.forEach(([geocode, name]) => {
-          const isSelected = geocode === Storage.adm_2;
+          const isSelected = geocode === self.dashboard.storage.get("adm_2");
           $('#adm2-filter').append($('<option>', {
             value: geocode,
             text: name,
@@ -1002,7 +774,7 @@ class PredictionList {
           }));
         });
 
-        self.paginate(self.filter(predictions, 2, Storage.adm_2));
+        self.paginate(self.filter(predictions, 2, self.dashboard.storage.get("adm_2")));
       });
     }
 
@@ -1046,8 +818,8 @@ class PredictionList {
       dataSource: predictions,
       pageSize: 5,
       callback: function(data, pagination) {
-        const body = data.map((item) => item.li()).join("");
-        const score = Storage.score;
+        const body = data.map((item) => self.li(item)).join("");
+        const score = self.dashboard.storage.get("score");
         $(`#predictions-list`).html(`
         <thead>
           <tr>
@@ -1084,7 +856,7 @@ class PredictionList {
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
           const td = $(`#td-${prediction_id}`);
-          if (Storage.prediction_ids.includes(prediction_id)) {
+          if (self.dashboard.storage.get("prediction_ids").includes(prediction_id)) {
             $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
             self.select(self.predictions_map[prediction_id]);
             td.addClass('selected');
@@ -1128,7 +900,7 @@ class PredictionList {
   }
 
   async update_date_slider() {
-    const prediction_ids = new Set(Storage.prediction_ids);
+    const prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
     let minDate, maxDate;
 
     if (prediction_ids.size) {
@@ -1167,7 +939,242 @@ class PredictionList {
     location.reload();
   }
 
+  select(prediction) {
+    let prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
+
+    prediction_ids.add(prediction.id);
+    this.dashboard.lineChart.addPrediction({
+      id: prediction.id,
+      labels: prediction.chart.labels,
+      data: prediction.chart.data,
+      upper_50: prediction.chart.upper_50,
+      upper_90: prediction.chart.upper_90,
+      lower_50: prediction.chart.lower_50,
+      lower_90: prediction.chart.lower_90,
+      color: prediction.color
+    })
+    this.dashboard.storage.set("prediction_ids", Array.from(prediction_ids));
+
+    const td = $(`#td-${prediction.id}`);
+    td.addClass('selected');
+    td.css("background-color", prediction.color);
+    this.update_date_slider();
+  }
+
+  unselect(prediction_id) {
+    let prediction_ids = new Set(this.dashboard.storage.get("prediction_ids"));
+    prediction_ids.delete(prediction_id);
+    this.dashboard.lineChart.removePrediction(prediction_id)
+    this.dashboard.storage.set("prediction_ids", Array.from(prediction_ids));
+
+    const td = $(`#td-${prediction_id}`);
+    td.removeClass('selected');
+    td.css("background-color", '');
+    $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", false);
+    $("#select-all-checkbox").prop("checked", false);
+    this.update_date_slider();
+  }
+
   clear() {
-    Storage.prediction_ids.forEach(id => this.unselect(id));
+    this.dashboard.storage.get("prediction_ids").forEach(id => this.unselect(id));
+  }
+}
+
+
+class TagList {
+  /**
+   * @param {Dashboard} dashboard
+   */
+  constructor(dashboard) {
+    const self = this;
+    this.dashboard = dashboard;
+    this.unique_tag_groups = ["disease", "adm_level", "time_resolution", "output"];
+
+    const grouped_tags = this.dashboard.tags.reduce((groups, tag) => {
+      const key = tag.group || 'Others';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(tag);
+      groups[key].sort((a, b) => a.name.localeCompare(b.name));
+      return groups;
+    }, {});
+
+    $.each(grouped_tags, function(group, tags) {
+      const group_div = $('<div></div>')
+        .attr('id', `tag-group-${group}`)
+        .addClass('tag-group')
+        .append(`<div class="tag-group-title"><small>${group}</small></div>`);
+
+      $.each(tags, function(index, tag) {
+        const tag_btn = $('<button></button>')
+          .addClass('tag-btn')
+          .css('background-color', tag.color)
+          .attr('id', `tag-${tag.id}`)
+          .attr('value', tag.id)
+          .append($('<p></p>').text(tag.name))
+          .on('click', function() {
+            $(this).toggleClass('active');
+            const id = parseInt(this.value);
+            if ($(this).hasClass('active')) {
+              self.tag_select(id);
+            } else {
+              self.tag_unselect(id);
+            }
+          });
+
+        if (self.dashboard.storage.get("tag_ids").includes(parseInt(tag.id))) {
+          tag_btn.addClass('active');
+        }
+
+        group_div.append(tag_btn);
+      });
+
+      if (self.unique_tag_groups.includes(group)) {
+        if (group_div.find('button.active').length > 0) {
+          group_div.find('button').each(function() {
+            if (!$(this).hasClass('active')) {
+              $(this).prop('disabled', true);
+            }
+          });
+        }
+      }
+      $('#tags-card .card-body').append(group_div);
+    });
+  }
+
+  filter() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const model_ids = this.dashboard.storage.get("model_ids");
+
+    if (tag_ids.length === 0) {
+      this.dashboard.modelList.list(this.dashboard.models);
+      return;
+    }
+
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+    const models = this.dashboard.models.filter(model => model_ids.includes(model.id));
+
+    const filter = this.dashboard.models.filter(model => {
+      const modelTags = model.tags.map(id => parseInt(id, 10));
+      return tags.every(tag => modelTags.includes(tag.id));
+    });
+
+    models.forEach(model => {
+      if (!filter.includes(model)) {
+        this.dashboard.modelList.unselect(model.id, true);
+      }
+    });
+
+    this.dashboard.modelList.list(filter);
+  }
+
+  /**
+   * @param {Model} model
+   */
+  select(model) {
+    model.tags.forEach(id => {
+      this.tag_select(id, false)
+    })
+    this.filter();
+  }
+
+  /**
+   * @param {Model} model
+   */
+  unselect(model) {
+    const models = this.dashboard.models.filter(model => this.dashboard.storage.get("model_ids").includes(model.id));
+    model.tags.forEach(id => {
+      const tagInUse = models.some(otherModel => {
+        return otherModel.id !== model.id && otherModel.tags.includes(id);
+      });
+      if (!tagInUse) {
+        this.tag_unselect(id, false);
+      }
+    });
+    this.filter();
+  }
+
+  tag_select(tag_id, update = true) {
+    const tag = this.dashboard.tags.find(tag => tag.id === tag_id);
+    if (!tag) { return }
+
+    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
+    tag_ids.add(tag.id);
+    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
+
+    if (!$(`#tag-${tag.id}`).hasClass('active')) {
+      $(`#tag-${tag.id}`).addClass('active');
+    }
+
+    if (this.unique_tag_groups.includes(tag.group)) {
+      $(`#tag-group-${tag.group}`).find('button').each(function() {
+        if (!$(this).hasClass('active')) {
+          $(this).prop('disabled', true);
+        }
+      });
+    }
+
+    if (update) {
+      this.filter();
+    }
+  }
+
+  tag_unselect(tag_id, update = true) {
+    const tag = this.dashboard.tags.find(tag => String(tag.id) === String(tag_id));
+    if (!tag) { return }
+
+    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
+    tag_ids.delete(tag.id);
+    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
+
+    $(`#tag-${tag.id}`).removeClass('active');
+    if (this.unique_tag_groups.includes(tag.group)) {
+      $(`#tag-group-${tag.group}`).find('button').prop('disabled', false);
+    }
+
+    if (update) {
+      this.filter()
+    }
+  }
+
+  get_adm_level() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    for (const tag of tags) {
+      if (tag.group === "adm_level" && tag.name.includes("ADM ")) {
+        const level = parseInt(tag.name.split("ADM ")[1], 10);
+        if (!isNaN(level)) {
+          return level;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  get_disease() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let disease;
+    for (const tag of tags) {
+      if (tag.group === "disease") {
+        disease = tag.name.toLowerCase()
+      }
+    }
+    return disease;
+  }
+
+  get_time_resolution() {
+    const tag_ids = this.dashboard.storage.get("tag_ids");
+    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
+
+    let time_resolution;
+    for (const tag of tags) {
+      if (tag.group === "time_resolution") {
+        time_resolution = tag.name.toLowerCase()
+      }
+    }
+    return time_resolution;
   }
 }
