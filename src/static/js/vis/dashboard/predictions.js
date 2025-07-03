@@ -8,7 +8,6 @@ let min_date = null;
 let max_date = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  $('#tags-card .card-tools button').click()
   d = new Dashboard(dashboard);
 
   try {
@@ -35,14 +34,81 @@ function get_adm_names(admLevel, geocodes) {
   return JSON.parse(request.responseText);
 }
 
-class Tag {
-  constructor(id, name, group, color) {
-    this.id = id;
-    this.name = name;
-    this.color = color;
-    this.group = group;
+
+class Prediction {
+  constructor(prediction) {
+    this.id = prediction.id;
+    this.model = prediction.model;
+    this.start_date = prediction.start_date;
+    this.end_date = prediction.end_date;
+    this.description = prediction.description;
+    this.adm_1 = prediction.adm_1;
+    this.adm_2 = prediction.adm_2;
+    this.scores = prediction.scores;
+    this.color = prediction.color;
+
+    this.labels = prediction.chart.labels;
+    this.data = prediction.chart.data;
+    this.upper_50 = prediction.chart.upper_50;
+    this.upper_90 = prediction.chart.upper_90;
+    this.lower_50 = prediction.chart.lower_50;
+    this.lower_90 = prediction.chart.lower_90;
+  }
+
+  li() {
+    return `
+      <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${this.id}">
+        <td style="width: 40px;" class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
+          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
+        </td>
+        <td style="width: 40px;"><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
+        <td style="width: 40px;"><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+        <td style="width: 110px;">${this.start_date}</td>
+        <td style="width: 110px;">${this.end_date}</td>
+        <td style="width: 150px;">${this.scores[Storage.score] ?? "-"}</td>
+      </tr>
+      <tr class="expandable-body d-none"><td colspan="6"><p>${this.description}</p></td></tr>
+    `;
+  }
+
+  select() {
+    const td = $(`#td-${this.id}`);
+    td.addClass('selected');
+    td.css("background-color", this.color);
+    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", true);
+
+    let prediction_ids = new Set(Storage.prediction_ids);
+    prediction_ids.add(this.id);
+    Storage.prediction_ids = Array.from(prediction_ids);
+
+    Storage.current.dashboard.lineChart.addPrediction({
+      id: this.id,
+      labels: this.chart.labels,
+      data: this.chart.data,
+      upper_50: this.chart.upper_50,
+      upper_90: this.chart.upper_90,
+      lower_50: this.chart.lower_50,
+      lower_90: this.chart.lower_90,
+      color: this.color
+    })
+    Storage.current.dashboard.predictionList.update();
+  }
+
+  unselect() {
+    const td = $(`#td-${this.id}`);
+    td.removeClass('selected');
+    td.css("background-color", '');
+    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", false);
+
+    let prediction_ids = new Set(Storage.prediction_ids);
+    prediction_ids.delete(this.id);
+    Storage.prediction_ids = Array.from(prediction_ids);
+
+    Storage.current.dashboard.lineChart.removePrediction(this.id);
+    Storage.current.dashboard.predictionList.update();
   }
 }
+
 
 /**
  * @typedef {Object} Author
@@ -102,6 +168,47 @@ class Model {
     }
     return this._predictionsPromise;
   }
+
+  li() {
+    return `
+      <tr data-widget="expandable-table" aria-expanded="false">
+        <td style="max-width: 40px;">
+          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-model">
+        </td>
+        <td><a href="/registry/model/${this.id}/">${this.id}</a></td>
+        <td class="truncate-name" title="${this.name}">${this.name}</td>
+        <td class="truncate-name"><a href="/${this.author.username}/">${this.author.name}</a></td>
+        <td class="truncate-name">${this.updated}</td>
+      </tr>
+      <tr class="expandable-body d-none"><td colspan="5"><p>${this.description}</p></td></tr>
+    `;
+  }
+
+  select() {
+    $(`.checkbox-model[value="${this.id}"]`).prop("checked", true);
+    $("input[name='models-search']").val("");
+
+    let selected_models = new Set(Storage.model_ids);
+    selected_models.add(this.id);
+    Storage.model_ids = Array.from(selected_models);
+
+    Storage.current.dashboard.modelList.update();
+    Storage.current.dashboard.predictionList.update();
+    Storage.current.dashboard.update();
+  }
+
+  unselect() {
+    $(`.checkbox-model[value="${this.id}"]`).prop("checked", false);
+    $("input[name='models-search']").val("");
+
+    let selected_models = new Set(Storage.model_ids);
+    selected_models.delete(this.id);
+    Storage.model_ids = Array.from(selected_models);
+
+    Storage.current.dashboard.modelList.update();
+    Storage.current.dashboard.predictionList.update();
+    Storage.current.dashboard.update();
+  }
 }
 
 
@@ -110,18 +217,10 @@ class Dashboard {
     const self = this;
     this.dashboard = dashboard;
 
-    this.tags = Object.entries(all_tags).map(([id, tag]) => new Tag(
-      parseInt(id, 10),
-      tag.name,
-      tag.group,
-      tag.color
-    ));
-
     new Storage(this);
     this.lineChart = new LineChart('chart');
     this.modelList = new ModelList(this);
     this.predictionList = new PredictionList(this);
-    this.tagList = new TagList(this);
 
     this.fetch().then(models => {
       this.models = models;
@@ -668,19 +767,9 @@ class ModelList {
     this.list(models);
   }
 
-  li(model) {
-    return `
-      <tr data-widget="expandable-table" aria-expanded="false">
-        <td style="max-width: 40px;">
-          <input type="checkbox" value="${model.id}" id="checkbox-${model.id}" class="checkbox-model">
-        </td>
-        <td><a href="/registry/model/${model.id}/">${model.id}</a></td>
-        <td class="truncate-name" title="${model.name}">${model.name}</td>
-        <td class="truncate-name"><a href="/${model.author.username}/">${model.author.name}</a></td>
-        <td class="truncate-name">${model.updated}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="5"><p>${model.description}</p></td></tr>
-    `;
+  select(model_id) {
+    const model = this.models.find(m => m.id === model_id);
+    if (model) model.select();
   }
 
   list(models) {
@@ -690,8 +779,8 @@ class ModelList {
     this.models = models;
 
     models.sort((a, b) => {
-      const aChecked = this.dashboard.storage.get("model_ids").includes(a.id);
-      const bChecked = this.dashboard.storage.get("model_ids").includes(b.id);
+      const aChecked = Storage.model_ids.includes(a.id);
+      const bChecked = Storage.model_ids.includes(b.id);
       if (aChecked && !bChecked) return -1;
       if (!aChecked && bChecked) return 1;
       return 0;
@@ -702,7 +791,7 @@ class ModelList {
       dataSource: models,
       pageSize: 5,
       callback: function(data, pagination) {
-        const body = data.map((item) => self.li(item)).join("");
+        const body = data.map((model) => model.li()).join("");
         $(`#models-list`).html(`
           <thead>
             <tr>
@@ -718,7 +807,7 @@ class ModelList {
 
         $(".checkbox-model").each(function() {
           const model_id = parseInt($(this).val(), 10);
-          if (self.dashboard.storage.get("model_ids").includes(model_id)) {
+          if (Storage.model_ids.includes(model_id)) {
             $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
           }
         });
@@ -740,95 +829,10 @@ class ModelList {
     });
   }
 
-  select(model_id) {
-    const model = this.dashboard.models.find(model => model.id === model_id);
-
-    $(`.checkbox-model[value="${model.id}"]`).prop("checked", true);
-    $("input[name='models-search']").val("");
-
-    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
-    selected_models.add(model.id);
-    this.dashboard.storage.set("model_ids", Array.from(selected_models));
-
-    this.dashboard.tagList.select(model);
-    this.dashboard.predictionList.update();
-
-    const params = {
-      disease: this.dashboard.tagList.get_disease(),
-      time_resolution: this.dashboard.tagList.get_time_resolution(),
-      adm_level: model.adm_level,
-    };
-
-    if (adm_level === 1) {
-      params["adm_1"] = this.dashboard.storage.get("adm_1");
-    } else if (adm_level === 2) {
-      params["adm_2"] = this.dashboard.storage.get("adm_2");
-    }
-
-    this.dashboard.update_casos(params);
-  }
-
-  unselect(model_id, from_tag = false) {
-    const model = this.dashboard.models.find(model => model.id === model_id);
-
-    $(`.checkbox-model[value="${model_id}"]`).prop("checked", false);
-    $("input[name='models-search']").val("");
-
-    let selected_models = new Set(this.dashboard.storage.get("model_ids"));
-    selected_models.delete(model.id);
-    this.dashboard.storage.set("model_ids", Array.from(selected_models));
-
-    if (!from_tag) {
-      this.dashboard.tagList.unselect(model);
-    }
-    this.dashboard.predictionList.update();
-  }
-
   extract_adm1(models) {
     let adm1List = [...new Set(models.flatMap(model => model.adm_1_list))];
     const adm1Names = get_adm_names(1, adm1List);
     return adm1List.map(value => [value, adm1Names[value]]);
-  }
-}
-
-class Prediction {
-  constructor(prediction) {
-    this.id = prediction.id;
-
-    this.model = prediction.model;
-    this.start_date = prediction.start_date;
-    this.end_date = prediction.end_date;
-    this.description = prediction.description;
-    this.adm_1 = prediction.adm_1;
-    this.adm_2 = prediction.adm_2;
-    this.scores = prediction.scores;
-    this.color = prediction.color;
-
-    this.labels = prediction.chart.labels;
-    this.data = prediction.chart.data;
-    this.upper_50 = prediction.chart.upper_50;
-    this.upper_90 = prediction.chart.upper_90;
-    this.lower_50 = prediction.chart.lower_50;
-    this.lower_90 = prediction.chart.lower_90;
-  }
-
-  li() {
-    const selected = this.dashboard.storage.get("prediction_ids").includes(this.id);
-    const score = this.dashboard.storage.get("score");
-
-    return `
-      <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${this.id}">
-        <td style="width: 40px;" class="${selected ? 'selected' : ''}" id="td-${this.id}">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-        </td>
-        <td style="width: 40px;"><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-        <td style="width: 40px;"><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-        <td style="width: 110px;">${this.start_date}</td>
-        <td style="width: 110px;">${this.end_date}</td>
-        <td style="width: 150px;">${this.scores[score] ?? "-"}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="6"><p>${this.description}</p></td></tr>
-    `;
   }
 }
 
@@ -837,195 +841,333 @@ class PredictionList {
    * @param {Dashboard} dashboard
    */
   constructor(dashboard) {
-    const self = this;
     this.dashboard = dashboard;
-    this.unique_tag_groups = ["disease", "adm_level", "time_resolution", "output"];
+    this.predictions = [];
+    this.sort_by = "score";
+    this.sort_direction = "desc"
+    this.update();
+  }
 
-    const grouped_tags = this.dashboard.tags.reduce((groups, tag) => {
-      const key = tag.group || 'Others';
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(tag);
-      groups[key].sort((a, b) => a.name.localeCompare(b.name));
-      return groups;
+  async update() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
+    $(overlay).appendTo("#predictions-card");
+
+    if (Storage.model_ids.length === 0) {
+      Storage.current.dashboard.lineChart.clear();
+      this.predictions = [];
+    } else {
+
+    }
+
+    this.sort();
+    this.list();
+    $(`#predictions-card .overlay`).remove();
+  }
+
+  sort(by = this.sort_by, direction = this.sort_direction) {
+    this.sort_by = by
+    this.sort_direction = direction
+
+    const selected_ids = new Set(Storage.current.prediction_ids || [])
+    this.predictions.sort((a, b) => {
+      let aVal, bVal
+      if (selected_ids.has(a.id) && !selected_ids.has(b.id)) return -1
+      if (!selected_ids.has(a.id) && selected_ids.has(b.id)) return 1
+      if (by !== "score") {
+        aVal = a[by]
+        bVal = b[by]
+      } else {
+        aVal = a.scores?.[Storage.current.score] ?? Infinity
+        bVal = b.scores?.[Storage.current.score] ?? Infinity
+      }
+      if (aVal < bVal) return direction === "asc" ? -1 : 1
+      if (aVal > bVal) return direction === "asc" ? 1 : -1
+      return 0
+    })
+    this.list()
+  }
+
+  list() {
+    if (this.predictions.length === 0) {
+      this.paginate([]);
+      return
+    }
+
+    const self = this;
+    const isAdm2 = predictions.some(prediction => prediction.adm_2 !== null);
+
+    Storage.prediction_ids.forEach(id => {
+      if (!predictions.some(prediction => prediction.id === id)) {
+        self.unselect(id)
+      }
+    })
+
+    if (!isAdm2) {
+      const adm1List = this.extract_adm1(predictions);
+      if (
+        !Storage.adm_1 ||
+        !adm1List.some(([value, _]) => value === Storage.adm_1)
+      ) {
+        this.dashboard.storage.set("adm_1", parseInt(adm1List[0][0]));
+      }
+
+      $('#adm1-filter').empty();
+
+      adm1List.forEach(([value, text]) => {
+        const isSelected = value === Storage.adm_1;
+        $('#adm1-filter').append($('<option>', {
+          value: value,
+          text: text,
+          selected: isSelected
+        }));
+      });
+
+      self.paginate(self.filter(predictions, 1, Storage.adm_1))
+
+      $("#adm1-filter").off("change").on("change", function() {
+        self.clear()
+        self.dashboard.lineChart.clearPredictions();
+        self.paginate(self.filter(predictions, 1, $(this).val()));
+      });
+    } else {
+      const adm1List = this.extract_adm1(predictions);
+
+      let adm1 = Storage.adm_1;
+      let adm2 = Storage.adm_2;
+      if (!adm2 || !adm1List.some(([code]) => String(adm2).startsWith(String(code)))) {
+        if (!adm1 || !adm1List.some(([code]) => code === adm1)) {
+          adm1 = adm1List[0][0];
+          const adm2List = this.extract_adm2(predictions, adm1);
+          const adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          this.dashboard.storage.set("adm_1", parseInt(adm1));
+          this.dashboard.storage.set("adm_2", parseInt(adm2[0]));
+        } else {
+          const adm2List = this.extract_adm2(predictions, adm1);
+          adm2 = adm2List.find(([geocode, name]) => String(geocode).startsWith(String(adm1)));
+          this.dashboard.storage.set("adm_2", parseInt(adm2[0]));
+        }
+      } else {
+        this.dashboard.storage.set("adm_1", parseInt(String(Storage.adm_2).slice(0, 2), 10));
+      }
+
+      this.paginate(this.filter(predictions, 2, Storage.adm_2));
+      const adm2List = this.extract_adm2(predictions, Storage.adm_1);
+
+      $('#adm1-filter').empty();
+      adm1List.forEach(([code, name]) => {
+        const isSelected = code === Storage.adm_1;
+        $('#adm1-filter').append($('<option>', {
+          value: code,
+          text: name,
+          selected: isSelected
+        }));
+      });
+
+      $('#adm2-filter').empty();
+      adm2List.forEach(([geocode, name]) => {
+        const isSelected = geocode === Storage.adm_2;
+        $('#adm2-filter').append($('<option>', {
+          value: geocode,
+          text: name,
+          selected: isSelected
+        }));
+      });
+
+      $("#adm1-filter").off("change").on("change", function() {
+        self.dashboard.lineChart.clearPredictions();
+        self.clear()
+
+        Storage.adm_1 = parseInt($(this).val());
+        const adm2List = self.extract_adm2(predictions, $(this).val());
+
+        let adm2 = Storage.adm_2;
+        if (!adm2 || !adm2List.some(([geocode]) => geocode === adm2) || !String(adm2).startsWith(String($(this).val()))) {
+          adm2 = adm2List[0][0];
+          Storage.adm_2 = adm2;
+        }
+
+        $('#adm2-filter').empty();
+        adm2List.forEach(([geocode, name]) => {
+          const isSelected = geocode === Storage.adm_2;
+          $('#adm2-filter').append($('<option>', {
+            value: geocode,
+            text: name,
+            selected: isSelected
+          }));
+        });
+
+        self.paginate(self.filter(predictions, 2, Storage.adm_2));
+      });
+    }
+
+    $("#predictions-clear-all").on("click", function() {
+      self.clear()
+    });
+  }
+
+  filter(predictions, adm_level, adm) {
+    let res;
+    this.dashboard.set_adm_level(adm_level);
+    if (adm_level === 1) {
+      this.dashboard.storage.set("adm_1", parseInt(adm, 10));
+      res = predictions.filter(prediction => prediction.adm_1 == adm);
+    } else {
+      this.dashboard.storage.set("adm_2", parseInt(adm, 10));
+      res = predictions.filter(prediction => prediction.adm_2 == adm);
+    }
+    const params = {
+      disease: this.dashboard.tagList.get_disease(),
+      time_resolution: this.dashboard.tagList.get_time_resolution(),
+      adm_level: adm_level,
+    };
+    params[`adm_${adm_level}`] = parseInt(adm);
+
+    this.dashboard.update_casos(params);
+
+    this.predictions_map = res.reduce((acc, prediction) => {
+      const { description, ..._ } = prediction;
+      acc[prediction.id] = _;
+      return acc;
     }, {});
 
-    $.each(grouped_tags, function(group, tags) {
-      const group_div = $('<div></div>')
-        .attr('id', `tag-group-${group}`)
-        .addClass('tag-group')
-        .append(`<div class="tag-group-title"><small>${group}</small></div>`);
+    return res;
+  };
 
-      $.each(tags, function(index, tag) {
-        const tag_btn = $('<button></button>')
-          .addClass('tag-btn')
-          .css('background-color', tag.color)
-          .attr('id', `tag-${tag.id}`)
-          .attr('value', tag.id)
-          .append($('<p></p>').text(tag.name))
-          .on('click', function() {
-            $(this).toggleClass('active');
-            const id = parseInt(this.value);
-            if ($(this).hasClass('active')) {
-              self.tag_select(id);
+  paginate(predictions) {
+    const self = this;
+    this.current_predictions = predictions;
+    $('#predictions-pagination').pagination({
+      dataSource: predictions,
+      pageSize: 5,
+      callback: function(data, pagination) {
+        const body = data.map((item) => item.li()).join("");
+        const score = Storage.score;
+        $(`#predictions-list`).html(`
+        <thead>
+          <tr>
+            <th style="width: 40px;">
+              <input type="checkbox" id="select-all-checkbox">
+            </th>
+            <th style="width: 65px;">ID</th>
+            <th style="width: 85px;">Model</th>
+            <th style="width: 110px;">Start Date</th>
+            <th style="width: 110px;">End Date</th>
+            <th style="width: 150px;">
+              <div class="row">
+                <div class="col">Score</div>
+                <div class="col">
+                  <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 80px !important;">
+                    <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
+                    <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
+                    <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
+                    <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
+                    <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
+                  </select>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      `);
+
+        $("#scores").on("change", function() {
+          self.set_score($(this).val());
+        });
+
+        $(".checkbox-prediction").each(function() {
+          const prediction_id = parseInt($(this).val(), 10);
+          const td = $(`#td-${prediction_id}`);
+          if (Storage.prediction_ids.includes(prediction_id)) {
+            $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
+            self.select(self.predictions_map[prediction_id]);
+            td.addClass('selected');
+            td.css("background-color", self.predictions_map[prediction_id].color);
+          }
+        });
+
+        $("#select-all-checkbox").on("click", function() {
+          const checked = $(this).prop("checked");
+          $(".checkbox-prediction").prop("checked", checked).each(function() {
+            const prediction_id = parseInt($(this).val(), 10);
+            if (checked) {
+              self.select(self.predictions_map[prediction_id])
             } else {
-              self.tag_unselect(id);
+              self.unselect(prediction_id)
             }
           });
+        });
 
-        if (self.dashboard.storage.get("tag_ids").includes(parseInt(tag.id))) {
-          tag_btn.addClass('active');
-        }
+        $(".checkbox-prediction").on("click", function(event) {
+          event.stopPropagation();
+          const prediction_id = parseInt(event.target.value, 10);
 
-        group_div.append(tag_btn);
-      });
+          if ($(event.target).prop("checked")) {
+            self.select(self.predictions_map[prediction_id])
+          } else {
+            self.unselect(prediction_id)
+          }
+        });
 
-      if (self.unique_tag_groups.includes(group)) {
-        if (group_div.find('button.active').length > 0) {
-          group_div.find('button').each(function() {
-            if (!$(this).hasClass('active')) {
-              $(this).prop('disabled', true);
-            }
-          });
-        }
-      }
-      $('#tags-card .card-body').append(group_div);
+        $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
+      },
     });
   }
 
-  filter() {
-    const tag_ids = this.dashboard.storage.get("tag_ids");
-    const model_ids = this.dashboard.storage.get("model_ids");
+  get_min_max_dates(predictions) {
+    const min = new Date(Math.min(...predictions.map(prediction => new Date(prediction.start_date))));
+    const max = new Date(Math.max(...predictions.map(prediction => new Date(prediction.end_date))));
 
-    if (tag_ids.length === 0) {
-      this.dashboard.modelList.list(this.dashboard.models);
-      return;
-    }
-
-    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
-    const models = this.dashboard.models.filter(model => model_ids.includes(model.id));
-
-    const filter = this.dashboard.models.filter(model => {
-      const modelTags = model.tags.map(id => parseInt(id, 10));
-      return tags.every(tag => modelTags.includes(tag.id));
-    });
-
-    models.forEach(model => {
-      if (!filter.includes(model)) {
-        this.dashboard.modelList.unselect(model.id, true);
-      }
-    });
-
-    this.dashboard.modelList.list(filter);
+    return [min, max]
   }
 
-  /**
-   * @param {Model} model
-   */
-  select(model) {
-    model.tags.forEach(id => {
-      this.tag_select(id, false)
-    })
-    this.filter();
+  async update_date_slider() {
+    const prediction_ids = new Set(Storage.prediction_ids);
+    let minDate, maxDate;
+
+    if (prediction_ids.size) {
+      const predictions = this.current_predictions.filter(p => Array.from(prediction_ids).includes(p.id));
+      [minDate, maxDate] = this.get_min_max_dates(predictions);
+    } else {
+      [minDate, maxDate] = this.get_min_max_dates(this.current_predictions);
+    }
+    this.dashboard.set_date_range(minDate, maxDate);
   }
 
-  /**
-   * @param {Model} model
-   */
-  unselect(model) {
-    const models = this.dashboard.models.filter(model => this.dashboard.storage.get("model_ids").includes(model.id));
-    model.tags.forEach(id => {
-      const tagInUse = models.some(otherModel => {
-        return otherModel.id !== model.id && otherModel.tags.includes(id);
-      });
-      if (!tagInUse) {
-        this.tag_unselect(id, false);
-      }
-    });
-    this.filter();
+  extract_adm1(predictions) {
+    let adm1List = [
+      ...new Set(predictions.map(prediction => parseInt(prediction.adm_1, 10)))
+    ];
+    const adm1Names = get_adm_names(1, adm1List);
+    adm1List = adm1List.sort((a, b) => adm1Names[a].localeCompare(adm1Names[b]));
+    return adm1List.map(value => [value, adm1Names[value]]);
   }
 
-  tag_select(tag_id, update = true) {
-    const tag = this.dashboard.tags.find(tag => tag.id === tag_id);
-    if (!tag) { return }
-
-    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
-    tag_ids.add(tag.id);
-    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
-
-    if (!$(`#tag-${tag.id}`).hasClass('active')) {
-      $(`#tag-${tag.id}`).addClass('active');
-    }
-
-    if (this.unique_tag_groups.includes(tag.group)) {
-      $(`#tag-group-${tag.group}`).find('button').each(function() {
-        if (!$(this).hasClass('active')) {
-          $(this).prop('disabled', true);
-        }
-      });
-    }
-
-    if (update) {
-      this.filter();
-    }
+  extract_adm2(predictions, adm1) {
+    let adm2List = [
+      ...new Set(predictions.map(prediction => parseInt(prediction.adm_2, 10)))
+    ];
+    const adm2Names = get_adm_names(2, adm2List);
+    adm2List = adm2List.filter(adm => adm.toString().startsWith(adm1.toString()));
+    adm2List = adm2List.sort((a, b) => adm2Names[a].localeCompare(adm2Names[b]));
+    return adm2List.map(geocode => [geocode, adm2Names[geocode]]);
   }
 
-  tag_unselect(tag_id, update = true) {
-    const tag = this.dashboard.tags.find(tag => String(tag.id) === String(tag_id));
-    if (!tag) { return }
-
-    let tag_ids = new Set(this.dashboard.storage.get("tag_ids"));
-    tag_ids.delete(tag.id);
-    this.dashboard.storage.set("tag_ids", Array.from(tag_ids));
-
-    $(`#tag-${tag.id}`).removeClass('active');
-    if (this.unique_tag_groups.includes(tag.group)) {
-      $(`#tag-group-${tag.group}`).find('button').prop('disabled', false);
-    }
-
-    if (update) {
-      this.filter()
-    }
+  set_score(score) {
+    this.dashboard.storage.set("score", score);
+    const url = new URL(window.location);
+    url.searchParams.delete("prediction_id");
+    history.pushState(null, "", url);
+    location.reload();
   }
 
-  get_adm_level() {
-    const tag_ids = this.dashboard.storage.get("tag_ids");
-    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
-
-    for (const tag of tags) {
-      if (tag.group === "adm_level" && tag.name.includes("ADM ")) {
-        const level = parseInt(tag.name.split("ADM ")[1], 10);
-        if (!isNaN(level)) {
-          return level;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  get_disease() {
-    const tag_ids = this.dashboard.storage.get("tag_ids");
-    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
-
-    let disease;
-    for (const tag of tags) {
-      if (tag.group === "disease") {
-        disease = tag.name.toLowerCase()
-      }
-    }
-    return disease;
-  }
-
-  get_time_resolution() {
-    const tag_ids = this.dashboard.storage.get("tag_ids");
-    const tags = this.dashboard.tags.filter(tag => tag_ids.includes(tag.id));
-
-    let time_resolution;
-    for (const tag of tags) {
-      if (tag.group === "time_resolution") {
-        time_resolution = tag.name.toLowerCase()
-      }
-    }
-    return time_resolution;
+  clear() {
+    Storage.prediction_ids.forEach(id => this.unselect(id));
   }
 }
