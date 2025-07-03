@@ -35,3 +35,19 @@ groups:
         - name: documentation
         - name: redis
         - name: ollama
+
+  ci:
+    project-name: mosqlimate
+    compose-path:
+      - containers/compose.yaml
+      - containers/compose-dev.yaml
+    env-file: .env
+    services:
+      default: django,worker,postgres,documentation,redis
+      available:
+        - name: django
+        - name: worker
+        - name: postgres
+        - name: documentation
+        - name: redis
+        - name: ollama

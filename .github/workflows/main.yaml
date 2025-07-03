@@ -61,7 +61,7 @@ jobs:
 
     - name: Start containers
       run: |
-        sugar up --group dev --options -d
+        sugar up --group ci --options -d
 
     # Datastore models mostly consist in External db connections
     # - name: Test datastore
