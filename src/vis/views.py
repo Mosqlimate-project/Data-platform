@@ -234,20 +234,6 @@ def get_predictions(request) -> JsonResponse:
     res = []
 
     for p in predictions:
-        df = p.to_dataframe()
-        chart = {
-            "labels": df["date"].tolist(),
-            "data": list(map(round, df["pred"].tolist())),
-            "upper_50": list(
-                map(lambda x: round(x) if x else x, df["upper_50"].tolist())
-            ),
-            "upper_90": list(map(round, df["upper_90"].tolist())),
-            "lower_50": list(
-                map(lambda x: round(x) if x else x, df["lower_50"].tolist())
-            ),
-            "lower_90": list(map(round, df["lower_90"].tolist())),
-        }
-
         p_res = {}
         p_res["id"] = p.id
         p_res["model"] = p.model.id
@@ -257,13 +243,32 @@ def get_predictions(request) -> JsonResponse:
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
         p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
-        p_res["chart"] = chart
         p_res["scores"] = p.scores
         p_res["color"] = p.color
         res.append(p_res)
 
     context["items"] = res
     return JsonResponse(context)
+
+
+@cache_page(60 * 5, key_prefix="get_prediction_data")
+def get_prediction_data(request) -> JsonResponse:
+    prediction_id = request.GET.getlist("prediction_id")
+    prediction = Prediction.objects.get(pk=prediction_id)
+    df = prediction.to_dataframe()
+    chart = {
+        "labels": df["date"].tolist(),
+        "data": list(map(round, df["pred"].tolist())),
+        "upper_50": list(
+            map(lambda x: round(x) if x else x, df["upper_50"].tolist())
+        ),
+        "upper_90": list(map(round, df["upper_90"].tolist())),
+        "lower_50": list(
+            map(lambda x: round(x) if x else x, df["lower_50"].tolist())
+        ),
+        "lower_90": list(map(round, df["lower_90"].tolist())),
+    }
+    return JsonResponse({"id": prediction_id, "data": chart})
 
 
 @cache_page(60 * 120)

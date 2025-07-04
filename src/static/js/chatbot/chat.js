@@ -26,7 +26,7 @@ function initChatbot(sessionKey) {
       } else if (msg.source === "system") {
         containerClass = "system-message";
       }
-      str += `<div class="${containerClass}"><div class="${bubbleClass}"><span>${escapeHTML(msg.msg)}</span></div></div>`;
+      str += `<div class="${containerClass}"><div class="${bubbleClass}">${msg.msg}</div></div>`;
     });
     chatLog.innerHTML = str;
     chatLog.scrollTop = chatLog.scrollHeight;
@@ -70,6 +70,7 @@ function initChatbot(sessionKey) {
   chatSocket.onmessage = e => {
     const data = JSON.parse(e.data);
     removeSystemMessages();
+    console.log(data);
     if (data.text?.msg && data.text?.source) {
       chatMessages.push(data.text);
       renderMessages();
