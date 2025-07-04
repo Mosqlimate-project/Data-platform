@@ -422,45 +422,6 @@ class Dashboard {
     $("#date-picker").dateRangeSlider("values", new Date(start), new Date(end));
   }
 
-  /**
-  * @param {Number} adm_level
-  * 0, 1, 2 or 3
-  */
-  set_adm_level(adm_level) {
-    if (!adm_level) {
-      $("#adm0-select").hide()
-      $("#adm1-select").show()
-      this.clear_adm_level()
-      $("#adm2-select").hide()
-      $("#adm3-select").hide()
-    }
-
-    if (adm_level === 0) {
-      $("#adm0-select").show()
-      $("#adm1-select").hide()
-      $("#adm2-select").hide()
-      $("#adm3-select").hide()
-    }
-    if (adm_level === 1) {
-      $("#adm0-select").hide()
-      $("#adm1-select").show()
-      $("#adm2-select").hide()
-      $("#adm3-select").hide()
-    }
-    if (adm_level === 2) {
-      $("#adm0-select").hide()
-      $("#adm1-select").show()
-      $("#adm2-select").show()
-      $("#adm3-select").hide()
-    }
-    if (adm_level === 3) {
-      $("#adm0-select").show()
-      $("#adm1-select").show()
-      $("#adm2-select").show()
-      $("#adm3-select").show()
-    }
-  }
-
   clear_adm_level() {
     const self = this;
 
@@ -737,6 +698,63 @@ class Storage {
   /** @param {string|null} val */
   static set score(val) {
     if (Storage.current) Storage.current.score = val;
+  }
+}
+
+
+class ADMSelect {
+  constructor(dashboard) {
+    this.selects = {};
+    this.card = document.querySelector(`#adm-select-${dashboard}`);
+    this.card.querySelectorAll('select').forEach(select => {
+      const level = parseInt(select.id.replace('adm', '')[0]);
+      this.selects[level] = select;
+      select.addEventListener('change', () => ADMSelect.onChange(level, select.value));
+    });
+  }
+
+  static onChange(level, value) {
+    console.log(`Level ${level} changed to: ${value}`);
+  }
+
+  set(level) {
+    Object.entries(this.selects).forEach(([adm, select]) => {
+      adm = parseInt(adm, 10);
+      const container = select.closest(`#adm${adm}-select`);
+
+      if (!level) {
+        container.style.display = (adm === 1) ? 'block' : 'none';
+      } else if (level === 0) {
+        container.style.display = (adm === 0) ? 'block' : 'none';
+      } else if (level === 1) {
+        container.style.display = (adm === 1) ? 'block' : 'none';
+      } else if (level === 2) {
+        container.style.display = (adm >= 1 && adm <= 2) ? 'block' : 'none';
+      } else if (level === 3) {
+        container.style.display = 'block';
+      }
+    });
+  }
+
+  populate(level, options) {
+    const select = this.selects[level];
+    if (!select) return;
+
+    select.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    options.forEach(opt => {
+      const optionEl = document.createElement('option');
+      optionEl.value = opt.value;
+      optionEl.textContent = opt.label;
+      select.appendChild(optionEl);
+    });
   }
 }
 
