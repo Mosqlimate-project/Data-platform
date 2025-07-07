@@ -138,9 +138,12 @@ class Model {
    * @param {string} time_resolution
    * @param {number} adm_level
    * @param {number[]} adm_1_list
-   * @param {number[]} tags
    * @param {string} updated
    */
+
+  /** @type {Record<number, Model>} */
+  static obj = {};
+
   constructor(
     id,
     name,
@@ -150,7 +153,6 @@ class Model {
     time_resolution,
     adm_level,
     adm_1_list,
-    tags,
     updated,
   ) {
     this.id = id;
@@ -161,10 +163,12 @@ class Model {
     this.time_resolution = time_resolution;
     this.adm_level = adm_level;
     this.adm_1_list = adm_1_list;
-    this.tags = tags;
     this.updated = updated;
 
+    this.selected = Storage.model_ids.includes(this.id);
     this._predictionsPromise = null;
+
+    Model.obj[id] = this;
   }
 
   /**
@@ -184,21 +188,29 @@ class Model {
 
   li() {
     return `
-      <tr data-widget="expandable-table" aria-expanded="false">
-        <td style="max-width: 40px;">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-model">
-        </td>
-        <td><a href="/registry/model/${this.id}/">${this.id}</a></td>
-        <td class="truncate-name" title="${this.name}">${this.name}</td>
-        <td class="truncate-name"><a href="/${this.author.username}/">${this.author.name}</a></td>
-        <td class="truncate-name">${this.updated}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="5"><p>${this.description}</p></td></tr>
-    `;
+    <tr data-widget="expandable-table" aria-expanded="false">
+      <td style="max-width: 40px;">
+        <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-model" ${this.selected ? 'checked' : ''}>
+      </td>
+      <td><a href="/registry/model/${this.id}/">${this.id}</a></td>
+      <td class="truncate-name" title="${this.name}">${this.name}</td>
+      <td class="truncate-name"><a href="/${this.author.username}/">${this.author.name}</a></td>
+      <td class="truncate-name">${this.updated}</td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="5"><p>${this.description}</p></td></tr>
+  `
+  }
+
+  filter(models) {
+    return models.filter(m =>
+      m.disease === this.disease &&
+      m.time_resolution === this.time_resolution &&
+      m.adm_level === this.adm_level
+    )
   }
 
   select() {
-    $(`.checkbox-model[value="${this.id}"]`).prop("checked", true);
+    this.selected = true;
     $("input[name='models-search']").val("");
 
     let selected_models = new Set(Storage.model_ids);
@@ -207,11 +219,11 @@ class Model {
 
     Storage.current.dashboard.modelList.update();
     Storage.current.dashboard.predictionList.update();
-    Storage.current.dashboard.update();
+    // Storage.current.dashboard.update();
   }
 
   unselect() {
-    $(`.checkbox-model[value="${this.id}"]`).prop("checked", false);
+    this.selected = false;
     $("input[name='models-search']").val("");
 
     let selected_models = new Set(Storage.model_ids);
@@ -220,7 +232,7 @@ class Model {
 
     Storage.current.dashboard.modelList.update();
     Storage.current.dashboard.predictionList.update();
-    Storage.current.dashboard.update();
+    // Storage.current.dashboard.update();
   }
 }
 
@@ -229,22 +241,17 @@ class Dashboard {
   constructor(dashboard) {
     const self = this;
     this.dashboard = dashboard;
-
     new Storage(this);
-    this.lineChart = new LineChart('chart');
-    this.modelList = new ModelList(this);
-    this.predictionList = new PredictionList(this);
 
     this.fetch().then(models => {
       this.models = models;
-      this.modelList.loading(false);
-      this.modelList.list(models);
-      Storage.model_ids.forEach(id => this.modelList.select(id));
-      if (Storage.model_ids.length == 0) {
-        this.set_adm_level(null);
-      }
-    });
+      this.lineChart = new LineChart('chart');
+      this.modelList = new ModelList(this);
+      this.predictionList = new PredictionList(this);
+      this.admSelect = new ADMSelect(this);
 
+      Storage.model_ids.forEach(id => Model.obj[id].select());
+    });
 
 
     $(`#date-picker`).dateRangeSlider({
@@ -300,7 +307,6 @@ class Dashboard {
         model.time_resolution,
         model.adm_level,
         model.adm_1_list,
-        model.tags,
         model.updated
       )
       );
@@ -462,7 +468,6 @@ class Dashboard {
  * @typedef {Object} StorageData
  * @property {number[]|null} prediction_ids
  * @property {number[]|null} model_ids
- * @property {number[]|null} tag_ids
  * @property {string|null} start_window_date
  * @property {string|null} end_window_date
  * @property {number|null} adm_1
@@ -491,7 +496,6 @@ class Storage {
     data[d] = data[d] || {
       prediction_ids: null,
       model_ids: null,
-      tag_ids: null,
       start_window_date: null,
       end_window_date: null,
       adm_1: null,
@@ -499,9 +503,17 @@ class Storage {
       score: null,
     };
 
-    data[d].prediction_ids = typeof prediction_id !== "undefined" ? [prediction_id] : data[d].prediction_ids || [];
-    data[d].model_ids = typeof model_id !== "undefined" ? [model_id] : data[d].model_ids || [];
-    data[d].tag_ids = data[d].tag_ids || [];
+    if (model_id != null) {
+      data[d].model_ids = [model_id];
+    } else {
+      data[d].model_ids = data[d].model_ids || [];
+    }
+
+    if (prediction_id != null) {
+      data[d].prediction_ids = [prediction_id];
+    } else {
+      data[d].prediction_ids = data[d].prediction_ids || [];
+    }
 
     if (!data[d].start_window_date) data[d].start_window_date = min_window_date;
     if (!data[d].end_window_date) data[d].end_window_date = max_window_date;
@@ -551,17 +563,6 @@ class Storage {
   /** @param {number[]|null} val */
   set model_ids(val) {
     this.data.model_ids = val;
-    this._save();
-  }
-
-  /** @returns {number[]|null} */
-  get tag_ids() {
-    return this.data.tag_ids;
-  }
-
-  /** @param {number[]|null} val */
-  set tag_ids(val) {
-    this.data.tag_ids = val;
     this._save();
   }
 
@@ -622,7 +623,7 @@ class Storage {
 
   /** @returns {number[]|null} */
   static get prediction_ids() {
-    return Storage.current?.prediction_ids ?? null;
+    return Storage.current?.prediction_ids ?? [];
   }
 
   /** @param {number[]|null} val */
@@ -632,22 +633,12 @@ class Storage {
 
   /** @returns {number[]|null} */
   static get model_ids() {
-    return Storage.current?.model_ids ?? null;
+    return Storage.current?.model_ids ?? [];
   }
 
   /** @param {number[]|null} val */
   static set model_ids(val) {
     if (Storage.current) Storage.current.model_ids = val;
-  }
-
-  /** @returns {number[]|null} */
-  static get tag_ids() {
-    return Storage.current?.tag_ids ?? null;
-  }
-
-  /** @param {number[]|null} val */
-  static set tag_ids(val) {
-    if (Storage.current) Storage.current.tag_ids = val;
   }
 
   /** @returns {string|null} */
@@ -705,12 +696,41 @@ class Storage {
 class ADMSelect {
   constructor(dashboard) {
     this.selects = {};
-    this.card = document.querySelector(`#adm-select-${dashboard}`);
+    this.dashboard = dashboard;
+    this.card = document.querySelector(`#adm-select-${dashboard.dashboard}`);
     this.card.querySelectorAll('select').forEach(select => {
       const level = parseInt(select.id.replace('adm', '')[0]);
       this.selects[level] = select;
       select.addEventListener('change', () => ADMSelect.onChange(level, select.value));
     });
+
+    const adm1 = document.getElementById('toggle-state');
+    const adm2 = document.getElementById('toggle-city');
+    const self = this;
+
+    adm1.addEventListener('click', () => {
+      adm1.classList.add('btn-primary');
+      adm1.classList.remove('btn-outline-primary');
+      adm2.classList.remove('btn-primary');
+      adm2.classList.add('btn-outline-primary');
+      self.dashboard.modelList.clear()
+      self.set(1);
+    });
+
+    adm2.addEventListener('click', () => {
+      adm2.classList.add('btn-primary');
+      adm2.classList.remove('btn-outline-primary');
+      adm1.classList.remove('btn-primary');
+      adm1.classList.add('btn-outline-primary');
+      self.dashboard.modelList.clear()
+      self.set(2);
+    });
+
+    if (!Storage.adm_level) {
+      this.set(1);
+    } else {
+      this.set(Storage.adm_level);
+    }
   }
 
   static onChange(level, value) {
@@ -718,10 +738,10 @@ class ADMSelect {
   }
 
   set(level) {
+    Storage.adm_level = level;
     Object.entries(this.selects).forEach(([adm, select]) => {
       adm = parseInt(adm, 10);
       const container = select.closest(`#adm${adm}-select`);
-
       if (!level) {
         container.style.display = (adm === 1) ? 'block' : 'none';
       } else if (level === 0) {
@@ -734,6 +754,7 @@ class ADMSelect {
         container.style.display = 'block';
       }
     });
+    Storage.current.dashboard.modelList.update();
   }
 
   populate(level, options) {
@@ -741,7 +762,6 @@ class ADMSelect {
     if (!select) return;
 
     select.innerHTML = '';
-
     const placeholder = document.createElement('option');
     placeholder.value = '';
     placeholder.textContent = 'Select';
@@ -768,6 +788,25 @@ class ModelList {
     this.models = [];
     this.models_copy = [];
     this.loading(true);
+
+    $(document).on('change', '.checkbox-model', function() {
+      const id = parseInt(this.value, 10);
+      if (this.checked) Model.obj[id]?.select();
+      else Model.obj[id]?.unselect();
+    });
+  }
+
+  update() {
+    this.loading(true);
+    let models = this.dashboard.models;
+    models = this.filter(models, Storage.adm_level);
+    Storage.model_ids.forEach(id => {
+      const model = Model.obj[id];
+      models = model.filter(models);
+    });
+    this.models_copy = [...models];
+    this.list(models);
+    this.loading(false);
   }
 
   loading(isLoading) {
@@ -794,19 +833,10 @@ class ModelList {
       model.author.name.toLowerCase().includes(query.toLowerCase()) ||
       model.author.user.toLowerCase().includes(query.toLowerCase())
     );
-
     this.list(models);
   }
 
-  select(model_id) {
-    const model = this.models.find(m => m.id === model_id);
-    if (model) model.select();
-  }
-
   list(models) {
-    if (!this.models_copy.length) {
-      this.models_copy = [...models];
-    }
     this.models = models;
 
     models.sort((a, b) => {
@@ -835,29 +865,27 @@ class ModelList {
           </thead>
           <tbody>${body}</tbody>
         `);
-
-        $(".checkbox-model").each(function() {
-          const model_id = parseInt($(this).val(), 10);
-          if (Storage.model_ids.includes(model_id)) {
-            $(`.checkbox-model[value="${model_id}"]`).prop("checked", true);
-          }
-        });
-
-        $(".checkbox-model").on("click", function(event) {
-          event.stopPropagation();
-          const model_id = parseInt(event.target.value, 10);
-          if ($(event.target).prop("checked")) {
-            self.select(model_id);
-          } else {
-            self.unselect(model_id);
-          }
-        });
       },
     });
 
     $("input[name='models-search']").off("input").on("input", function() {
       self.model_search(this.value);
     });
+
+  }
+
+  filter(models, adm_level) {
+    if (!adm_level) return models;
+    return models.filter(model => model.adm_level === adm_level);
+  }
+
+  clear() {
+    if (Storage.model_ids.length === 0) return;
+    Storage.model_ids.forEach(id => {
+      Model.obj[id].unselect();
+    });
+    this.dashboard.predictionList.update();
+    this.dashboard.update();
   }
 
   extract_adm1(models) {

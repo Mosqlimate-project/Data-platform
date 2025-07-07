@@ -1,5 +1,4 @@
 import os
-import json
 from pathlib import Path
 from collections import defaultdict
 from hashlib import blake2b
@@ -15,7 +14,7 @@ from django.views import View
 from django.views.decorators.cache import cache_page
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-from registry.models import Model, Prediction, Tag
+from registry.models import Model, Prediction
 from .models import UFs, Macroregion, GeoMacroSaude, ResultsProbForecast
 from .brasil.models import State, City
 from .plots.forecast_map import macro_forecast_map_table
@@ -86,35 +85,11 @@ class PredictionsDashboard(View):
             context["adm_1"] = None
             context["adm_2"] = None
 
-        all_tags = set(
-            Tag.objects.filter(model_tags__sprint=sprint).distinct()
-        )
-        all_tags |= set(
-            Tag.objects.filter(
-                prediction_tags__model__sprint=sprint
-            ).distinct()
-        )
-
         window = Prediction.objects.filter(model__sprint=sprint).aggregate(
             start=models.Min("date_ini_prediction"),
             end=models.Max("date_end_prediction"),
         )
 
-        tags = {}
-        for tag in all_tags:
-            if tag.group not in [
-                "disease",
-                "adm_level",
-                "time_resolution",
-            ]:
-                continue
-            tags[f"{tag.id}"] = {
-                "name": tag.name,
-                "color": tag.color,
-                "group": tag.group or "others",
-            }
-
-        context["tags"] = json.dumps(tags)
         context["dashboard"] = dashboard
         context["min_window_date"] = str(window["start"].date())
         context["max_window_date"] = str(window["end"].date())
@@ -172,16 +147,6 @@ def get_models(request) -> JsonResponse:
         if not model.predictions.first():
             continue
 
-        tags = []
-
-        for tag in model.tags.all():
-            if tag.group in [
-                "disease",
-                "adm_level",
-                "time_resolution",
-            ]:
-                tags.append(tag.id)
-
         if model.adm_level == 1:
             adm_1_list = list(
                 map(
@@ -212,7 +177,6 @@ def get_models(request) -> JsonResponse:
         model_res["disease"] = model.disease
         model_res["adm_level"] = model.adm_level
         model_res["time_resolution"] = model.time_resolution
-        model_res["tags"] = tags
         model_res["name"] = model.name
         model_res["updated"] = model.updated.date()
         model_res["description"] = model.description
@@ -242,7 +206,6 @@ def get_predictions(request) -> JsonResponse:
         p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
-        p_res["tags"] = list(p.tags.all().values_list("id", flat=True))
         p_res["scores"] = p.scores
         p_res["color"] = p.color
         res.append(p_res)
