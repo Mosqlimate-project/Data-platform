@@ -217,8 +217,8 @@ class Model {
     selected_models.add(this.id);
     Storage.model_ids = Array.from(selected_models);
 
-    Storage.current.dashboard.modelList.update();
-    Storage.current.dashboard.predictionList.update();
+    Storage.current.dashboard.modelList?.update();
+    Storage.current.dashboard.predictionList?.update();
     // Storage.current.dashboard.update();
   }
 
@@ -230,8 +230,13 @@ class Model {
     selected_models.delete(this.id);
     Storage.model_ids = Array.from(selected_models);
 
-    Storage.current.dashboard.modelList.update();
-    Storage.current.dashboard.predictionList.update();
+    if (selected_models.length === 0) {
+      Storage.adm_1 = null;
+      Storage.adm_2 = null;
+    }
+
+    Storage.current.dashboard.modelList?.update();
+    Storage.current.dashboard.predictionList?.update();
     // Storage.current.dashboard.update();
   }
 }
@@ -245,12 +250,13 @@ class Dashboard {
 
     this.fetch().then(models => {
       this.models = models;
+      this.admSelect = new ADMSelect(this);
       this.lineChart = new LineChart('chart');
       this.modelList = new ModelList(this);
       this.predictionList = new PredictionList(this);
-      this.admSelect = new ADMSelect(this);
 
       Storage.model_ids.forEach(id => Model.obj[id].select());
+      this.modelList.update();
     });
 
 
@@ -427,40 +433,6 @@ class Dashboard {
   set_date_range(start, end) {
     $("#date-picker").dateRangeSlider("values", new Date(start), new Date(end));
   }
-
-  clear_adm_level() {
-    const self = this;
-
-    $("#adm1-filter").empty()
-    $('#adm1-filter').append($('<option>', {
-      value: "",
-      text: "Select a State",
-      selected: true,
-      disabled: true,
-    }));
-
-    const adm1List = this.modelList.extract_adm1(this.modelList.models);
-
-    adm1List.forEach(([code, name]) => {
-      $('#adm1-filter').append($('<option>', {
-        value: code,
-        text: name,
-        selected: false
-      }));
-    });
-
-    $("#adm1-filter").off("change").on("change", function() {
-      const adm1 = $(this).val();
-      if (!adm1 || adm1 === "") {
-        Storage.adm_1 = null;
-        self.modelList.list(self.models);
-      } else {
-        Storage.adm_1 = parseInt(adm1);
-        const models = self.models.filter(model => model.adm_1_list.includes(parseInt(adm1)));
-        self.modelList.list(models);
-      }
-    });
-  }
 }
 
 
@@ -597,6 +569,7 @@ class Storage {
   set adm_1(val) {
     this.data.adm_1 = val;
     this._save();
+    this.dashboard.modelList.update();
   }
 
   /** @returns {number|null} */
@@ -709,6 +682,7 @@ class ADMSelect {
     const self = this;
 
     adm1.addEventListener('click', () => {
+      if (adm1.classList.contains('btn-primary')) return;
       adm1.classList.add('btn-primary');
       adm1.classList.remove('btn-outline-primary');
       adm2.classList.remove('btn-primary');
@@ -718,6 +692,7 @@ class ADMSelect {
     });
 
     adm2.addEventListener('click', () => {
+      if (adm2.classList.contains('btn-primary')) return;
       adm2.classList.add('btn-primary');
       adm2.classList.remove('btn-outline-primary');
       adm1.classList.remove('btn-primary');
@@ -734,7 +709,12 @@ class ADMSelect {
   }
 
   static onChange(level, value) {
-    console.log(`Level ${level} changed to: ${value}`);
+    if (level === 1 && parseInt(value) !== Storage.adm_1) {
+      Storage.adm_1 = parseInt(value);
+    }
+    if (level === 2 && parseInt(value) !== Storage.adm_2) {
+      Storage.adm_2 = parseInt(value);
+    }
   }
 
   set(level) {
@@ -754,11 +734,12 @@ class ADMSelect {
         container.style.display = 'block';
       }
     });
-    Storage.current.dashboard.modelList.update();
+    Storage.current.dashboard.modelList?.update();
   }
 
   populate(level, options) {
     const select = this.selects[level];
+    const self = this;
     if (!select) return;
 
     select.innerHTML = '';
@@ -766,14 +747,21 @@ class ADMSelect {
     placeholder.value = '';
     placeholder.textContent = 'Select';
     placeholder.disabled = true;
-    placeholder.selected = true;
+    placeholder.selected = Storage.adm_1 == null && Storage.adm_2 == null;
     select.appendChild(placeholder);
 
-    options.forEach(opt => {
-      const optionEl = document.createElement('option');
-      optionEl.value = opt.value;
-      optionEl.textContent = opt.label;
-      select.appendChild(optionEl);
+    Object.entries(options).forEach(([value, label]) => {
+      const option = Object.assign(document.createElement('option'), {
+        value,
+        textContent: label
+      });
+      if (Storage.adm_level === 1) {
+        if (value === Storage.adm_1) {
+          option.selected = true;
+        }
+
+      }
+      select.appendChild(option);
     });
   }
 }
@@ -789,10 +777,16 @@ class ModelList {
     this.models_copy = [];
     this.loading(true);
 
+    const self = this;
+
     $(document).on('change', '.checkbox-model', function() {
       const id = parseInt(this.value, 10);
       if (this.checked) Model.obj[id]?.select();
       else Model.obj[id]?.unselect();
+    });
+
+    $("#models-clear-all").on("click", function() {
+      self.clear()
     });
   }
 
@@ -838,6 +832,7 @@ class ModelList {
 
   list(models) {
     this.models = models;
+    this.dashboard.admSelect.populate(1, this.extract_adm1(models));
 
     models.sort((a, b) => {
       const aChecked = Storage.model_ids.includes(a.id);
@@ -874,9 +869,16 @@ class ModelList {
 
   }
 
-  filter(models, adm_level) {
+  filter(models, adm_level, adm1 = null, adm2 = null) {
     if (!adm_level) return models;
-    return models.filter(model => model.adm_level === adm_level);
+    models = models.filter(model => model.adm_level === adm_level)
+    if (adm1) {
+      models = models.filter(model => model.adm_1_list.includes(adm1));
+    }
+    if (adm2) {
+      models = models.filter(model => model.adm_2_list.includes(adm2));
+    }
+    return models;
   }
 
   clear() {
@@ -884,14 +886,12 @@ class ModelList {
     Storage.model_ids.forEach(id => {
       Model.obj[id].unselect();
     });
-    this.dashboard.predictionList.update();
-    this.dashboard.update();
   }
 
   extract_adm1(models) {
     let adm1List = [...new Set(models.flatMap(model => model.adm_1_list))];
     const adm1Names = get_adm_names(1, adm1List);
-    return adm1List.map(value => [value, adm1Names[value]]);
+    return Object.fromEntries(adm1List.map(value => [value, adm1Names[value]]));
   }
 }
 

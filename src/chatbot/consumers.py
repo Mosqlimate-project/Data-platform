@@ -78,9 +78,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             result = await sync_to_async(generate_bot_answer.delay)(question)
             answer = result.get(timeout=30)
             await self.save_message("bot", answer)
+            message = markdown.markdown(answer)
             await self.send(
                 text_data=json.dumps(
-                    {"text": {"msg": answer, "source": "bot"}}
+                    {"text": {"msg": message, "source": "bot"}}
                 )
             )
         except asyncio.TimeoutError:

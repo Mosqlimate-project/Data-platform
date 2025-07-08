@@ -32,12 +32,6 @@ function initChatbot(sessionKey) {
     chatLog.scrollTop = chatLog.scrollHeight;
   }
 
-  function escapeHTML(str) {
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
-
   function disableInput() {
     chatMessageInput.disabled = true;
     chatMessageSubmit.disabled = true;
