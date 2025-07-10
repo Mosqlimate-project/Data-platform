@@ -14,7 +14,13 @@
       </div>
     </div>
 
-    <div id=adm-select-{{dashboard}} class="row gy-3">
+    <div id=params-select class="row gy-3">
+      <div id="disease-select" class="col-3">
+        <div class="d-flex flex-column">
+          <span class="text-muted mb-1">{% trans "Disease" %}:</span>
+          <select id="disease-filter" class="form-select form-select-sm" style="text-transform:capitalize;"></select>
+        </div>
+      </div>
       <div id="adm0-select" class="col">
         <div class="d-flex flex-column">
           <span class="text-muted mb-1">{% trans "Country" %}:</span>
@@ -24,9 +30,7 @@
       <div id="adm1-select" class="col-3">
         <div class="d-flex flex-column">
           <span class="text-muted mb-1">{% trans "State" %}:</span>
-          <select id="adm1-filter" class="form-select form-select-sm">
-            <option value="" disabled selected>{% trans "Select a state" %}</option>
-          </select>
+          <select id="adm1-filter" class="form-select form-select-sm"></select>
         </div>
       </div>
       <div id="adm2-select" class="col">
@@ -54,13 +58,13 @@
 </div>
 
 <div class="row">
-  <div class="col-md-6">
-    <div id="models-card" class="card">
+  <div class="col">
+    <div id="predictions-card" class="card">
       <div class="card-header">
-        <h3 class="card-title">Models</h3>
+        <h3 class="card-title">Predictions</h3>
         <div class="card-tools">
-          <div class="input-group input-group-sm" style="width: 200px;">
-            <input type="text" name="models-search" class="form-control float-right" placeholder="Search">
+          <div class="input-group input-group-sm" style="width: 300px;">
+            <input type="text" name="predictions-search" class="form-control float-right" placeholder="Search">
 
             <div class="input-group-append">
               <button type="submit" class="btn btn-default">
@@ -68,31 +72,6 @@
               </button>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="card-body" style="margin:0;padding:0;">
-        <table id="models-list" class="table table-bordered table-hover">
-        </table>
-      </div>
-      <div class="card-footer clearfix">
-        <div class="row">
-          <div class="col">
-            <button id="models-clear-all" type="button" class="btn btn-tool">{% trans "Clear" %}</button>
-          </div>
-          <div class="col">
-            <ul id="models-pagination" class="pagination pagination-sm m-0 float-right"></ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="col-md-6">
-    <div id="predictions-card" class="card">
-      <div class="card-header">
-        <h3 class="card-title">Predictions</h3>
-        <div class="card-tools d-flex align-items-center">
         </div>
       </div>
       <div class="card-body" style="margin:0;padding:0;">
@@ -146,14 +125,14 @@
 <script>
   const dashboard = `{{ dashboard }}`;
 
-  {% if prediction_id %}
-  const prediction_id = {{ prediction_id }};
-  const model_id = {{ model_id }};
+  {% if prediction %}
+  const prediction = {{ prediction|safe }};
   {% else %}
-  const prediction_id = null;
-  const model_id = null;
+  const prediction = null;
   {% endif %}
 
+  const diseases = {{ diseases|safe }};
+  const adm_list = {{ adm_list|safe }};
   const min_window_date = `{{ min_window_date }}`;
   const max_window_date = `{{ max_window_date }}`;
   const watermark = `{% static 'img/logo-mosqlimate.png' %}`

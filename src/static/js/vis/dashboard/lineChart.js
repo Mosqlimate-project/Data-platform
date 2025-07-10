@@ -276,7 +276,7 @@ class LineChart {
     if (!hasBounds) {
       function getBoundData(bound) {
         return self.option.xAxis.data.map((label) => {
-          const i = pred.labels.indexOf(label);
+          const i = pred.chart.labels.indexOf(label);
           return i !== -1 ? pred[bound][i] : NaN;
         })
       }
@@ -339,8 +339,8 @@ class LineChart {
   _addNewPrediction(prediction) {
     const id = `${prediction.id}`;
     const pdata = this.option.xAxis.data.map((label) => {
-      const i = prediction.labels.indexOf(label);
-      return i !== -1 ? prediction.data[i] : NaN;
+      const i = prediction.chart.labels.indexOf(label);
+      return i !== -1 ? prediction.chart.data[i] : NaN;
     });
 
     this.predictions[id] = prediction;
@@ -378,8 +378,8 @@ class LineChart {
 
     function getData(param) {
       return self.option.xAxis.data.map((label) => {
-        const i = prediction.labels.indexOf(label);
-        return i !== -1 ? prediction[param][i] : NaN;
+        const i = prediction.chart.labels.indexOf(label);
+        return i !== -1 ? prediction.chart[param][i] : NaN;
       })
     }
 
@@ -432,7 +432,7 @@ class LineChart {
           left: 'center',
           top: 'middle',
           style: {
-            text: 'Select Model and Predictions to be visualized',
+            text: 'Select Predictions to be visualized',
             fontSize: 20,
             fontWeight: 'bold',
             fill: '#999',

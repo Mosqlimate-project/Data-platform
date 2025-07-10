@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from collections import defaultdict
@@ -57,33 +58,62 @@ class PredictionsDashboard(View):
 
     def get(self, request):
         dashboard = request.GET.get("dashboard", "predictions")
-        model_id = request.GET.get("model_id", -1)
         prediction_id = request.GET.get("prediction_id", -1)
         sprint = dashboard == "sprint"
         context = {}
+        adm_list = {}
 
-        context["adm_1"] = None
-        context["adm_2"] = None
-
-        try:
-            model = Model.objects.get(pk=model_id, sprint=sprint)
-            context["model_id"] = model.id
-        except Model.DoesNotExist:
-            context["model_id"] = None
+        adm_list[1] = list(
+            map(
+                int,
+                Prediction.objects.filter(
+                    model__sprint=sprint, model__adm_level=1
+                )
+                .exclude(adm_1=None)
+                .values_list("adm_1__geocode", flat=True)
+                .distinct(),
+            )
+        )
+        adm_list[2] = list(
+            map(
+                int,
+                Prediction.objects.filter(
+                    model__sprint=sprint, model__adm_level=2
+                )
+                .exclude(adm_2=None)
+                .values_list("adm_2__geocode", flat=True)
+                .distinct(),
+            )
+        )
 
         try:
             p = Prediction.objects.get(pk=prediction_id, model__sprint=sprint)
-            context["model_id"] = p.model.id
-            context["prediction_id"] = p.id
-            context["adm_1"] = (
-                p.adm_1.geocode if p.adm_1 else p.adm_2.state.geocode
-            )
-            context["adm_2"] = p.adm_2.geocode if p.adm_2 else None
+            prediction = {
+                "id": p.id,
+                "model": p.model.id,
+                "description": p.description,
+                "disease": p.model.disease,
+                "time_resolution": p.model.time_resolution,
+                "adm_level": p.model.adm_level,
+                "adm_1": (
+                    int(p.adm_1.geocode) if p.adm_1 else p.adm_2.state.geocode
+                ),
+                "adm_2": int(p.adm_2.geocode) if p.adm_2 else None,
+                "start_date": str(p.date_ini_prediction.date()),
+                "end_date": str(p.date_end_prediction.date()),
+                "year": p.data.first().date.year if p.data.exists() else None,
+                "scores": p.scores,
+                "color": p.color,
+            }
         except Prediction.DoesNotExist:
-            context["model_id"] = None
-            context["prediction_id"] = None
-            context["adm_1"] = None
-            context["adm_2"] = None
+            prediction = None
+
+        diseases = list(
+            Model.objects.all()
+            .filter(sprint=sprint)
+            .values_list("disease", flat=True)
+            .distinct()
+        )
 
         window = Prediction.objects.filter(model__sprint=sprint).aggregate(
             start=models.Min("date_ini_prediction"),
@@ -91,6 +121,9 @@ class PredictionsDashboard(View):
         )
 
         context["dashboard"] = dashboard
+        context["diseases"] = diseases
+        context["prediction"] = json.dumps(prediction)
+        context["adm_list"] = json.dumps(adm_list)
         context["min_window_date"] = str(window["start"].date())
         context["max_window_date"] = str(window["end"].date())
 
@@ -136,73 +169,31 @@ def get_hist_alerta_data(request) -> JsonResponse:
     return JsonResponse(res)
 
 
-@cache_page(60 * 120, key_prefix="get_models")
-def get_models(request) -> JsonResponse:
-    sprint = request.GET.get("dashboard", "predictions") == "sprint"
-    models = Model.objects.filter(sprint=sprint).order_by("-updated")
-    context = {}
-
-    res = []
-    for model in models:
-        if not model.predictions.first():
-            continue
-
-        if model.adm_level == 1:
-            adm_1_list = list(
-                map(
-                    int,
-                    model.predictions.all()
-                    .values_list("adm_1__geocode", flat=True)
-                    .distinct(),
-                )
-            )
-            adm_2_list = []
-        elif model.adm_level == 2:
-            adm_1_list = list(
-                {
-                    int(p.adm_2.state.geocode)
-                    for p in model.predictions.select_related("adm_2")
-                    if p.adm_2 and p.adm_2.state
-                }
-            )
-            adm_2_list = list(
-                {
-                    int(p.adm_2.geocode)
-                    for p in model.predictions.select_related("adm_2")
-                    if p.adm_2 and p.adm_2.state
-                }
-            )
-        else:
-            continue
-
-        model_res = {}
-        model_res["id"] = model.id
-        model_res["author"] = {
-            "name": model.author.user.name,
-            "user": model.author.user.username,
-        }
-        model_res["adm_1_list"] = adm_1_list
-        model_res["adm_2_list"] = adm_2_list
-        model_res["disease"] = model.disease
-        model_res["adm_level"] = model.adm_level
-        model_res["time_resolution"] = model.time_resolution
-        model_res["name"] = model.name
-        model_res["updated"] = model.updated.date()
-        model_res["description"] = model.description
-        res.append(model_res)
-
-    context["items"] = res
-    return JsonResponse(context)
-
-
 @cache_page(60 * 5, key_prefix="get_predictions")
 def get_predictions(request) -> JsonResponse:
-    model_ids = request.GET.getlist("model_id")
+    sprint = request.GET.get("dashboard", "predictions") == "sprint"
+    disease = request.GET.get("disease", None)
+    adm_level = request.GET.get("adm_level", None)
+    adm_1 = request.GET.get("adm_1", None)
+    adm_2 = request.GET.get("adm_2", None)
 
-    if not model_ids:
+    if not disease:
         return JsonResponse({"items": []}, status=200)
 
-    predictions = Prediction.objects.filter(model__id__in=model_ids).distinct()
+    predictions = Prediction.objects.filter(
+        model__sprint=sprint, model__disease=disease
+    ).distinct()
+
+    if adm_level:
+        adm_level = int(adm_level)
+        predictions = predictions.filter(model__adm_level=adm_level)
+
+    if adm_level == 1 and adm_1:
+        predictions = predictions.filter(adm_1__geocode=adm_1)
+
+    if adm_level == 2 and adm_2:
+        predictions = predictions.filter(adm_2__geocode=adm_2)
+
     context = {}
     res = []
 
@@ -211,36 +202,38 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
+        p_res["disease"] = p.model.disease
+        p_res["time_resolution"] = p.model.time_resolution
+        p_res["adm_level"] = p.model.adm_level
         p_res["adm_1"] = p.adm_1.geocode if p.adm_1 else p.adm_2.state.geocode
         p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
+        p_res["year"] = p.data.first().date.year
         p_res["scores"] = p.scores
         p_res["color"] = p.color
+
+        df = p.to_dataframe()
+
+        chart = {
+            "labels": df["date"].tolist(),
+            "data": list(map(round, df["pred"].tolist())),
+            "upper_50": list(
+                map(lambda x: round(x) if x else x, df["upper_50"].tolist())
+            ),
+            "upper_90": list(map(round, df["upper_90"].tolist())),
+            "lower_50": list(
+                map(lambda x: round(x) if x else x, df["lower_50"].tolist())
+            ),
+            "lower_90": list(map(round, df["lower_90"].tolist())),
+        }
+
+        p_res["chart"] = chart
+
         res.append(p_res)
 
     context["items"] = res
     return JsonResponse(context)
-
-
-@cache_page(60 * 5, key_prefix="get_prediction_data")
-def get_prediction_data(request) -> JsonResponse:
-    prediction_id = request.GET.getlist("prediction_id")
-    prediction = Prediction.objects.get(pk=prediction_id)
-    df = prediction.to_dataframe()
-    chart = {
-        "labels": df["date"].tolist(),
-        "data": list(map(round, df["pred"].tolist())),
-        "upper_50": list(
-            map(lambda x: round(x) if x else x, df["upper_50"].tolist())
-        ),
-        "upper_90": list(map(round, df["upper_90"].tolist())),
-        "lower_50": list(
-            map(lambda x: round(x) if x else x, df["lower_50"].tolist())
-        ),
-        "lower_90": list(map(round, df["lower_90"].tolist())),
-    }
-    return JsonResponse({"id": prediction_id, "data": chart})
 
 
 @cache_page(60 * 120)
