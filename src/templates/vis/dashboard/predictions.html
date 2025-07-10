@@ -154,18 +154,6 @@
   const model_id = null;
   {% endif %}
 
-  {% if adm_1 %}
-  const adm_1_v = {{ adm_1 }};
-  {% else %}
-  const adm_1_v = null;
-  {% endif %}
-
-  {% if adm_2 %}
-  const adm_2_v = {{ adm_2 }};
-  {% else %}
-  const adm_2_v = null;
-  {% endif %}
-
   const min_window_date = `{{ min_window_date }}`;
   const max_window_date = `{{ max_window_date }}`;
   const watermark = `{% static 'img/logo-mosqlimate.png' %}`
