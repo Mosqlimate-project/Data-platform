@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-25 15:56-0300\n"
+"POT-Creation-Date: 2025-07-10 10:42-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,13 +123,13 @@ msgstr "Nacional"
 
 #: registry/models.py:176 templates/datastore/components/mosquito.html:35
 #: templates/vis/dashboard-forecast-map.html:86
-#: templates/vis/dashboard/predictions.html:19 vis/plots/forecast_map.py:329
+#: templates/vis/dashboard/predictions.html:32 vis/plots/forecast_map.py:329
 #: vis/templatetags/filters.py:46 vis/templatetags/filters.py:53
 msgid "State"
 msgstr "Estado"
 
 #: registry/models.py:177 templates/datastore/components/mosquito.html:48
-#: templates/vis/dashboard/predictions.html:27 vis/templatetags/filters.py:47
+#: templates/vis/dashboard/predictions.html:38 vis/templatetags/filters.py:47
 msgid "Municipality"
 msgstr "Município"
 
@@ -184,9 +184,9 @@ msgid ""
 "been extracted for all brazilian municipalities from the satellite-based "
 "reanalysis data provided by"
 msgstr ""
-"Por meio deste endpoint da API, você pode obter diversas variáveis climáticas "
-"que foram extraídas para todos os municípios brasileiros a partir dos dados de "
-"reanálise baseados em satélite fornecidos pela"
+"Por meio deste endpoint da API, você pode obter diversas variáveis "
+"climáticas que foram extraídas para todos os municípios brasileiros a partir "
+"dos dados de reanálise baseados em satélite fornecidos pela"
 
 #: templates/datastore/components/climate.html:7
 msgid "These series are on a daily timescale. Access the dataset documentation"
@@ -266,9 +266,9 @@ msgid ""
 "Brazilian municipalities on a weekly time scale. Access the dataset "
 "documentation"
 msgstr ""
-", que fornece várias variáveis epidemiológicas para todos os "
-"municípios brasileiros em uma escala de tempo semanal. Acesse a "
-"documentação do conjunto de dados"
+", que fornece várias variáveis epidemiológicas para todos os municípios "
+"brasileiros em uma escala de tempo semanal. Acesse a documentação do "
+"conjunto de dados"
 
 #: templates/datastore/components/mosquito.html:8
 msgid "This endpoint is a redirect to the"
@@ -284,9 +284,10 @@ msgid ""
 "distributed throughout Brasil according to a monitoring design specified by "
 "the Ministry of Health. Access the dataset documentation"
 msgstr ""
-"co-desenvolvido pelo projeto Mosqlimate. Esses dados são baseados em armadilhas de ovos "
-"distribuídas por todo o Brasil, de acordo com um plano de monitoramento especificado pelo "
-"Ministério da Saúde. Acesse a documentação do conjunto de dados"
+"co-desenvolvido pelo projeto Mosqlimate. Esses dados são baseados em "
+"armadilhas de ovos distribuídas por todo o Brasil, de acordo com um plano de "
+"monitoramento especificado pelo Ministério da Saúde. Acesse a documentação "
+"do conjunto de dados"
 
 #: templates/datastore/components/mosquito.html:24
 #: templates/main/models.html:154 templates/main/predictions.html:157
@@ -582,6 +583,7 @@ msgid "Github Repository"
 msgstr "Repositório Github"
 
 #: templates/main/models.html:101 templates/main/predictions.html:104
+#: templates/vis/dashboard/predictions.html:84
 msgid "Clear"
 msgstr "Limpar"
 
@@ -661,17 +663,17 @@ msgid "Show Table"
 msgstr "Mostrar Tabela"
 
 #: templates/registry/prediction.html:86
-#: templates/vis/dashboard/predictions.html:123
+#: templates/vis/dashboard/predictions.html:103
 msgid "Welcome to Mosqlimate Predictions Dashboard"
 msgstr "Bem-vindo ao Painel de Previsões Mosqlimate"
 
 #: templates/registry/prediction.html:91
-#: templates/vis/dashboard/predictions.html:128
+#: templates/vis/dashboard/predictions.html:108
 msgid "Confidence Interval"
 msgstr "Intervalo de Confiança"
 
 #: templates/registry/prediction.html:92
-#: templates/vis/dashboard/predictions.html:129
+#: templates/vis/dashboard/predictions.html:109
 msgid ""
 "To toggle the Prediction's Confidence Interval bounds of the in the chart, "
 "click in the Prediction's legend"
@@ -680,17 +682,17 @@ msgstr ""
 "clique na legenda da Previsão"
 
 #: templates/registry/prediction.html:95
-#: templates/vis/dashboard/predictions.html:131
+#: templates/vis/dashboard/predictions.html:111
 msgid " or line"
 msgstr " ou linha"
 
 #: templates/registry/prediction.html:100
-#: templates/vis/dashboard/predictions.html:136
+#: templates/vis/dashboard/predictions.html:116
 msgid "Interval Bounds"
 msgstr "Limites do Intervalo"
 
 #: templates/registry/prediction.html:101
-#: templates/vis/dashboard/predictions.html:137
+#: templates/vis/dashboard/predictions.html:117
 #, python-format
 msgid ""
 "When the Confidence Interval is active, the Prediction will display the 50%% "
@@ -758,7 +760,7 @@ msgid "Top 20 endpoints"
 msgstr ""
 
 #: templates/users/report/api.html:61
-msgid "Another Chart"
+msgid "Requests by UF"
 msgstr ""
 
 #: templates/vis/charts/prediction-table.html:16
@@ -814,15 +816,29 @@ msgstr "Selecione a doença, data e região para gerar a visualização"
 msgid "Select a date"
 msgstr "Selecione uma data"
 
+#: templates/vis/dashboard/predictions.html:12
+#, fuzzy
+#| msgid "State"
+msgid "Statewide"
+msgstr "Estadual"
+
 #: templates/vis/dashboard/predictions.html:13
+#, fuzzy
+#| msgid "Municipality"
+msgid "Municipal"
+msgstr "Municipal"
+
+#: templates/vis/dashboard/predictions.html:20
+#, fuzzy
+#| msgid "Disease"
+msgid "Disease "
+msgstr "Agravo"
+
+#: templates/vis/dashboard/predictions.html:26
 msgid "Country"
 msgstr "País"
 
-#: templates/vis/dashboard/predictions.html:21
-msgid "Select a state"
-msgstr "Selecione um estado"
-
-#: templates/vis/dashboard/predictions.html:33
+#: templates/vis/dashboard/predictions.html:44
 msgid "Sub-Municipality"
 msgstr "Sub-Município"
 
@@ -897,3 +913,6 @@ msgstr "Limite de Alta Incidência (100k)"
 #: vis/templatetags/filters.py:54
 msgid "Macro Health"
 msgstr "Macro Saúde"
+
+#~ msgid "Select a state"
+#~ msgstr "Selecione um estado"

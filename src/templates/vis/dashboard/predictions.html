@@ -17,7 +17,7 @@
     <div id=params-select class="row gy-3">
       <div id="disease-select" class="col-3">
         <div class="d-flex flex-column">
-          <span class="text-muted mb-1">{% trans "Disease" %}:</span>
+          <span class="text-muted mb-1">{% trans "Disease " %}:</span>
           <select id="disease-filter" class="form-select form-select-sm" style="text-transform:capitalize;"></select>
         </div>
       </div>
@@ -53,7 +53,6 @@
   <div id="chart-card" class="card-body">
     <i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal"></i>
     <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
-    <div id="date-picker"></div>
   </div>
 </div>
 
@@ -179,18 +178,6 @@
 	100% {
 		transform: translateX(-50%) translatey(0px);
 	}
-}
-
-.ui-rangeSlider,
-.ui-rangeSlider-container,
-.ui-rangeSlider-bar,
-.ui-rangeSlider-handle,
-.ui-rangeSlider-leftHandle,
-.ui-rangeSlider-rightHandle,
-.ui-rangeSlider-arrow,
-.ui-rangeSlider-rightArrow,
-.ui-rangeSlider-leftArrow {
-  height: 20px;
 }
 
 </style>

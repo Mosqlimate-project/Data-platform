@@ -104,6 +104,18 @@ class LineChart {
           z: 10,
           id: 'watermark'
         }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          throttle: 50
+        },
+        {
+          type: 'slider',
+          show: true,
+          bottom: 7,
+          height: 30,
+        }
       ]
     };
 
@@ -145,7 +157,6 @@ class LineChart {
 
     $('[data-widget="pushmenu"]').on('click', function() {
       setTimeout(() => {
-        $(`#date-picker`).dateRangeSlider("resize");
         self.resize();
       }, 350)
     });
@@ -277,7 +288,7 @@ class LineChart {
       function getBoundData(bound) {
         return self.option.xAxis.data.map((label) => {
           const i = pred.chart.labels.indexOf(label);
-          return i !== -1 ? pred[bound][i] : NaN;
+          return i !== -1 ? pred.chart[bound][i] : NaN;
         })
       }
 
@@ -335,6 +346,51 @@ class LineChart {
 
     this.chart.setOption(this.option, true);
   }
+
+  zoom(start, end) {
+    const xData = this.option.xAxis.data
+
+    const findClosestIndex = (target) => {
+      const targetTime = new Date(target).getTime()
+      let closestIndex = 0
+      let minDiff = Infinity
+
+      for (let i = 0; i < xData.length; i++) {
+        const time = new Date(xData[i]).getTime()
+        const diff = Math.abs(time - targetTime)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestIndex = i
+        }
+      }
+
+      return closestIndex
+    }
+
+    const startIndex =
+      typeof start === 'string'
+        ? xData.indexOf(start) !== -1
+          ? xData.indexOf(start)
+          : findClosestIndex(start)
+        : start
+
+    const endIndex =
+      typeof end === 'string'
+        ? xData.indexOf(end) !== -1
+          ? xData.indexOf(end)
+          : findClosestIndex(end)
+        : end
+
+    console.log(start, startIndex, xData)
+    console.log(end, endIndex)
+
+    this.chart.dispatchAction({
+      type: 'dataZoom',
+      startValue: startIndex,
+      endValue: endIndex
+    })
+  }
+
 
   _addNewPrediction(prediction) {
     const id = `${prediction.id}`;

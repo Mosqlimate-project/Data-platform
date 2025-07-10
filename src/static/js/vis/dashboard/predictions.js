@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+function formatDate(date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function get_adm_names(admLevel, geocodes) {
   const params = new URLSearchParams();
@@ -105,7 +111,6 @@ class Prediction {
 
 class Dashboard {
   constructor(dashboard) {
-    const self = this;
     this.dashboard = dashboard;
     new Storage(this);
 
@@ -114,28 +119,6 @@ class Dashboard {
     this.predictionList = new PredictionList(this);
     this.update();
     this.predictionList.update();
-
-    $(`#date-picker`).dateRangeSlider({
-      bounds: {
-        min: new Date(min_window_date),
-        max: new Date(max_window_date),
-      },
-      defaultValues: {
-        min: new Date(Storage.start_window_date),
-        max: new Date(Storage.end_window_date),
-      },
-      range: {
-        min: { days: 90 },
-      },
-    });
-
-    $(`#date-picker`).bind("valuesChanged", function(e, data) {
-      const start = data.values.min.toISOString().split('T')[0];
-      const end = data.values.max.toISOString().split('T')[0];
-      Storage.start_window_date = start;
-      Storage.end_window_date = end;
-      self.update();
-    });
   }
 
   has_changed(vals) {
@@ -626,13 +609,13 @@ class ADMSelect {
   static onChange(obj, level, value) {
     if (level === 1 && parseInt(value) !== Storage.adm_1) {
       Storage.adm_1 = parseInt(value);
-      Storage.current.dashboard.update();
       if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
+      obj.dashboard.update();
       obj.dashboard.predictionList?.update();
     }
     if (level === 2 && parseInt(value) !== Storage.adm_2) {
       Storage.adm_2 = parseInt(value);
-      Storage.current.dashboard.update();
+      obj.dashboard.update();
       obj.dashboard.predictionList?.update();
     }
   }
@@ -692,6 +675,9 @@ class ADMSelect {
     Object.entries(options)
       .sort((a, b) => a[1].localeCompare(b[1]))
       .forEach(([value, label]) => {
+        if (level === 2 && !String(value).startsWith(String(Storage.adm_1))) {
+          return
+        }
         const option = Object.assign(document.createElement('option'), {
           value,
           textContent: label
@@ -699,9 +685,6 @@ class ADMSelect {
         if (value == Storage.adm_1 || value == Storage.adm_2) {
           option.selected = true;
           hasOpt = true;
-        }
-        if (level === 2 && !String(value).startsWith(String(Storage.adm_1))) {
-          return
         }
         select.appendChild(option);
       });
@@ -721,7 +704,7 @@ class PredictionList {
     this.dashboard = dashboard;
     this.predictions = [];
     this.sort_by = "score";
-    this.sort_direction = "desc"
+    this.sort_direction = "asc";
 
     $("#predictions-clear-all").on("click", function() {
       this.clear()
@@ -878,8 +861,8 @@ class PredictionList {
   }
 
   get_min_max_dates(predictions) {
-    const min = new Date(Math.min(...predictions.map(prediction => new Date(prediction.start_date))));
-    const max = new Date(Math.max(...predictions.map(prediction => new Date(prediction.end_date))));
+    const min = new Date(Math.min(...predictions.map(p => new Date(p.start_date))));
+    const max = new Date(Math.max(...predictions.map(p => new Date(p.end_date))));
     return [min, max]
   }
 
@@ -892,7 +875,7 @@ class PredictionList {
     } else {
       [minDate, maxDate] = this.get_min_max_dates(this.predictions);
     }
-    $("#date-picker").dateRangeSlider("values", minDate, maxDate);
+    this.dashboard.lineChart.zoom(formatDate(minDate), formatDate(maxDate));
   }
 
   set_score(score) {
