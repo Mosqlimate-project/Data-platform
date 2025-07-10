@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import markdown
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -51,7 +52,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
         for message in messages:
-            msg = {"msg": message.content, "source": message.sender}
+            msg = {
+                "msg": markdown.markdown(message.content),
+                "source": message.sender,
+            }
             await self.send(text_data=json.dumps({"text": msg}))
 
     async def receive(self, text_data):
@@ -71,13 +75,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.save_message("user", question)
 
         try:
-            answer = await asyncio.wait_for(
-                self.generate_answer(question), timeout=30
-            )
+            result = await sync_to_async(generate_bot_answer.delay)(question)
+            answer = result.get(timeout=30)
             await self.save_message("bot", answer)
+            message = markdown.markdown(answer)
             await self.send(
                 text_data=json.dumps(
-                    {"text": {"msg": answer, "source": "bot"}}
+                    {"text": {"msg": message, "source": "bot"}}
                 )
             )
         except asyncio.TimeoutError:
