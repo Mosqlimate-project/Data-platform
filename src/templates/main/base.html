@@ -34,14 +34,12 @@
 
     <div style="margin-bottom: 100px;"></div>
 
-    {% if request.user.is_staff %}
     {% chatbot session_key %}
 
     <script src="{% static 'js/chatbot/chat.js' %}"></script>
     <script>
       initChatbot("{{ session_key }}");
     </script>
-    {% endif %}
 
     {% include 'main/components/footer.html' %}
     <!-- Google tag (gtag.js) -->

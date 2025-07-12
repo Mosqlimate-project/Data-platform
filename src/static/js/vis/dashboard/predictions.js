@@ -91,7 +91,7 @@ class Prediction {
     Storage.prediction_ids = Array.from(prediction_ids);
 
     Storage.current.dashboard.lineChart.addPrediction(this)
-    Storage.current.dashboard.predictionList.update_date_slider();
+    // Storage.current.dashboard.predictionList.update_date_slider();
   }
 
   unselect() {
@@ -105,7 +105,7 @@ class Prediction {
     Storage.prediction_ids = Array.from(prediction_ids);
 
     Storage.current.dashboard.lineChart.removePrediction(this.id);
-    Storage.current.dashboard.predictionList.update_date_slider();
+    // Storage.current.dashboard.predictionList.update_date_slider();
   }
 }
 
@@ -750,7 +750,7 @@ class PredictionList {
     })
   }
 
-  list(sort_by = this.sort_by, sort_direction = this.sort_direction) {
+  list(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false) {
     if (this.predictions.length === 0) {
       this.paginate([]);
       return
@@ -763,6 +763,10 @@ class PredictionList {
     })
 
     this.paginate(this.sort(this.predictions, sort_by, sort_direction));
+
+    if (!from_sort) {
+      this.update_date_slider();
+    }
   }
 
   paginate(predictions) {
@@ -816,7 +820,7 @@ class PredictionList {
             self.sort_by === by && self.sort_direction === "asc" ? "desc" : "asc";
           self.sort_by = by;
           self.sort_direction = dir;
-          self.list(by, dir);
+          self.list(by, dir, true);
         });
 
         $(".checkbox-prediction").each(function() {
