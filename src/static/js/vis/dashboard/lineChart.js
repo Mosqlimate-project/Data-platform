@@ -83,8 +83,9 @@ class LineChart {
           smooth: false,
           symbol: 'circle',
           symbolKeepAspect: true,
+          showAllSymbol: true,
           sampling: 'none',
-          symbolSize: 3,
+          symbolSize: 5,
           lineStyle: {
             width: 0,
           },
@@ -199,9 +200,7 @@ class LineChart {
   addPrediction(prediction) {
     const id = `${prediction.id}`;
 
-    if (this.predictions[id]) {
-      this._updatePrediction(prediction);
-    } else {
+    if (!this.predictions[id]) {
       this._addNewPrediction(prediction);
     }
   }
@@ -381,8 +380,18 @@ class LineChart {
           : findClosestIndex(end)
         : end
 
-    console.log(start, startIndex, xData)
-    console.log(end, endIndex)
+    const currentZoom = this.chart.getOption().dataZoom?.[0]
+    const currentStart = currentZoom?.startValue
+    const currentEnd = currentZoom?.endValue
+    const distance = Math.abs(currentStart - startIndex) + Math.abs(currentEnd - endIndex);
+
+    if (currentStart === startIndex && currentEnd === endIndex) {
+      return
+    }
+
+    if (distance < 3) {
+      return;
+    }
 
     this.chart.dispatchAction({
       type: 'dataZoom',
