@@ -10,5 +10,6 @@ urlpatterns = [
         name="get_hist_alerta_data",
     ),
     path("get-predictions/", views.get_predictions, name="get_predictions"),
+    path("get-models/", views.get_models, name="get_models"),
     path("get-adm-names/", views.get_adm_names, name="get_adm_names"),
 ]

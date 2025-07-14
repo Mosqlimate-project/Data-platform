@@ -68,6 +68,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+/**
+  * @param {number[]} ids
+  * @returns {Promise<Model[]>}
+  */
+async function getModels(ids) {
+  const params = new URLSearchParams();
+  ids.forEach(id => params.append("model", id));
+
+  const response = await fetch(`/vis/get-models/?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch models: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  return data.items.map(item => new Model(
+    item.id,
+    item.name,
+    item.author,
+    item.updated
+  ));
+}
+
 function formatDate(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -177,6 +201,68 @@ class Prediction {
     // Storage.current.dashboard.predictionList.update_date_slider();
   }
 }
+
+
+/**
+ * @typedef {Object} Author
+ * @property {string} name
+ * @property {string} user
+ */
+class Model {
+  /**
+   * @param {number} id
+   * @param {string} name
+   * @param {Author} author
+   * @param {string} updated
+   */
+  static obj = {};
+
+  constructor(id, name, author, updated) {
+    this.id = id;
+    this.name = name;
+    this.author = author;
+    this.updated = updated;
+
+    this.selected = false;
+
+    Model.obj[id] = this;
+  }
+
+  select() {
+
+  }
+
+  unselect() {
+
+  }
+
+  li() {
+    return `
+      <div
+        class="model-balloon"
+        data-id="${this.id}"
+        style="
+          display: inline-block;
+          margin: 0.25rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 999px;
+          background-color: #eef;
+          color: #333;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: background 0.3s ease;
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        "
+      >
+        <a href="/registry/model/${this.id}/" target="_blank">${this.id}</a> ${this.name}
+      </div>
+    `;
+  }
+}
+
 
 class Dashboard {
   constructor(dashboard) {
@@ -842,19 +928,30 @@ class PredictionList {
     })
   }
 
-  list(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false) {
+  list(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
     if (this.predictions.length === 0) {
       this.paginate([]);
       return
     }
 
-    Storage.prediction_ids.forEach(id => {
-      if (!this.predictions.some(prediction => prediction.id === id)) {
-        Prediction.obj[id].unselect()
-      }
-    })
+    let predictions = this.predictions;
 
-    this.paginate(this.sort(this.predictions, sort_by, sort_direction));
+    if (!from_models) {
+      Storage.prediction_ids.forEach(id => {
+        if (!this.predictions.some(prediction => prediction.id === id)) {
+          Prediction.obj[id].unselect()
+        }
+      })
+      this.update_models();
+    } else {
+      const modelIds = new Set(Object.values(Model.obj)
+        .filter(model => model.selected)
+        .map(model => model.id));
+
+      predictions = predictions.filter(pred => modelIds.has(pred.model))
+    }
+
+    this.paginate(this.sort(predictions, sort_by, sort_direction));
 
     if (!from_sort) {
       this.update_date_slider();
@@ -981,5 +1078,11 @@ class PredictionList {
 
   clear() {
     Storage.prediction_ids.forEach(id => Prediction.obj[id].unselect());
+  }
+
+  update_models() {
+    getModels([...new Set(this.predictions.map(p => p.model))]).then(models => {
+
+    })
   }
 }
