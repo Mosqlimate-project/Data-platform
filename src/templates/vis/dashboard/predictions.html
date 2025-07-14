@@ -283,6 +283,14 @@ $('.toggle-models').on('click', function () {
   color: #333;
 }
 
+.prediction-row {
+  background: transparent; /* default */
+  transition: background 0.3s ease;
+}
+
+.prediction-row:hover {
+  background: linear-gradient(to right, var(--gradient-start), transparent);
+}
 </style>
 
 <script type="text/javascript" src="{% static 'js/vis/dashboard/lineChart.js' %}"></script>

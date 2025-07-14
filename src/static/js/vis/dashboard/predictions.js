@@ -69,10 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+  * @param {Dashboard} dashboard
   * @param {number[]} ids
   * @returns {Promise<Model[]>}
   */
-async function getModels(ids) {
+async function getModels(dashboard, ids) {
   const params = new URLSearchParams();
   ids.forEach(id => params.append("model", id));
 
@@ -85,6 +86,7 @@ async function getModels(ids) {
   const data = await response.json();
 
   return data.items.map(item => new Model(
+    dashboard,
     item.id,
     item.name,
     item.author,
@@ -151,24 +153,24 @@ class Prediction {
     const gradientStart = hexToRgba(this.color, 0.25);
 
     return `
-    <tr 
-      data-widget="expandable-table" 
-      aria-expanded="false" 
-      class="prediction-row" 
-      data-id="${this.id}"
-      style="background: linear-gradient(to right, ${gradientStart}, transparent);"
-    >
-      <td class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
-        <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-      </td>
-      <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-      <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-      <td>${this.year}</td>
-      <td>${this.start_date}</td>
-      <td>${this.end_date}</td>
-      <td>${this.scores[Storage.score] ?? "-"}</td>
-    </tr>
-    <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
+  <tr 
+    data-widget="expandable-table" 
+    aria-expanded="false" 
+    class="prediction-row" 
+    data-id="${this.id}"
+    style="--gradient-start: ${gradientStart};"
+  >
+    <td class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
+      <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
+    </td>
+    <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
+    <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+    <td>${this.year}</td>
+    <td>${this.start_date}</td>
+    <td>${this.end_date}</td>
+    <td>${this.scores[Storage.score] ?? "-"}</td>
+  </tr>
+  <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
   `;
   }
 
@@ -210,6 +212,7 @@ class Prediction {
  */
 class Model {
   /**
+   * @param {Dashboard} dashboard
    * @param {number} id
    * @param {string} name
    * @param {Author} author
@@ -217,7 +220,8 @@ class Model {
    */
   static obj = {};
 
-  constructor(id, name, author, updated) {
+  constructor(dashboard, id, name, author, updated) {
+    this.dashboard = dashboard;
     this.id = id;
     this.name = name;
     this.author = author;
@@ -228,12 +232,41 @@ class Model {
     Model.obj[id] = this;
   }
 
-  select() {
+  toggle() {
+    if (this.selected) {
+      this.unselect();
+    } else {
+      this.select();
+    }
+    this.dashboard.predictionList?.update(undefined, undefined, undefined, true);
+  }
 
+  select() {
+    this.selected = true;
+    const $el = $(`.model-balloon[data-id="${this.id}"]`);
+    $el.css({
+      backgroundColor: '#0069D9',
+      color: '#fff',
+    });
+    const $a = $el.find('a');
+    $a.css({
+      color: '#fff',
+      textDecoration: 'none',
+    });
   }
 
   unselect() {
-
+    this.selected = false;
+    const $el = $(`.model-balloon[data-id="${this.id}"]`);
+    $el.css({
+      backgroundColor: '#eef',
+      color: '#333',
+    });
+    const $a = $el.find('a');
+    $a.css({
+      color: '',
+      textDecoration: '',
+    });
   }
 
   li() {
@@ -241,6 +274,7 @@ class Model {
       <div
         class="model-balloon"
         data-id="${this.id}"
+        onclick="Model.obj[${this.id}].toggle()"
         style="
           display: inline-block;
           margin: 0.25rem;
@@ -892,12 +926,12 @@ class PredictionList {
     });
   }
 
-  async update() {
+  async update(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
     $('#predictions-card').loading("show")
     try {
       Storage.predictions.then(predictions => {
         this.predictions = predictions;
-        this.list();
+        this.list(sort_by, sort_direction, from_sort, from_models);
       });
     } catch {
       console.error("PredictionList.update() error")
@@ -948,7 +982,11 @@ class PredictionList {
         .filter(model => model.selected)
         .map(model => model.id));
 
-      predictions = predictions.filter(pred => modelIds.has(pred.model))
+      if (modelIds.size > 0) {
+        predictions = predictions.filter(pred => modelIds.has(pred.model))
+      } else {
+        predictions = this.predictions;
+      }
     }
 
     this.paginate(this.sort(predictions, sort_by, sort_direction));
@@ -1015,13 +1053,37 @@ class PredictionList {
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
           const td = $(`#td-${prediction_id}`);
+          const checkbox = $(this);
+
           if (Storage.prediction_ids.includes(prediction_id)) {
-            $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
+            checkbox.prop("checked", true);
             Prediction.obj[prediction_id].select();
             td.addClass('selected');
             td.css("background-color", Prediction.obj[prediction_id].color);
           }
+
+          td.off('click').on('click', function(e) {
+            if ($(e.target).is('input[type="checkbox"]')) return;
+
+            e.stopPropagation();
+
+            const isChecked = checkbox.prop("checked");
+            checkbox.prop("checked", !isChecked);
+
+            if (!isChecked) {
+              Prediction.obj[prediction_id].select();
+              td.addClass('selected');
+              td.css("background-color", Prediction.obj[prediction_id].color);
+            } else {
+              Prediction.obj[prediction_id].unselect();
+              td.removeClass('selected');
+              td.css("background-color", "");
+            }
+
+            self.update();
+          });
         });
+
 
         $("#select-all-checkbox").on("click", function() {
           const checked = $(this).prop("checked");
@@ -1081,8 +1143,8 @@ class PredictionList {
   }
 
   update_models() {
-    getModels([...new Set(this.predictions.map(p => p.model))]).then(models => {
-
+    getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
+      document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
     })
   }
 }
