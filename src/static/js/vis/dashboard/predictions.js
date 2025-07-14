@@ -8,12 +8,64 @@ let min_date = null;
 let max_date = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  d = new Dashboard(dashboard);
+  (function($) {
+    class LoadingOverlay {
+      constructor(container) {
+        this.container = container;
+        const computedStyle = window.getComputedStyle(container);
+        if (computedStyle.position === 'static' || !computedStyle.position) {
+          container.style.position = 'relative';
+        }
+        this.overlay = document.createElement('div');
+        this.overlay.classList.add('loading-overlay');
+        this.overlay.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+        this.container.appendChild(this.overlay);
+      }
+      show() {
+        this.overlay.classList.add('active');
+      }
+      hide() {
+        this.overlay.classList.remove('active');
+      }
+      error() {
+        this.icon.className = 'fas fa-times';
+        this.overlay.classList.add('active');
+      }
+    }
+
+    $.fn.loading = function(method) {
+      return this.each(function() {
+        let $this = $(this);
+        let overlay = $this.data('loadingOverlayInstance');
+        if (!overlay) {
+          overlay = new LoadingOverlay(this);
+          $this.data('loadingOverlayInstance', overlay);
+        }
+        if (method === 'show') {
+          overlay.show();
+        } else if (method === 'hide') {
+          overlay.hide();
+        } else if (method === 'error') {
+          overlay.error();
+        }
+      });
+    };
+  })(jQuery);
+
+  $('#adm-select-card').loading("show")
+  $('#chart-card').loading("show")
+  $('#predictions-card').loading("show")
 
   try {
-    dateSlider.dateRangeSlider("destroy");
-  } catch (err) {
-    // console.log(err)
+    d = new Dashboard(dashboard);
+  } catch {
+    $('#adm-select-card').loading("error")
+    $('#chart-card').loading("error")
+    $('#predictions-card').loading("error")
+  } finally {
+    $('#adm-select-card').loading("hide")
+    $('#chart-card').loading("hide")
+    $('#predictions-card').loading("hide")
   }
 });
 
@@ -64,21 +116,37 @@ class Prediction {
   }
 
   li() {
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    const gradientStart = hexToRgba(this.color, 0.25);
+
     return `
-      <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${this.id}">
-        <td style="" class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-        </td>
-        <td style=""><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-        <td style=""><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-        <td style="">${this.year}</td>
-        <td style="">${this.start_date}</td>
-        <td style="">${this.end_date}</td>
-        <td style="">${this.scores[Storage.score] ?? "-"}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
-    `;
+    <tr 
+      data-widget="expandable-table" 
+      aria-expanded="false" 
+      class="prediction-row" 
+      data-id="${this.id}"
+      style="background: linear-gradient(to right, ${gradientStart}, transparent);"
+    >
+      <td class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
+        <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
+      </td>
+      <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
+      <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+      <td>${this.year}</td>
+      <td>${this.start_date}</td>
+      <td>${this.end_date}</td>
+      <td>${this.scores[Storage.score] ?? "-"}</td>
+    </tr>
+    <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
+  `;
   }
+
 
   select() {
     const td = $(`#td-${this.id}`);
@@ -152,12 +220,19 @@ class Dashboard {
   }
 
   update() {
-    this.update_casos({
-      disease: Storage.disease,
-      adm_level: Storage.adm_level,
-      adm_1: Storage.adm_1,
-      adm_2: Storage.adm_2,
-    });
+    $('#chart-card').loading("show")
+    try {
+      this.update_casos({
+        disease: Storage.disease,
+        adm_level: Storage.adm_level,
+        adm_1: Storage.adm_1,
+        adm_2: Storage.adm_2,
+      });
+    } catch {
+      console.error("Dashboard.update() error")
+    } finally {
+      $('#chart-card').loading("hide")
+    }
   }
 
   async update_casos({ disease, adm_level, adm_1, adm_2 }) {
@@ -712,20 +787,17 @@ class PredictionList {
   }
 
   async update() {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.style.display = 'flex';
-    overlay.style.flexDirection = 'column';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
-    $(overlay).appendTo("#predictions-card");
-
-    Storage.predictions.then(predictions => {
-      this.predictions = predictions;
-      this.list();
-    });
-    $(`#predictions-card .overlay`).remove();
+    $('#predictions-card').loading("show")
+    try {
+      Storage.predictions.then(predictions => {
+        this.predictions = predictions;
+        this.list();
+      });
+    } catch {
+      console.error("PredictionList.update() error")
+    } finally {
+      $('#predictions-card').loading("hide")
+    }
   }
 
   sort(predictions, by = this.sort_by, direction = this.sort_direction) {

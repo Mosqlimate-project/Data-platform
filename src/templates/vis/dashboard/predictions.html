@@ -143,6 +143,10 @@
       </div>
     </div>
   </div>
+
+  <div id="loading-overlay">
+    <i class="fas fa-spinner fa-spin"></i> {% trans "Loading"%}...
+  </div>
 </div>
 
 <script type="text/javascript" src="{% static 'js/external/jquery.js' %}"></script>
@@ -254,6 +258,29 @@ $('.toggle-models').on('click', function () {
 	100% {
 		transform: translateX(-50%) translatey(0px);
 	}
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.loading-overlay i {
+  font-size: 2rem;
+  color: #333;
 }
 
 </style>
