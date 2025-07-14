@@ -689,16 +689,27 @@ class ADMSelect {
   }
 
   static onChange(obj, level, value) {
-    if (level === 1 && parseInt(value) !== Storage.adm_1) {
-      Storage.adm_1 = parseInt(value);
-      if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
-      obj.dashboard.update();
-      obj.dashboard.predictionList?.update();
-    }
-    if (level === 2 && parseInt(value) !== Storage.adm_2) {
-      Storage.adm_2 = parseInt(value);
-      obj.dashboard.update();
-      obj.dashboard.predictionList?.update();
+    $('#chart-card').loading("show")
+    $('#predictions-card').loading("show")
+
+    try {
+      if (level === 1 && parseInt(value) !== Storage.adm_1) {
+        Storage.adm_1 = parseInt(value);
+        if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
+        obj.dashboard.update();
+        obj.dashboard.predictionList?.update();
+      }
+      if (level === 2 && parseInt(value) !== Storage.adm_2) {
+        Storage.adm_2 = parseInt(value);
+        obj.dashboard.update();
+        obj.dashboard.predictionList?.update();
+      }
+    } catch {
+      $('#chart-card').loading("error")
+      $('#predictions-card').loading("error")
+    } finally {
+      $('#chart-card').loading("hide")
+      $('#predictions-card').loading("hide")
     }
   }
 
@@ -788,8 +799,10 @@ class PredictionList {
     this.sort_by = "score";
     this.sort_direction = "asc";
 
+    self = this;
     $("#predictions-clear-all").on("click", function() {
-      this.clear()
+      self.clear()
+      $("#predictions-list #select-all-checkbox").prop("checked", false);
     });
   }
 
@@ -811,7 +824,7 @@ class PredictionList {
     this.sort_by = by
     this.sort_direction = direction
 
-    const selected_ids = new Set(Storage.current.prediction_ids || [])
+    const selected_ids = new Set(Storage.prediction_ids || [])
     return predictions.sort((a, b) => {
       let aVal, bVal
       if (selected_ids.has(a.id) && !selected_ids.has(b.id)) return -1
@@ -820,8 +833,8 @@ class PredictionList {
         aVal = a[by]
         bVal = b[by]
       } else {
-        aVal = a.scores?.[Storage.current.score] ?? Infinity
-        bVal = b.scores?.[Storage.current.score] ?? Infinity
+        aVal = a.scores?.[Storage.score] ?? Infinity
+        bVal = b.scores?.[Storage.score] ?? Infinity
       }
       if (aVal < bVal) return direction === "asc" ? -1 : 1
       if (aVal > bVal) return direction === "asc" ? 1 : -1
@@ -967,6 +980,6 @@ class PredictionList {
   }
 
   clear() {
-    Storage.prediction_ids.forEach(id => this.unselect(id));
+    Storage.prediction_ids.forEach(id => Prediction.obj[id].unselect());
   }
 }
