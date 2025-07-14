@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#adm-select-card').loading("show")
   $('#chart-card').loading("show")
   $('#predictions-card').loading("show")
-
   try {
     d = new Dashboard(dashboard);
   } catch {
@@ -96,7 +95,7 @@ function get_adm_names(admLevel, geocodes) {
 class Prediction {
   static obj = {}
 
-  constructor(prediction) {
+  constructor(prediction, complete) {
     this.id = prediction.id;
     this.model = prediction.model;
     this.start_date = prediction.start_date;
@@ -112,7 +111,9 @@ class Prediction {
     this.color = prediction.color;
     this.chart = prediction.chart;
 
-    Prediction.obj[this.id] = this;
+    if (complete) {
+      Prediction.obj[this.id] = this;
+    }
   }
 
   li() {
@@ -577,13 +578,19 @@ class Storage {
     const url = new URL('/vis/get-predictions/', window.location.origin);
     url.searchParams.append('dashboard', dashboard);
     url.searchParams.append('disease', Storage.disease);
-    if (Storage.adm_level) url.searchParams.append('adm_level', Storage.adm_level);
+    let complete = true;
+    if (Storage.adm_level) {
+      url.searchParams.append('adm_level', Storage.adm_level);
+    } else {
+      complete = false;
+    }
     if (Storage.adm_1) url.searchParams.append('adm_1', Storage.adm_1);
     if (Storage.adm_2) url.searchParams.append('adm_2', Storage.adm_2);
+    if (!complete) url.searchParams.append('complete', false)
 
     return fetch(url)
       .then(res => res.ok ? res.json() : { items: [] })
-      .then(data => data.items.map(item => new Prediction(item)));
+      .then(data => data.items.map(item => new Prediction(item, complete)));
   }
 }
 

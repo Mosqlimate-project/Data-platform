@@ -176,6 +176,7 @@ def get_predictions(request) -> JsonResponse:
     adm_level = request.GET.get("adm_level", None)
     adm_1 = request.GET.get("adm_1", None)
     adm_2 = request.GET.get("adm_2", None)
+    complete = request.GET.get("complete", "true") == "true"
 
     if not disease:
         return JsonResponse({"items": []}, status=200)
@@ -212,6 +213,10 @@ def get_predictions(request) -> JsonResponse:
         p_res["year"] = p.data.first().date.year
         p_res["scores"] = p.scores
         p_res["color"] = p.color
+
+        if not complete:
+            res.append(p_res)
+            continue
 
         df = p.to_dataframe()
 
