@@ -76,7 +76,7 @@ class Prediction {
         <td style="">${this.end_date}</td>
         <td style="">${this.scores[Storage.score] ?? "-"}</td>
       </tr>
-      <tr class="expandable-body d-none"><td colspan="6"><p>${this.description}</p></td></tr>
+      <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
     `;
   }
 
