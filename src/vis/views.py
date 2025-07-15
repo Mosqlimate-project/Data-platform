@@ -176,6 +176,7 @@ def get_predictions(request) -> JsonResponse:
     adm_level = request.GET.get("adm_level", None)
     adm_1 = request.GET.get("adm_1", None)
     adm_2 = request.GET.get("adm_2", None)
+    complete = request.GET.get("complete", "true") == "true"
 
     if not disease:
         return JsonResponse({"items": []}, status=200)
@@ -213,6 +214,10 @@ def get_predictions(request) -> JsonResponse:
         p_res["scores"] = p.scores
         p_res["color"] = p.color
 
+        if not complete:
+            res.append(p_res)
+            continue
+
         df = p.to_dataframe()
 
         chart = {
@@ -231,6 +236,27 @@ def get_predictions(request) -> JsonResponse:
         p_res["chart"] = chart
 
         res.append(p_res)
+
+    context["items"] = res
+    return JsonResponse(context)
+
+
+@cache_page(60 * 120, key_prefix="get_models")
+def get_models(request) -> JsonResponse:
+    models = Model.objects.filter(id__in=request.GET.getlist("model", []))
+
+    context = {}
+    res = []
+    for model in models:
+        model_res = {}
+        model_res["id"] = model.id
+        model_res["author"] = {
+            "name": model.author.user.name,
+            "user": model.author.user.username,
+        }
+        model_res["name"] = model.name
+        model_res["updated"] = model.updated.date()
+        res.append(model_res)
 
     context["items"] = res
     return JsonResponse(context)

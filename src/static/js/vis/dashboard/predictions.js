@@ -8,14 +8,91 @@ let min_date = null;
 let max_date = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  d = new Dashboard(dashboard);
+  (function($) {
+    class LoadingOverlay {
+      constructor(container) {
+        this.container = container;
+        const computedStyle = window.getComputedStyle(container);
+        if (computedStyle.position === 'static' || !computedStyle.position) {
+          container.style.position = 'relative';
+        }
+        this.overlay = document.createElement('div');
+        this.overlay.classList.add('loading-overlay');
+        this.overlay.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+        this.container.appendChild(this.overlay);
+      }
+      show() {
+        this.overlay.classList.add('active');
+      }
+      hide() {
+        this.overlay.classList.remove('active');
+      }
+      error() {
+        this.icon.className = 'fas fa-times';
+        this.overlay.classList.add('active');
+      }
+    }
 
+    $.fn.loading = function(method) {
+      return this.each(function() {
+        let $this = $(this);
+        let overlay = $this.data('loadingOverlayInstance');
+        if (!overlay) {
+          overlay = new LoadingOverlay(this);
+          $this.data('loadingOverlayInstance', overlay);
+        }
+        if (method === 'show') {
+          overlay.show();
+        } else if (method === 'hide') {
+          overlay.hide();
+        } else if (method === 'error') {
+          overlay.error();
+        }
+      });
+    };
+  })(jQuery);
+
+  $('#adm-select-card').loading("show")
+  $('#chart-card').loading("show")
+  $('#predictions-card').loading("show")
   try {
-    dateSlider.dateRangeSlider("destroy");
-  } catch (err) {
-    // console.log(err)
+    d = new Dashboard(dashboard);
+  } catch {
+    $('#adm-select-card').loading("error")
+    $('#chart-card').loading("error")
+    $('#predictions-card').loading("error")
+  } finally {
+    $('#adm-select-card').loading("hide")
+    $('#chart-card').loading("hide")
+    $('#predictions-card').loading("hide")
   }
 });
+
+/**
+  * @param {Dashboard} dashboard
+  * @param {number[]} ids
+  * @returns {Promise<Model[]>}
+  */
+async function getModels(dashboard, ids) {
+  const params = new URLSearchParams();
+  ids.forEach(id => params.append("model", id));
+
+  const response = await fetch(`/vis/get-models/?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch models: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  return data.items.map(item => new Model(
+    dashboard,
+    item.id,
+    item.name,
+    item.author,
+    item.updated
+  ));
+}
 
 function formatDate(date) {
   const yyyy = date.getFullYear();
@@ -44,7 +121,7 @@ function get_adm_names(admLevel, geocodes) {
 class Prediction {
   static obj = {}
 
-  constructor(prediction) {
+  constructor(prediction, complete) {
     this.id = prediction.id;
     this.model = prediction.model;
     this.start_date = prediction.start_date;
@@ -60,25 +137,43 @@ class Prediction {
     this.color = prediction.color;
     this.chart = prediction.chart;
 
-    Prediction.obj[this.id] = this;
+    if (complete) {
+      Prediction.obj[this.id] = this;
+    }
   }
 
   li() {
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    const gradientStart = hexToRgba(this.color, 0.25);
+
     return `
-      <tr data-widget="expandable-table" aria-expanded="false" class="prediction-row" data-id="${this.id}">
-        <td style="" class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
-          <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-        </td>
-        <td style=""><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-        <td style=""><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-        <td style="">${this.year}</td>
-        <td style="">${this.start_date}</td>
-        <td style="">${this.end_date}</td>
-        <td style="">${this.scores[Storage.score] ?? "-"}</td>
-      </tr>
-      <tr class="expandable-body d-none"><td colspan="6"><p>${this.description}</p></td></tr>
-    `;
+  <tr 
+    data-widget="expandable-table" 
+    aria-expanded="false" 
+    class="prediction-row" 
+    data-id="${this.id}"
+    style="--gradient-start: ${gradientStart};"
+  >
+    <td class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
+      <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
+    </td>
+    <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
+    <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+    <td>${this.year}</td>
+    <td>${this.start_date}</td>
+    <td>${this.end_date}</td>
+    <td>${this.scores[Storage.score] ?? "-"}</td>
+  </tr>
+  <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
+  `;
   }
+
 
   select() {
     const td = $(`#td-${this.id}`);
@@ -91,7 +186,7 @@ class Prediction {
     Storage.prediction_ids = Array.from(prediction_ids);
 
     Storage.current.dashboard.lineChart.addPrediction(this)
-    Storage.current.dashboard.predictionList.update_date_slider();
+    // Storage.current.dashboard.predictionList.update_date_slider();
   }
 
   unselect() {
@@ -105,9 +200,103 @@ class Prediction {
     Storage.prediction_ids = Array.from(prediction_ids);
 
     Storage.current.dashboard.lineChart.removePrediction(this.id);
-    Storage.current.dashboard.predictionList.update_date_slider();
+    // Storage.current.dashboard.predictionList.update_date_slider();
   }
 }
+
+
+/**
+ * @typedef {Object} Author
+ * @property {string} name
+ * @property {string} user
+ */
+class Model {
+  /**
+   * @param {Dashboard} dashboard
+   * @param {number} id
+   * @param {string} name
+   * @param {Author} author
+   * @param {string} updated
+   */
+  static obj = {};
+
+  constructor(dashboard, id, name, author, updated) {
+    this.dashboard = dashboard;
+    this.id = id;
+    this.name = name;
+    this.author = author;
+    this.updated = updated;
+
+    this.selected = false;
+
+    Model.obj[id] = this;
+  }
+
+  toggle() {
+    if (this.selected) {
+      this.unselect();
+    } else {
+      this.select();
+    }
+    this.dashboard.predictionList?.update(undefined, undefined, undefined, true);
+  }
+
+  select() {
+    this.selected = true;
+    const $el = $(`.model-balloon[data-id="${this.id}"]`);
+    $el.css({
+      backgroundColor: '#0069D9',
+      color: '#fff',
+    });
+    const $a = $el.find('a');
+    $a.css({
+      color: '#fff',
+      textDecoration: 'none',
+    });
+  }
+
+  unselect() {
+    this.selected = false;
+    const $el = $(`.model-balloon[data-id="${this.id}"]`);
+    $el.css({
+      backgroundColor: '#eef',
+      color: '#333',
+    });
+    const $a = $el.find('a');
+    $a.css({
+      color: '',
+      textDecoration: '',
+    });
+  }
+
+  li() {
+    return `
+      <div
+        class="model-balloon"
+        data-id="${this.id}"
+        onclick="Model.obj[${this.id}].toggle()"
+        style="
+          display: inline-block;
+          margin: 0.25rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 999px;
+          background-color: #eef;
+          color: #333;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: background 0.3s ease;
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        "
+      >
+        <a href="/registry/model/${this.id}/" target="_blank">${this.id}</a> ${this.name}
+      </div>
+    `;
+  }
+}
+
 
 class Dashboard {
   constructor(dashboard) {
@@ -152,12 +341,19 @@ class Dashboard {
   }
 
   update() {
-    this.update_casos({
-      disease: Storage.disease,
-      adm_level: Storage.adm_level,
-      adm_1: Storage.adm_1,
-      adm_2: Storage.adm_2,
-    });
+    $('#chart-card').loading("show")
+    try {
+      this.update_casos({
+        disease: Storage.disease,
+        adm_level: Storage.adm_level,
+        adm_1: Storage.adm_1,
+        adm_2: Storage.adm_2,
+      });
+    } catch {
+      console.error("Dashboard.update() error")
+    } finally {
+      $('#chart-card').loading("hide")
+    }
   }
 
   async update_casos({ disease, adm_level, adm_1, adm_2 }) {
@@ -502,13 +698,19 @@ class Storage {
     const url = new URL('/vis/get-predictions/', window.location.origin);
     url.searchParams.append('dashboard', dashboard);
     url.searchParams.append('disease', Storage.disease);
-    if (Storage.adm_level) url.searchParams.append('adm_level', Storage.adm_level);
+    let complete = true;
+    if (Storage.adm_level) {
+      url.searchParams.append('adm_level', Storage.adm_level);
+    } else {
+      complete = false;
+    }
     if (Storage.adm_1) url.searchParams.append('adm_1', Storage.adm_1);
     if (Storage.adm_2) url.searchParams.append('adm_2', Storage.adm_2);
+    if (!complete) url.searchParams.append('complete', false)
 
     return fetch(url)
       .then(res => res.ok ? res.json() : { items: [] })
-      .then(data => data.items.map(item => new Prediction(item)));
+      .then(data => data.items.map(item => new Prediction(item, complete)));
   }
 }
 
@@ -607,16 +809,27 @@ class ADMSelect {
   }
 
   static onChange(obj, level, value) {
-    if (level === 1 && parseInt(value) !== Storage.adm_1) {
-      Storage.adm_1 = parseInt(value);
-      if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
-      obj.dashboard.update();
-      obj.dashboard.predictionList?.update();
-    }
-    if (level === 2 && parseInt(value) !== Storage.adm_2) {
-      Storage.adm_2 = parseInt(value);
-      obj.dashboard.update();
-      obj.dashboard.predictionList?.update();
+    $('#chart-card').loading("show")
+    $('#predictions-card').loading("show")
+
+    try {
+      if (level === 1 && parseInt(value) !== Storage.adm_1) {
+        Storage.adm_1 = parseInt(value);
+        if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
+        obj.dashboard.update();
+        obj.dashboard.predictionList?.update();
+      }
+      if (level === 2 && parseInt(value) !== Storage.adm_2) {
+        Storage.adm_2 = parseInt(value);
+        obj.dashboard.update();
+        obj.dashboard.predictionList?.update();
+      }
+    } catch {
+      $('#chart-card').loading("error")
+      $('#predictions-card').loading("error")
+    } finally {
+      $('#chart-card').loading("hide")
+      $('#predictions-card').loading("hide")
     }
   }
 
@@ -706,33 +919,32 @@ class PredictionList {
     this.sort_by = "score";
     this.sort_direction = "asc";
 
+    self = this;
     $("#predictions-clear-all").on("click", function() {
-      this.clear()
+      self.clear()
+      $("#predictions-list #select-all-checkbox").prop("checked", false);
     });
   }
 
-  async update() {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.style.display = 'flex';
-    overlay.style.flexDirection = 'column';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.innerHTML = `<i class="fas fa-2x fa-sync-alt fa-spin"></i>`;
-    $(overlay).appendTo("#predictions-card");
-
-    Storage.predictions.then(predictions => {
-      this.predictions = predictions;
-      this.list();
-    });
-    $(`#predictions-card .overlay`).remove();
+  async update(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
+    $('#predictions-card').loading("show")
+    try {
+      Storage.predictions.then(predictions => {
+        this.predictions = predictions;
+        this.list(sort_by, sort_direction, from_sort, from_models);
+      });
+    } catch {
+      console.error("PredictionList.update() error")
+    } finally {
+      $('#predictions-card').loading("hide")
+    }
   }
 
   sort(predictions, by = this.sort_by, direction = this.sort_direction) {
     this.sort_by = by
     this.sort_direction = direction
 
-    const selected_ids = new Set(Storage.current.prediction_ids || [])
+    const selected_ids = new Set(Storage.prediction_ids || [])
     return predictions.sort((a, b) => {
       let aVal, bVal
       if (selected_ids.has(a.id) && !selected_ids.has(b.id)) return -1
@@ -741,8 +953,8 @@ class PredictionList {
         aVal = a[by]
         bVal = b[by]
       } else {
-        aVal = a.scores?.[Storage.current.score] ?? Infinity
-        bVal = b.scores?.[Storage.current.score] ?? Infinity
+        aVal = a.scores?.[Storage.score] ?? Infinity
+        bVal = b.scores?.[Storage.score] ?? Infinity
       }
       if (aVal < bVal) return direction === "asc" ? -1 : 1
       if (aVal > bVal) return direction === "asc" ? 1 : -1
@@ -750,19 +962,38 @@ class PredictionList {
     })
   }
 
-  list(sort_by = this.sort_by, sort_direction = this.sort_direction) {
+  list(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
     if (this.predictions.length === 0) {
       this.paginate([]);
       return
     }
 
-    Storage.prediction_ids.forEach(id => {
-      if (!this.predictions.some(prediction => prediction.id === id)) {
-        Prediction.obj[id].unselect()
-      }
-    })
+    let predictions = this.predictions;
 
-    this.paginate(this.sort(this.predictions, sort_by, sort_direction));
+    if (!from_models) {
+      Storage.prediction_ids.forEach(id => {
+        if (!this.predictions.some(prediction => prediction.id === id)) {
+          Prediction.obj[id].unselect()
+        }
+      })
+      this.update_models();
+    } else {
+      const modelIds = new Set(Object.values(Model.obj)
+        .filter(model => model.selected)
+        .map(model => model.id));
+
+      if (modelIds.size > 0) {
+        predictions = predictions.filter(pred => modelIds.has(pred.model))
+      } else {
+        predictions = this.predictions;
+      }
+    }
+
+    this.paginate(this.sort(predictions, sort_by, sort_direction));
+
+    if (!from_sort) {
+      this.update_date_slider();
+    }
   }
 
   paginate(predictions) {
@@ -816,19 +1047,43 @@ class PredictionList {
             self.sort_by === by && self.sort_direction === "asc" ? "desc" : "asc";
           self.sort_by = by;
           self.sort_direction = dir;
-          self.list(by, dir);
+          self.list(by, dir, true);
         });
 
         $(".checkbox-prediction").each(function() {
           const prediction_id = parseInt($(this).val(), 10);
           const td = $(`#td-${prediction_id}`);
+          const checkbox = $(this);
+
           if (Storage.prediction_ids.includes(prediction_id)) {
-            $(`.checkbox-prediction[value="${prediction_id}"]`).prop("checked", true);
+            checkbox.prop("checked", true);
             Prediction.obj[prediction_id].select();
             td.addClass('selected');
             td.css("background-color", Prediction.obj[prediction_id].color);
           }
+
+          td.off('click').on('click', function(e) {
+            if ($(e.target).is('input[type="checkbox"]')) return;
+
+            e.stopPropagation();
+
+            const isChecked = checkbox.prop("checked");
+            checkbox.prop("checked", !isChecked);
+
+            if (!isChecked) {
+              Prediction.obj[prediction_id].select();
+              td.addClass('selected');
+              td.css("background-color", Prediction.obj[prediction_id].color);
+            } else {
+              Prediction.obj[prediction_id].unselect();
+              td.removeClass('selected');
+              td.css("background-color", "");
+            }
+
+            self.update_date_slider();
+          });
         });
+
 
         $("#select-all-checkbox").on("click", function() {
           const checked = $(this).prop("checked");
@@ -852,7 +1107,7 @@ class PredictionList {
             Prediction.obj[prediction_id].unselect()
           }
 
-          self.update();
+          self.update_date_slider();
         });
 
         $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
@@ -884,6 +1139,13 @@ class PredictionList {
   }
 
   clear() {
-    Storage.prediction_ids.forEach(id => this.unselect(id));
+    Storage.prediction_ids.forEach(id => Prediction.obj[id].unselect());
+  }
+
+  update_models() {
+    getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
+      models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+      document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
+    })
   }
 }

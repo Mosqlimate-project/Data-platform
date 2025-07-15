@@ -57,25 +57,38 @@
 </div>
 
 <div class="row">
-  <div class="col">
-    <div id="predictions-card" class="card">
+  <div id="models-col" class="col-1">
+    <div id="models-card" class="card collapsed">
       <div class="card-header">
-        <h3 class="card-title">Predictions</h3>
-        <div class="card-tools">
-          <div class="input-group input-group-sm" style="width: 300px;">
-            <input type="text" name="predictions-search" class="form-control float-right" placeholder="Search">
-
+        <h3 class="card-title">{% trans "Models" %}</h3>
+        <div class="card-tools ms-auto">
+          <div id="search" class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="models-search" class="form-control float-right" placeholder='{% trans "Search" %}'>
             <div class="input-group-append">
               <button type="submit" class="btn btn-default">
                 <i class="fas fa-search"></i>
               </button>
             </div>
           </div>
+
+          <button type="button" class="btn btn-tool toggle-models">
+            <i class="fas fa-plus"></i>
+          </button>
         </div>
       </div>
+      <div class="card-body">
+        <table id="models-list" class="table table-bordered table-hover"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div id="predictions-card" class="card">
+      <div class="card-header">
+        <h3 class="card-title">{% trans "Predictions" %}</h3>
+      </div>
       <div class="card-body" style="margin:0;padding:0;">
-        <table id="predictions-list" class="table table-bordered table-hover">
-        </table>
+        <table id="predictions-list" class="table table-bordered table-hover"></table>
       </div>
       <div class="card-footer clearfix">
         <div class="row">
@@ -119,8 +132,13 @@
       </div>
     </div>
   </div>
+
+  <div id="loading-overlay">
+    <i class="fas fa-spinner fa-spin"></i> {% trans "Loading"%}...
+  </div>
 </div>
 
+<script type="text/javascript" src="{% static 'js/external/jquery.js' %}"></script>
 <script>
   const dashboard = `{{ dashboard }}`;
 
@@ -136,11 +154,62 @@
   const max_window_date = `{{ max_window_date }}`;
   const watermark = `{% static 'img/logo-mosqlimate.png' %}`
   const loading = `{% static 'img/loading-dots.gif' %}`
+
+$('.toggle-models').on('click', function () {
+  const col = $('#models-col');
+  const card = $('#models-card');
+
+  card.toggleClass('collapsed');
+
+  if (card.hasClass('collapsed')) {
+    col.removeClass('col-4').addClass('col-1');
+    $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
+  } else {
+    col.removeClass('col-1').addClass('col-4');
+    $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
+  }
+});
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 <style>
+#models-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#models-card .card-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#models-card .card-header {
+  padding-right: 0;
+  transition: padding-left 0.3s ease;
+}
+
+#models-card.collapsed .card-body {
+  display: none;
+}
+
+#models-card.collapsed #search {
+  display: none;
+}
+
+#models-card.collapsed .card-title {
+  font-size: 0.85rem;
+  transition: font-size 0.3s ease;
+}
+
+#models-card.collapsed .card-header {
+  padding-left: 4px;
+  transition: padding-left 0.3s ease;
+}
+
 #infoModalIcon {
   position: absolute;
   left: calc(100% - 30px);
@@ -180,6 +249,37 @@
 	}
 }
 
+.loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.loading-overlay i {
+  font-size: 2rem;
+  color: #333;
+}
+
+.prediction-row {
+  background: transparent; /* default */
+  transition: background 0.3s ease;
+}
+
+.prediction-row:hover {
+  background: linear-gradient(to right, var(--gradient-start), transparent);
+}
 </style>
 
 <script type="text/javascript" src="{% static 'js/vis/dashboard/lineChart.js' %}"></script>
