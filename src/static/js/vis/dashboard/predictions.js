@@ -1080,7 +1080,7 @@ class PredictionList {
               td.css("background-color", "");
             }
 
-            self.update();
+            self.update_date_slider();
           });
         });
 
@@ -1107,7 +1107,7 @@ class PredictionList {
             Prediction.obj[prediction_id].unselect()
           }
 
-          self.update();
+          self.update_date_slider();
         });
 
         $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
@@ -1144,6 +1144,7 @@ class PredictionList {
 
   update_models() {
     getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
+      models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
       document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
     })
   }
