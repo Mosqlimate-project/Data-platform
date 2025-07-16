@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-10 10:42-0300\n"
+"POT-Creation-Date: 2025-07-16 04:03-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,6 +153,7 @@ msgstr "Modelo"
 #: templates/main/models.html:6 templates/main/models.html:11
 #: templates/users/profile.html:56 templates/users/report/base.html:47
 #: templates/vis/dashboard/base.html:52
+#: templates/vis/dashboard/predictions.html:63
 msgid "Models"
 msgstr "Modelos"
 
@@ -165,7 +166,9 @@ msgstr "Previsão"
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
 #: templates/users/profile.html:65 templates/users/report/base.html:50
-#: templates/vis/dashboard/base.html:55 templates/vis/dashboard/sidebar.html:35
+#: templates/vis/dashboard/base.html:55
+#: templates/vis/dashboard/predictions.html:88
+#: templates/vis/dashboard/sidebar.html:35
 msgid "Predictions"
 msgstr "Previsões"
 
@@ -583,11 +586,12 @@ msgid "Github Repository"
 msgstr "Repositório Github"
 
 #: templates/main/models.html:101 templates/main/predictions.html:104
-#: templates/vis/dashboard/predictions.html:84
+#: templates/vis/dashboard/predictions.html:96
 msgid "Clear"
 msgstr "Limpar"
 
 #: templates/main/models.html:102 templates/main/predictions.html:105
+#: templates/vis/dashboard/predictions.html:66
 msgid "Search"
 msgstr "Pesquisar"
 
@@ -663,17 +667,17 @@ msgid "Show Table"
 msgstr "Mostrar Tabela"
 
 #: templates/registry/prediction.html:86
-#: templates/vis/dashboard/predictions.html:103
+#: templates/vis/dashboard/predictions.html:115
 msgid "Welcome to Mosqlimate Predictions Dashboard"
 msgstr "Bem-vindo ao Painel de Previsões Mosqlimate"
 
 #: templates/registry/prediction.html:91
-#: templates/vis/dashboard/predictions.html:108
+#: templates/vis/dashboard/predictions.html:120
 msgid "Confidence Interval"
 msgstr "Intervalo de Confiança"
 
 #: templates/registry/prediction.html:92
-#: templates/vis/dashboard/predictions.html:109
+#: templates/vis/dashboard/predictions.html:121
 msgid ""
 "To toggle the Prediction's Confidence Interval bounds of the in the chart, "
 "click in the Prediction's legend"
@@ -682,17 +686,17 @@ msgstr ""
 "clique na legenda da Previsão"
 
 #: templates/registry/prediction.html:95
-#: templates/vis/dashboard/predictions.html:111
+#: templates/vis/dashboard/predictions.html:123
 msgid " or line"
 msgstr " ou linha"
 
 #: templates/registry/prediction.html:100
-#: templates/vis/dashboard/predictions.html:116
+#: templates/vis/dashboard/predictions.html:128
 msgid "Interval Bounds"
 msgstr "Limites do Intervalo"
 
 #: templates/registry/prediction.html:101
-#: templates/vis/dashboard/predictions.html:117
+#: templates/vis/dashboard/predictions.html:129
 #, python-format
 msgid ""
 "When the Confidence Interval is active, the Prediction will display the 50%% "
@@ -742,8 +746,6 @@ msgid "Hide"
 msgstr "Esconder"
 
 #: templates/users/report/api.html:5
-#, fuzzy
-#| msgid "API Demo"
 msgid "API Report"
 msgstr "API Demo"
 
@@ -817,21 +819,15 @@ msgid "Select a date"
 msgstr "Selecione uma data"
 
 #: templates/vis/dashboard/predictions.html:12
-#, fuzzy
-#| msgid "State"
 msgid "Statewide"
 msgstr "Estadual"
 
 #: templates/vis/dashboard/predictions.html:13
-#, fuzzy
-#| msgid "Municipality"
 msgid "Municipal"
 msgstr "Municipal"
 
 #: templates/vis/dashboard/predictions.html:20
-#, fuzzy
-#| msgid "Disease"
-msgid "Disease "
+msgid "Disease:"
 msgstr "Agravo"
 
 #: templates/vis/dashboard/predictions.html:26
@@ -841,6 +837,10 @@ msgstr "País"
 #: templates/vis/dashboard/predictions.html:44
 msgid "Sub-Municipality"
 msgstr "Sub-Município"
+
+#: templates/vis/dashboard/predictions.html:141
+msgid "Scores"
+msgstr ""
 
 #: users/models.py:14
 msgid "The Email must be set"
@@ -913,6 +913,9 @@ msgstr "Limite de Alta Incidência (100k)"
 #: vis/templatetags/filters.py:54
 msgid "Macro Health"
 msgstr "Macro Saúde"
+
+#~ msgid "Disease "
+#~ msgstr "Agravo"
 
 #~ msgid "Select a state"
 #~ msgstr "Selecione um estado"

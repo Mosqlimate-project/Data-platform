@@ -124,6 +124,7 @@ class Prediction {
   constructor(prediction, complete) {
     this.id = prediction.id;
     this.model = prediction.model;
+    this.author = prediction.author;
     this.start_date = prediction.start_date;
     this.end_date = prediction.end_date;
     this.year = prediction.year;
@@ -165,12 +166,20 @@ class Prediction {
     </td>
     <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
     <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+    <td style="
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    ">
+      ${this.author}
+    </td>
     <td>${this.year}</td>
     <td>${this.start_date}</td>
     <td>${this.end_date}</td>
     <td>${this.scores[Storage.score] ?? "-"}</td>
   </tr>
-  <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
+  <tr class="expandable-body d-none"><td colspan="8"><p>${this.description}</p></td></tr>
   `;
   }
 
@@ -1007,25 +1016,33 @@ class PredictionList {
         $(`#predictions-list`).html(`
         <thead>
           <tr>
-            <th style="width: 40px;">
+            <th style="width: 20px;">
               <input type="checkbox" id="select-all-checkbox">
             </th>
-            <th style="width: 65px;" class="sortable" data-sort="id">ID <span class="sort-arrow"></span></th>
-            <th style="width: 65px;" class="sortable" data-sort="model">Model <span class="sort-arrow"></span></th>
-            <th style="width: 65px;" class="sortable" data-sort="year">Year <span class="sort-arrow"></span></th>
-            <th style="width: 110px;" class="sortable" data-sort="start_date">Start Date <span class="sort-arrow"></span></th>
-            <th style="width: 110px;" class="sortable" data-sort="end_date">End Date <span class="sort-arrow"></span></th>
+            <th style="width: 50px;" class="sortable" data-sort="id">ID <span class="sort-arrow"></span></th>
+            <th style="width: 55px;" class="sortable" data-sort="model">Model <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="author">Author <span class="sort-arrow"></span></th>
+            <th style="width: 50px;" class="sortable" data-sort="year">Year <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="start_date">Start Date <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="end_date">End Date <span class="sort-arrow"></span></th>
             <th style="width: 150px;">
               <div class="row">
                 <div class="col sortable" data-sort="score">Score <span class="sort-arrow"></span></div>
                 <div class="col">
-                  <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 160px !important;">
-                    <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
-                    <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
-                    <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
-                    <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
-                    <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
-                  </select>
+                  <div class="row align-items-center" style="flex-flow: row-reverse;">
+                    <div class="col-auto">
+                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal"></i>
+                    </div>
+                    <div class="col-auto">
+                      <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 100px !important;">
+                        <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
+                        <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
+                        <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
+                        <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
+                        <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </th>

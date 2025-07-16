@@ -17,7 +17,7 @@
     <div id=params-select class="row gy-3">
       <div id="disease-select" class="col-3">
         <div class="d-flex flex-column">
-          <span class="text-muted mb-1">{% trans "Disease " %}:</span>
+          <span class="text-muted mb-1">{% trans "Disease:" %}</span>
           <select id="disease-filter" class="form-select form-select-sm" style="text-transform:capitalize;"></select>
         </div>
       </div>
@@ -132,9 +132,44 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div id="loading-overlay">
-    <i class="fas fa-spinner fa-spin"></i> {% trans "Loading"%}...
+<div class="modal fade" id="scoresModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel">{% trans "Scores" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>{% trans "" %}</p>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">MAE</p>
+          <p>{% trans "" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">MSE</p>
+          <p>{% trans "" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">CRPS</p>
+          <p>{% trans "" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">Log Score</p>
+          <p>{% trans "" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">Interval Score</p>
+          <p>{% trans "" %}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -155,6 +190,8 @@
   const watermark = `{% static 'img/logo-mosqlimate.png' %}`
   const loading = `{% static 'img/loading-dots.gif' %}`
 
+  let sidebar_collapsed_once = false;
+
 $('.toggle-models').on('click', function () {
   const col = $('#models-col');
   const card = $('#models-card');
@@ -165,6 +202,10 @@ $('.toggle-models').on('click', function () {
     col.removeClass('col-4').addClass('col-1');
     $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
   } else {
+    if (!sidebar_collapsed_once) {
+      $('[data-widget="pushmenu"]').click();
+      sidebar_collapsed_once = true;
+    }
     col.removeClass('col-1').addClass('col-4');
     $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
   }
