@@ -68,6 +68,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 /**
   * @param {Dashboard} dashboard
   * @param {number[]} ids
@@ -933,6 +941,16 @@ class PredictionList {
       self.clear()
       $("#predictions-list #select-all-checkbox").prop("checked", false);
     });
+
+    const onSearch = debounce((query) => {
+      const filtered = self.models_search(self.models, query);
+      this.render_models(filtered);
+    }, 50);
+
+    document.querySelector('#search input[name="models-search"]')
+      .addEventListener('input', (e) => {
+        onSearch(e.target.value);
+      });
   }
 
   async update(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
@@ -985,6 +1003,10 @@ class PredictionList {
           Prediction.obj[id].unselect()
         }
       })
+      const input = document.querySelector('#search input[name="models-search"]');
+      if (input) {
+        input.value = '';
+      }
       this.update_models();
     } else {
       const modelIds = new Set(Object.values(Model.obj)
@@ -1163,17 +1185,31 @@ class PredictionList {
     getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
       models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
       this.models = models;
-      document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
-    })
+      this.render_models(models);
+    });
+  }
+
+  render_models(models) {
+    document.querySelector('#models-card .card-body').innerHTML =
+      models.map(m => m.li()).join("");
   }
 
   models_search(models, query) {
     const q = query.trim().toLowerCase();
 
-    return models.filter(model =>
-      Object.values(model).some(value =>
-        String(value).toLowerCase().includes(q)
-      )
-    );
+    if (!q) return models;
+
+    return models.filter(model => {
+      const fields = [
+        model.id,
+        model.name,
+        model.updated,
+        model.author.name,
+        model.author.user
+      ];
+
+      return fields.some(val => String(val || '').toLowerCase().includes(q)
+      );
+    });
   }
 }
