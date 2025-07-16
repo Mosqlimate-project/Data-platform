@@ -1162,7 +1162,18 @@ class PredictionList {
   update_models() {
     getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
       models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+      this.models = models;
       document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
     })
+  }
+
+  models_search(models, query) {
+    const q = query.trim().toLowerCase();
+
+    return models.filter(model =>
+      Object.values(model).some(value =>
+        String(value).toLowerCase().includes(q)
+      )
+    );
   }
 }

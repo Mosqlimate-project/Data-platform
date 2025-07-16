@@ -138,4 +138,5 @@ nav:
     - "Climate Weekly": "datastore/GET/climate-weekly.md"
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
+  - "Dashboard": "vis/dashboard.md"
   - "Back to API": "https://api.mosqlimate.org/"

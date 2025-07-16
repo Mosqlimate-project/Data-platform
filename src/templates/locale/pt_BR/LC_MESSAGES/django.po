@@ -3,12 +3,18 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#: templates/vis/dashboard/predictions.html:145
+#: templates/vis/dashboard/predictions.html:149
+#: templates/vis/dashboard/predictions.html:154
+#: templates/vis/dashboard/predictions.html:159
+#: templates/vis/dashboard/predictions.html:164
+#: templates/vis/dashboard/predictions.html:169
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 04:03-0300\n"
+"POT-Creation-Date: 2025-07-16 13:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,7 +158,7 @@ msgstr "Modelo"
 #: registry/models.py:220 templates/main/components/navbar.html:38
 #: templates/main/models.html:6 templates/main/models.html:11
 #: templates/users/profile.html:56 templates/users/report/base.html:47
-#: templates/vis/dashboard/base.html:52
+#: templates/vis/dashboard/base.html:49
 #: templates/vis/dashboard/predictions.html:63
 msgid "Models"
 msgstr "Modelos"
@@ -166,9 +172,9 @@ msgstr "Previsão"
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
 #: templates/users/profile.html:65 templates/users/report/base.html:50
-#: templates/vis/dashboard/base.html:55
+#: templates/vis/dashboard/base.html:52
 #: templates/vis/dashboard/predictions.html:88
-#: templates/vis/dashboard/sidebar.html:35
+#: templates/vis/dashboard/sidebar.html:27
 msgid "Predictions"
 msgstr "Previsões"
 
@@ -310,7 +316,7 @@ msgid "Something went wrong"
 msgstr "Algo deu errado"
 
 #: templates/main/about.html:5 templates/main/components/navbar.html:23
-#: templates/users/report/base.html:32 templates/vis/dashboard/base.html:37
+#: templates/users/report/base.html:32 templates/vis/dashboard/base.html:34
 msgid "About"
 msgstr "Sobre"
 
@@ -441,17 +447,17 @@ msgid "Visualize"
 msgstr "Visualizar"
 
 #: templates/main/components/navbar.html:20 templates/main/home.html:7
-#: templates/users/report/base.html:28 templates/vis/dashboard/base.html:33
+#: templates/users/report/base.html:28 templates/vis/dashboard/base.html:30
 msgid "Home"
 msgstr "Início"
 
 #: templates/main/components/navbar.html:26 templates/users/report/base.html:35
-#: templates/vis/dashboard/base.html:40
+#: templates/vis/dashboard/base.html:37
 msgid "Documentation"
 msgstr "Documentação"
 
 #: templates/main/components/navbar.html:29 templates/users/report/base.html:38
-#: templates/vis/dashboard/base.html:43
+#: templates/vis/dashboard/base.html:40
 msgid "API Demo"
 msgstr "API Demo"
 
@@ -828,7 +834,7 @@ msgstr "Municipal"
 
 #: templates/vis/dashboard/predictions.html:20
 msgid "Disease:"
-msgstr "Agravo"
+msgstr "Agravo:"
 
 #: templates/vis/dashboard/predictions.html:26
 msgid "Country"
@@ -841,6 +847,10 @@ msgstr "Sub-Município"
 #: templates/vis/dashboard/predictions.html:141
 msgid "Scores"
 msgstr ""
+
+#: templates/vis/dashboard/sidebar.html:17
+msgid "How to use"
+msgstr "Como usar"
 
 #: users/models.py:14
 msgid "The Email must be set"
@@ -913,6 +923,9 @@ msgstr "Limite de Alta Incidência (100k)"
 #: vis/templatetags/filters.py:54
 msgid "Macro Health"
 msgstr "Macro Saúde"
+
+#~ msgid "Detailed information"
+#~ msgstr "Informações detalhadas"
 
 #~ msgid "Disease "
 #~ msgstr "Agravo"
