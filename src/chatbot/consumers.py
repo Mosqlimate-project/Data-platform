@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        accept_language = "en"
+
+        for header, value in self.scope["headers"]:
+            if header == b"accept-language":
+                accept_language = value.decode()
+
         self.session_key = self.scope["url_route"]["kwargs"]["session_key"]
 
         if not self.session_key:
@@ -54,9 +60,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
             )
 
+        if not messages:
+            await self.send(
+                text_data=json.dumps(
+                    {"text": {"msg": "waiting", "source": "system"}}
+                )
+            )
+
+            await sync_to_async(generate_bot_answer.delay)(
+                f"Present yourself in language: {accept_language}",
+                self.session_key,
+            )
+
         for message in messages:
             msg = {
-                "msg": markdown.markdown(message.content),
+                "msg": markdown.markdown(
+                    message.content,
+                    extensions=["fenced_code", "codehilite"],
+                    output_format="xhtml",
+                    tab_length=4,
+                ),
                 "source": message.sender,
             }
             await self.send(text_data=json.dumps({"text": msg}))
@@ -101,7 +124,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def bot_message(self, event):
         answer = event["message"]
         await self.save_message("bot", answer)
-        message = markdown.markdown(answer)
+        message = markdown.markdown(
+            answer,
+            extensions=["fenced_code", "codehilite"],
+            output_format="xhtml",
+            tab_length=4,
+        )
         await self.send(
             text_data=json.dumps({"text": {"msg": message, "source": "bot"}})
         )
