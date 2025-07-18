@@ -142,31 +142,31 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>{% trans "" %}</p>
+        <p>{% trans "Forecast scores are metrics that quantify how well probabilistic or point forecasts match the observed outcomes" %}</p>
         <br>
         <div>
           <p class="fs-6 fw-bold">MAE</p>
-          <p>{% trans "" %}</p>
+          <p>{% trans "Measures the average magnitude of the errors in the predictions. Lower values mean predictions are closer on average to actual data" %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">MSE</p>
-          <p>{% trans "" %}</p>
+          <p>{% trans "Measures the average of the squared differences between forecast and observation. Lower values mean fewer and/or smaller large errors in predictions" %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">CRPS</p>
-          <p>{% trans "" %}</p>
+          <p>{% trans "Measures how well the predicted cumulative distribution function (CDF) matches the observed outcome. Lower values indicate the forecast distribution better matches the observed outcome" %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">Log Score</p>
-          <p>{% trans "" %}</p>
+          <p>{% trans "Measures the log-probability assigned to the observed value by the forecast distribution. Higher log-probabilities mean the forecast assigned more probability to the actual observation" %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">Interval Score</p>
-          <p>{% trans "" %}</p>
+          <p>{% trans "Evaluates prediction intervals (e.g., 90% confidence intervals) of the forecast. Lower values mean narrower prediction intervals that still capture the true value appropriately" %}</p>
         </div>
       </div>
     </div>
