@@ -26,7 +26,15 @@ function initChatbot(sessionKey) {
       } else if (msg.source === "system") {
         containerClass = "system-message";
       }
-      str += `<div class="${containerClass}"><div class="${bubbleClass}">${msg.msg}</div></div>`;
+
+      let content = msg.msg;
+
+      if (msg.source === "system" && msg.msg === "waiting") {
+        content = `<img src="/static/img/loading-dots.gif" alt="waiting" style="height:50px;">`;
+        bubbleClass = "";
+      }
+
+      str += `<div class="${containerClass}"><div class="${bubbleClass}">${content}</div></div>`;
     });
     chatLog.innerHTML = str;
     chatLog.scrollTop = chatLog.scrollHeight;
