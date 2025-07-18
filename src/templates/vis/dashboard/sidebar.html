@@ -14,15 +14,7 @@
   <div class="sidebar">
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
       <div class="info" style="margin:0;padding:0;">
-        {% if user.is_authenticated %}
-        <a href="{% url 'profile' user.username %}" class="nav-link" aria-current="page">{{user.username}}</a>
-        {% else %}
-        <form method="post" action="{% provider_login_url "github" %}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.path }}">
-          <button type="submit" class="d-block" style="all: unset; cursor: pointer; color: lightgray;">login</button>
-        </form>
-        {% endif %}
+        <a href="https://api.mosqlimate.org/docs/vis/dashboard/" target="_blank" class="d-block" style="all: unset; cursor: pointer; color: lightgray;"><i class="fa-solid fa-circle-info"></i></i> {% trans "How to use" %}</button>
       </div>
     </div>
 

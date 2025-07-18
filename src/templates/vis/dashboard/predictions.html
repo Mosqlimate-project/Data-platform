@@ -17,7 +17,7 @@
     <div id=params-select class="row gy-3">
       <div id="disease-select" class="col-3">
         <div class="d-flex flex-column">
-          <span class="text-muted mb-1">{% trans "Disease " %}:</span>
+          <span class="text-muted mb-1">{% trans "Disease:" %}</span>
           <select id="disease-filter" class="form-select form-select-sm" style="text-transform:capitalize;"></select>
         </div>
       </div>
@@ -132,9 +132,44 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div id="loading-overlay">
-    <i class="fas fa-spinner fa-spin"></i> {% trans "Loading"%}...
+<div class="modal fade" id="scoresModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel">{% trans "Scores" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>{% trans "Forecast scores are metrics that quantify how well probabilistic or point forecasts match the observed outcomes" %}</p>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">MAE</p>
+          <p>{% trans "Measures the average magnitude of the errors in the predictions. Lower values mean predictions are closer on average to actual data" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">MSE</p>
+          <p>{% trans "Measures the average of the squared differences between forecast and observation. Lower values mean fewer and/or smaller large errors in predictions" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">CRPS</p>
+          <p>{% trans "Measures how well the predicted cumulative distribution function (CDF) matches the observed outcome. Lower values indicate the forecast distribution better matches the observed outcome" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">Log Score</p>
+          <p>{% trans "Measures the log-probability assigned to the observed value by the forecast distribution. Higher log-probabilities mean the forecast assigned more probability to the actual observation" %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">Interval Score</p>
+          <p>{% trans "Evaluates prediction intervals (e.g., 90% confidence intervals) of the forecast. Lower values mean narrower prediction intervals that still capture the true value appropriately" %}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -155,6 +190,8 @@
   const watermark = `{% static 'img/logo-mosqlimate.png' %}`
   const loading = `{% static 'img/loading-dots.gif' %}`
 
+  let sidebar_collapsed_once = false;
+
 $('.toggle-models').on('click', function () {
   const col = $('#models-col');
   const card = $('#models-card');
@@ -165,6 +202,10 @@ $('.toggle-models').on('click', function () {
     col.removeClass('col-4').addClass('col-1');
     $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
   } else {
+    if (!sidebar_collapsed_once) {
+      $('[data-widget="pushmenu"]').click();
+      sidebar_collapsed_once = true;
+    }
     col.removeClass('col-1').addClass('col-4');
     $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
   }

@@ -203,6 +203,7 @@ def get_predictions(request) -> JsonResponse:
         p_res["id"] = p.id
         p_res["model"] = p.model.id
         p_res["description"] = p.description
+        p_res["author"] = p.model.author.user.name
         p_res["disease"] = p.model.disease
         p_res["time_resolution"] = p.model.time_resolution
         p_res["adm_level"] = p.model.adm_level

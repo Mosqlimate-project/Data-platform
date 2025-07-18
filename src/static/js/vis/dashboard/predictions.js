@@ -68,6 +68,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 /**
   * @param {Dashboard} dashboard
   * @param {number[]} ids
@@ -124,6 +132,7 @@ class Prediction {
   constructor(prediction, complete) {
     this.id = prediction.id;
     this.model = prediction.model;
+    this.author = prediction.author;
     this.start_date = prediction.start_date;
     this.end_date = prediction.end_date;
     this.year = prediction.year;
@@ -165,12 +174,20 @@ class Prediction {
     </td>
     <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
     <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
+    <td style="
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    ">
+      ${this.author}
+    </td>
     <td>${this.year}</td>
     <td>${this.start_date}</td>
     <td>${this.end_date}</td>
     <td>${this.scores[Storage.score] ?? "-"}</td>
   </tr>
-  <tr class="expandable-body d-none"><td colspan="7"><p>${this.description}</p></td></tr>
+  <tr class="expandable-body d-none"><td colspan="8"><p>${this.description}</p></td></tr>
   `;
   }
 
@@ -924,6 +941,16 @@ class PredictionList {
       self.clear()
       $("#predictions-list #select-all-checkbox").prop("checked", false);
     });
+
+    const onSearch = debounce((query) => {
+      const filtered = self.models_search(self.models, query);
+      this.render_models(filtered);
+    }, 50);
+
+    document.querySelector('#search input[name="models-search"]')
+      .addEventListener('input', (e) => {
+        onSearch(e.target.value);
+      });
   }
 
   async update(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
@@ -976,6 +1003,10 @@ class PredictionList {
           Prediction.obj[id].unselect()
         }
       })
+      const input = document.querySelector('#search input[name="models-search"]');
+      if (input) {
+        input.value = '';
+      }
       this.update_models();
     } else {
       const modelIds = new Set(Object.values(Model.obj)
@@ -1007,25 +1038,33 @@ class PredictionList {
         $(`#predictions-list`).html(`
         <thead>
           <tr>
-            <th style="width: 40px;">
+            <th style="width: 20px;">
               <input type="checkbox" id="select-all-checkbox">
             </th>
-            <th style="width: 65px;" class="sortable" data-sort="id">ID <span class="sort-arrow"></span></th>
-            <th style="width: 65px;" class="sortable" data-sort="model">Model <span class="sort-arrow"></span></th>
-            <th style="width: 65px;" class="sortable" data-sort="year">Year <span class="sort-arrow"></span></th>
-            <th style="width: 110px;" class="sortable" data-sort="start_date">Start Date <span class="sort-arrow"></span></th>
-            <th style="width: 110px;" class="sortable" data-sort="end_date">End Date <span class="sort-arrow"></span></th>
+            <th style="width: 50px;" class="sortable" data-sort="id">ID <span class="sort-arrow"></span></th>
+            <th style="width: 55px;" class="sortable" data-sort="model">Model <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="author">Author <span class="sort-arrow"></span></th>
+            <th style="width: 50px;" class="sortable" data-sort="year">Year <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="start_date">Start Date <span class="sort-arrow"></span></th>
+            <th style="width: 80px;" class="sortable" data-sort="end_date">End Date <span class="sort-arrow"></span></th>
             <th style="width: 150px;">
               <div class="row">
                 <div class="col sortable" data-sort="score">Score <span class="sort-arrow"></span></div>
                 <div class="col">
-                  <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 160px !important;">
-                    <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
-                    <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
-                    <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
-                    <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
-                    <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
-                  </select>
+                  <div class="row align-items-center" style="flex-flow: row-reverse;">
+                    <div class="col-auto">
+                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal"></i>
+                    </div>
+                    <div class="col-auto">
+                      <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 100px !important;">
+                        <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
+                        <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
+                        <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
+                        <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
+                        <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </th>
@@ -1145,7 +1184,32 @@ class PredictionList {
   update_models() {
     getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
       models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
-      document.querySelector('#models-card .card-body').innerHTML = [...models.map(m => m.li())].join("")
-    })
+      this.models = models;
+      this.render_models(models);
+    });
+  }
+
+  render_models(models) {
+    document.querySelector('#models-card .card-body').innerHTML =
+      models.map(m => m.li()).join("");
+  }
+
+  models_search(models, query) {
+    const q = query.trim().toLowerCase();
+
+    if (!q) return models;
+
+    return models.filter(model => {
+      const fields = [
+        model.id,
+        model.name,
+        model.updated,
+        model.author.name,
+        model.author.user
+      ];
+
+      return fields.some(val => String(val || '').toLowerCase().includes(q)
+      );
+    });
   }
 }
