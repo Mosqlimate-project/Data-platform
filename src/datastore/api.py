@@ -75,7 +75,7 @@ def get_infodengue(
     **kwargs,
 ):
     APILog.from_request(request)
-    disease = disease.lower()  # pyright: ignore
+    disease = disease.lower()
 
     try:
         if disease in ["chik", "chikungunya"]:
@@ -92,7 +92,7 @@ def get_infodengue(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf = uf.upper()  # pyright: ignore
+        uf = uf.upper()
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
@@ -104,7 +104,7 @@ def get_infodengue(
         data = data.filter(municipio_geocodigo__in=geocodes)
 
     data = filters.filter(data)
-    return data.order_by("-data_iniSE")
+    return data
 
 
 @router.get(
@@ -138,7 +138,7 @@ def get_copernicus_brasil(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf = uf.upper()  # pyright: ignore
+        uf = uf.upper()
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
