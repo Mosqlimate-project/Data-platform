@@ -7,12 +7,14 @@
 {% block content %}
 <div id="adm-select-card" class="card collapse show">
   <div class="card-body">
+    {% if dashboard != "sprint" %}
     <div class="mb-2 text-center">
       <div class="btn-group" role="group" aria-label="ADM Level">
         <button type="button" class="btn btn-sm btn-primary" id="toggle-state">{% trans "Statewide" %}</button>
         <button type="button" class="btn btn-sm btn-outline-primary" id="toggle-city">{% trans "Municipal" %}</button>
       </div>
     </div>
+    {% endif %}
 
     <div id=params-select class="row gy-3">
       <div id="disease-select" class="col-3">

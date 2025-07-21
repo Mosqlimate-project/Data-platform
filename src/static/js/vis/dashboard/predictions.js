@@ -772,41 +772,41 @@ class ADMSelect {
     const adm1 = document.getElementById('toggle-state');
     const adm2 = document.getElementById('toggle-city');
 
-    if (adm_list[1].length === 0) {
+    if (adm1 && adm_list[1].length === 0) {
       adm1.disabled = true
     }
 
-    if (adm_list[2].length === 0) {
+    if (adm2 && adm_list[2].length === 0) {
       adm2.disabled = true
     }
 
     function admSelect(level) {
       if (level === 1) {
         Storage.adm_level = 1;
-        adm1.classList.add('btn-primary')
-        adm1.classList.remove('btn-outline-primary')
-        adm2.classList.remove('btn-primary')
-        adm2.classList.add('btn-outline-primary')
+        adm1?.classList.add('btn-primary')
+        adm1?.classList.remove('btn-outline-primary')
+        adm2?.classList.remove('btn-primary')
+        adm2?.classList.add('btn-outline-primary')
         self.populate(1, adm_list[1])
         Storage.adm_2 = null;
       } else if (level === 2) {
         Storage.adm_level = 2;
-        adm2.classList.add('btn-primary')
-        adm2.classList.remove('btn-outline-primary')
-        adm1.classList.remove('btn-primary')
-        adm1.classList.add('btn-outline-primary')
+        adm2?.classList.add('btn-primary')
+        adm2?.classList.remove('btn-outline-primary')
+        adm1?.classList.remove('btn-primary')
+        adm1?.classList.add('btn-outline-primary')
         self.populate(1, adm_list[2].map(n => +String(n).slice(0, 2)))
         self.populate(2, adm_list[2])
       }
     }
 
-    adm1.addEventListener('click', () => {
+    adm1?.addEventListener('click', () => {
       if (adm1.classList.contains('btn-primary')) return
       admSelect(1)
       self.set(1)
     })
 
-    adm2.addEventListener('click', () => {
+    adm2?.addEventListener('click', () => {
       if (adm2.classList.contains('btn-primary')) return
       admSelect(2)
       self.set(2)

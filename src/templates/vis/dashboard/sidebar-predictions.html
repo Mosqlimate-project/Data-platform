@@ -4,15 +4,35 @@
 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
   <nav class="mt-2" style="width:100%">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-      <small><p class="category">dashboard</p></small>
-      <li class="nav-item">
-        <a href="{% url 'dashboard' %}{% if request.GET.dashboard != 'sprint' %}?dashboard=sprint{% endif %}" class="nav-link {% if request.GET.dashboard == 'sprint' %}active{% endif %}">
-          <p>Sprint IMDC</p>
-        </a>
+      <small><p class="category">Dashboard</p></small>
+      <li class="nav-item" style="margin-left:10%;">
+        <div class="form-check form-switch">
+          <input 
+            class="form-check-input"
+            type="checkbox"
+            id="sprintSwitch"
+            {% if request.GET.dashboard == 'sprint' %}checked{% endif %}
+            onchange="toggleSprint(this)">
+          <label class="form-check-label" for="sprintSwitch" style="color:white;">
+            Sprint IMDC
+          </label>
+        </div>
       </li>
     </ul>
   </nav>
 </div>
+
+<script>
+  function toggleSprint(el) {
+    const params = new URLSearchParams(window.location.search);
+    if (el.checked) {
+      params.set('dashboard', 'sprint');
+    } else {
+      params.delete('dashboard');
+    }
+    window.location.search = params.toString();
+  }
+</script>
 
 <style>
 .nav-link {
