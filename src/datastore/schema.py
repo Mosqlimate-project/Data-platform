@@ -11,6 +11,28 @@ class DengueGlobalSchema(Schema):
     uf: str
 
 
+class HistoricoAlertaPartialSchema(Schema):
+    data_iniSE: date
+    SE: Optional[int]
+    casos_est: Optional[float]
+    casos_est_min: Optional[int]
+    casos_est_max: Optional[int]
+    casos: Optional[int]
+    municipio_geocodigo: Optional[int]
+    p_rt1: Optional[float]
+    p_inc100k: Optional[float]
+    nivel: Optional[int]
+    id: Optional[int]
+    versao_modelo: Optional[str]
+    Rt: Optional[float]
+    municipio_nome: Optional[str]
+    pop: Optional[float]
+    receptivo: Optional[int]
+    transmissao: Optional[int]
+    nivel_inc: Optional[int]
+    casprov: Optional[int]
+
+
 class HistoricoAlertaSchema(Schema):
     data_iniSE: date
     SE: Optional[int]
