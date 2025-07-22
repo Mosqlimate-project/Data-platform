@@ -459,10 +459,8 @@ def create_prediction(request, payload: PredictionIn):
         description=payload.description,
         commit=payload.commit,
         predict_date=payload.predict_date,
-        # adm_0_geocode=payload.adm_0,
         adm_1=adm_1 or None,
         adm_2=adm_2 or None,
-        # adm_3_geocode=payload.adm_3 or None,
         date_ini_prediction=min(df.date),
         date_end_prediction=max(df.date),
     )
@@ -476,7 +474,6 @@ def create_prediction(request, payload: PredictionIn):
             description=prediction.description,
             commit=prediction.commit,
             predict_date=prediction.predict_date,
-            # adm_0=prediction.adm_0_geocode,
             adm_1=prediction.adm_1.uf,
             adm_2=int(prediction.adm_2.geocode),
             data=data,

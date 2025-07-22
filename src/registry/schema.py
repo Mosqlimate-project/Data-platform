@@ -532,22 +532,6 @@ class PredictionFilterSchema(FilterSchema):
             description="Prediction end date. Format: 'YYYY-mm-dd'",
         ),
     ]
-    adm_1_geocode: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="adm_1_geocode",
-            description="Adm 1 geocode. Example: 33",
-        ),
-    ]
-    adm_2_geocode: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="adm_2_geocode",
-            description="Adm 2 geocode. Example: 3304557",
-        ),
-    ]
     tags: Annotated[
         Optional[List[int]],
         Field(
