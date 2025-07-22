@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-18 16:41-0300\n"
+"POT-Creation-Date: 2025-07-22 11:14-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,13 +123,13 @@ msgstr "Nacional"
 
 #: registry/models.py:176 templates/datastore/components/mosquito.html:35
 #: templates/vis/dashboard-forecast-map.html:86
-#: templates/vis/dashboard/predictions.html:32 vis/plots/forecast_map.py:329
+#: templates/vis/dashboard/predictions.html:34 vis/plots/forecast_map.py:329
 #: vis/templatetags/filters.py:46 vis/templatetags/filters.py:53
 msgid "State"
 msgstr "Estado"
 
 #: registry/models.py:177 templates/datastore/components/mosquito.html:48
-#: templates/vis/dashboard/predictions.html:38 vis/templatetags/filters.py:47
+#: templates/vis/dashboard/predictions.html:40 vis/templatetags/filters.py:47
 msgid "Municipality"
 msgstr "Município"
 
@@ -153,21 +153,21 @@ msgstr "Modelo"
 #: templates/main/models.html:6 templates/main/models.html:11
 #: templates/users/profile.html:56 templates/users/report/base.html:47
 #: templates/vis/dashboard/base.html:49
-#: templates/vis/dashboard/predictions.html:63
+#: templates/vis/dashboard/predictions.html:65
 msgid "Models"
 msgstr "Modelos"
 
-#: registry/models.py:390 templates/users/profile.html:65
+#: registry/models.py:348 templates/users/profile.html:65
 msgid "Prediction"
 msgstr "Previsão"
 
-#: registry/models.py:391 templates/main/components/navbar.html:41
+#: registry/models.py:349 templates/main/components/navbar.html:41
 #: templates/main/predictions.html:5 templates/main/predictions.html:9
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
 #: templates/users/profile.html:65 templates/users/report/base.html:50
 #: templates/vis/dashboard/base.html:52
-#: templates/vis/dashboard/predictions.html:88
+#: templates/vis/dashboard/predictions.html:90
 #: templates/vis/dashboard/sidebar.html:27
 msgid "Predictions"
 msgstr "Previsões"
@@ -180,6 +180,10 @@ msgstr "Sessão iniciada com sucesso como %(name)s."
 #: templates/account/messages/logged_out.txt:2
 msgid "You have signed out."
 msgstr "Você saiu da sua conta."
+
+#: templates/chatbot/components/chat.html:13
+msgid "Send"
+msgstr "Enviar"
 
 #: templates/datastore/components/climate.html:7
 msgid ""
@@ -423,7 +427,7 @@ msgstr "Nome"
 
 #: templates/main/components/models-list.html:25
 msgid "Uploaded at"
-msgstr "Carregado em"
+msgstr "Data de Envio"
 
 #: templates/main/components/models-list.html:73
 #: templates/main/components/predictions-list.html:24
@@ -586,12 +590,12 @@ msgid "Github Repository"
 msgstr "Repositório Github"
 
 #: templates/main/models.html:101 templates/main/predictions.html:104
-#: templates/vis/dashboard/predictions.html:96
+#: templates/vis/dashboard/predictions.html:98
 msgid "Clear"
 msgstr "Limpar"
 
 #: templates/main/models.html:102 templates/main/predictions.html:105
-#: templates/vis/dashboard/predictions.html:66
+#: templates/vis/dashboard/predictions.html:68
 msgid "Search"
 msgstr "Pesquisar"
 
@@ -667,17 +671,17 @@ msgid "Show Table"
 msgstr "Mostrar Tabela"
 
 #: templates/registry/prediction.html:86
-#: templates/vis/dashboard/predictions.html:115
+#: templates/vis/dashboard/predictions.html:117
 msgid "Welcome to Mosqlimate Predictions Dashboard"
 msgstr "Bem-vindo ao Painel de Previsões Mosqlimate"
 
 #: templates/registry/prediction.html:91
-#: templates/vis/dashboard/predictions.html:120
+#: templates/vis/dashboard/predictions.html:122
 msgid "Confidence Interval"
 msgstr "Intervalo de Confiança"
 
 #: templates/registry/prediction.html:92
-#: templates/vis/dashboard/predictions.html:121
+#: templates/vis/dashboard/predictions.html:123
 msgid ""
 "To toggle the Prediction's Confidence Interval bounds of the in the chart, "
 "click in the Prediction's legend"
@@ -686,17 +690,17 @@ msgstr ""
 "clique na legenda da Previsão"
 
 #: templates/registry/prediction.html:95
-#: templates/vis/dashboard/predictions.html:123
+#: templates/vis/dashboard/predictions.html:125
 msgid " or line"
 msgstr " ou linha"
 
 #: templates/registry/prediction.html:100
-#: templates/vis/dashboard/predictions.html:128
+#: templates/vis/dashboard/predictions.html:130
 msgid "Interval Bounds"
 msgstr "Limites do Intervalo"
 
 #: templates/registry/prediction.html:101
-#: templates/vis/dashboard/predictions.html:129
+#: templates/vis/dashboard/predictions.html:131
 #, python-format
 msgid ""
 "When the Confidence Interval is active, the Prediction will display the 50%% "
@@ -818,76 +822,85 @@ msgstr "Selecione a doença, data e região para gerar a visualização"
 msgid "Select a date"
 msgstr "Selecione uma data"
 
-#: templates/vis/dashboard/predictions.html:12
+#: templates/vis/dashboard/predictions.html:13
 msgid "Statewide"
 msgstr "Estadual"
 
-#: templates/vis/dashboard/predictions.html:13
+#: templates/vis/dashboard/predictions.html:14
 msgid "Municipal"
 msgstr "Municipal"
 
-#: templates/vis/dashboard/predictions.html:20
+#: templates/vis/dashboard/predictions.html:22
 msgid "Disease:"
 msgstr "Agravo:"
 
-#: templates/vis/dashboard/predictions.html:26
+#: templates/vis/dashboard/predictions.html:28
 msgid "Country"
 msgstr "País"
 
-#: templates/vis/dashboard/predictions.html:44
+#: templates/vis/dashboard/predictions.html:46
 msgid "Sub-Municipality"
 msgstr "Sub-Município"
 
-#: templates/vis/dashboard/predictions.html:141
+#: templates/vis/dashboard/predictions.html:143
 msgid "Scores"
 msgstr ""
 
-#: templates/vis/dashboard/predictions.html:145
+#: templates/vis/dashboard/predictions.html:147
 msgid ""
 "Forecast scores are metrics that quantify how well probabilistic or point "
 "forecasts match the observed outcomes"
 msgstr ""
-"Scores de previsão são métricas que quantificam quão bem previsões probabilísticas ou pontuais correspondem aos resultados observados"
+"Scores de previsão são métricas que quantificam quão bem previsões "
+"probabilísticas ou pontuais correspondem aos resultados observados"
 
-#: templates/vis/dashboard/predictions.html:149
+#: templates/vis/dashboard/predictions.html:151
 msgid ""
 "Measures the average magnitude of the errors in the predictions. Lower "
 "values mean predictions are closer on average to actual data"
 msgstr ""
-"Mede a magnitude média dos erros nas previsões. Valores menores significam que as previsões estão, em média, mais próximas dos dados reais"
+"Mede a magnitude média dos erros nas previsões. Valores menores significam "
+"que as previsões estão, em média, mais próximas dos dados reais"
 
-#: templates/vis/dashboard/predictions.html:154
+#: templates/vis/dashboard/predictions.html:156
 msgid ""
 "Measures the average of the squared differences between forecast and "
 "observation. Lower values mean fewer and/or smaller large errors in "
 "predictions"
 msgstr ""
-"Mede a média dos quadrados das diferenças entre a previsão e a observação. Valores menores indicam menos e/ou menores grandes erros nas previsões"
+"Mede a média dos quadrados das diferenças entre a previsão e a observação. "
+"Valores menores indicam menos e/ou menores grandes erros nas previsões"
 
-#: templates/vis/dashboard/predictions.html:159
+#: templates/vis/dashboard/predictions.html:161
 msgid ""
 "Measures how well the predicted cumulative distribution function (CDF) "
 "matches the observed outcome. Lower values indicate the forecast "
 "distribution better matches the observed outcome"
 msgstr ""
-"Mede quão bem a função de distribuição acumulada (CDF) prevista corresponde ao resultado observado. Valores menores indicam que a distribuição prevista corresponde melhor ao resultado observado"
+"Mede quão bem a função de distribuição acumulada (CDF) prevista corresponde "
+"ao resultado observado. Valores menores indicam que a distribuição prevista "
+"corresponde melhor ao resultado observado"
 
-#: templates/vis/dashboard/predictions.html:164
+#: templates/vis/dashboard/predictions.html:166
 msgid ""
 "Measures the log-probability assigned to the observed value by the forecast "
 "distribution. Higher log-probabilities mean the forecast assigned more "
 "probability to the actual observation"
 msgstr ""
-"Mede a log-probabilidade atribuída ao valor observado pela distribuição prevista. Log-probabilidades mais altas significam que a previsão atribuiu mais probabilidade à observação real"
+"Mede a log-probabilidade atribuída ao valor observado pela distribuição "
+"prevista. Log-probabilidades mais altas significam que a previsão atribuiu "
+"mais probabilidade à observação real"
 
-#: templates/vis/dashboard/predictions.html:169
+#: templates/vis/dashboard/predictions.html:171
 #, python-format
 msgid ""
 "Evaluates prediction intervals (e.g., 90%% confidence intervals) of the "
 "forecast. Lower values mean narrower prediction intervals that still capture "
 "the true value appropriately"
 msgstr ""
-"Avalia os intervalos de previsão (ex. intervalos de confiança de 90%%) da previsão. Valores menores significam intervalos de previsão mais estreitos que ainda capturam o valor verdadeiro adequadamente"
+"Avalia os intervalos de previsão (ex. intervalos de confiança de 90%%) da "
+"previsão. Valores menores significam intervalos de previsão mais estreitos "
+"que ainda capturam o valor verdadeiro adequadamente"
 
 #: templates/vis/dashboard/sidebar.html:17
 msgid "How to use"

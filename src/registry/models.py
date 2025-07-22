@@ -227,9 +227,10 @@ class Prediction(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
+    published = models.BooleanField(null=False, default=True)
     tags = models.ManyToManyField(
         Tag, related_name="prediction_tags", default=[]
-    )
+    )  # TODO: Deprecate it
     color = models.CharField(
         max_length=7,
         null=False,

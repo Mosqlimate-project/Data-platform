@@ -298,6 +298,7 @@ class PredictionSchema(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
+    published: bool
     adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
@@ -324,6 +325,7 @@ class PredictionIn(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
+    published: bool
     # adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
