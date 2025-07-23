@@ -380,7 +380,7 @@ def list_predictions(
 ):
     if not calling_via_swagger(request):
         APILog.from_request(request)
-    predictions = Prediction.objects.all()
+    predictions = Prediction.objects.filter(published=True)
     predictions = filters.filter(predictions)
     return predictions.order_by("-updated")
 

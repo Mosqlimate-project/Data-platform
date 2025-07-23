@@ -22,37 +22,6 @@ from .plots.forecast_map import macro_forecast_map_table
 from .dash.line_chart import hist_alerta_data
 
 
-def is_null(val) -> bool:
-    return str(val).upper() in ["", "NONE", "NULL", "UNDEFINED"]
-
-
-def check_adm_level(adm_level, adm_1, adm_2) -> JsonResponse | None:
-    if str(adm_level) == "1":
-        if is_null(adm_1):
-            return JsonResponse({"error": "adm_1 is required"}, status=422)
-        return None
-
-    if str(adm_level) == "2":
-        if is_null(adm_2):
-            return JsonResponse({"error": "adm_2 is required"}, status=422)
-        return None
-
-    return JsonResponse(
-        {"error": f"incorrect value for adm_level: {adm_level}"},
-        status=422,
-    )
-
-
-def get_distinct_values(field: str, sprint: bool) -> list:
-    return sorted(
-        list(
-            Prediction.objects.filter(model__sprint=sprint)
-            .values_list(field, flat=True)
-            .distinct()
-        )
-    )
-
-
 class PredictionsDashboard(View):
     template_name = "vis/dashboard/predictions.html"
 
@@ -67,7 +36,9 @@ class PredictionsDashboard(View):
             map(
                 int,
                 Prediction.objects.filter(
-                    model__sprint=sprint, model__adm_level=1
+                    model__sprint=sprint,
+                    model__adm_level=1,
+                    published=True,
                 )
                 .exclude(adm_1=None)
                 .values_list("adm_1__geocode", flat=True)
@@ -78,7 +49,9 @@ class PredictionsDashboard(View):
             map(
                 int,
                 Prediction.objects.filter(
-                    model__sprint=sprint, model__adm_level=2
+                    model__sprint=sprint,
+                    model__adm_level=2,
+                    published=True,
                 )
                 .exclude(adm_2=None)
                 .values_list("adm_2__geocode", flat=True)
@@ -109,13 +82,14 @@ class PredictionsDashboard(View):
             prediction = None
 
         diseases = list(
-            Model.objects.all()
-            .filter(sprint=sprint)
+            Model.objects.filter(sprint=sprint, predictions__published=True)
             .values_list("disease", flat=True)
             .distinct()
         )
 
-        window = Prediction.objects.filter(model__sprint=sprint).aggregate(
+        window = Prediction.objects.filter(
+            model__sprint=sprint, published=True
+        ).aggregate(
             start=models.Min("date_ini_prediction"),
             end=models.Max("date_end_prediction"),
         )
@@ -144,7 +118,9 @@ def get_hist_alerta_data(request) -> JsonResponse:
     if (adm_level == "1" and not adm_1) or (adm_level == "2" and not adm_2):
         return JsonResponse({}, status=400)
 
-    window = Prediction.objects.filter(model__sprint=sprint).aggregate(
+    window = Prediction.objects.filter(
+        model__sprint=sprint, published=True
+    ).aggregate(
         start=models.Min("date_ini_prediction"),
         end=models.Max("date_end_prediction"),
     )
@@ -182,7 +158,7 @@ def get_predictions(request) -> JsonResponse:
         return JsonResponse({"items": []}, status=200)
 
     predictions = Prediction.objects.filter(
-        model__sprint=sprint, model__disease=disease
+        model__sprint=sprint, model__disease=disease, published=True
     ).distinct()
 
     if adm_level:
@@ -244,7 +220,9 @@ def get_predictions(request) -> JsonResponse:
 
 @cache_page(60 * 120, key_prefix="get_models")
 def get_models(request) -> JsonResponse:
-    models = Model.objects.filter(id__in=request.GET.getlist("model", []))
+    models = Model.objects.filter(
+        id__in=request.GET.getlist("model", []), predictions__published=True
+    )
 
     context = {}
     res = []
