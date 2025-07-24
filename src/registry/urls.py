@@ -14,4 +14,9 @@ urlpatterns = [
         views.prediction_download_csv,
         name="prediction-csv",
     ),
+    path(
+        "prediction/<int:prediction_id>/publish/",
+        views.prediction_update_published,
+        name="prediction_update_published",
+    ),
 ]

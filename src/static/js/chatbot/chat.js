@@ -72,7 +72,6 @@ function initChatbot(sessionKey) {
   chatSocket.onmessage = e => {
     const data = JSON.parse(e.data);
     removeSystemMessages();
-    console.log(data);
     if (data.text?.msg && data.text?.source) {
       chatMessages.push(data.text);
       renderMessages();

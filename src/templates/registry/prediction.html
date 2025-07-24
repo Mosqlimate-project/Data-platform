@@ -48,6 +48,22 @@
           <th scope="row" class="fw-normal">{% trans "Author" %}</th>
         <td class="d-flex justify-content-center"><a href="{% url 'profile' prediction.model.author.user.username %}" title="{{ prediction.model.author.user.username }}" style="text-decoration:none;">{{ prediction.model.author }}</a></td>
         </tr>
+        {% if prediction.model.adm_level == 1 %}
+        <tr>
+          <th scope="row" class="fw-normal">{% trans "ADM 1" %}</th>
+        <td class="d-flex justify-content-center">{{ prediction.adm_1.name }}</td>
+        </tr>
+        {% endif %}
+        {% if prediction.model.adm_level == 2 %}
+        <tr>
+          <th scope="row" class="fw-normal">ADM 1 ({% trans "State" %})</th>
+        <td class="d-flex justify-content-center">{{ prediction.adm_2.microregion.mesoregion.state.name }}</td>
+        </tr>
+        <tr>
+          <th scope="row" class="fw-normal">ADM 2 ({% trans "Municipality" %})</th>
+        <td class="d-flex justify-content-center">{{ prediction.adm_2.name }}</td>
+        </tr>
+        {% endif %}
       </tbody>
     </table>
 

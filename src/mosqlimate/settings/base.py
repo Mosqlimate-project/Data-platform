@@ -238,7 +238,7 @@ USE_TZ = True
 
 LOCALE_PATHS = [str(BASE_DIR / "templates" / "locale")]
 
-LANGUAGES = (("en-us", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
+LANGUAGES = (("en", "English"), ("pt-BR", "Português"), ("es", "Spanish"))
 
 
 # Static files (CSS, JavaScript, Images)
