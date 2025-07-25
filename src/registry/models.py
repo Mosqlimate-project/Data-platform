@@ -227,9 +227,10 @@ class Prediction(models.Model):
     description = models.TextField(max_length=500, null=True, blank=True)
     commit = models.CharField(max_length=100, null=False, blank=False)
     predict_date = models.DateField()
+    published = models.BooleanField(null=False, default=True)
     tags = models.ManyToManyField(
         Tag, related_name="prediction_tags", default=[]
-    )
+    )  # TODO: Deprecate it
     color = models.CharField(
         max_length=7,
         null=False,
@@ -258,10 +259,6 @@ class Prediction(models.Model):
         on_delete=models.PROTECT,
         related_name="predictions",
     )
-    adm_0_geocode = models.CharField(max_length=3, null=True, default="BRA")
-    adm_1_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
-    adm_2_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
-    adm_3_geocode = models.IntegerField(null=True, default=None)  # DEPRECATED
     date_ini_prediction = models.DateTimeField(null=True, default=None)
     date_end_prediction = models.DateTimeField(null=True, default=None)
     # scores
@@ -324,44 +321,6 @@ class Prediction(models.Model):
             "log_score": self.log_score,
             "interval_score": self.interval_score,
         }
-
-    def _add_adm_geocode(self):
-        level = self.model.adm_level
-        column = f"adm_{level}"
-
-        try:
-            code = self.to_dataframe()[column].unique()
-        except KeyError:
-            # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError(f"{column} column not found")
-
-        if len(code) != 1:
-            # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError(
-                f"{column} values must contain only one code"
-            )
-
-        match level:
-            case 0:
-                self.adm_0_geocode = code[0]
-            case 1:
-                if isinstance(code[0], str):
-                    self.adm_1_geocode = self._parse_uf_geocode(code[0])
-                elif isinstance(code[0], int):
-                    if code[0] not in list(UF_CODES.values()):
-                        raise errors.VisualizationError(
-                            f"Unknow UF Code '{code[0]}'"
-                        )
-                    self.adm_1_geocode = code[0]
-                else:
-                    raise TypeError(
-                        f"Incorrect type for adm_1 '{type(code[0])}'. ",
-                        "Expects str (UF) or int (UF Code)",
-                    )
-            case 2:
-                self.adm_2_geocode = code[0]
-            case 3:
-                self.adm_3_geocode = code[0]
 
     def _add_ini_end_prediction_dates(self):
         try:

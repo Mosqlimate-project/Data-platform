@@ -1,4 +1,7 @@
-<div id="chatbot-window" class="position-fixed bottom-0 end-0 m-4 border border-secondary rounded shadow bg-white d-none" style="width: 90%; z-index: 1050;">
+{% load i18n %}
+{% load static %}
+
+<div id="chatbot-window" class="position-fixed bottom-0 end-0 m-4 border border-secondary rounded bg-white d-none" style="width: 90%; z-index: 1050;">
   <div class="d-flex justify-content-between align-items-center bg-light border-bottom p-2">
     <h5 class="mb-0">Chat</h5>
     <button id="toggle-chatbot" type="button" class="btn-close"></button>
@@ -7,12 +10,19 @@
   <div class="border-top p-2">
     <div class="input-group">
       <input id="chat-message-input" type="text" class="form-control form-control-sm">
-      <button id="chat-message-submit" class="btn btn-sm btn-outline-primary">Send</button>
+      <button id="chat-message-submit" class="btn btn-sm btn-outline-primary">{% trans "Send" %}</button>
     </div>
   </div>
 </div>
 
-<button id="open-chatbot" type="button" class="btn btn-primary rounded-pill position-fixed bottom-0 end-0 m-4 shadow">Chat</button>
+<img
+  src="{% static 'img/main/chatbot.png' %}"
+  alt="chatbot"
+  width="70"
+  role="button"
+  id="open-chatbot"
+  style="cursor: pointer;"
+>
 
 <script>
   function openChat() {
@@ -52,76 +62,84 @@
 </script>
 
 <style>
-  #open-chatbot {
-    z-index: 1040;
-  }
+#open-chatbot {
+  position: fixed;
+  right: 20px;
+  bottom: 15px;
+  z-index: 1040;
+  transition: transform 0.2s ease;
+}
 
-  #chatbot-window {
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    transform-origin: bottom right;
-    opacity: 0;
-    transform: scale(0);
-    pointer-events: none;
-  }
-  #chatbot-window.show {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
-  }
+#open-chatbot:hover {
+  transform: translateY(-4px) scale(1.05);
+}
 
-  .bot-message {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 0.5rem;
-  }
+#chatbot-window {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+#chatbot-window.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
 
-  .bot-message .message-bubble {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-    max-width: 90%;
-    word-wrap: break-word;
-    color: #4a5568;
-    background-color: #fff;
-    border: 1px solid #e2e8f0;
-  }
+.bot-message {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
 
-  .user-message {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 0.5rem;
-  }
+.bot-message .message-bubble {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  max-width: 90%;
+  word-wrap: break-word;
+  color: #4a5568;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+}
 
-  .user-message .message-bubble {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-    max-width: 90%;
-    word-wrap: break-word;
-    background-color: #2563eb;
-    color: white;
-  }
+.user-message {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
 
-  .system-message {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-  }
+.user-message .message-bubble {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  max-width: 90%;
+  word-wrap: break-word;
+  background-color: #2563eb;
+  color: white;
+}
 
-  .system-message .message-bubble {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-    max-width: 75%;
-    word-wrap: break-word;
-    color: #6b7280;
-    font-style: italic;
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
-  }
+.system-message {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
 
-  .message-bubble span {
-    display: block;
-    font-weight: 400;
-  }
+.system-message .message-bubble {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  max-width: 75%;
+  word-wrap: break-word;
+  color: #6b7280;
+  font-style: italic;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+
+.message-bubble span {
+  display: block;
+  font-weight: 400;
+}
 </style>

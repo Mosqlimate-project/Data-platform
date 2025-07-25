@@ -298,6 +298,7 @@ class PredictionSchema(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
+    published: bool
     adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
@@ -324,6 +325,7 @@ class PredictionIn(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
+    published: bool
     # adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
@@ -530,22 +532,6 @@ class PredictionFilterSchema(FilterSchema):
             default=None,
             q="predict_date__lte",
             description="Prediction end date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    adm_1_geocode: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="adm_1_geocode",
-            description="Adm 1 geocode. Example: 33",
-        ),
-    ]
-    adm_2_geocode: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="adm_2_geocode",
-            description="Adm 2 geocode. Example: 3304557",
         ),
     ]
     tags: Annotated[
