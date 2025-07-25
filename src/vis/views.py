@@ -222,7 +222,7 @@ def get_predictions(request) -> JsonResponse:
 def get_models(request) -> JsonResponse:
     models = Model.objects.filter(
         id__in=request.GET.getlist("model", []), predictions__published=True
-    )
+    ).distinct()
 
     context = {}
     res = []

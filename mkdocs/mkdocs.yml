@@ -106,6 +106,8 @@ plugins:
             Fetch Predictions: Buscar Previsões
             Inserting Models: Inserir Modelos
             Inserting Predictions: Inserir Previsões
+            How to use: Como usar
+            Details: Detalhes
 
 # Customization
 extra_javascript:
@@ -138,5 +140,8 @@ nav:
     - "Climate Weekly": "datastore/GET/climate-weekly.md"
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
-  - "Dashboard": "vis/dashboard.md"
+  - "Dashboard":
+    - "How to use": "vis/dashboard/how_to_use.md"
+    - "Scores": "vis/dashboard/scores.md"
+    - "Details": "vis/dashboard/details.md"
   - "Back to API": "https://api.mosqlimate.org/"
