@@ -3867,28 +3867,32 @@ name = "mosqlient"
 version = "1.9.3"
 description = "client library for the mosqlimate client library"
 optional = false
-python-versions = "<3.13,>=3.10"
+python-versions = ">=3.10,<3.13"
 groups = ["main"]
-files = [
-    {file = "mosqlient-1.9.3-py3-none-any.whl", hash = "sha256:60899f6ac9277dd1c9a94b76de3dcce7d83717978901293d9483b94409a99d57"},
-    {file = "mosqlient-1.9.3.tar.gz", hash = "sha256:f30c15b6666f63c7d34076ca3e93c94b34b76063a00b30372ac338cda84abefd"},
-]
+files = []
+develop = false
 
 [package.dependencies]
-aiohttp = ">=3.9.5,<4.0.0"
-cffi = ">=1.17.0,<2.0.0"
-loguru = ">=0.7.3,<0.8.0"
-nest-asyncio = ">=1.6.0,<2.0.0"
-pandas = ">=2.2.2,<3.0.0"
-pydantic = ">=2.7.3,<3.0.0"
-requests = ">=2.32.2,<3.0.0"
-tabulate = ">=0.9.0,<0.10.0"
-tqdm = ">=4.67.1,<5.0.0"
-types-requests = ">=2.32.0.20240523,<3.0.0.0"
-vl-convert-python = ">=1.7.0,<2.0.0"
+aiohttp = "^3.9.5"
+cffi = "^1.17.0"
+loguru = "^0.7.3"
+nest-asyncio = "^1.6.0"
+pandas = "^2.2.2"
+pydantic = "^2.7.3"
+requests = "^2.32.2"
+tabulate = "^0.9.0"
+tqdm = "^4.67.1"
+types-requests = "^2.32.0.20240523"
+vl-convert-python = "^1.7.0"
 
 [package.extras]
 analyze = ["altair (>=5.3.0,<6.0.0)", "epiweeks (>=2.3.0,<3.0.0)", "matplotlib (>=3.9.0,<4.0.0)", "pmdarima (>=2.0.4,<3.0.0)", "scikit-learn (>=1.5.0,<2.0.0)", "scoringrules (>=0.5.2,<0.6.0)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/luabida/mosqlimate-client.git"
+reference = "6e273ad86aac2bd36dc1d04d58d0d4108417b938"
+resolved_reference = "6e273ad86aac2bd36dc1d04d58d0d4108417b938"
 
 [[package]]
 name = "mosqlimate-assistant"
@@ -7891,4 +7895,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "b387b0f4d0c4f1de23bb3ed97e92856f5bc160c0990b958e80d61f23fc5ff4b1"
+content-hash = "60c2652c2d1152571098c794e6efe7322e98275121cb45cdf42b47bb8a5bd4df"

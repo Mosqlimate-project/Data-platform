@@ -52,6 +52,7 @@ def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
             prediction.crps = scores["crps"]
             prediction.log_score = scores["log_score"]
             prediction.interval_score = scores["interval_score"]
+            prediction.wis = scores["wis"]
             prediction.save()
 
 

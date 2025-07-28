@@ -5,7 +5,6 @@ from django.dispatch import receiver
 from django.core.cache import cache
 
 from registry.models import Prediction, Model, Tag
-from vis.tasks import update_prediction_scores
 
 
 @receiver(post_save, sender=Model)
@@ -34,11 +33,6 @@ def add_color(sender, instance, **kwargs):
 
     if instance.color == "#000000":
         instance.color = random_hex_color()
-
-
-@receiver(post_save, sender=Prediction)
-def calculate_scores(sender, instance, **kwargs):
-    update_prediction_scores([instance.id])
 
 
 @receiver(post_save, sender=Prediction)
