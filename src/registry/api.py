@@ -44,6 +44,7 @@ from .schema import (
 )
 from .utils import calling_via_swagger
 from vis.brasil.models import State, City
+from vis.tasks import calculate_score
 from main.models import APILog
 
 router = Router()
@@ -480,6 +481,21 @@ def create_prediction(request, payload: PredictionIn):
         )
 
     APILog.from_request(request)
+    prediction.save()
+
+    try:
+        scores = calculate_score(prediction.id)
+    except Exception:
+        prediction.delete()
+        return 422, {"message": "Failed to calculate Scores"}
+
+    prediction.mae = scores["mae"]
+    prediction.mse = scores["mse"]
+    prediction.crps = scores["crps"]
+    prediction.log_score = scores["log_score"]
+    prediction.interval_score = scores["interval_score"]
+    prediction.wis = scores["wis"]
+
     prediction.save()
     prediction.message = "Prediction saved successfully"
     parse_data(prediction, [r.dict() for r in payload.prediction])

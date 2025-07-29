@@ -47,7 +47,7 @@ epiweeks = "^2.3.0"
 duckdb = "^0.10.0"
 dask = {extras = ["dataframe"], version = "^2024.7.0"}
 loguru = "^0.7.2"
-mosqlient = "^1.7.0"
+mosqlient = "^1.9.3"
 scipy = "^1.15.2"
 scoringrules = "^0.7.1"
 scikit-learn = "^1.6.1"

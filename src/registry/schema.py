@@ -318,6 +318,12 @@ class PredictionOut(Schema):
     adm_2: int = Field(None, alias="adm_2.geocode")
     # adm_3: Optional[int] = None
     data: List[PredictionDataRowOut]
+    mae: Optional[float] = None
+    mse: Optional[float] = None
+    crps: Optional[float] = None
+    log_score: Optional[float] = None
+    interval_score: Optional[float] = None
+    wis: Optional[float] = None
 
 
 class PredictionIn(Schema):
@@ -325,7 +331,7 @@ class PredictionIn(Schema):
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
-    published: bool
+    published: bool = True
     # adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None

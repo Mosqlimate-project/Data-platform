@@ -5,16 +5,18 @@ from typing import Literal, Optional
 import altair as alt
 import pandas as pd
 import numpy as np
-import scipy.stats as stats
 from django.db import models
-from scoringrules import crps_normal, logs_normal
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from django.contrib.auth import get_user_model
+from mosqlient.scoring.score import Scorer
 
 from .charts import watermark
 from main.utils import UFs, CODES_UF
 from vis.plots.home.vis_charts import historico_alerta_data_for
 from datastore.models import Municipio
 from registry.models import Prediction, PredictionDataRow
+
+
+User = get_user_model()
 
 
 np.seterr(divide="ignore", invalid="ignore")
@@ -38,6 +40,7 @@ def calculate_score(
         crps=None,
         log_score=None,
         interval_score=None,
+        wis=None,
     )
 
     data_df = hist_alerta_data(
@@ -51,6 +54,7 @@ def calculate_score(
     )
 
     pred_df = prediction.to_dataframe()
+    pred_df = pred_df.dropna(axis=1)
 
     if data_df.empty or pred_df.empty:
         return scores
@@ -59,62 +63,14 @@ def calculate_score(
     data_df = data_df[["date", "casos"]]
     data_df.date = pd.to_datetime(data_df.date)
 
-    pred_df = pred_df.sort_values(by="date")
-    pred_df.date = pd.to_datetime(pred_df.date)
+    staff_user: User = User.objects.filter(is_staff=True).first()
 
-    min_date = max(min(data_df.date), min(pred_df.date))
-    max_date = min(max(data_df.date), max(pred_df.date))
+    score = Scorer(staff_user.api_key, df_true=data_df, pred=pred_df)
 
-    def dt_range(df):
-        return (df.date >= min_date) & (df.date <= max_date)
+    for s in ["mae", "mse", "crps", "log_score", "interval_score", "wis"]:
+        scores[s] = score.summary[s]["pred"]
 
-    data_df = data_df.loc[dt_range(data_df)].reset_index(drop=True)
-
-    df = data_df.merge(pred_df, on="date", how="inner")
-
-    if df.empty:
-        return scores
-
-    z_value = stats.norm.ppf((1 + confidence_level) / 2)
-
-    scores["mae"] = mean_absolute_error(df.casos, df.pred)
-    scores["mse"] = mean_squared_error(df.casos, df.pred)
-
-    scores["crps"] = np.mean(
-        crps_normal(
-            df.casos,
-            df.pred,
-            (df.upper_90 - df.lower_90) / (2 * z_value),
-        )
-    )
-
-    log_score = [
-        abs(x)
-        for x in logs_normal(
-            df.casos,
-            df.pred,
-            (df.upper_90 - df.lower_90) / (2 * z_value),
-            negative=False,
-        )
-        if not np.isinf(x)
-    ]
-
-    scores["log_score"] = (
-        np.mean(np.maximum(log_score, np.repeat(-100, len(log_score))))
-        if log_score
-        else None
-    )
-
-    alpha = 1 - confidence_level
-    upper_bound = df.upper_90.values
-    lower_bound = df.lower_90.values
-
-    penalty = (2 / alpha * np.maximum(0, lower_bound - df.casos.values)) + (
-        2 / alpha * np.maximum(0, df.casos.values - upper_bound)
-    )
-    scores["interval_score"] = np.mean((upper_bound - lower_bound) + penalty)
-
-    return {k: round(v, 2) if v is not None else v for k, v in scores.items()}
+    return scores
 
 
 def hist_alerta_data(

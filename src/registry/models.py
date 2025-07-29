@@ -267,6 +267,7 @@ class Prediction(models.Model):
     crps = models.FloatField(null=True, default=None)
     log_score = models.FloatField(null=True, default=None)
     interval_score = models.FloatField(null=True, default=None)
+    wis = models.FloatField(null=True, default=None)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -320,6 +321,7 @@ class Prediction(models.Model):
             "crps": self.crps,
             "log_score": self.log_score,
             "interval_score": self.interval_score,
+            "wis": self.wis,
         }
 
     def _add_ini_end_prediction_dates(self):
