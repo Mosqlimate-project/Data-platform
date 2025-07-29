@@ -42,7 +42,11 @@ def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
         predictions = Prediction.objects.filter(id__in=prediction_ids)
 
     for prediction in predictions:
-        scores = calculate_score(prediction.id)
+        try:
+            scores = calculate_score(prediction.id)
+        except Exception as e:
+            logging.error(e)
+            continue
 
         if scores != prediction.scores:
             # cache.delete("get_predictions")

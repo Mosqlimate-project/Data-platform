@@ -54,6 +54,7 @@ def calculate_score(
     )
 
     pred_df = prediction.to_dataframe()
+    pred_df = pred_df.dropna(axis=1)
 
     if data_df.empty or pred_df.empty:
         return scores
@@ -64,7 +65,7 @@ def calculate_score(
 
     staff_user: User = User.objects.filter(is_staff=True).first()
 
-    score = Scorer(staff_user.api_key, data_df, pred=pred_df)
+    score = Scorer(staff_user.api_key, df_true=data_df, pred=pred_df)
 
     for s in ["mae", "mse", "crps", "log_score", "interval_score", "wis"]:
         scores[s] = score.summary[s]["pred"]
