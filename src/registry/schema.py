@@ -388,7 +388,10 @@ class PredictionIn(Schema):
 
     @model_validator(mode="before")
     def validate_adm_levels(cls, values):
-        model = Model.objects.get(pk=values.model)
+        try:
+            model = Model.objects.get(pk=values.model)
+        except Model.DoesNotExist:
+            raise HttpError(404, f"Model '{values.model}' not found")
         adm_1 = values.adm_1
         adm_2 = values.adm_2
         # adm_3 = values.adm_3

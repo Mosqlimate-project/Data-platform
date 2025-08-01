@@ -53,7 +53,7 @@
 
 <div class="card">
   <div id="chart-card" class="card-body">
-    <i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal"></i>
+    <i id="infoModalIcon" class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#infoModal" title={% trans "More info" %}></i>
     <div id="chart" style="height: 100%; width: 100%; min-height: 350px"></div>
   </div>
 </div>
@@ -157,18 +157,23 @@
         </div>
         <br>
         <div>
-          <p class="fs-6 fw-bold">CRPS</p>
-          <p>{% trans "Measures how well the predicted cumulative distribution function (CDF) matches the observed outcome. Lower values indicate the forecast distribution better matches the observed outcome" %}</p>
+          <p class="fs-6 fw-bold">{% trans "Continuous Ranked Probability Score (CRPS)" %}</p>
+          <p>{% trans "Evaluate how well the predicted cumulative distribution function (CDF) matches the observed outcome. The prediction is modeled as a log-normal distribution for this calculation. The CRPS generalizes the Mean Absolute Error (MAE) to probabilistic forecasts. Lower CRPS values indicate better predictive performance." %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">Log Score</p>
-          <p>{% trans "Measures the log-probability assigned to the observed value by the forecast distribution. Higher log-probabilities mean the forecast assigned more probability to the actual observation" %}</p>
+          <p>{% trans "Measures the log-probability assigned to the observed value by the forecast distribution. The prediction is modeled as a log-normal distribution for this calculation. Larger log score values indicate better predictive performance." %}</p>
         </div>
         <br>
         <div>
           <p class="fs-6 fw-bold">Interval Score</p>
-          <p>{% trans "Evaluates prediction intervals (e.g., 90% confidence intervals) of the forecast. Lower values mean narrower prediction intervals that still capture the true value appropriately" %}</p>
+          <p>{% trans "Evaluates prediction intervals (e.g., 90% confidence intervals) of the forecast. The interval score penalizes forecasts when the observed value falls outside the predicted interval and favors narrower intervals when the observation is within the range. Lower values indicate better predictive performance." %}</p>
+        </div>
+        <br>
+        <div>
+          <p class="fs-6 fw-bold">{% trans "Weighted Interval Score (WIS)" %}</p>
+          <p>{% trans "The WIS is a metric that combines multiple interval scores and serves as an approximation of the CRPS when forecasts are provided in the form of quantiles. Lower values indicate better predictive performance." %}</p>
         </div>
       </div>
     </div>
