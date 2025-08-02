@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-22 11:14-0300\n"
+"POT-Creation-Date: 2025-08-01 16:15-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,11 +58,11 @@ msgstr "Previsão excluída"
 msgid "Error deleting prediction"
 msgstr "Erro ao excluir previsão"
 
-#: registry/models.py:32 registry/models.py:241
+#: registry/models.py:32 registry/models.py:242
 msgid "Color must be in hexadecimal format, e.g., #ffffff"
 msgstr "A cor deve estar em formato hexadecimal, ex: #ffffff"
 
-#: registry/models.py:36 registry/models.py:245
+#: registry/models.py:36 registry/models.py:246
 msgid "Color in hexadecimal format. E.g: #ffffff"
 msgstr "Cor em formato hexadecimal. Ex: #ffffff"
 
@@ -122,6 +122,7 @@ msgid "National"
 msgstr "Nacional"
 
 #: registry/models.py:176 templates/datastore/components/mosquito.html:35
+#: templates/registry/prediction.html:59
 #: templates/vis/dashboard-forecast-map.html:86
 #: templates/vis/dashboard/predictions.html:34 vis/plots/forecast_map.py:329
 #: vis/templatetags/filters.py:46 vis/templatetags/filters.py:53
@@ -129,6 +130,7 @@ msgid "State"
 msgstr "Estado"
 
 #: registry/models.py:177 templates/datastore/components/mosquito.html:48
+#: templates/registry/prediction.html:63
 #: templates/vis/dashboard/predictions.html:40 vis/templatetags/filters.py:47
 msgid "Municipality"
 msgstr "Município"
@@ -157,12 +159,13 @@ msgstr "Modelo"
 msgid "Models"
 msgstr "Modelos"
 
-#: registry/models.py:348 templates/users/profile.html:65
+#: registry/models.py:351 templates/users/profile.html:65
 msgid "Prediction"
 msgstr "Previsão"
 
-#: registry/models.py:349 templates/main/components/navbar.html:41
+#: registry/models.py:352 templates/main/components/navbar.html:41
 #: templates/main/predictions.html:5 templates/main/predictions.html:9
+#: templates/registry/model.html:83
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
 #: templates/users/profile.html:65 templates/users/report/base.html:50
@@ -340,7 +343,7 @@ msgstr "Nome do modelo"
 #: templates/main/components/models-list.html:32
 #: templates/main/components/predictions-list.html:33
 #: templates/main/edit-model.html:22 templates/main/edit-prediction.html:34
-#: templates/registry/model.html:74 templates/registry/prediction.html:56
+#: templates/registry/model.html:74 templates/registry/prediction.html:72
 #: templates/users/components/models-box.html:89
 msgid "Description"
 msgstr "Descrição"
@@ -666,21 +669,25 @@ msgstr "Nível Administrativo"
 msgid "Time Resolution"
 msgstr "Resolução Temporal"
 
-#: templates/registry/prediction.html:74
+#: templates/registry/prediction.html:53
+msgid "ADM 1"
+msgstr ""
+
+#: templates/registry/prediction.html:90
 msgid "Show Table"
 msgstr "Mostrar Tabela"
 
-#: templates/registry/prediction.html:86
+#: templates/registry/prediction.html:102
 #: templates/vis/dashboard/predictions.html:117
 msgid "Welcome to Mosqlimate Predictions Dashboard"
 msgstr "Bem-vindo ao Painel de Previsões Mosqlimate"
 
-#: templates/registry/prediction.html:91
+#: templates/registry/prediction.html:107
 #: templates/vis/dashboard/predictions.html:122
 msgid "Confidence Interval"
 msgstr "Intervalo de Confiança"
 
-#: templates/registry/prediction.html:92
+#: templates/registry/prediction.html:108
 #: templates/vis/dashboard/predictions.html:123
 msgid ""
 "To toggle the Prediction's Confidence Interval bounds of the in the chart, "
@@ -689,17 +696,17 @@ msgstr ""
 "Para alternar os limites do Intervalo de Confiança da Previsão no gráfico, "
 "clique na legenda da Previsão"
 
-#: templates/registry/prediction.html:95
+#: templates/registry/prediction.html:111
 #: templates/vis/dashboard/predictions.html:125
 msgid " or line"
 msgstr " ou linha"
 
-#: templates/registry/prediction.html:100
+#: templates/registry/prediction.html:116
 #: templates/vis/dashboard/predictions.html:130
 msgid "Interval Bounds"
 msgstr "Limites do Intervalo"
 
-#: templates/registry/prediction.html:101
+#: templates/registry/prediction.html:117
 #: templates/vis/dashboard/predictions.html:131
 #, python-format
 msgid ""
@@ -842,6 +849,10 @@ msgstr "País"
 msgid "Sub-Municipality"
 msgstr "Sub-Município"
 
+#: templates/vis/dashboard/predictions.html:56
+msgid "More info"
+msgstr "Mais infor"
+
 #: templates/vis/dashboard/predictions.html:143
 msgid "Scores"
 msgstr ""
@@ -871,36 +882,66 @@ msgstr ""
 "Mede a média dos quadrados das diferenças entre a previsão e a observação. "
 "Valores menores indicam menos e/ou menores grandes erros nas previsões"
 
+#: templates/vis/dashboard/predictions.html:160
+msgid "Continuous Ranked Probability Score (CRPS)"
+msgstr "Score de Probabilidade Classificada Contínua (CRPS)"
+
 #: templates/vis/dashboard/predictions.html:161
 msgid ""
-"Measures how well the predicted cumulative distribution function (CDF) "
-"matches the observed outcome. Lower values indicate the forecast "
-"distribution better matches the observed outcome"
+"Evaluate how well the predicted cumulative distribution function (CDF) "
+"matches the observed outcome. The prediction is modeled as a log-normal "
+"distribution for this calculation. The CRPS generalizes the Mean Absolute "
+"Error (MAE) to probabilistic forecasts. Lower CRPS values indicate better "
+"predictive performance."
 msgstr ""
-"Mede quão bem a função de distribuição acumulada (CDF) prevista corresponde "
-"ao resultado observado. Valores menores indicam que a distribuição prevista "
-"corresponde melhor ao resultado observado"
+"Avalia o quão bem a função de distribuição cumulativa (CDF) prevista corresponde ao resultado observado. A previsão é modelada como uma distribuição log-normal para este cálculo. O CRPS generaliza o Erro Médio Absoluto (MAE) para previsões probabilísticas. Valores mais baixos de CRPS indicam melhor desempenho preditivo."
 
 #: templates/vis/dashboard/predictions.html:166
+#, fuzzy
+#| msgid ""
+#| "Measures the log-probability assigned to the observed value by the "
+#| "forecast distribution. Higher log-probabilities mean the forecast "
+#| "assigned more probability to the actual observation"
 msgid ""
 "Measures the log-probability assigned to the observed value by the forecast "
-"distribution. Higher log-probabilities mean the forecast assigned more "
-"probability to the actual observation"
+"distribution. The prediction is modeled as a log-normal distribution for "
+"this calculation. Larger log score values indicate better predictive "
+"performance."
 msgstr ""
 "Mede a log-probabilidade atribuída ao valor observado pela distribuição "
 "prevista. Log-probabilidades mais altas significam que a previsão atribuiu "
 "mais probabilidade à observação real"
 
 #: templates/vis/dashboard/predictions.html:171
-#, python-format
+#, fuzzy, python-format
+#| msgid ""
+#| "Evaluates prediction intervals (e.g., 90%% confidence intervals) of the "
+#| "forecast. Lower values mean narrower prediction intervals that still "
+#| "capture the true value appropriately"
 msgid ""
 "Evaluates prediction intervals (e.g., 90%% confidence intervals) of the "
-"forecast. Lower values mean narrower prediction intervals that still capture "
-"the true value appropriately"
+"forecast. The interval score penalizes forecasts when the observed value "
+"falls outside the predicted interval and favors narrower intervals when the "
+"observation is within the range. Lower values indicate better predictive "
+"performance."
 msgstr ""
 "Avalia os intervalos de previsão (ex. intervalos de confiança de 90%%) da "
 "previsão. Valores menores significam intervalos de previsão mais estreitos "
 "que ainda capturam o valor verdadeiro adequadamente"
+
+#: templates/vis/dashboard/predictions.html:175
+msgid "Weighted Interval Score (WIS)"
+msgstr "Score de Intervalo Ponderado (WIS)"
+
+#: templates/vis/dashboard/predictions.html:176
+msgid ""
+"The WIS is a metric that combines multiple interval scores and serves as an "
+"approximation of the CRPS when forecasts are provided in the form of "
+"quantiles. Lower values indicate better predictive performance."
+msgstr ""
+"O WIS é uma métrica que combina múltiplas pontuações entre os intervalos e serve como uma "
+"aproximação do CRPS quando as previsões são fornecidas na forma de "
+"quantis. Valores mais baixos indicam melhor desempenho preditivo."
 
 #: templates/vis/dashboard/sidebar.html:17
 msgid "How to use"
@@ -977,6 +1018,15 @@ msgstr "Limite de Alta Incidência (100k)"
 #: vis/templatetags/filters.py:54
 msgid "Macro Health"
 msgstr "Macro Saúde"
+
+#~ msgid ""
+#~ "Measures how well the predicted cumulative distribution function (CDF) "
+#~ "matches the observed outcome. Lower values indicate the forecast "
+#~ "distribution better matches the observed outcome"
+#~ msgstr ""
+#~ "Mede quão bem a função de distribuição acumulada (CDF) prevista "
+#~ "corresponde ao resultado observado. Valores menores indicam que a "
+#~ "distribuição prevista corresponde melhor ao resultado observado"
 
 #~ msgid "Detailed information"
 #~ msgstr "Informações detalhadas"

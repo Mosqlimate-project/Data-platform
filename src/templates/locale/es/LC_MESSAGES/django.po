@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-25 15:56-0300\n"
+"POT-Creation-Date: 2025-08-01 16:15-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,11 +58,11 @@ msgstr ""
 msgid "Error deleting prediction"
 msgstr ""
 
-#: registry/models.py:32 registry/models.py:241
+#: registry/models.py:32 registry/models.py:242
 msgid "Color must be in hexadecimal format, e.g., #ffffff"
 msgstr ""
 
-#: registry/models.py:36 registry/models.py:245
+#: registry/models.py:36 registry/models.py:246
 msgid "Color in hexadecimal format. E.g: #ffffff"
 msgstr ""
 
@@ -122,14 +122,16 @@ msgid "National"
 msgstr ""
 
 #: registry/models.py:176 templates/datastore/components/mosquito.html:35
+#: templates/registry/prediction.html:59
 #: templates/vis/dashboard-forecast-map.html:86
-#: templates/vis/dashboard/predictions.html:19 vis/plots/forecast_map.py:329
+#: templates/vis/dashboard/predictions.html:34 vis/plots/forecast_map.py:329
 #: vis/templatetags/filters.py:46 vis/templatetags/filters.py:53
 msgid "State"
 msgstr ""
 
 #: registry/models.py:177 templates/datastore/components/mosquito.html:48
-#: templates/vis/dashboard/predictions.html:27 vis/templatetags/filters.py:47
+#: templates/registry/prediction.html:63
+#: templates/vis/dashboard/predictions.html:40 vis/templatetags/filters.py:47
 msgid "Municipality"
 msgstr ""
 
@@ -152,20 +154,24 @@ msgstr ""
 #: registry/models.py:220 templates/main/components/navbar.html:38
 #: templates/main/models.html:6 templates/main/models.html:11
 #: templates/users/profile.html:56 templates/users/report/base.html:47
-#: templates/vis/dashboard/base.html:52
+#: templates/vis/dashboard/base.html:49
+#: templates/vis/dashboard/predictions.html:65
 msgid "Models"
 msgstr ""
 
-#: registry/models.py:390 templates/users/profile.html:65
+#: registry/models.py:351 templates/users/profile.html:65
 msgid "Prediction"
 msgstr ""
 
-#: registry/models.py:391 templates/main/components/navbar.html:41
+#: registry/models.py:352 templates/main/components/navbar.html:41
 #: templates/main/predictions.html:5 templates/main/predictions.html:9
+#: templates/registry/model.html:83
 #: templates/users/components/models-box.html:26
 #: templates/users/components/models-box.html:76
 #: templates/users/profile.html:65 templates/users/report/base.html:50
-#: templates/vis/dashboard/base.html:55 templates/vis/dashboard/sidebar.html:35
+#: templates/vis/dashboard/base.html:52
+#: templates/vis/dashboard/predictions.html:90
+#: templates/vis/dashboard/sidebar.html:27
 msgid "Predictions"
 msgstr ""
 
@@ -176,6 +182,10 @@ msgstr ""
 
 #: templates/account/messages/logged_out.txt:2
 msgid "You have signed out."
+msgstr ""
+
+#: templates/chatbot/components/chat.html:13
+msgid "Send"
 msgstr ""
 
 #: templates/datastore/components/climate.html:7
@@ -294,7 +304,7 @@ msgid "Something went wrong"
 msgstr ""
 
 #: templates/main/about.html:5 templates/main/components/navbar.html:23
-#: templates/users/report/base.html:32 templates/vis/dashboard/base.html:37
+#: templates/users/report/base.html:32 templates/vis/dashboard/base.html:34
 msgid "About"
 msgstr ""
 
@@ -320,7 +330,7 @@ msgstr ""
 #: templates/main/components/models-list.html:32
 #: templates/main/components/predictions-list.html:33
 #: templates/main/edit-model.html:22 templates/main/edit-prediction.html:34
-#: templates/registry/model.html:74 templates/registry/prediction.html:56
+#: templates/registry/model.html:74 templates/registry/prediction.html:72
 #: templates/users/components/models-box.html:89
 msgid "Description"
 msgstr ""
@@ -425,17 +435,17 @@ msgid "Visualize"
 msgstr ""
 
 #: templates/main/components/navbar.html:20 templates/main/home.html:7
-#: templates/users/report/base.html:28 templates/vis/dashboard/base.html:33
+#: templates/users/report/base.html:28 templates/vis/dashboard/base.html:30
 msgid "Home"
 msgstr ""
 
 #: templates/main/components/navbar.html:26 templates/users/report/base.html:35
-#: templates/vis/dashboard/base.html:40
+#: templates/vis/dashboard/base.html:37
 msgid "Documentation"
 msgstr ""
 
 #: templates/main/components/navbar.html:29 templates/users/report/base.html:38
-#: templates/vis/dashboard/base.html:43
+#: templates/vis/dashboard/base.html:40
 msgid "API Demo"
 msgstr ""
 
@@ -548,10 +558,12 @@ msgid "Github Repository"
 msgstr ""
 
 #: templates/main/models.html:101 templates/main/predictions.html:104
+#: templates/vis/dashboard/predictions.html:98
 msgid "Clear"
 msgstr ""
 
 #: templates/main/models.html:102 templates/main/predictions.html:105
+#: templates/vis/dashboard/predictions.html:68
 msgid "Search"
 msgstr ""
 
@@ -622,39 +634,43 @@ msgstr ""
 msgid "Time Resolution"
 msgstr ""
 
-#: templates/registry/prediction.html:74
+#: templates/registry/prediction.html:53
+msgid "ADM 1"
+msgstr ""
+
+#: templates/registry/prediction.html:90
 msgid "Show Table"
 msgstr ""
 
-#: templates/registry/prediction.html:86
-#: templates/vis/dashboard/predictions.html:123
+#: templates/registry/prediction.html:102
+#: templates/vis/dashboard/predictions.html:117
 msgid "Welcome to Mosqlimate Predictions Dashboard"
 msgstr ""
 
-#: templates/registry/prediction.html:91
-#: templates/vis/dashboard/predictions.html:128
+#: templates/registry/prediction.html:107
+#: templates/vis/dashboard/predictions.html:122
 msgid "Confidence Interval"
 msgstr ""
 
-#: templates/registry/prediction.html:92
-#: templates/vis/dashboard/predictions.html:129
+#: templates/registry/prediction.html:108
+#: templates/vis/dashboard/predictions.html:123
 msgid ""
 "To toggle the Prediction's Confidence Interval bounds of the in the chart, "
 "click in the Prediction's legend"
 msgstr ""
 
-#: templates/registry/prediction.html:95
-#: templates/vis/dashboard/predictions.html:131
+#: templates/registry/prediction.html:111
+#: templates/vis/dashboard/predictions.html:125
 msgid " or line"
 msgstr ""
 
-#: templates/registry/prediction.html:100
-#: templates/vis/dashboard/predictions.html:136
+#: templates/registry/prediction.html:116
+#: templates/vis/dashboard/predictions.html:130
 msgid "Interval Bounds"
 msgstr ""
 
-#: templates/registry/prediction.html:101
-#: templates/vis/dashboard/predictions.html:137
+#: templates/registry/prediction.html:117
+#: templates/vis/dashboard/predictions.html:131
 #, python-format
 msgid ""
 "When the Confidence Interval is active, the Prediction will display the 50%% "
@@ -718,7 +734,7 @@ msgid "Top 20 endpoints"
 msgstr ""
 
 #: templates/users/report/api.html:61
-msgid "Another Chart"
+msgid "Requests by UF"
 msgstr ""
 
 #: templates/vis/charts/prediction-table.html:16
@@ -775,15 +791,96 @@ msgid "Select a date"
 msgstr ""
 
 #: templates/vis/dashboard/predictions.html:13
+msgid "Statewide"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:14
+msgid "Municipal"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:22
+msgid "Disease:"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:28
 msgid "Country"
 msgstr ""
 
-#: templates/vis/dashboard/predictions.html:21
-msgid "Select a state"
+#: templates/vis/dashboard/predictions.html:46
+msgid "Sub-Municipality"
 msgstr ""
 
-#: templates/vis/dashboard/predictions.html:33
-msgid "Sub-Municipality"
+#: templates/vis/dashboard/predictions.html:56
+msgid "More info"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:143
+msgid "Scores"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:147
+msgid ""
+"Forecast scores are metrics that quantify how well probabilistic or point "
+"forecasts match the observed outcomes"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:151
+msgid ""
+"Measures the average magnitude of the errors in the predictions. Lower "
+"values mean predictions are closer on average to actual data"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:156
+msgid ""
+"Measures the average of the squared differences between forecast and "
+"observation. Lower values mean fewer and/or smaller large errors in "
+"predictions"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:160
+msgid "Continuous Ranked Probability Score (CRPS)"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:161
+msgid ""
+"Evaluate how well the predicted cumulative distribution function (CDF) "
+"matches the observed outcome. The prediction is modeled as a log-normal "
+"distribution for this calculation. The CRPS generalizes the Mean Absolute "
+"Error (MAE) to probabilistic forecasts. Lower CRPS values indicate better "
+"predictive performance."
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:166
+msgid ""
+"Measures the log-probability assigned to the observed value by the forecast "
+"distribution. The prediction is modeled as a log-normal distribution for "
+"this calculation. Larger log score values indicate better predictive "
+"performance."
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:171
+#, python-format
+msgid ""
+"Evaluates prediction intervals (e.g., 90%% confidence intervals) of the "
+"forecast. The interval score penalizes forecasts when the observed value "
+"falls outside the predicted interval and favors narrower intervals when the "
+"observation is within the range. Lower values indicate better predictive "
+"performance."
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:175
+msgid "Weighted Interval Score (WIS)"
+msgstr ""
+
+#: templates/vis/dashboard/predictions.html:176
+msgid ""
+"The WIS is a metric that combines multiple interval scores and serves as an "
+"approximation of the CRPS when forecasts are provided in the form of "
+"quantiles. Lower values indicate better predictive performance."
+msgstr ""
+
+#: templates/vis/dashboard/sidebar.html:17
+msgid "How to use"
 msgstr ""
 
 #: users/models.py:14

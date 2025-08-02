@@ -1053,7 +1053,7 @@ class PredictionList {
                 <div class="col">
                   <div class="row align-items-center" style="flex-flow: row-reverse;">
                     <div class="col-auto">
-                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal"></i>
+                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal" title={% trans "More info" %}></i>
                     </div>
                     <div class="col-auto">
                       <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 100px !important;">
@@ -1062,6 +1062,7 @@ class PredictionList {
                         <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
                         <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
                         <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
+                        <option value="interval_score" ${score === "wis" ? "selected" : ""}>WIS</option>
                       </select>
                     </div>
                   </div>
