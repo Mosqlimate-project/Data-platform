@@ -29,6 +29,11 @@
   <center><hr style="width:70%;"></center>
 
   <div class="d-flex justify-content-center gap-2 my-3">
+    {% if user.is_authenticated and prediction.model.author.user == user %}
+    <a href="{% url 'edit-prediction' prediction_id=prediction.id %}" class="btn btn-secondary">
+      Edit
+    </a>
+    {% endif %}
     <a href="{% url 'prediction-csv' prediction_id=prediction.id %}" class="btn btn-secondary">
       Download CSV
     </a>
