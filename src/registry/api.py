@@ -249,6 +249,9 @@ def create_model(request, payload: ModelIn):
     user = authorize(request)
     author = Author.objects.get(user=user)
 
+    if Model.objects.filter(name__iexact=payload.name).exists():
+        return 403, {"message": f"Model '{payload.name}' already exists"}
+
     data = payload.dict()
     data["implementation_language"] = ImplementationLanguage.objects.get(
         language__iexact=payload.implementation_language
@@ -550,20 +553,15 @@ def delete_prediction(request, predict_id: int):
     except Prediction.DoesNotExist:
         return 404, {"message": "Prediction not found"}
 
-    if prediction.model.sprint:
-        return 403, {
-            "message": "Predictions for Sprint 2024/25 can't be deleted"
-        }
-
     if not user.is_staff:
         if user != prediction.model.author.user:
             return 403, {
-                "message": ("You are not authorized to delete this prediction")
+                "message": "You are not authorized to delete this prediction"
             }
 
     if calling_via_swagger(request):
         return 200, {
-            "message": ("Success. Calling via Swagger, Prediction not deleted")
+            "message": "Success. Calling via Swagger, Prediction not deleted"
         }
 
     APILog.from_request(request)
