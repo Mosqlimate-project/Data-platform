@@ -453,7 +453,7 @@ class EditPredictionView(View):
                 if form.is_valid():
                     prediction_id = form.cleaned_data["prediction_id"]
                     delete_prediction(request, prediction_id)
-                    messages.warning(request, _("Prediction deleted"))
+                    messages.success(request, _("Prediction deleted"))
                 else:
                     messages.error(request, _("Error deleting prediction"))
 
