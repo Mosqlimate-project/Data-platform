@@ -470,6 +470,8 @@ class Storage {
   /** @type {Storage | null} */
   static current = null;
 
+  static EXPIRATION_MS = 12 * 60 * 60 * 1000;
+
   /**
    * @param {Dashboard} dashboard
    */
@@ -477,6 +479,12 @@ class Storage {
     /** @type {Dashboard} */
     this.dashboard = dashboard;
     this._predictionsPromise = null;
+
+    const metadata = JSON.parse(localStorage.getItem("dashboards_meta") || "{}");
+
+    if (metadata.timestamp && Date.now() - metadata.timestamp > Storage.EXPIRATION_MS) {
+      localStorage.clear();
+    }
 
     const data = JSON.parse(localStorage.getItem("dashboards") || "{}");
     const d = this.dashboard.dashboard;
@@ -519,6 +527,7 @@ class Storage {
 
   _save() {
     localStorage.setItem("dashboards", JSON.stringify(this._data));
+    localStorage.setItem("dashboards_meta", JSON.stringify({ timestamp: Date.now() }));
   }
 
   /** @returns {StorageData} */
