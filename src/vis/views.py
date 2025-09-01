@@ -187,7 +187,8 @@ def get_predictions(request) -> JsonResponse:
         p_res["adm_2"] = p.adm_2.geocode if p.adm_2 else None
         p_res["start_date"] = p.date_ini_prediction.date()
         p_res["end_date"] = p.date_end_prediction.date()
-        p_res["year"] = p.data.first().date.year
+        p_res["year"] = p.data.order_by("date").first().date.year
+
         p_res["scores"] = p.scores
         p_res["color"] = p.color
 

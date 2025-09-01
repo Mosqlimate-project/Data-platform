@@ -215,6 +215,7 @@ function getScoreLabel(score) {
     case 'crps': return 'CRPS';
     case 'log_score': return 'Log Score';
     case 'interval_score': return 'Interval Score';
+    case 'wis': return 'WIS';
     default: return 'Select Score';
   }
 }
@@ -404,11 +405,19 @@ async function updateScores(dashboard, selectedScore) {
       const scoreElement = li.querySelector(`#score-${id}`);
 
       if (scores[id] && scores[id][selectedScore] !== null) {
-        const scoreValue = scores[id][selectedScore];
-        scoreElement.textContent = selectedScore === 'log_score'
-          ? `-${scoreValue.toFixed(2)}`
-          : scoreValue.toFixed(2);
-        li.setAttribute('data-score', scoreValue);
+        const rawValue = Number(scores[id][selectedScore]);
+        let displayValue;
+
+        if (selectedScore === 'log_score') {
+          displayValue = rawValue > 0
+            ? `-${rawValue.toFixed(2)}`
+            : rawValue.toFixed(2);
+        } else {
+          displayValue = rawValue.toFixed(2);
+        }
+
+        scoreElement.textContent = displayValue;
+        li.setAttribute('data-score', rawValue);
       } else {
         scoreElement.textContent = "N/A";
         li.setAttribute('data-score', 'NaN');
