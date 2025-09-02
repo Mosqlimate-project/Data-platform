@@ -1071,7 +1071,7 @@ class PredictionList {
                         <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
                         <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
                         <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
-                        <option value="interval_score" ${score === "wis" ? "selected" : ""}>WIS</option>
+                        <option value="wis" ${score === "wis" ? "selected" : ""}>WIS</option>
                       </select>
                     </div>
                   </div>

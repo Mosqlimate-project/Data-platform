@@ -316,12 +316,18 @@ class Prediction(models.Model):
     @property
     def scores(self) -> dict:
         return {
-            "mae": self.mae,
-            "mse": self.mse,
-            "crps": self.crps,
-            "log_score": self.log_score,
-            "interval_score": self.interval_score,
-            "wis": self.wis,
+            "mae": round(self.mae, 2) if self.mae else self.mae,
+            "mse": round(self.mse, 2) if self.mse else self.mse,
+            "crps": round(self.crps, 2) if self.crps else self.crps,
+            "log_score": (
+                round(self.log_score, 2) if self.log_score else self.log_score
+            ),
+            "interval_score": (
+                round(self.interval_score, 2)
+                if self.interval_score
+                else self.interval_score
+            ),
+            "wis": round(self.wis, 2) if self.wis else self.wis,
         }
 
     def _add_ini_end_prediction_dates(self):

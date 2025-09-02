@@ -291,42 +291,49 @@ class LineChart {
         })
       }
 
-      function getBound(bound) {
+      function getBoundSeries(bound, opposite) {
         const name = `${id}-${bound}`;
-        const bound_n = bound.split("_")[1];
-        const area = {
-          name: name,
-          type: 'line',
-          data: getBoundData(bound),
-          lineStyle: {
-            color: pred.color,
-            opacity: 0
-          },
-          itemStyle: {
-            color: pred.color,
-          },
-          stack: id + bound_n,
-          symbol: 'none',
-          showSymbol: false,
-        };
+        const baseName = `${id}-${bound.split("_")[1]}-base`;
 
-        if (bound.includes("upper")) {
-          area["areaStyle"] = {
-            color: pred.color,
-            opacity: 0.3,
+        if (bound.includes("lower")) {
+          return {
+            name,
+            type: 'line',
+            data: getBoundData(bound),
+            lineStyle: { opacity: 0 },
+            symbol: 'none',
+            stack: baseName,
+          };
+        } else {
+          const upperData = getBoundData(bound);
+          const lowerData = getBoundData(opposite);
+
+          const diff = upperData.map((u, i) =>
+            isNaN(u) || isNaN(lowerData[i]) ? NaN : u - lowerData[i]
+          );
+
+          return {
+            name,
+            type: 'line',
+            data: diff,
+            lineStyle: { opacity: 0 },
+            symbol: 'none',
+            stack: baseName,
+            areaStyle: {
+              color: pred.color,
+              opacity: bound.includes("50") ? 0.3 : 0.15,
+            },
           };
         }
-
-        return area;
       }
 
       this.option.series.splice(
         pIndex + 1,
         0,
-        getBound("lower_50"),
-        getBound("lower_90"),
-        getBound("upper_50"),
-        getBound("upper_90"),
+        getBoundSeries("lower_50", "upper_50"),
+        getBoundSeries("upper_50", "lower_50"),
+        getBoundSeries("lower_90", "upper_90"),
+        getBoundSeries("upper_90", "lower_90"),
       );
       this.bounds.push(id);
     } else {
@@ -445,7 +452,15 @@ class LineChart {
       return self.option.xAxis.data.map((label) => {
         const i = prediction.chart.labels.indexOf(label);
         return i !== -1 ? prediction.chart[param][i] : NaN;
-      })
+      });
+    }
+
+    function getDiff(upperParam, lowerParam) {
+      const upperData = getData(upperParam);
+      const lowerData = getData(lowerParam);
+      return upperData.map((u, i) =>
+        isNaN(u) || isNaN(lowerData[i]) ? NaN : u - lowerData[i]
+      );
     }
 
     const id = `${prediction.id}`;
@@ -459,21 +474,19 @@ class LineChart {
       this.option.series[i].data = getData("data");
       this.option.series[i].lineStyle.color = prediction.color;
     }
-    if (u50 !== -1) {
-      this.option.series[u50].data = getData("upper_50");
-      this.option.series[u50].lineStyle.color = prediction.color;
-    }
-    if (u90 !== -1) {
-      this.option.series[u90].data = getData("upper_90");
-      this.option.series[u90].lineStyle.color = prediction.color;
-    }
     if (l50 !== -1) {
       this.option.series[l50].data = getData("lower_50");
-      this.option.series[l50].lineStyle.color = prediction.color;
+    }
+    if (u50 !== -1) {
+      this.option.series[u50].data = getDiff("upper_50", "lower_50");
+      this.option.series[u50].areaStyle.color = prediction.color;
     }
     if (l90 !== -1) {
       this.option.series[l90].data = getData("lower_90");
-      this.option.series[l90].lineStyle.color = prediction.color;
+    }
+    if (u90 !== -1) {
+      this.option.series[u90].data = getDiff("upper_90", "lower_90");
+      this.option.series[u90].areaStyle.color = prediction.color;
     }
 
     this.option.legend.data = this.option.series
@@ -483,8 +496,7 @@ class LineChart {
         textStyle: {
           fontWeight: this.bounds.includes(series.name) ? 'bold' : 'normal'
         }
-      })
-      );
+      }));
 
     this.chart.setOption(this.option, true);
   }
