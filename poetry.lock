@@ -3896,7 +3896,7 @@ resolved_reference = "6e273ad86aac2bd36dc1d04d58d0d4108417b938"
 
 [[package]]
 name = "mosqlimate-assistant"
-version = "1.5.0"
+version = "1.7.1"
 description = "Add your description here"
 optional = false
 python-versions = ">=3.11,<3.13"
@@ -3922,8 +3922,8 @@ requests = ">=2.32.3"
 [package.source]
 type = "git"
 url = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git"
-reference = "1.5.0"
-resolved_reference = "b411213227da2b31c2364e9eecd6339c627b5225"
+reference = "1.7.1"
+resolved_reference = "8fabdb4fcaf44687a63c4aae4632a8c1438b348a"
 
 [[package]]
 name = "msgpack"
@@ -7895,4 +7895,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "f3f7f9632ca4f3509f81931398a25c0926469d15314f8bfcf25150d5f3ea4240"
+content-hash = "4e0bca2dfdade7d8a50067d97df70b370f017d20ca29df3da24e97fe8e2a4352"

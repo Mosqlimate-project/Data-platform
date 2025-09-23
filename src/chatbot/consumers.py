@@ -43,6 +43,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             user = None
 
+        self.user = user
+        self.user_api_key = api_key
+
         self.session, _ = await sync_to_async(
             ChatSession.objects.get_or_create
         )(user=user, session_key=self.session_key)
@@ -105,10 +108,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.save_message("user", question)
 
+        message_history = None
+
         try:
+            if self.user:
+                qs = Message.objects.filter(session__user=self.user)
+            else:
+                qs = Message.objects.filter(session=self.session)
+
+            messages = await sync_to_async(list)(qs.order_by("-timestamp")[:5])
+            messages.reverse()
+
+            message_history = [
+                {
+                    "role": "user" if m.sender == "user" else "assistant",
+                    "content": m.content,
+                }
+                for m in messages
+            ]
+
             await sync_to_async(generate_bot_answer.delay)(
-                question, self.session_key
+                question, self.session_key, self.user_api_key, message_history
             )
+            logger.warn(message_history)
 
         except Exception as e:
             logger.exception(f"ChatConsumer error: {e}")
