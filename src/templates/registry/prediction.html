@@ -284,31 +284,45 @@
 
   function addBound(bound) {
     const name = `${id}-${bound}`;
-    const bound_n = bound.split("_")[1];
-    const area = {
-      name: name,
-      type: 'line',
-      data: prediction.map(i => [i.date, i[bound]]),
-      lineStyle: {
-        color: color,
-        opacity: 0
-      },
-      itemStyle: {
-        color: color,
-      },
-      stack: id + bound_n,
-      symbol: 'none',
-      showSymbol: false,
-    };
+    const baseName = `${id}-${bound.split("_")[1]}-base`;
 
-    if (bound.includes("upper")) {
-      area["areaStyle"] = {
-        color: color,
-        opacity: 0.3,
-      };
+    if (bound.includes("lower")) {
+      option.series.push({
+        name,
+        type: 'line',
+        data: prediction.map(i => [i.date, i[bound]]),
+        lineStyle: { opacity: 0 },
+        symbol: 'none',
+        stack: baseName,
+        itemStyle: {
+          color: color,
+        },
+      });
+    } else {
+      const opposite = `lower_${bound.split("_")[1]}`;
+      const upperData = prediction.map(i => i[bound]);
+      const lowerData = prediction.map(i => i[opposite]);
+
+      const diff = upperData.map((u, i) =>
+        u == null || lowerData[i] == null ? null : u - lowerData[i]
+      );
+
+      option.series.push({
+        name,
+        type: 'line',
+        data: prediction.map((i, idx) => [i.date, diff[idx]]),
+        lineStyle: { opacity: 0 },
+        symbol: 'none',
+        stack: baseName,
+        areaStyle: {
+          color: color,
+          opacity: bound.includes("50") ? 0.3 : 0.15,
+        },
+        itemStyle: {
+          color: color,
+        },
+      });
     }
-
-    option.series.push(area);
   }
 
   const bounds = new Set(

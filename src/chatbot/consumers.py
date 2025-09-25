@@ -130,7 +130,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await sync_to_async(generate_bot_answer.delay)(
                 question, self.session_key, self.user_api_key, message_history
             )
-            logger.warn(message_history)
 
         except Exception as e:
             logger.exception(f"ChatConsumer error: {e}")
