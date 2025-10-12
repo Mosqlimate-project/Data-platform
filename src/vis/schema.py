@@ -5,6 +5,57 @@ from ninja import FilterSchema, Field
 from main.schema import Schema
 
 
+class DashboardLineChartPredictions(Schema):
+    predict_id: int
+    upper_95: Optional[float]
+    upper_90: Optional[float]
+    upper_80: Optional[float]
+    upper_50: Optional[float]
+    pred: float
+    lower_50: Optional[float]
+    lower_80: Optional[float]
+    lower_90: Optional[float]
+    lower_95: Optional[float]
+
+
+class DashboardLineChartOut(Schema):
+    dates: list[date]
+    cases: list[Optional[int]]
+    preds: list[Optional[list[Optional[DashboardLineChartPredictions]]]]
+
+
+class PredictionScore(Schema):
+    name: Literal["mae", "mse", "crps", "log_score", "interval_score", "wis"]
+    score: Optional[float]
+
+
+class DashboardPredictionOut(Schema):
+    id: int
+    model: int
+    author: str
+    year: int
+    start: date
+    end: date
+    scores: list[PredictionScore]
+
+
+class DashboardModelOut(Schema):
+    id: int
+    name: str
+    author: str = Field(alias="author__user__name")
+
+
+class DashboardTag(Schema):
+    id: int
+    name: str
+    color: str
+
+
+class DashboardTagsOut(Schema):
+    models: list[DashboardTag]
+    preds: list[DashboardTag]
+
+
 class HistoricoAlertaCases(Schema):
     date: date
     cases: int

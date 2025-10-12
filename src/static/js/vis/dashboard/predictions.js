@@ -325,6 +325,17 @@ class Dashboard {
     this.predictionList = new PredictionList(this);
     this.update();
     this.predictionList.update();
+
+    const sprint24 = document.querySelector('#sprint24Toggle');
+    const sprint25 = document.querySelector('#sprint25Toggle');
+
+    sprint24.addEventListener('change', (e) => {
+      console.log('24 changed to:', e.target.checked);
+    });
+
+    sprint25.addEventListener('change', (e) => {
+      console.log('25 changed to:', e.target.checked);
+    });
   }
 
   has_changed(vals) {

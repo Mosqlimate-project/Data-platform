@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load filters %}
+{% load static %}
 
 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
   <nav class="mt-2" style="width:100%">
@@ -22,7 +23,53 @@
   </nav>
 </div>
 
+{% if request.GET.dashboard == 'sprint' %}
+<div class="user-panel mt-3 pb-3 mb-3 d-flex">
+  <nav class="mt-2" style="width:100%">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+      <small><p class="category">{% trans "Sprint IMDC Year" %}</p></small>
+      <li class="nav-item" style="margin-left:10%;">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="sprint24Toggle"
+            checked
+            onchange="toggleSprint24(this)">
+          <label class="form-check-label" for="sprintSwitch" style="color:white;">
+            2024
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="sprint25Toggle"
+            checked
+            onchange="toggleSprint25(this)">
+          <label class="form-check-label" for="sprintSwitch" style="color:white;">
+            2025
+          </label>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</div>
+{% endif %}
+
+<script type="text/javascript" src="{% static 'js/external/jquery.js' %}"></script>
 <script>
+  let sprintSelect24 = true;
+  let sprintSelect25 = true;
+
+  function toggleSprint24(el) {
+    sprintSelect24 = el.checked;
+  }
+
+  function toggleSprint25(el) {
+    sprintSelect25 = el.checked;
+  }
+
   function toggleSprint(el) {
     const params = new URLSearchParams(window.location.search);
     if (el.checked) {

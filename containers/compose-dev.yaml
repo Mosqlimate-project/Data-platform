@@ -7,7 +7,7 @@ services:
       - django_data:/opt/services/storage
     networks:
       - infodengue-dev_infodengue
-    command: watchmedo auto-restart --patterns="*.py" --recursive -- daphne -b 0.0.0.0 -p 8042 mosqlimate.asgi:application
+    command: python manage.py runserver 0.0.0.0:8042
 
   worker:
     networks:
