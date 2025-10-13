@@ -52,20 +52,22 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   })(jQuery);
 
-  $('#adm-select-card').loading("show")
-  $('#chart-card').loading("show")
-  $('#predictions-card').loading("show")
-  try {
-    d = new Dashboard(dashboard);
-  } catch {
-    $('#adm-select-card').loading("error")
-    $('#chart-card').loading("error")
-    $('#predictions-card').loading("error")
-  } finally {
-    $('#adm-select-card').loading("hide")
-    $('#chart-card').loading("hide")
-    $('#predictions-card').loading("hide")
-  }
+  d = new Dashboard(dashboard);
+
+  // $('#adm-select-card').loading("show")
+  // $('#chart-card').loading("show")
+  // $('#predictions-card').loading("show")
+  // try {
+  //   d = new Dashboard(dashboard);
+  // } catch {
+  //   $('#adm-select-card').loading("error")
+  //   $('#chart-card').loading("error")
+  //   $('#predictions-card').loading("error")
+  // } finally {
+  //   $('#adm-select-card').loading("hide")
+  //   $('#chart-card').loading("hide")
+  //   $('#predictions-card').loading("hide")
+  // }
 });
 
 function debounce(fn, delay) {
@@ -74,32 +76,6 @@ function debounce(fn, delay) {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn.apply(this, args), delay);
   };
-}
-
-/**
-  * @param {Dashboard} dashboard
-  * @param {number[]} ids
-  * @returns {Promise<Model[]>}
-  */
-async function getModels(dashboard, ids) {
-  const params = new URLSearchParams();
-  ids.forEach(id => params.append("model", id));
-
-  const response = await fetch(`/vis/get-models/?${params.toString()}`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch models: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  return data.items.map(item => new Model(
-    dashboard,
-    item.id,
-    item.name,
-    item.author,
-    item.updated
-  ));
 }
 
 function formatDate(date) {
@@ -195,7 +171,7 @@ class Prediction {
   select() {
     const td = $(`#td-${this.id}`);
     td.addClass('selected');
-    td.css("background-color", this.color);
+    td.css("background-color", hexToRgba(this.color, 0.25));
     $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", true);
 
     let prediction_ids = new Set(Storage.prediction_ids);
@@ -209,7 +185,7 @@ class Prediction {
   unselect() {
     const td = $(`#td-${this.id}`);
     td.removeClass('selected');
-    td.css("background-color", '');
+    td.css("background-color", hexToRgba(this.color, 0.25));
     $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", false);
 
     let prediction_ids = new Set(Storage.prediction_ids);
@@ -223,7 +199,7 @@ class Prediction {
 
 
 /**
- * @typedef {Object} Author
+ * @typedef {Object} Autho6
  * @property {string} name
  * @property {string} user
  */
@@ -255,7 +231,7 @@ class Model {
     } else {
       this.select();
     }
-    this.dashboard.predictionList?.update(undefined, undefined, undefined, true);
+    // this.dashboard.predictionList?.update(undefined, undefined, undefined, true);
   }
 
   select() {
@@ -285,33 +261,6 @@ class Model {
       textDecoration: '',
     });
   }
-
-  li() {
-    return `
-      <div
-        class="model-balloon"
-        data-id="${this.id}"
-        onclick="Model.obj[${this.id}].toggle()"
-        style="
-          display: inline-block;
-          margin: 0.25rem;
-          padding: 0.25rem 0.75rem;
-          border-radius: 999px;
-          background-color: #eef;
-          color: #333;
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: background 0.3s ease;
-          max-width: 300px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        "
-      >
-        <a href="/registry/model/${this.id}/" target="_blank">${this.id}</a> ${this.name}
-      </div>
-    `;
-  }
 }
 
 
@@ -322,20 +271,9 @@ class Dashboard {
 
     this.admSelect = new ADMSelect(this);
     this.lineChart = new LineChart('chart');
-    this.predictionList = new PredictionList(this);
+    // this.predictionList = new PredictionList(this);
     this.update();
-    this.predictionList.update();
-
-    const sprint24 = document.querySelector('#sprint24Toggle');
-    const sprint25 = document.querySelector('#sprint25Toggle');
-
-    sprint24.addEventListener('change', (e) => {
-      console.log('24 changed to:', e.target.checked);
-    });
-
-    sprint25.addEventListener('change', (e) => {
-      console.log('25 changed to:', e.target.checked);
-    });
+    // this.predictionList.update();
   }
 
   has_changed(vals) {
@@ -401,6 +339,14 @@ class Dashboard {
     if (!this.has_changed({ disease, adm_level, adm_1, adm_2, start_window_date, end_window_date })) {
       return;
     }
+
+    await populateTags({
+      sprint: Storage.current.dashboard.dashboard == "sprint",
+      disease: disease,
+      adm_level: adm_level,
+      adm_1: adm_1,
+      adm_2: adm_2,
+    })
 
     const url_params = new URLSearchParams();
     url_params.append('dashboard', this.dashboard);
@@ -727,28 +673,6 @@ class Storage {
   static set score(val) {
     if (Storage.current) Storage.current.score = val;
   }
-
-  /**
-   * @returns {Promise<Prediction[]>}
-   */
-  static get predictions() {
-    const url = new URL('/vis/get-predictions/', window.location.origin);
-    url.searchParams.append('dashboard', dashboard);
-    url.searchParams.append('disease', Storage.disease);
-    let complete = true;
-    if (Storage.adm_level) {
-      url.searchParams.append('adm_level', Storage.adm_level);
-    } else {
-      complete = false;
-    }
-    if (Storage.adm_1) url.searchParams.append('adm_1', Storage.adm_1);
-    if (Storage.adm_2) url.searchParams.append('adm_2', Storage.adm_2);
-    if (!complete) url.searchParams.append('complete', false)
-
-    return fetch(url)
-      .then(res => res.ok ? res.json() : { items: [] })
-      .then(data => data.items.map(item => new Prediction(item, complete)));
-  }
 }
 
 
@@ -778,7 +702,7 @@ class ADMSelect {
     $('#disease-filter').on('change', function() {
       Storage.disease = $(this).val()
       self.dashboard.update();
-      self.dashboard.predictionList?.update();
+      // self.dashboard.predictionList?.update();
     })
 
     if (!Storage.disease) {
@@ -846,27 +770,27 @@ class ADMSelect {
   }
 
   static onChange(obj, level, value) {
-    $('#chart-card').loading("show")
-    $('#predictions-card').loading("show")
+    // $('#chart-card').loading("show")
+    // $('#predictions-card').loading("show")
 
     try {
       if (level === 1 && parseInt(value) !== Storage.adm_1) {
         Storage.adm_1 = parseInt(value);
         if (Storage.adm_level === 2) obj.populate(2, adm_list[2]);
         obj.dashboard.update();
-        obj.dashboard.predictionList?.update();
+        // obj.dashboard.predictionList?.update();
       }
       if (level === 2 && parseInt(value) !== Storage.adm_2) {
         Storage.adm_2 = parseInt(value);
         obj.dashboard.update();
-        obj.dashboard.predictionList?.update();
+        // obj.dashboard.predictionList?.update();
       }
     } catch {
-      $('#chart-card').loading("error")
-      $('#predictions-card').loading("error")
+      // $('#chart-card').loading("error")
+      // $('#predictions-card').loading("error")
     } finally {
-      $('#chart-card').loading("hide")
-      $('#predictions-card').loading("hide")
+      // $('#chart-card').loading("hide")
+      // $('#predictions-card').loading("hide")
     }
   }
 
@@ -946,116 +870,106 @@ class ADMSelect {
   }
 }
 
-class PredictionList {
-  /**
-   * @param {Dashboard} dashboard
-   */
-  constructor(dashboard) {
-    this.dashboard = dashboard;
-    this.predictions = [];
-    this.sort_by = "score";
-    this.sort_direction = "asc";
 
-    self = this;
-    $("#predictions-clear-all").on("click", function() {
-      self.clear()
-      $("#predictions-list #select-all-checkbox").prop("checked", false);
-    });
+async function dashboard_models({
+  sprint,
+  disease = "dengue",
+  adm_level,
+  adm_1 = null,
+  adm_2 = null,
+  tags = selectedTags
+}) {
+  const params = new URLSearchParams();
 
-    const onSearch = debounce((query) => {
-      const filtered = self.models_search(self.models, query);
-      this.render_models(filtered);
-    }, 50);
+  params.append("sprint", sprint);
+  params.append("disease", disease);
+  params.append("adm_level", adm_level);
 
-    document.querySelector('#search input[name="models-search"]')
-      .addEventListener('input', (e) => {
-        onSearch(e.target.value);
-      });
+  if (adm_1) params.append("adm_1", adm_1);
+  if (adm_2) params.append("adm_2", adm_2);
+  if (tags.length > 0) tags.forEach(t => params.append("tags", t));
+
+  try {
+    const res = await fetch(`/api/vis/dashboard/models/?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const models = await res.json();
+    return models
+  } catch (err) {
+    console.error("/api/vis/dashboard/models/ error:", err);
+  }
+}
+
+
+async function dashboard_predictions({
+  sprint,
+  disease = "dengue",
+  adm_level,
+  adm_1 = null,
+  adm_2 = null,
+  tags = [],
+  models = [],
+}) {
+  const params = new URLSearchParams();
+
+  params.append("sprint", sprint);
+  params.append("disease", disease);
+  params.append("adm_level", adm_level);
+
+  if (adm_1) params.append("adm_1", adm_1);
+  if (adm_2) params.append("adm_2", adm_2);
+  if (tags.length > 0) tags.forEach(t => params.append("tags", t));
+  if (models.length > 0) models.forEach(m => params.append("models", m));
+
+  try {
+    const res = await fetch(`/api/vis/dashboard/predictions/?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const predictions = await res.json();
+    return predictions;
+  } catch (err) {
+    console.error("/api/vis/dashboard/predictions/ error:", err);
+  }
+}
+
+
+async function populatePredictions(params = {}, onChange) {
+  const container = document.querySelector("#predictions-card .card-body");
+  if (!container) {
+    console.error("Missing #predictions-card .card-body element");
+    return;
   }
 
-  async update(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
-    $('#predictions-card').loading("show")
-    try {
-      Storage.predictions.then(predictions => {
-        this.predictions = predictions;
-        this.list(sort_by, sort_direction, from_sort, from_models);
-      });
-    } catch {
-      console.error("PredictionList.update() error")
-    } finally {
-      $('#predictions-card').loading("hide")
-    }
-  }
+  container.innerHTML = `<div class="text-muted">Loading predictions...</div>`;
 
-  sort(predictions, by = this.sort_by, direction = this.sort_direction) {
-    this.sort_by = by
-    this.sort_direction = direction
+  try {
+    let predictions = (await dashboard_predictions(params)) || [];
 
-    const selected_ids = new Set(Storage.prediction_ids || [])
-    return predictions.sort((a, b) => {
-      let aVal, bVal
-      if (selected_ids.has(a.id) && !selected_ids.has(b.id)) return -1
-      if (!selected_ids.has(a.id) && selected_ids.has(b.id)) return 1
-      if (by !== "score") {
-        aVal = a[by]
-        bVal = b[by]
-      } else {
-        aVal = a.scores?.[Storage.score] ?? Infinity
-        bVal = b.scores?.[Storage.score] ?? Infinity
-      }
-      if (aVal < bVal) return direction === "asc" ? -1 : 1
-      if (aVal > bVal) return direction === "asc" ? 1 : -1
-      return 0
-    })
-  }
+    container._predictions = predictions;
 
-  list(sort_by = this.sort_by, sort_direction = this.sort_direction, from_sort = false, from_models = false) {
-    if (this.predictions.length === 0) {
-      this.paginate([]);
-      return
+    if (!predictions.length) {
+      container.innerHTML = `<div class="text-muted">No predictions found.</div>`;
+      if (typeof onChange === "function") onChange([]);
+      return;
     }
 
-    let predictions = this.predictions;
+    const getScore = (p, name) => (p.scores || []).find(s => s.name === name)?.score ?? null;
+    const scoreName = Storage.score || "mae";
+    const selectedIdsSet = new Set(Storage.prediction_ids || []);
 
-    if (!from_models) {
-      Storage.prediction_ids.forEach(id => {
-        if (!this.predictions.some(prediction => prediction.id === id)) {
-          Prediction.obj[id].unselect()
-        }
-      })
-      const input = document.querySelector('#search input[name="models-search"]');
-      if (input) {
-        input.value = '';
-      }
-      this.update_models();
-    } else {
-      const modelIds = new Set(Object.values(Model.obj)
-        .filter(model => model.selected)
-        .map(model => model.id));
+    container.innerHTML = `
+      <div id="predictions-table-wrapper">
+        <table id="predictions-list" class="table table-sm table-hover align-middle"></table>
+        <div id="predictions-pagination" style="margin-top: 0.5rem;"></div>
+      </div>
+    `;
 
-      if (modelIds.size > 0) {
-        predictions = predictions.filter(pred => modelIds.has(pred.model))
-      } else {
-        predictions = this.predictions;
-      }
-    }
+    const $plist = $("#predictions-list");
+    $plist.data("sort_by", $plist.data("sort_by") || "score");
+    $plist.data("sort_direction", $plist.data("sort_direction") || "asc");
 
-    this.paginate(this.sort(predictions, sort_by, sort_direction));
-
-    if (!from_sort) {
-      this.update_date_slider();
-    }
-  }
-
-  paginate(predictions) {
-    const self = this;
-    $('#predictions-pagination').pagination({
-      dataSource: predictions,
-      pageSize: 10,
-      callback: function(data, pagination) {
-        const body = data.map((item) => item.li()).join("");
-        const score = Storage.score;
-        $(`#predictions-list`).html(`
+    function renderPage(pageData) {
+      const header = `
         <thead>
           <tr>
             <th style="width: 20px;">
@@ -1073,16 +987,16 @@ class PredictionList {
                 <div class="col">
                   <div class="row align-items-center" style="flex-flow: row-reverse;">
                     <div class="col-auto">
-                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal" title={% trans "More info" %}></i>
+                      <i class="fas fa-question-circle text-muted" data-bs-toggle="modal" data-bs-target="#scoresModal" title="More info"></i>
                     </div>
                     <div class="col-auto">
                       <select id="scores" title="Score" class="form-select form-select-sm w-auto" style="width: 100px !important;">
-                        <option value="mae" ${score === "mae" ? "selected" : ""}>MAE</option>
-                        <option value="mse" ${score === "mse" ? "selected" : ""}>MSE</option>
-                        <option value="crps" ${score === "crps" ? "selected" : ""}>CRPS</option>
-                        <option value="log_score" ${score === "log_score" ? "selected" : ""}>Log Score</option>
-                        <option value="interval_score" ${score === "interval_score" ? "selected" : ""}>Interval Score</option>
-                        <option value="wis" ${score === "wis" ? "selected" : ""}>WIS</option>
+                        <option value="mae" ${scoreName === "mae" ? "selected" : ""}>MAE</option>
+                        <option value="mse" ${scoreName === "mse" ? "selected" : ""}>MSE</option>
+                        <option value="crps" ${scoreName === "crps" ? "selected" : ""}>CRPS</option>
+                        <option value="log_score" ${scoreName === "log_score" ? "selected" : ""}>Log Score</option>
+                        <option value="interval_score" ${scoreName === "interval_score" ? "selected" : ""}>Interval Score</option>
+                        <option value="wis" ${scoreName === "wis" ? "selected" : ""}>WIS</option>
                       </select>
                     </div>
                   </div>
@@ -1091,146 +1005,395 @@ class PredictionList {
             </th>
           </tr>
         </thead>
-        <tbody>${body}</tbody>
-      `);
+      `;
 
-        $("#scores").on("change", function() {
-          self.set_score($(this).val());
-        });
+      const rows = pageData.map(p => {
+        const isChecked = selectedIdsSet.has(p.id);
+        const scoreVal = getScore(p, Storage.score || "mae");
+        return `
+          <tr id="tr-${p.id}" class="${isChecked ? "selected" : ""}">
+            <td id="td-${p.id}"><input type="checkbox" class="checkbox-prediction" value="${p.id}" ${isChecked ? "checked" : ""}></td>
+            <td>${p.id}</td>
+            <td>${p.model}</td>
+            <td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px">${p.author}</td>
+            <td>${p.year}</td>
+            <td>${p.start}</td>
+            <td>${p.end}</td>
+            <td>${scoreVal !== null ? scoreVal : "-"}</td>
+          </tr>
+        `;
+      }).join("");
 
-        const arrow = self.sort_direction === "asc" ? "▲" : "▼";
-        $(`#predictions-list .sortable[data-sort="${self.sort_by}"] .sort-arrow`).text(arrow);
+      $("#predictions-list").html(`${header}<tbody>${rows}</tbody>`);
 
-        $("#predictions-list .sortable").off("click").on("click", function() {
-          const by = $(this).data("sort");
-          const dir =
-            self.sort_by === by && self.sort_direction === "asc" ? "desc" : "asc";
-          self.sort_by = by;
-          self.sort_direction = dir;
-          self.list(by, dir, true);
-        });
+      $("#scores").val(Storage.score);
 
-        $(".checkbox-prediction").each(function() {
-          const prediction_id = parseInt($(this).val(), 10);
-          const td = $(`#td-${prediction_id}`);
-          const checkbox = $(this);
+      $("#scores").off("change").on("change", function() {
+        Storage.score = $(this).val();
+        applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+      });
 
-          if (Storage.prediction_ids.includes(prediction_id)) {
-            checkbox.prop("checked", true);
-            Prediction.obj[prediction_id].select();
-            td.addClass('selected');
-            td.css("background-color", Prediction.obj[prediction_id].color);
-          }
+      const by = $plist.data("sort_by");
+      const dir = $plist.data("sort_direction");
+      $(`#predictions-list .sortable .sort-arrow`).text("");
+      $(`#predictions-list .sortable[data-sort="${by}"] .sort-arrow`).text(dir === "asc" ? "▲" : "▼");
 
-          td.off('click').on('click', function(e) {
-            if ($(e.target).is('input[type="checkbox"]')) return;
+      $("#predictions-list .sortable").off("click").on("click", function() {
+        const byCol = $(this).data("sort");
+        const currentBy = $plist.data("sort_by");
+        const currentDir = $plist.data("sort_direction");
+        let newDir = "asc";
+        if (currentBy === byCol && currentDir === "asc") newDir = "desc";
+        $plist.data("sort_by", byCol);
+        $plist.data("sort_direction", newDir);
+        applySortAndUpdate(byCol, newDir);
+      });
 
-            e.stopPropagation();
+      $(".checkbox-prediction").each(function() {
+        const prediction_id = parseInt($(this).val(), 10);
+        const td = $(`#td-${prediction_id}`);
+        const checkbox = $(this);
 
-            const isChecked = checkbox.prop("checked");
-            checkbox.prop("checked", !isChecked);
+        checkbox.prop("checked", Storage.prediction_ids && Storage.prediction_ids.includes(prediction_id));
 
-            if (!isChecked) {
-              Prediction.obj[prediction_id].select();
-              td.addClass('selected');
-              td.css("background-color", Prediction.obj[prediction_id].color);
-            } else {
-              Prediction.obj[prediction_id].unselect();
-              td.removeClass('selected');
-              td.css("background-color", "");
-            }
+        td.off('click').on('click', function(e) {
+          if ($(e.target).is('input[type="checkbox"]')) return;
+          e.stopPropagation();
 
-            self.update_date_slider();
-          });
-        });
+          const isChecked = selectedIdsSet.has(prediction_id);
 
-
-        $("#select-all-checkbox").on("click", function() {
-          const checked = $(this).prop("checked");
-          $(".checkbox-prediction").prop("checked", checked).each(function() {
-            const prediction_id = parseInt($(this).val(), 10);
-            if (checked) {
-              Prediction.obj[prediction_id].select()
-            } else {
-              Prediction.obj[prediction_id].unselect()
-            }
-          });
-        });
-
-        $(".checkbox-prediction").on("click", function(event) {
-          event.stopPropagation();
-          const prediction_id = parseInt(event.target.value, 10);
-
-          if ($(event.target).prop("checked")) {
-            Prediction.obj[prediction_id].select()
+          if (isChecked) {
+            selectedIdsSet.delete(prediction_id);
+            td.removeClass('selected').css("background-color", "");
           } else {
-            Prediction.obj[prediction_id].unselect()
+            selectedIdsSet.add(prediction_id);
+            const color = Prediction.obj && Prediction.obj[prediction_id]?.color;
+            td.addClass('selected').css(
+              "background-color",
+              color ? hexToRgba(color, 0.25) : ""
+            );
           }
 
-          self.update_date_slider();
+          Storage.prediction_ids = Array.from(selectedIdsSet);
+
+          applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+
+          if (typeof onChange === "function") onChange(Storage.prediction_ids || []);
+        });
+      });
+
+      $(".checkbox-prediction").off("click").on("click", function(event) {
+        event.stopPropagation();
+        const prediction_id = parseInt(event.target.value, 10);
+        const checked = $(event.target).prop("checked");
+        if (checked) {
+          Storage.prediction_ids = Array.from(new Set([...(Storage.prediction_ids || []), prediction_id]));
+          selectedIdsSet.add(prediction_id);
+          if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].select) {
+            try { Prediction.obj[prediction_id].select(); } catch (e) { }
+          }
+        } else {
+          Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
+          selectedIdsSet.delete(prediction_id);
+          if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].unselect) {
+            try { Prediction.obj[prediction_id].unselect(); } catch (e) { }
+          }
+        }
+
+        applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+        if (typeof onChange === "function") onChange(Storage.prediction_ids || []);
+      });
+
+      $("#select-all-checkbox").off("click").on("click", function() {
+        const checked = $(this).prop("checked");
+        $(".checkbox-prediction").prop("checked", checked).each(function() {
+          const prediction_id = parseInt($(this).val(), 10);
+          if (checked) {
+            if (!Storage.prediction_ids) Storage.prediction_ids = [];
+            if (!Storage.prediction_ids.includes(prediction_id)) Storage.prediction_ids.push(prediction_id);
+            selectedIdsSet.add(prediction_id);
+            if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].select) {
+              try { Prediction.obj[prediction_id].select(); } catch (e) { }
+            }
+            $(`#td-${prediction_id}`).addClass('selected').css(
+              "background-color",
+              Prediction.obj && Prediction.obj[prediction_id]?.color
+                ? hexToRgba(Prediction.obj[prediction_id].color, 0.25)
+                : ""
+            );
+          } else {
+            Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
+            selectedIdsSet.delete(prediction_id);
+            if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].unselect) {
+              try { Prediction.obj[prediction_id].unselect(); } catch (e) { }
+            }
+            $(`#td-${prediction_id}`).removeClass('selected').css("background-color", "");
+          }
         });
 
-        $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
-      },
-    });
-  }
+        applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+        if (typeof onChange === "function") onChange(Storage.prediction_ids || []);
+      });
 
-  get_min_max_dates(predictions) {
-    const min = new Date(Math.min(...predictions.map(p => new Date(p.start_date))));
-    const max = new Date(Math.max(...predictions.map(p => new Date(p.end_date))));
-    return [min, max]
-  }
+      $("#select-all-checkbox").prop("checked", $(".checkbox-prediction").length === $(".checkbox-prediction:checked").length);
 
-  async update_date_slider() {
-    const prediction_ids = new Set(Storage.prediction_ids);
-    let minDate, maxDate;
-    if (prediction_ids.size) {
-      const predictions = this.predictions.filter(p => Array.from(prediction_ids).includes(p.id));
-      [minDate, maxDate] = this.get_min_max_dates(predictions);
-    } else {
-      [minDate, maxDate] = this.get_min_max_dates(this.predictions);
+      $("#predictions-clear-all").off("click").on("click", function() {
+        selectedIdsSet.clear();
+        Storage.prediction_ids = [];
+        applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+      });
     }
-    this.dashboard.lineChart.zoom(formatDate(minDate), formatDate(maxDate));
-  }
 
-  set_score(score) {
-    Storage.score = score;
-    this.dashboard.predictionList.update();
-  }
+    function applySortAndUpdate(byCol, dir) {
+      const arr = container._predictions;
 
-  clear() {
-    Storage.prediction_ids.forEach(id => Prediction.obj[id].unselect());
-  }
+      arr.sort((a, b) => {
+        const aSel = selectedIdsSet.has(a.id);
+        const bSel = selectedIdsSet.has(b.id);
+        if (aSel && !bSel) return -1;
+        if (!aSel && bSel) return 1;
 
-  update_models() {
-    getModels(this.dashboard, [...new Set(this.predictions.map(p => p.model))]).then(models => {
-      models.sort((a, b) => new Date(b.updated) - new Date(a.updated));
-      this.models = models;
-      this.render_models(models);
+        let aVal, bVal;
+        if (byCol !== "score") {
+          const keyMap = { "start_date": "start", "end_date": "end" };
+          const k = keyMap[byCol] || byCol;
+          aVal = a[k];
+          bVal = b[k];
+        } else {
+          aVal = getScore(a, Storage.score || "mae");
+          bVal = getScore(b, Storage.score || "mae");
+          aVal = (aVal === null || aVal === undefined) ? Infinity : aVal;
+          bVal = (bVal === null || bVal === undefined) ? Infinity : bVal;
+        }
+
+        if (aVal < bVal) return dir === "asc" ? -1 : 1;
+        if (aVal > bVal) return dir === "asc" ? 1 : -1;
+        return 0;
+      });
+
+      $('#predictions-pagination').pagination({
+        dataSource: arr,
+        pageSize: 10,
+        callback: function(data) {
+          renderPage(data);
+        }
+      });
+    }
+
+    applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
+
+    if (typeof onChange === "function") onChange(Storage.prediction_ids || []);
+
+  } catch (err) {
+    console.error("populatePredictions error:", err);
+    container.innerHTML = `<div class="text-danger">Error loading predictions</div>`;
+  }
+}
+
+
+
+async function dashboard_line_chart_cases({
+  sprint,
+  disease = "dengue",
+  adm_level,
+  adm_1 = null,
+  adm_2 = null,
+}) {
+  const params = new URLSearchParams();
+
+  params.append("sprint", sprint);
+  params.append("disease", disease);
+  params.append("adm_level", adm_level);
+
+  if (adm_1) params.append("adm_1", adm_1);
+  if (adm_2) params.append("adm_2", adm_2);
+
+  try {
+    const res = await fetch(`/api/vis/dashboard/line-chart/cases/?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const labels = data.labels;
+    const cases = data.cases;
+    return { labels, cases };
+  } catch (err) {
+    console.error("/api/vis/dashboard/line-chart/ error:", err);
+    return { labels: [], cases: [] };
+  }
+}
+
+// -----
+async function dashboard_tags({
+  sprint,
+  disease = "dengue",
+  adm_level,
+  adm_1 = null,
+  adm_2 = null,
+}) {
+  const params = new URLSearchParams();
+  params.append("sprint", sprint);
+  params.append("disease", disease);
+  params.append("adm_level", adm_level);
+  if (adm_1) params.append("adm_1", adm_1);
+  if (adm_2) params.append("adm_2", adm_2);
+
+  try {
+    const res = await fetch(`/api/vis/dashboard/tags/?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("/vis/dashboard/tags/ error:", err);
+    return [];
+  }
+}
+
+let selectedTags = new Set();
+let selectedModels = new Set();
+
+async function populateTags(params, onChange) {
+  const tags = await dashboard_tags(params);
+  const ul = document.getElementById("tags-list");
+
+  ul.querySelectorAll("li").forEach(el => el.remove());
+
+  selectedTags = new Set();
+
+  tags.models.forEach(tag => {
+    const li = document.createElement("li");
+    li.className = "nav-item";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "nav-link";
+    btn.textContent = tag.name;
+    btn.dataset.tagId = tag.id;
+
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const tagId = parseInt(btn.dataset.tagId);
+
+      if (selectedTags.has(tagId)) {
+        selectedTags.delete(tagId);
+        btn.classList.remove("active");
+      } else {
+        selectedTags.add(tagId);
+        btn.classList.add("active");
+      }
+
+      await populateModels({
+        sprint: Storage.current.dashboard.dashboard === "sprint",
+        disease: Storage.disease,
+        adm_level: Storage.adm_level,
+        adm_1: Storage.adm_1,
+        adm_2: Storage.adm_2,
+        tags: Array.from(selectedTags),
+      }, async (selectedModels) => {
+        await populatePredictions({
+          sprint: Storage.current.dashboard.dashboard === "sprint",
+          disease: Storage.disease,
+          adm_level: Storage.adm_level,
+          adm_1: Storage.adm_1,
+          adm_2: Storage.adm_2,
+          tags: Array.from(selectedTags),
+          models: Array.from(selectedModels),
+        });
+      });
+
+      if (typeof onChange === "function") {
+        onChange(Array.from(selectedTags));
+      }
     });
-  }
 
-  render_models(models) {
-    document.querySelector('#models-card .card-body').innerHTML =
-      models.map(m => m.li()).join("");
-  }
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
 
-  models_search(models, query) {
-    const q = query.trim().toLowerCase();
-
-    if (!q) return models;
-
-    return models.filter(model => {
-      const fields = [
-        model.id,
-        model.name,
-        model.updated,
-        model.author.name,
-        model.author.user
-      ];
-
-      return fields.some(val => String(val || '').toLowerCase().includes(q)
-      );
+  await populateModels({
+    sprint: Storage.current.dashboard.dashboard === "sprint",
+    disease: Storage.disease,
+    adm_level: Storage.adm_level,
+    adm_1: Storage.adm_1,
+    adm_2: Storage.adm_2,
+    tags: Array.from(selectedTags),
+  }, async (selectedModels) => {
+    await populatePredictions({
+      sprint: Storage.current.dashboard.dashboard === "sprint",
+      disease: Storage.disease,
+      adm_level: Storage.adm_level,
+      adm_1: Storage.adm_1,
+      adm_2: Storage.adm_2,
+      tags: Array.from(selectedTags),
+      models: Array.from(selectedModels),
     });
+  });
+
+  if (typeof onChange === "function") {
+    onChange(Array.from(selectedTags));
   }
+}
+
+async function populateModels(params, onChange) {
+  const models = await dashboard_models(params);
+  const container = document.querySelector("#models-card .card-body");
+  if (!container) return;
+  container.innerHTML = "";
+
+  selectedModels.clear();
+
+  models.forEach(model => {
+    const div = document.createElement("div");
+    div.className = "model-balloon";
+    div.dataset.id = model.id;
+    div.style = `
+      display: inline-block;
+      margin: 0.25rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      background-color: #f4f4f4;
+      color: #333;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `;
+
+    div.innerHTML = `
+      <a href="/registry/model/${model.id}/" target="_blank">${model.id}</a> ${model.name}
+    `;
+
+    div.addEventListener("click", (e) => {
+      if (e.target.tagName.toLowerCase() === "a") return;
+
+      const id = model.id;
+      const isSelected = selectedModels.has(id);
+
+      if (isSelected) {
+        selectedModels.delete(id);
+        div.style.backgroundColor = "#f4f4f4";
+      } else {
+        selectedModels.add(id);
+        div.style.backgroundColor = "#eef";
+      }
+
+      if (typeof onChange === "function") {
+        onChange(Array.from(selectedModels));
+      }
+    });
+
+    container.appendChild(div);
+  });
+
+  if (typeof onChange === "function") {
+    onChange(Array.from(selectedModels));
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }

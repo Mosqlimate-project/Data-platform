@@ -1,12 +1,17 @@
 from typing import Optional, Literal, Annotated
-from datetime import date
+from datetime import date as dt
 
 from ninja import FilterSchema, Field
 from main.schema import Schema
 
 
-class DashboardLineChartPredictions(Schema):
-    predict_id: int
+class MinMaxDatesOut(Schema):
+    min: dt
+    max: dt
+
+
+class DashboardPredictionData(Schema):
+    id: int
     upper_95: Optional[float]
     upper_90: Optional[float]
     upper_80: Optional[float]
@@ -18,10 +23,14 @@ class DashboardLineChartPredictions(Schema):
     lower_95: Optional[float]
 
 
-class DashboardLineChartOut(Schema):
-    dates: list[date]
+class DashboardLineChartPredictions(Schema):
+    labels: list[dt]
+    preds: list[Optional[list[DashboardPredictionData]]]
+
+
+class DashboardLineChartCases(Schema):
+    labels: list[dt]
     cases: list[Optional[int]]
-    preds: list[Optional[list[Optional[DashboardLineChartPredictions]]]]
 
 
 class PredictionScore(Schema):
@@ -34,8 +43,9 @@ class DashboardPredictionOut(Schema):
     model: int
     author: str
     year: int
-    start: date
-    end: date
+    start: dt
+    end: dt
+    color: str
     scores: list[PredictionScore]
 
 
@@ -57,7 +67,7 @@ class DashboardTagsOut(Schema):
 
 
 class HistoricoAlertaCases(Schema):
-    date: date
+    date: dt
     cases: int
 
 
@@ -66,8 +76,8 @@ class HistoricoAlertaCasesIn(Schema):
     disease: Annotated[
         Literal["dengue", "zika", "chikungunya"], Field("dengue")
     ]
-    start: date
-    end: date
+    start: dt
+    end: dt
     adm_level: Literal[1, 2]
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
@@ -80,7 +90,7 @@ class TotalCasesSchema(Schema):
 
 class ResultsProbForecastSchema(Schema):
     disease: Literal["dengue", "chik", "chikungunya", "zika"]
-    date: date
+    date: dt
     geocode: int
     lower_2_5: float
     lower_25: float
@@ -96,5 +106,5 @@ class ResultsProbForecastSchema(Schema):
 
 
 class ResultsProbForecastFilterSchema(FilterSchema):
-    date: Optional[str] = Field("2024-01-01", q="date__str")
+    dt: Optional[str] = Field("2024-01-01", q="date__str")
     geocode: Optional[int] = Field(q="geocode")

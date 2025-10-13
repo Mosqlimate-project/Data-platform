@@ -182,22 +182,22 @@
 
 <script type="text/javascript" src="{% static 'js/external/jquery.js' %}"></script>
 <script>
-  const dashboard = `{{ dashboard }}`;
+const dashboard = `{{ dashboard }}`;
 
-  {% if prediction %}
-  const prediction = {{ prediction|safe }};
-  {% else %}
-  const prediction = null;
-  {% endif %}
+{% if prediction %}
+const prediction = {{ prediction|safe }};
+{% else %}
+const prediction = null;
+{% endif %}
 
-  const diseases = {{ diseases|safe }};
-  const adm_list = {{ adm_list|safe }};
-  const min_window_date = `{{ min_window_date }}`;
-  const max_window_date = `{{ max_window_date }}`;
-  const watermark = `{% static 'img/logo-mosqlimate.png' %}`
-  const loading = `{% static 'img/loading-dots.gif' %}`
+const diseases = {{ diseases|safe }};
+const adm_list = {{ adm_list|safe }};
+const min_window_date = `{{ min_window_date }}`;
+const max_window_date = `{{ max_window_date }}`;
+const watermark = `{% static 'img/logo-mosqlimate.png' %}`
+const loading = `{% static 'img/loading-dots.gif' %}`
 
-  let sidebar_collapsed_once = false;
+let sidebar_collapsed_once = false;
 
 $('.toggle-models').on('click', function () {
   const col = $('#models-col');

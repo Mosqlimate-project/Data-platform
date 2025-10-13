@@ -23,7 +23,7 @@ from ninja import Router, Query
 from ninja.security import django_auth
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, IntegerField
+from django.db.models import Sum, IntegerField, Min, Max
 from django.db.models.functions import Cast, Round
 
 
@@ -32,111 +32,33 @@ uidkey_auth = UidKeyAuth()
 
 
 @router.get(
-    "/dashboard/line-chart/",
-    response={200: schema.DashboardLineChartOut, 400: BadRequestSchema},
+    "/dashboard/min-max-dates/",
+    response={200: schema.MinMaxDatesOut, 400: BadRequestSchema},
     # auth=django_auth,
-    # include_in_schema=False,
+    include_in_schema=False,
 )
-def dashboard_line_chart(
-    request, filters: filters.DashboardLineChart = Query(...)
+def dashboard_min_max_dates(
+    request,
+    filters: filters.DashboardLineChart = Query(...),
 ):
-    match filters.disease:
-        case "dengue":
-            historico_alerta = HistoricoAlerta.objects.using("infodengue")
-        case "chikungunya":
-            historico_alerta = HistoricoAlertaChik.objects.using("infodengue")
-        case "zika":
-            historico_alerta = HistoricoAlertaZika.objects.using("infodengue")
-        case _:
-            raise ValueError(f"Unknown disease {filters.disease}")
-
     predictions = Prediction.objects.filter(
-        id__in=filters.preds,
         model__sprint=filters.sprint,
-    ).distinct()
+        model__disease=filters.disease,
+        model__adm_level=filters.adm_level,
+    )
+
+    if filters.preds:
+        predictions = predictions.filter(id__in=filters.preds)
 
     if filters.adm_level == 1 and filters.adm_1:
-        geocodes = list(
-            City.objects.filter(
-                microregion__mesoregion__state__uf=filters.adm_1
-            )
-            .annotate(geocode_int=Cast("geocode", IntegerField()))
-            .values_list("geocode_int", flat=True)
-        )
+        predictions = predictions.filter(adm_1__uf=filters.adm_1)
     elif filters.adm_level == 2 and filters.adm_2:
-        geocodes = [filters.adm_2]
+        predictions = predictions.filter(adm_2__geocode=filters.adm_2)
     else:
         return 400, {"message": "ADM1 or ADM2 is missing"}
 
-    historico_alerta = (
-        historico_alerta.filter(
-            data_iniSE__range=(filters.start, filters.end),
-            municipio_geocodigo__in=geocodes,
-        )
-        .values("data_iniSE")
-        .annotate(casos=Sum("casprov" if filters.sprint else "casos"))
-        .order_by("data_iniSE")
-    )
-
-    dates = pd.date_range(filters.start, filters.end, freq="D").date.tolist()
-
-    casos_dict = {row["data_iniSE"]: row["casos"] for row in historico_alerta}
-    cases = [casos_dict.get(d, None) for d in dates]
-
-    rows = (
-        PredictionDataRow.objects.filter(
-            predict__in=predictions, date__range=(filters.start, filters.end)
-        )
-        .annotate(
-            pred_r=Round("pred", 2),
-            lower_95_r=Round("lower_95", 2),
-            lower_90_r=Round("lower_90", 2),
-            lower_80_r=Round("lower_80", 2),
-            lower_50_r=Round("lower_50", 2),
-            upper_50_r=Round("upper_50", 2),
-            upper_80_r=Round("upper_80", 2),
-            upper_90_r=Round("upper_90", 2),
-            upper_95_r=Round("upper_95", 2),
-        )
-        .values(
-            "predict_id",
-            "date",
-            "pred_r",
-            "lower_95_r",
-            "lower_90_r",
-            "lower_80_r",
-            "lower_50_r",
-            "upper_50_r",
-            "upper_80_r",
-            "upper_90_r",
-            "upper_95_r",
-        )
-    )
-
-    by_date = defaultdict(list)
-
-    for row in rows:
-        by_date[row["date"]].append(
-            schema.DashboardLineChartPredictions(
-                predict_id=row["predict_id"],
-                pred=row["pred_r"],
-                lower_95=row["lower_95_r"],
-                lower_90=row["lower_90_r"],
-                lower_80=row["lower_80_r"],
-                lower_50=row["lower_50_r"],
-                upper_50=row["upper_50_r"],
-                upper_80=row["upper_80_r"],
-                upper_90=row["upper_90_r"],
-                upper_95=row["upper_95_r"],
-            )
-        )
-
-    preds_by_date = [by_date.get(d, None) for d in dates]
-
-    return schema.DashboardLineChartOut(
-        dates=dates,
-        cases=cases,
-        preds=preds_by_date,
+    return PredictionDataRow.objects.filter(predict__in=predictions).aggregate(
+        min=Min("date"), max=Max("date")
     )
 
 
@@ -229,6 +151,8 @@ def dashboard_predictions(
     else:
         return 400, {"message": "ADM1 or ADM2 is missing"}
 
+    predictions = predictions.distinct()
+
     def safe_round(value, ndigits=2):
         return round(value, ndigits) if value is not None else None
 
@@ -240,6 +164,7 @@ def dashboard_predictions(
             year=p.data.order_by("date").first().date.year,
             start=p.data.order_by("date").first().date,
             end=p.data.order_by("date").last().date,
+            color=p.color,
             scores=[
                 schema.PredictionScore(name="mae", score=safe_round(p.mae)),
                 schema.PredictionScore(name="mse", score=safe_round(p.mse)),
@@ -255,6 +180,128 @@ def dashboard_predictions(
         )
         for p in predictions
     ]
+
+
+@router.get(
+    "/dashboard/line-chart/cases/",
+    response={200: schema.DashboardLineChartCases, 400: BadRequestSchema},
+    # auth=django_auth,
+    include_in_schema=False,
+)
+def dashboard_line_chart_cases(
+    request, filters: filters.DashboardLineChart = Query(...)
+):
+    dates = pd.date_range(filters.start, filters.end, freq="D").date.tolist()
+
+    match filters.disease:
+        case "dengue":
+            historico_alerta = HistoricoAlerta.objects.using("infodengue")
+        case "chikungunya":
+            historico_alerta = HistoricoAlertaChik.objects.using("infodengue")
+        case "zika":
+            historico_alerta = HistoricoAlertaZika.objects.using("infodengue")
+        case _:
+            raise ValueError(f"Unknown disease {filters.disease}")
+
+    if filters.adm_level == 1 and filters.adm_1:
+        geocodes = list(
+            City.objects.filter(
+                microregion__mesoregion__state__uf=filters.adm_1
+            )
+            .annotate(geocode_int=Cast("geocode", IntegerField()))
+            .values_list("geocode_int", flat=True)
+        )
+    elif filters.adm_level == 2 and filters.adm_2:
+        geocodes = [filters.adm_2]
+    else:
+        return 400, {"message": "ADM1 or ADM2 is missing"}
+
+    qs = (
+        historico_alerta.filter(
+            data_iniSE__range=(filters.start, filters.end),
+            municipio_geocodigo__in=geocodes,
+        )
+        .values("data_iniSE")
+        .annotate(cases=Sum("casprov" if filters.sprint else "casos"))
+        .order_by("data_iniSE")
+    )
+
+    cases_dict = {row["data_iniSE"]: row["cases"] for row in qs}
+    cases_list = [cases_dict.get(d, None) for d in dates]
+    return {"labels": dates, "cases": cases_list}
+
+
+@router.get(
+    "/dashboard/line-chart/predictions/",
+    response={
+        200: schema.DashboardLineChartPredictions,
+        400: BadRequestSchema,
+    },
+    # auth=django_auth,
+    include_in_schema=False,
+)
+def dashboard_line_chart_predictions(
+    request,
+    start: date,
+    end: date,
+    preds: list[int] = Query(),
+):
+    predictions = Prediction.objects.filter(id__in=preds).prefetch_related(
+        "data"
+    )
+
+    dates = pd.date_range(start, end, freq="D").date.tolist()
+
+    rows = (
+        PredictionDataRow.objects.filter(
+            predict__in=predictions, date__range=(start, end)
+        )
+        .annotate(
+            pred_r=Round("pred", 2),
+            lower_50_r=Round("lower_50", 2),
+            lower_80_r=Round("lower_80", 2),
+            lower_90_r=Round("lower_90", 2),
+            lower_95_r=Round("lower_95", 2),
+            upper_50_r=Round("upper_50", 2),
+            upper_80_r=Round("upper_80", 2),
+            upper_90_r=Round("upper_90", 2),
+            upper_95_r=Round("upper_95", 2),
+        )
+        .values(
+            "predict_id",
+            "date",
+            "pred_r",
+            "lower_50_r",
+            "lower_80_r",
+            "lower_90_r",
+            "lower_95_r",
+            "upper_50_r",
+            "upper_80_r",
+            "upper_90_r",
+            "upper_95_r",
+        )
+    )
+
+    date_map = defaultdict(list)
+    for r in rows:
+        date_map[r["date"]].append(
+            schema.DashboardPredictionData(
+                id=r["predict_id"],
+                pred=r["pred_r"],
+                lower_50=r["lower_50_r"],
+                lower_80=r["lower_80_r"],
+                lower_90=r["lower_90_r"],
+                lower_95=r["lower_95_r"],
+                upper_50=r["upper_50_r"],
+                upper_80=r["upper_80_r"],
+                upper_90=r["upper_90_r"],
+                upper_95=r["upper_95_r"],
+            )
+        )
+
+    preds_list = [date_map.get(d, None) for d in dates]
+
+    return schema.DashboardLineChartPredictions(labels=dates, preds=preds_list)
 
 
 @router.get(
