@@ -295,7 +295,12 @@ def dashboard_line_chart_predictions(
                 "upper_95_r",
             )
         )
+        minmax = prediction.data.aggregate(min=Min("date"), max=Max("date"))
+        start = minmax["min"]
+        end = minmax["max"]
     else:
+        start = None
+        end = None
         rows = []
 
     data = []
@@ -319,6 +324,8 @@ def dashboard_line_chart_predictions(
         id=prediction.id if prediction else None,
         color=prediction.color if prediction else None,
         data=data,
+        start=start,
+        end=end,
     )
 
 

@@ -27,6 +27,8 @@ class DashboardLineChartPrediction(Schema):
     id: Optional[int] = None
     color: Optional[str] = None
     data: list[DashboardPredictionData]
+    start: Optional[dt] = None
+    end: Optional[dt] = None
 
 
 class DashboardLineChartCases(Schema):

@@ -3,6 +3,7 @@ class LineChart {
     this.chart = echarts.init(document.getElementById(containerId));
     this.predictions = {};
     this.bounds = [];
+    this._zoomTimer = null;
 
     this.option = {
       tooltip: {
@@ -248,17 +249,7 @@ class LineChart {
   }
 
   clearPredictions() {
-    this.option.series = this.option.series.slice(0, 1);
-    this.predictions = {};
-    this.chart.setOption(this.option);
-    this.bounds = [];
-  }
-
-  reapplyPredictions() {
-    Object.keys(this.predictions).forEach((id) => {
-      const prediction = this.predictions[id];
-      this._updatePrediction(prediction);
-    });
+    Object.values(this.predictions).map(pred => this.removePrediction(pred.id))
   }
 
   clear() {
@@ -292,6 +283,7 @@ class LineChart {
       }
 
       function getBoundSeries(bound, opposite) {
+        console.log(getBoundSeries)
         const name = `${id}-${bound}`;
         const baseName = `${id}-${bound.split("_")[1]}-base`;
 
@@ -302,6 +294,7 @@ class LineChart {
             data: getBoundData(bound),
             lineStyle: { opacity: 0 },
             symbol: 'none',
+            // connectNulls: true,
             stack: baseName,
           };
         } else {
@@ -319,6 +312,7 @@ class LineChart {
             lineStyle: { opacity: 0 },
             symbol: 'none',
             stack: baseName,
+            // connectNulls: true,
             areaStyle: {
               color: pred.color,
               opacity: bound.includes("50") ? 0.3 : 0.15,
@@ -327,6 +321,7 @@ class LineChart {
         }
       }
 
+      console.log(getBoundSeries("lower_50", "upper_50"));
       this.option.series.splice(
         pIndex + 1,
         0,
@@ -426,6 +421,7 @@ class LineChart {
         color: prediction.color,
         width: 2,
       },
+      connectNulls: true,
       symbol: 'circle',
       symbolSize: 1,
       itemStyle: {
@@ -443,6 +439,10 @@ class LineChart {
       }));
 
     this.chart.setOption(this.option, true);
+    clearTimeout(this._zoomTimer);
+    this._zoomTimer = setTimeout(() => {
+      this.zoom(prediction.start, prediction.end);
+    }, 300);
   }
 
   _updatePrediction(prediction) {

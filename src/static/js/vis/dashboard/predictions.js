@@ -167,7 +167,7 @@ class Dashboard {
       });
 
       this.lineChart.updateCases(labels, cases);
-      // this.lineChart.reapplyPredictions();
+      this.lineChart.clearPredictions();
     } catch (error) {
       console.error("update_casos error:", error);
       this.lineChart?.clear();
@@ -797,6 +797,7 @@ async function populatePredictions(params = {}, onChange) {
         const scoreVal = getScore(p, Storage.score || "mae");
         const rowGradient = p.color ? `--gradient-start: ${hexToRgba(p.color, 0.25)};` : "";
         const cellColor = isChecked && p.color ? `background-color: ${hexToRgba(p.color, 1)};` : "";
+        if (isChecked) updateLineChartPredictions("add", p.id);
 
         return `
           <tr data-widget="expandable-table"
@@ -859,9 +860,11 @@ async function populatePredictions(params = {}, onChange) {
           if (isChecked) {
             selectedIdsSet.delete(prediction_id);
             td.removeClass('selected').css("background-color", "");
+            updateLineChartPredictions("remove", prediction_id);
           } else {
             selectedIdsSet.add(prediction_id);
             td.addClass('selected');
+            updateLineChartPredictions("add", prediction_id);
           }
 
           Storage.prediction_ids = Array.from(selectedIdsSet);
@@ -879,9 +882,11 @@ async function populatePredictions(params = {}, onChange) {
         if (checked) {
           Storage.prediction_ids = Array.from(new Set([...(Storage.prediction_ids || []), prediction_id]));
           selectedIdsSet.add(prediction_id);
+          updateLineChartPredictions("add", prediction_id);
         } else {
           Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
           selectedIdsSet.delete(prediction_id);
+          updateLineChartPredictions("remove", prediction_id);
         }
 
         applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
@@ -897,10 +902,12 @@ async function populatePredictions(params = {}, onChange) {
             if (!Storage.prediction_ids.includes(prediction_id)) Storage.prediction_ids.push(prediction_id);
             selectedIdsSet.add(prediction_id);
             $(`#td-${prediction_id}`).addClass('selected');
+            updateLineChartPredictions("add", prediction_id);
           } else {
             Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
             selectedIdsSet.delete(prediction_id);
             $(`#td-${prediction_id}`).removeClass('selected').css("background-color", "");
+            updateLineChartPredictions("remove", prediction_id);
           }
         });
 
@@ -913,7 +920,7 @@ async function populatePredictions(params = {}, onChange) {
       $("#predictions-clear-all").off("click").on("click", function() {
         selectedIdsSet.clear();
         Storage.prediction_ids = [];
-        d.lineChart.clearPredictions(selectedPredictionIds, { reset: false });
+        d.lineChart.clearPredictions();
         applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
       });
     }
@@ -978,7 +985,6 @@ async function dashboard_line_chart_prediction({
   params.append("sprint", sprint);
   params.append("disease", disease);
   params.append("adm_level", adm_level);
-
   if (adm_1) params.append("adm_1", adm_1);
   if (adm_2) params.append("adm_2", adm_2);
 
@@ -986,37 +992,33 @@ async function dashboard_line_chart_prediction({
     const res = await fetch(`/api/vis/dashboard/line-chart/prediction/?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const { id: predId, color, data } = await res.json();
+    const { id: predId, color, data, start, end } = await res.json();
 
     return {
       id: predId,
-      color: color,
-      labels: data.map(d => d.date),
-      pred: data.map(d => d.pred),
-      lower_50: data.map(d => d.lower_50),
-      lower_80: data.map(d => d.lower_80),
-      lower_90: data.map(d => d.lower_90),
-      lower_95: data.map(d => d.lower_95),
-      upper_50: data.map(d => d.upper_50),
-      upper_80: data.map(d => d.upper_80),
-      upper_90: data.map(d => d.upper_90),
-      upper_95: data.map(d => d.upper_95),
+      color,
+      chart: {
+        labels: data.map(d => d.date),
+        data: data.map(d => d.pred),
+        lower_50: data.map(d => d.lower_50),
+        lower_80: data.map(d => d.lower_80),
+        lower_90: data.map(d => d.lower_90),
+        lower_95: data.map(d => d.lower_95),
+        upper_50: data.map(d => d.upper_50),
+        upper_80: data.map(d => d.upper_80),
+        upper_90: data.map(d => d.upper_90),
+        upper_95: data.map(d => d.upper_95),
+      },
+      start: start,
+      end: end,
     };
   } catch (err) {
     console.error("/api/vis/dashboard/line-chart/prediction/ error:", err);
     return {
       id: null,
       color: null,
-      labels: [],
-      pred: [],
-      lower_50: [],
-      lower_80: [],
-      lower_90: [],
-      lower_95: [],
-      upper_50: [],
-      upper_80: [],
-      upper_90: [],
-      upper_95: [],
+      chart: { labels: [], data: [] },
+      bounds: {},
     };
   }
 }
@@ -1104,9 +1106,9 @@ async function populateTags(params, onChange) {
         tags: Array.from(selectedTags),
         models: Array.from(selectedModels),
       }, (selectedPredictionIds) => {
-        if (d && d.lineChart) {
-          d.lineChart.updatePredictions(selectedPredictionIds, { reset: false });
-        }
+        // if (d && d.lineChart) {
+        //   d.lineChart.updatePredictions(selectedPredictionIds, { reset: false });
+        // }
       });
     });
   }
@@ -1216,4 +1218,56 @@ function hexToRgba(hex, alpha) {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+async function updateLineChartPredictions(action = "refresh", targetId = null) {
+  const ids = Storage.prediction_ids || [];
+
+  if (action === "remove" && targetId) {
+    d.lineChart.removePrediction(targetId);
+    return;
+  }
+
+  if (action === "add" && targetId) {
+    try {
+      const predData = await dashboard_line_chart_prediction({
+        id: targetId,
+        sprint: Storage.current.dashboard.dashboard === "sprint",
+        disease: Storage.disease,
+        adm_level: Storage.adm_level,
+        adm_1: Storage.adm_1,
+        adm_2: Storage.adm_2,
+      });
+
+      if (predData?.chart?.labels?.length) {
+        d.lineChart.addPrediction(predData);
+      }
+    } catch (err) {
+      console.error(`Failed to load prediction ${targetId}`, err);
+    }
+    return;
+  }
+
+  if (action === "refresh") {
+    d.lineChart.clearPredictions();
+
+    for (const id of ids) {
+      try {
+        const predData = await dashboard_line_chart_prediction({
+          id,
+          sprint: Storage.current.dashboard.dashboard === "sprint",
+          disease: Storage.disease,
+          adm_level: Storage.adm_level,
+          adm_1: Storage.adm_1,
+          adm_2: Storage.adm_2,
+        });
+
+        if (predData?.chart?.labels?.length) {
+          d.lineChart.addPrediction(predData);
+        }
+      } catch (err) {
+        console.error(`Failed to load prediction ${id}`, err);
+      }
+    }
+  }
 }
