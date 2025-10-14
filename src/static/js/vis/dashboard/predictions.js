@@ -1,11 +1,8 @@
 let d;
 let disease = null;
-let time_resolution = null;
 let adm_level = null;
 let adm_1 = null;
 let adm_2 = null;
-let min_date = null;
-let max_date = null;
 
 document.addEventListener('DOMContentLoaded', function() {
   (function($) {
@@ -53,21 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
   })(jQuery);
 
   d = new Dashboard(dashboard);
-
-  // $('#adm-select-card').loading("show")
-  // $('#chart-card').loading("show")
-  // $('#predictions-card').loading("show")
-  // try {
-  //   d = new Dashboard(dashboard);
-  // } catch {
-  //   $('#adm-select-card').loading("error")
-  //   $('#chart-card').loading("error")
-  //   $('#predictions-card').loading("error")
-  // } finally {
-  //   $('#adm-select-card').loading("hide")
-  //   $('#chart-card').loading("hide")
-  //   $('#predictions-card').loading("hide")
-  // }
 });
 
 function debounce(fn, delay) {
@@ -102,168 +84,6 @@ function get_adm_names(admLevel, geocodes) {
 }
 
 
-class Prediction {
-  static obj = {}
-
-  constructor(prediction, complete) {
-    this.id = prediction.id;
-    this.model = prediction.model;
-    this.author = prediction.author;
-    this.start_date = prediction.start_date;
-    this.end_date = prediction.end_date;
-    this.year = prediction.year;
-    this.description = prediction.description;
-    this.disease = prediction.disease;
-    this.time_resolution = prediction.time_resolution;
-    this.adm_level = prediction.adm_level;
-    this.adm_1 = prediction.adm_1;
-    this.adm_2 = prediction.adm_2;
-    this.scores = prediction.scores;
-    this.color = prediction.color;
-    this.chart = prediction.chart;
-
-    if (complete) {
-      Prediction.obj[this.id] = this;
-    }
-  }
-
-  li() {
-    function hexToRgba(hex, alpha) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},${alpha})`;
-    }
-
-    const gradientStart = hexToRgba(this.color, 0.25);
-
-    return `
-  <tr 
-    data-widget="expandable-table" 
-    aria-expanded="false" 
-    class="prediction-row" 
-    data-id="${this.id}"
-    style="--gradient-start: ${gradientStart};"
-  >
-    <td class="${Storage.prediction_ids.includes(this.id) ? 'selected' : ''}" id="td-${this.id}">
-      <input type="checkbox" value="${this.id}" id="checkbox-${this.id}" class="checkbox-prediction">
-    </td>
-    <td><a href="/registry/prediction/${this.id}/" target="_blank">${this.id}</a></td>
-    <td><a href="/registry/model/${this.model}/" target="_blank">${this.model}</a></td>
-    <td style="
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100px;
-    ">
-      ${this.author}
-    </td>
-    <td>${this.year}</td>
-    <td>${this.start_date}</td>
-    <td>${this.end_date}</td>
-    <td>${this.scores[Storage.score] ?? "-"}</td>
-  </tr>
-  <tr class="expandable-body d-none"><td colspan="8"><p>${this.description}</p></td></tr>
-  `;
-  }
-
-
-  select() {
-    const td = $(`#td-${this.id}`);
-    td.addClass('selected');
-    td.css("background-color", hexToRgba(this.color, 0.25));
-    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", true);
-
-    let prediction_ids = new Set(Storage.prediction_ids);
-    prediction_ids.add(this.id);
-    Storage.prediction_ids = Array.from(prediction_ids);
-
-    Storage.current.dashboard.lineChart.addPrediction(this)
-    // Storage.current.dashboard.predictionList.update_date_slider();
-  }
-
-  unselect() {
-    const td = $(`#td-${this.id}`);
-    td.removeClass('selected');
-    td.css("background-color", hexToRgba(this.color, 0.25));
-    $(`.checkbox-prediction[value="${this.id}"]`).prop("checked", false);
-
-    let prediction_ids = new Set(Storage.prediction_ids);
-    prediction_ids.delete(this.id);
-    Storage.prediction_ids = Array.from(prediction_ids);
-
-    Storage.current.dashboard.lineChart.removePrediction(this.id);
-    // Storage.current.dashboard.predictionList.update_date_slider();
-  }
-}
-
-
-/**
- * @typedef {Object} Autho6
- * @property {string} name
- * @property {string} user
- */
-class Model {
-  /**
-   * @param {Dashboard} dashboard
-   * @param {number} id
-   * @param {string} name
-   * @param {Author} author
-   * @param {string} updated
-   */
-  static obj = {};
-
-  constructor(dashboard, id, name, author, updated) {
-    this.dashboard = dashboard;
-    this.id = id;
-    this.name = name;
-    this.author = author;
-    this.updated = updated;
-
-    this.selected = false;
-
-    Model.obj[id] = this;
-  }
-
-  toggle() {
-    if (this.selected) {
-      this.unselect();
-    } else {
-      this.select();
-    }
-    // this.dashboard.predictionList?.update(undefined, undefined, undefined, true);
-  }
-
-  select() {
-    this.selected = true;
-    const $el = $(`.model-balloon[data-id="${this.id}"]`);
-    $el.css({
-      backgroundColor: '#0069D9',
-      color: '#fff',
-    });
-    const $a = $el.find('a');
-    $a.css({
-      color: '#fff',
-      textDecoration: 'none',
-    });
-  }
-
-  unselect() {
-    this.selected = false;
-    const $el = $(`.model-balloon[data-id="${this.id}"]`);
-    $el.css({
-      backgroundColor: '#eef',
-      color: '#333',
-    });
-    const $a = $el.find('a');
-    $a.css({
-      color: '',
-      textDecoration: '',
-    });
-  }
-}
-
-
 class Dashboard {
   constructor(dashboard) {
     this.dashboard = dashboard;
@@ -271,9 +91,7 @@ class Dashboard {
 
     this.admSelect = new ADMSelect(this);
     this.lineChart = new LineChart('chart');
-    // this.predictionList = new PredictionList(this);
     this.update();
-    // this.predictionList.update();
   }
 
   has_changed(vals) {
@@ -282,17 +100,13 @@ class Dashboard {
       adm_level: _adm_level,
       adm_1: _adm_1,
       adm_2: _adm_2,
-      start_window_date: _min_date,
-      end_window_date: _max_date
     } = vals;
 
     if (
       disease === _disease &&
       adm_level === _adm_level &&
       adm_1 === _adm_1 &&
-      adm_2 === _adm_2 &&
-      min_date === _min_date &&
-      max_date === _max_date
+      adm_2 === _adm_2
     ) {
       return false;
     }
@@ -301,8 +115,6 @@ class Dashboard {
     adm_level = _adm_level;
     adm_1 = _adm_1;
     adm_2 = _adm_2;
-    min_date = _min_date;
-    max_date = _max_date;
     return true;
   }
 
@@ -326,83 +138,39 @@ class Dashboard {
     if (
       !disease ||
       !adm_level ||
-      (adm_level == 1 && !adm_1) ||
-      (adm_level == 2 && !adm_2)
+      (adm_level === 1 && !adm_1) ||
+      (adm_level === 2 && !adm_2)
     ) {
       this.lineChart?.clear();
       return;
     }
 
-    const start_window_date = Storage.start_window_date;
-    const end_window_date = Storage.end_window_date;
-
-    if (!this.has_changed({ disease, adm_level, adm_1, adm_2, start_window_date, end_window_date })) {
+    if (!this.has_changed({ disease, adm_level, adm_1, adm_2 })) {
       return;
     }
 
     await populateTags({
-      sprint: Storage.current.dashboard.dashboard == "sprint",
-      disease: disease,
-      adm_level: adm_level,
-      adm_1: adm_1,
-      adm_2: adm_2,
-    })
-
-    const url_params = new URLSearchParams();
-    url_params.append('dashboard', this.dashboard);
-    url_params.append('disease', disease);
-    url_params.append('adm-level', adm_level);
-
-    if (adm_level === 1) {
-      url_params.append('adm-1', adm_1);
-    } else if (adm_level === 2) {
-      url_params.append('adm-2', adm_2);
-    }
+      sprint: Storage.current.dashboard.dashboard === "sprint",
+      disease,
+      adm_level,
+      adm_1,
+      adm_2,
+    });
 
     try {
-      const res = await new Promise((resolve, reject) => {
-        $.ajax({
-          type: 'GET',
-          url: '/vis/get-hist-alerta-data/',
-          data: url_params.toString(),
-          success: function(response) {
-            resolve(response);
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            reject(errorThrown);
-          },
-        });
+      const { labels, cases } = await dashboard_line_chart_cases({
+        sprint: Storage.current.dashboard.dashboard === "sprint",
+        disease,
+        adm_level,
+        adm_1,
+        adm_2,
       });
 
-      const startDate = new Date(start_window_date);
-      const endDate = new Date(end_window_date);
-
-      const dateKeys = Object.keys(res).map(date => new Date(date));
-      const minDate = new Date(Math.min(...dateKeys));
-      const maxDate = new Date(Math.max(...dateKeys));
-
-      for (let d = new Date(minDate); d < startDate; d.setDate(d.getDate() + 7)) {
-        res[d.toISOString().split('T')[0]] = NaN;
-      }
-
-      for (let d = new Date(maxDate); d < endDate; d.setDate(d.getDate() + 7)) {
-        res[d.toISOString().split('T')[0]] = NaN;
-      }
-
-      Object.keys(res).forEach(date => {
-        const currentDate = new Date(date);
-        if (currentDate > endDate) {
-          delete res[date];
-        }
-        if (currentDate < startDate) {
-          delete res[date];
-        }
-      });
-
-      this.lineChart.updateCases(Object.keys(res), Object.values(res));
-      this.lineChart.reapplyPredictions();
+      this.lineChart.updateCases(labels, cases);
+      // this.lineChart.reapplyPredictions();
     } catch (error) {
-      console.error(error);
+      console.error("update_casos error:", error);
+      this.lineChart?.clear();
     }
   }
 }
@@ -760,11 +528,19 @@ class ADMSelect {
       admSelect(Storage.adm_level)
       this.set(Storage.adm_level)
     } else {
-      Storage.predictions.then(predictions => {
-        if (predictions.length !== 0) {
+      dashboard_predictions({
+        sprint: Storage.current.dashboard.dashboard === "sprint",
+        disease: Storage.disease,
+        adm_level: null,
+        adm_1: null,
+        adm_2: null,
+      }).then(predictions => {
+        if (predictions && predictions.length !== 0) {
           admSelect(predictions[0].adm_level)
           this.set(predictions[0].adm_level)
         }
+      }).catch(err => {
+        console.error("Error fetching predictions for ADMSelect:", err);
       })
     }
   }
@@ -914,8 +690,8 @@ async function dashboard_predictions({
 
   params.append("sprint", sprint);
   params.append("disease", disease);
-  params.append("adm_level", adm_level);
 
+  if (adm_level) params.append("adm_level", adm_level);
   if (adm_1) params.append("adm_1", adm_1);
   if (adm_2) params.append("adm_2", adm_2);
   if (tags.length > 0) tags.forEach(t => params.append("tags", t));
@@ -960,7 +736,16 @@ async function populatePredictions(params = {}, onChange) {
     container.innerHTML = `
       <div id="predictions-table-wrapper">
         <table id="predictions-list" class="table table-sm table-hover align-middle"></table>
-        <div id="predictions-pagination" style="margin-top: 0.5rem;"></div>
+      </div>
+      <div class="card-footer clearfix">
+        <div class="row">
+          <div class="col">
+            <button id="predictions-clear-all" type="button" class="btn btn-tool">Clear</button>
+          </div>
+          <div class="col">
+            <ul id="predictions-pagination" class="pagination pagination-sm m-0 float-right"></ul>
+          </div>
+        </div>
       </div>
     `;
 
@@ -1010,11 +795,20 @@ async function populatePredictions(params = {}, onChange) {
       const rows = pageData.map(p => {
         const isChecked = selectedIdsSet.has(p.id);
         const scoreVal = getScore(p, Storage.score || "mae");
+        const rowGradient = p.color ? `--gradient-start: ${hexToRgba(p.color, 0.25)};` : "";
+        const cellColor = isChecked && p.color ? `background-color: ${hexToRgba(p.color, 1)};` : "";
+
         return `
-          <tr id="tr-${p.id}" class="${isChecked ? "selected" : ""}">
-            <td id="td-${p.id}"><input type="checkbox" class="checkbox-prediction" value="${p.id}" ${isChecked ? "checked" : ""}></td>
-            <td>${p.id}</td>
-            <td>${p.model}</td>
+          <tr data-widget="expandable-table"
+              aria-expanded="false"
+              class="prediction-row ${isChecked ? "selected" : ""}"
+              data-id="${p.id}"
+              style="${rowGradient}">
+            <td id="td-${p.id}" class="${isChecked ? "selected" : ""}" style="${cellColor}">
+              <input type="checkbox" class="checkbox-prediction" value="${p.id}" ${isChecked ? "checked" : ""}>
+            </td>
+            <td><a href="/registry/prediction/${p.id}/" target="_blank">${p.id}</a></td>
+            <td><a href="/registry/model/${p.model}/" target="_blank">${p.model}</a></td>
             <td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px">${p.author}</td>
             <td>${p.year}</td>
             <td>${p.start}</td>
@@ -1067,11 +861,7 @@ async function populatePredictions(params = {}, onChange) {
             td.removeClass('selected').css("background-color", "");
           } else {
             selectedIdsSet.add(prediction_id);
-            const color = Prediction.obj && Prediction.obj[prediction_id]?.color;
-            td.addClass('selected').css(
-              "background-color",
-              color ? hexToRgba(color, 0.25) : ""
-            );
+            td.addClass('selected');
           }
 
           Storage.prediction_ids = Array.from(selectedIdsSet);
@@ -1089,15 +879,9 @@ async function populatePredictions(params = {}, onChange) {
         if (checked) {
           Storage.prediction_ids = Array.from(new Set([...(Storage.prediction_ids || []), prediction_id]));
           selectedIdsSet.add(prediction_id);
-          if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].select) {
-            try { Prediction.obj[prediction_id].select(); } catch (e) { }
-          }
         } else {
           Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
           selectedIdsSet.delete(prediction_id);
-          if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].unselect) {
-            try { Prediction.obj[prediction_id].unselect(); } catch (e) { }
-          }
         }
 
         applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
@@ -1112,21 +896,10 @@ async function populatePredictions(params = {}, onChange) {
             if (!Storage.prediction_ids) Storage.prediction_ids = [];
             if (!Storage.prediction_ids.includes(prediction_id)) Storage.prediction_ids.push(prediction_id);
             selectedIdsSet.add(prediction_id);
-            if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].select) {
-              try { Prediction.obj[prediction_id].select(); } catch (e) { }
-            }
-            $(`#td-${prediction_id}`).addClass('selected').css(
-              "background-color",
-              Prediction.obj && Prediction.obj[prediction_id]?.color
-                ? hexToRgba(Prediction.obj[prediction_id].color, 0.25)
-                : ""
-            );
+            $(`#td-${prediction_id}`).addClass('selected');
           } else {
             Storage.prediction_ids = (Storage.prediction_ids || []).filter(id => id !== prediction_id);
             selectedIdsSet.delete(prediction_id);
-            if (window.Prediction && Prediction.obj && Prediction.obj[prediction_id] && Prediction.obj[prediction_id].unselect) {
-              try { Prediction.obj[prediction_id].unselect(); } catch (e) { }
-            }
             $(`#td-${prediction_id}`).removeClass('selected').css("background-color", "");
           }
         });
@@ -1140,6 +913,7 @@ async function populatePredictions(params = {}, onChange) {
       $("#predictions-clear-all").off("click").on("click", function() {
         selectedIdsSet.clear();
         Storage.prediction_ids = [];
+        d.lineChart.clearPredictions(selectedPredictionIds, { reset: false });
         applySortAndUpdate($plist.data("sort_by"), $plist.data("sort_direction"));
       });
     }
@@ -1190,7 +964,62 @@ async function populatePredictions(params = {}, onChange) {
   }
 }
 
+async function dashboard_line_chart_prediction({
+  id,
+  sprint,
+  disease = "dengue",
+  adm_level,
+  adm_1 = null,
+  adm_2 = null,
+}) {
+  const params = new URLSearchParams();
 
+  params.append("id", id);
+  params.append("sprint", sprint);
+  params.append("disease", disease);
+  params.append("adm_level", adm_level);
+
+  if (adm_1) params.append("adm_1", adm_1);
+  if (adm_2) params.append("adm_2", adm_2);
+
+  try {
+    const res = await fetch(`/api/vis/dashboard/line-chart/prediction/?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const { id: predId, color, data } = await res.json();
+
+    return {
+      id: predId,
+      color: color,
+      labels: data.map(d => d.date),
+      pred: data.map(d => d.pred),
+      lower_50: data.map(d => d.lower_50),
+      lower_80: data.map(d => d.lower_80),
+      lower_90: data.map(d => d.lower_90),
+      lower_95: data.map(d => d.lower_95),
+      upper_50: data.map(d => d.upper_50),
+      upper_80: data.map(d => d.upper_80),
+      upper_90: data.map(d => d.upper_90),
+      upper_95: data.map(d => d.upper_95),
+    };
+  } catch (err) {
+    console.error("/api/vis/dashboard/line-chart/prediction/ error:", err);
+    return {
+      id: null,
+      color: null,
+      labels: [],
+      pred: [],
+      lower_50: [],
+      lower_80: [],
+      lower_90: [],
+      lower_95: [],
+      upper_50: [],
+      upper_80: [],
+      upper_90: [],
+      upper_95: [],
+    };
+  }
+}
 
 async function dashboard_line_chart_cases({
   sprint,
@@ -1255,7 +1084,32 @@ async function populateTags(params, onChange) {
 
   ul.querySelectorAll("li").forEach(el => el.remove());
 
-  selectedTags = new Set();
+  const selectedTags = new Set();
+
+  async function updateModelsAndPredictions() {
+    await populateModels({
+      sprint: Storage.current.dashboard.dashboard === "sprint",
+      disease: Storage.disease,
+      adm_level: Storage.adm_level,
+      adm_1: Storage.adm_1,
+      adm_2: Storage.adm_2,
+      tags: Array.from(selectedTags),
+    }, async (selectedModels) => {
+      await populatePredictions({
+        sprint: Storage.current.dashboard.dashboard === "sprint",
+        disease: Storage.disease,
+        adm_level: Storage.adm_level,
+        adm_1: Storage.adm_1,
+        adm_2: Storage.adm_2,
+        tags: Array.from(selectedTags),
+        models: Array.from(selectedModels),
+      }, (selectedPredictionIds) => {
+        if (d && d.lineChart) {
+          d.lineChart.updatePredictions(selectedPredictionIds, { reset: false });
+        }
+      });
+    });
+  }
 
   tags.models.forEach(tag => {
     const li = document.createElement("li");
@@ -1270,8 +1124,8 @@ async function populateTags(params, onChange) {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const tagId = parseInt(btn.dataset.tagId);
 
+      const tagId = parseInt(btn.dataset.tagId);
       if (selectedTags.has(tagId)) {
         selectedTags.delete(tagId);
         btn.classList.remove("active");
@@ -1280,24 +1134,7 @@ async function populateTags(params, onChange) {
         btn.classList.add("active");
       }
 
-      await populateModels({
-        sprint: Storage.current.dashboard.dashboard === "sprint",
-        disease: Storage.disease,
-        adm_level: Storage.adm_level,
-        adm_1: Storage.adm_1,
-        adm_2: Storage.adm_2,
-        tags: Array.from(selectedTags),
-      }, async (selectedModels) => {
-        await populatePredictions({
-          sprint: Storage.current.dashboard.dashboard === "sprint",
-          disease: Storage.disease,
-          adm_level: Storage.adm_level,
-          adm_1: Storage.adm_1,
-          adm_2: Storage.adm_2,
-          tags: Array.from(selectedTags),
-          models: Array.from(selectedModels),
-        });
-      });
+      await updateModelsAndPredictions();
 
       if (typeof onChange === "function") {
         onChange(Array.from(selectedTags));
@@ -1308,24 +1145,7 @@ async function populateTags(params, onChange) {
     ul.appendChild(li);
   });
 
-  await populateModels({
-    sprint: Storage.current.dashboard.dashboard === "sprint",
-    disease: Storage.disease,
-    adm_level: Storage.adm_level,
-    adm_1: Storage.adm_1,
-    adm_2: Storage.adm_2,
-    tags: Array.from(selectedTags),
-  }, async (selectedModels) => {
-    await populatePredictions({
-      sprint: Storage.current.dashboard.dashboard === "sprint",
-      disease: Storage.disease,
-      adm_level: Storage.adm_level,
-      adm_1: Storage.adm_1,
-      adm_2: Storage.adm_2,
-      tags: Array.from(selectedTags),
-      models: Array.from(selectedModels),
-    });
-  });
+  await updateModelsAndPredictions();
 
   if (typeof onChange === "function") {
     onChange(Array.from(selectedTags));

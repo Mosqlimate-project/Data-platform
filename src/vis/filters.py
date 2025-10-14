@@ -11,7 +11,7 @@ from main.utils import CODES_UF
 class DashboardParams(FilterSchema):
     sprint: bool
     disease: Literal["dengue", "zika", "chikungunya"] = "dengue"
-    adm_level: Annotated[int, Field(ge=1, le=2)]
+    adm_level: Annotated[Optional[int], Field(ge=1, le=2)] = None
     # fmt: off
     adm_1: Optional[Union[int, Literal[
         "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
@@ -30,8 +30,8 @@ class DashboardParams(FilterSchema):
 
 
 class DashboardLineChart(DashboardParams):
-    start: date
-    end: date
+    start: Optional[date] = None
+    end: Optional[date] = None
     preds: list[int] = []
 
 

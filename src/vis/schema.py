@@ -11,7 +11,7 @@ class MinMaxDatesOut(Schema):
 
 
 class DashboardPredictionData(Schema):
-    id: int
+    date: dt
     upper_95: Optional[float]
     upper_90: Optional[float]
     upper_80: Optional[float]
@@ -23,9 +23,10 @@ class DashboardPredictionData(Schema):
     lower_95: Optional[float]
 
 
-class DashboardLineChartPredictions(Schema):
-    labels: list[dt]
-    preds: list[Optional[list[DashboardPredictionData]]]
+class DashboardLineChartPrediction(Schema):
+    id: Optional[int] = None
+    color: Optional[str] = None
+    data: list[DashboardPredictionData]
 
 
 class DashboardLineChartCases(Schema):
@@ -47,6 +48,7 @@ class DashboardPredictionOut(Schema):
     end: dt
     color: str
     scores: list[PredictionScore]
+    adm_level: int
 
 
 class DashboardModelOut(Schema):
