@@ -2,8 +2,8 @@ class LineChart {
   constructor(containerId) {
     this.chart = echarts.init(document.getElementById(containerId));
     this.predictions = {};
-    this.bounds = [];
     this._zoomTimer = null;
+    this.bounds = new Set();
 
     this.option = {
       tooltip: {
@@ -141,20 +141,34 @@ class LineChart {
     });
 
     this.chart.on('legendselectchanged', (params) => {
-      self.chart.setOption({ animation: false });
-      self.chart.dispatchAction({ type: 'legendSelect', name: params.name });
-      self.chart.setOption({ animation: true });
-      if (params.name == 'Data') {
-        return
+      const id = params.name;
+      const option = this.option;
+
+      this.chart.dispatchAction({ type: 'legendSelect', name: id });
+      this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
+
+      if (id === 'Data') return;
+
+      const hasBounds = option.series.some(
+        s => s.name.startsWith(id) && (s.name.includes('lower') || s.name.includes('upper'))
+      );
+
+      if (hasBounds) {
+        this.removeConfidenceBounds(id);
+      } else {
+        this.addConfidenceBound(id, '50');
+        this.addConfidenceBound(id, '90');
+        const pred = this.predictions[id];
+        self.zoom(pred.start, pred.end);
       }
-      self.toggleConfidenceBounds(params.name);
+
+      this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
     });
 
     this.chart.on('click', function(params) {
       if (params.seriesName === "Data") {
         return;
       }
-      self.toggleConfidenceBounds(params.seriesName);
     });
 
     $('[data-widget="pushmenu"]').on('click', function() {
@@ -186,7 +200,7 @@ class LineChart {
       }
     });
 
-    this.chart.setOption(this.option, true);
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
   }
 
   updateCases(dates, cases) {
@@ -195,7 +209,7 @@ class LineChart {
     this.option.series[0].itemStyle = {
       color: "#000000",
     }
-    this.chart.setOption(this.option, true);
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
   }
 
   addPrediction(prediction) {
@@ -212,7 +226,7 @@ class LineChart {
 
   removePrediction(prediction_id) {
     const id = `${prediction_id}`;
-    this.bounds = this.bounds.filter(item => item !== id);
+    this.bounds.delete(id);
 
     if (this.predictions[id]) {
       const i = this.option.series.findIndex((series) => series.name === id);
@@ -238,7 +252,7 @@ class LineChart {
       }
     }
 
-    this.chart.setOption(this.option, true);
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
   }
 
   getMinMaxDates(predictions) {
@@ -264,88 +278,81 @@ class LineChart {
     this.chart.resize(width, height)
   }
 
-  toggleConfidenceBounds(prediction_id) {
-    const self = this;
+  addConfidenceBound(prediction_id, perc = "50") {
     const id = `${prediction_id}`;
     const pred = this.predictions[id];
-    const pIndex = this.option.series.findIndex((series) => series.name === id);
+    const color = pred.color || "#999";
+    const option = this.option;
+    this.bounds.add(id);
 
-    const hasBounds = this.option.series.some(series =>
-      series.name.includes(`${id}-lower`) || series.name.includes(`${id}-upper`)
+    const dates = pred.chart.labels;
+    const lower = pred.chart[`lower_${perc}`];
+    const upper = pred.chart[`upper_${perc}`];
+
+    if (!lower || !upper) return;
+
+    const stack = `${id}-${perc}-base`;
+
+    option.series.push({
+      name: `${id}-lower_${perc}`,
+      type: "line",
+      smooth: true,
+      data: dates.map((d, i) => [d, lower[i]]),
+      lineStyle: { opacity: 0 },
+      symbol: "none",
+      stack: stack,
+      itemStyle: { color },
+      tooltip: { show: true, trigger: 'axis' }
+    });
+
+    const diff = upper.map((u, i) =>
+      u == null || lower[i] == null ? null : u - lower[i]
     );
 
-    if (!hasBounds) {
-      function getBoundData(bound) {
-        return self.option.xAxis.data.map((label) => {
-          const i = pred.chart.labels.indexOf(label);
-          return i !== -1 ? pred.chart[bound][i] : NaN;
-        })
-      }
+    option.series.push({
+      name: `${id}-upper_${perc}`,
+      type: "line",
+      smooth: true,
+      data: dates.map((d, i) => [d, diff[i]]),
+      lineStyle: { opacity: 0 },
+      symbol: "none",
+      stack: stack,
+      areaStyle: {
+        color,
+        opacity: perc === "50" ? 0.3 : 0.15,
+      },
+      itemStyle: { color },
+      tooltip: { show: true, trigger: 'axis' }
+    });
 
-      function getBoundSeries(bound, opposite) {
-        console.log(getBoundSeries)
-        const name = `${id}-${bound}`;
-        const baseName = `${id}-${bound.split("_")[1]}-base`;
-
-        if (bound.includes("lower")) {
-          return {
-            name,
-            type: 'line',
-            data: getBoundData(bound),
-            lineStyle: { opacity: 0 },
-            symbol: 'none',
-            // connectNulls: true,
-            stack: baseName,
-          };
-        } else {
-          const upperData = getBoundData(bound);
-          const lowerData = getBoundData(opposite);
-
-          const diff = upperData.map((u, i) =>
-            isNaN(u) || isNaN(lowerData[i]) ? NaN : u - lowerData[i]
-          );
-
-          return {
-            name,
-            type: 'line',
-            data: diff,
-            lineStyle: { opacity: 0 },
-            symbol: 'none',
-            stack: baseName,
-            // connectNulls: true,
-            areaStyle: {
-              color: pred.color,
-              opacity: bound.includes("50") ? 0.3 : 0.15,
-            },
-          };
-        }
-      }
-
-      console.log(getBoundSeries("lower_50", "upper_50"));
-      this.option.series.splice(
-        pIndex + 1,
-        0,
-        getBoundSeries("lower_50", "upper_50"),
-        getBoundSeries("upper_50", "lower_50"),
-        getBoundSeries("lower_90", "upper_90"),
-        getBoundSeries("upper_90", "lower_90"),
-      );
-      this.bounds.push(id);
-    } else {
-      this.option.series = this.option.series.filter(series => !series.name.includes(`${id}-lower`) && !series.name.includes(`${id}-upper`));
-      this.bounds = this.bounds.filter(item => item !== id);
-    }
-
-    this.option.legend.data = this.option.series
-      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
-      .map(series => ({
-        name: series.name,
-        textStyle: {
-          fontWeight: this.bounds.includes(series.name) && !hasBounds ? 'bold' : 'normal'
-        }
+    option.legend.data = option.series
+      .filter(s => !s.name.includes("lower") && !s.name.includes("upper"))
+      .map(s => ({
+        name: s.name,
+        textStyle: { fontWeight: this.bounds.has(s.name) ? 'bold' : 'normal' }
       }));
 
-    this.chart.setOption(this.option, true);
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
+  }
+
+  removeConfidenceBounds(prediction_id) {
+    const id = `${prediction_id}`;
+    const option = this.option;
+    this.bounds.delete(id);
+
+    option.series = option.series.filter(
+      s =>
+        !(s.name.startsWith(id) &&
+          (s.name.includes("lower") || s.name.includes("upper")))
+    );
+
+    option.legend.data = option.series
+      .filter(s => !s.name.includes("lower") && !s.name.includes("upper"))
+      .map(s => ({
+        name: s.name,
+        textStyle: { fontWeight: this.bounds.has(s.name) ? 'bold' : 'normal' }
+      }));
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
   }
 
   zoom(start, end) {
@@ -429,76 +436,11 @@ class LineChart {
       },
     });
 
-    this.option.legend.data = this.option.series
-      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
-      .map(series => ({
-        name: series.name,
-        textStyle: {
-          fontWeight: this.bounds.includes(series.name) ? 'bold' : 'normal'
-        }
-      }));
-
-    this.chart.setOption(this.option, true);
+    this.chart.setOption(this.option, { notMerge: false, replaceMerge: ['series'], animation: false });
     clearTimeout(this._zoomTimer);
     this._zoomTimer = setTimeout(() => {
       this.zoom(prediction.start, prediction.end);
     }, 300);
-  }
-
-  _updatePrediction(prediction) {
-    const self = this;
-
-    function getData(param) {
-      return self.option.xAxis.data.map((label) => {
-        const i = prediction.chart.labels.indexOf(label);
-        return i !== -1 ? prediction.chart[param][i] : NaN;
-      });
-    }
-
-    function getDiff(upperParam, lowerParam) {
-      const upperData = getData(upperParam);
-      const lowerData = getData(lowerParam);
-      return upperData.map((u, i) =>
-        isNaN(u) || isNaN(lowerData[i]) ? NaN : u - lowerData[i]
-      );
-    }
-
-    const id = `${prediction.id}`;
-    const i = this.option.series.findIndex((series) => series.name === id);
-    const u50 = this.option.series.findIndex((series) => series.name === `${id}-upper_50`);
-    const u90 = this.option.series.findIndex((series) => series.name === `${id}-upper_90`);
-    const l50 = this.option.series.findIndex((series) => series.name === `${id}-lower_50`);
-    const l90 = this.option.series.findIndex((series) => series.name === `${id}-lower_90`);
-
-    if (i !== -1) {
-      this.option.series[i].data = getData("data");
-      this.option.series[i].lineStyle.color = prediction.color;
-    }
-    if (l50 !== -1) {
-      this.option.series[l50].data = getData("lower_50");
-    }
-    if (u50 !== -1) {
-      this.option.series[u50].data = getDiff("upper_50", "lower_50");
-      this.option.series[u50].areaStyle.color = prediction.color;
-    }
-    if (l90 !== -1) {
-      this.option.series[l90].data = getData("lower_90");
-    }
-    if (u90 !== -1) {
-      this.option.series[u90].data = getDiff("upper_90", "lower_90");
-      this.option.series[u90].areaStyle.color = prediction.color;
-    }
-
-    this.option.legend.data = this.option.series
-      .filter(series => !series.name.includes("lower") && !series.name.includes("upper"))
-      .map(series => ({
-        name: series.name,
-        textStyle: {
-          fontWeight: this.bounds.includes(series.name) ? 'bold' : 'normal'
-        }
-      }));
-
-    this.chart.setOption(this.option, true);
   }
 
   _addDefaultText() {

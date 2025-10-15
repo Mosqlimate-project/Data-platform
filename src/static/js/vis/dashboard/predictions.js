@@ -1082,9 +1082,8 @@ let selectedModels = new Set();
 
 async function populateTags(params, onChange) {
   const tags = await dashboard_tags(params);
-  const ul = document.getElementById("tags-list");
-
-  ul.querySelectorAll("li").forEach(el => el.remove());
+  const container = document.getElementById("tags-list");
+  container.innerHTML = "";
 
   const selectedTags = new Set();
 
@@ -1114,26 +1113,37 @@ async function populateTags(params, onChange) {
   }
 
   tags.models.forEach(tag => {
-    const li = document.createElement("li");
-    li.className = "nav-item";
+    const div = document.createElement("div");
+    div.className = "tag-balloon";
+    div.dataset.tagId = tag.id;
+    div.textContent = tag.name;
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "nav-link";
-    btn.textContent = tag.name;
-    btn.dataset.tagId = tag.id;
+    div.style = `
+      display: inline-block;
+      margin: 0.25rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      background-color: #f4f4f4;
+      color: #333;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `;
 
-    btn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const tagId = parseInt(btn.dataset.tagId);
+    div.addEventListener("click", async () => {
+      const tagId = parseInt(div.dataset.tagId);
       if (selectedTags.has(tagId)) {
         selectedTags.delete(tagId);
-        btn.classList.remove("active");
+        div.style.backgroundColor = "#f4f4f4";
+        div.style.color = "#333";
       } else {
         selectedTags.add(tagId);
-        btn.classList.add("active");
+        div.style.backgroundColor = "#007bff";
+        div.style.color = "#fff";
       }
 
       await updateModelsAndPredictions();
@@ -1143,8 +1153,7 @@ async function populateTags(params, onChange) {
       }
     });
 
-    li.appendChild(btn);
-    ul.appendChild(li);
+    container.appendChild(div);
   });
 
   await updateModelsAndPredictions();

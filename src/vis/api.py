@@ -41,6 +41,7 @@ def dashboard_min_max_dates(
     filters: filters.DashboardLineChart = Query(...),
 ):
     predictions = Prediction.objects.filter(
+        published=True,
         model__sprint=filters.sprint,
         model__disease=filters.disease,
         model__adm_level=filters.adm_level,
@@ -69,6 +70,7 @@ def dashboard_min_max_dates(
 )
 def dashboard_tags(request, filters: filters.DashboardParams = Query(...)):
     predictions = Prediction.objects.filter(
+        published=True,
         model__sprint=filters.sprint,
         model__disease=filters.disease,
         model__adm_level=filters.adm_level,
@@ -82,11 +84,13 @@ def dashboard_tags(request, filters: filters.DashboardParams = Query(...)):
         return 400, {"message": "ADM1 or ADM2 is missing"}
 
     model_tags = Tag.objects.filter(
-        model_tags__in=predictions.values_list("model_id", flat=True)
+        model_tags__in=predictions.values_list("model_id", flat=True),
+        active=True,
     ).distinct()
 
     prediction_tags = Tag.objects.filter(
-        prediction_tags__in=predictions.values_list("id", flat=True)
+        prediction_tags__in=predictions.values_list("id", flat=True),
+        active=True,
     ).distinct()
 
     return 200, {"models": model_tags, "preds": prediction_tags}
@@ -100,6 +104,7 @@ def dashboard_tags(request, filters: filters.DashboardParams = Query(...)):
 )
 def dashboard_models(request, filters: filters.DashboardParams = Query(...)):
     predictions = Prediction.objects.filter(
+        published=True,
         model__sprint=filters.sprint,
         model__disease=filters.disease,
         model__adm_level=filters.adm_level,
@@ -131,6 +136,7 @@ def dashboard_predictions(
     request, filters: filters.DashboardPredictions = Query(...)
 ):
     predictions = Prediction.objects.filter(
+        published=True,
         model__sprint=filters.sprint,
         model__disease=filters.disease,
     )
@@ -251,6 +257,7 @@ def dashboard_line_chart_predictions(
     request, id: int, filters: filters.DashboardParams = Query(...)
 ):
     predictions = Prediction.objects.filter(
+        published=True,
         id=id,
         model__sprint=filters.sprint,
         model__disease=filters.disease,
@@ -362,7 +369,7 @@ def get_cases(request, payload: schema.HistoricoAlertaCasesIn):
 @router.get(
     "/total-cases/",
     response=List[schema.TotalCasesSchema],
-    # auth=uidkey_auth,
+    auth=uidkey_auth,
     include_in_schema=False,
 )
 @csrf_exempt

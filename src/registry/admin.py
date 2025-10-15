@@ -4,8 +4,11 @@ from .models import Tag, Author, Model, Prediction, ImplementationLanguage
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "color")
-    search_fields = ("name",)
+    list_display = ("name", "group", "color", "active")
+    list_filter = ("group", "active")
+    search_fields = ("name", "group")
+    list_editable = ("active",)
+    ordering = ("group", "name")
 
 
 @admin.register(ImplementationLanguage)
