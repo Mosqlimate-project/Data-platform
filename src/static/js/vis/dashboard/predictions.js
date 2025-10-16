@@ -1052,7 +1052,6 @@ async function dashboard_line_chart_cases({
   }
 }
 
-// -----
 async function dashboard_tags({
   sprint,
   disease = "dengue",
@@ -1171,51 +1170,65 @@ async function populateModels(params, onChange) {
 
   selectedModels.clear();
 
-  models.forEach(model => {
-    const div = document.createElement("div");
-    div.className = "model-balloon";
-    div.dataset.id = model.id;
-    div.style = `
-      display: inline-block;
-      margin: 0.25rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      background-color: #f4f4f4;
-      color: #333;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      max-width: 300px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    `;
+  const render = (list) => {
+    container.innerHTML = "";
+    list.forEach(model => {
+      const div = document.createElement("div");
+      div.className = "model-balloon";
+      div.dataset.id = model.id;
+      div.style = `
+        display: inline-block;
+        margin: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background-color: #f4f4f4;
+        color: #333;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      `;
 
-    div.innerHTML = `
-      <a href="/registry/model/${model.id}/" target="_blank">${model.id}</a> ${model.name}
-    `;
+      div.innerHTML = `
+        <a href="/registry/model/${model.id}/" target="_blank">${model.id}</a> ${model.name}
+      `;
 
-    div.addEventListener("click", (e) => {
-      if (e.target.tagName.toLowerCase() === "a") return;
+      div.addEventListener("click", (e) => {
+        if (e.target.tagName.toLowerCase() === "a") return;
+        const id = model.id;
+        const isSelected = selectedModels.has(id);
+        if (isSelected) {
+          selectedModels.delete(id);
+          div.style.backgroundColor = "#f4f4f4";
+        } else {
+          selectedModels.add(id);
+          div.style.backgroundColor = "#eef";
+        }
+        if (typeof onChange === "function") {
+          onChange(Array.from(selectedModels));
+        }
+      });
 
-      const id = model.id;
-      const isSelected = selectedModels.has(id);
-
-      if (isSelected) {
-        selectedModels.delete(id);
-        div.style.backgroundColor = "#f4f4f4";
-      } else {
-        selectedModels.add(id);
-        div.style.backgroundColor = "#eef";
-      }
-
-      if (typeof onChange === "function") {
-        onChange(Array.from(selectedModels));
-      }
+      container.appendChild(div);
     });
+  };
 
-    container.appendChild(div);
-  });
+  render(models);
+
+  const searchInput = document.querySelector('#search input[name="models-search"]');
+  if (searchInput) {
+    const onSearch = debounce((query) => {
+      const filtered = models.filter(m =>
+        m.name.toLowerCase().includes(query.toLowerCase()) ||
+        String(m.id).toLowerCase().includes(query.toLowerCase())
+      );
+      render(filtered);
+    }, 100);
+    searchInput.addEventListener('input', (e) => onSearch(e.target.value));
+  }
 
   if (typeof onChange === "function") {
     onChange(Array.from(selectedModels));
