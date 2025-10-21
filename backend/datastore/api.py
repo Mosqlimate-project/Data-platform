@@ -28,18 +28,7 @@ from .models import (
     HistoricoAlertaChik,
     CopernicusBrasil,
 )
-from .schema import (
-    HistoricoAlertaSchema,
-    HistoricoAlertaFilterSchema,
-    CopernicusBrasilSchema,
-    CopernicusBrasilWeeklySchema,
-    CopernicusBrasilFilterSchema,
-    CopernicusBrasilWeeklyFilterSchema,
-    CopernicusBrasilWeeklyParams,
-    ContaOvosSchema,
-    EpiScannerSchema,
-    ContaOvosParams,
-)
+from datastore import schema, filters
 
 
 router = Router()
@@ -52,7 +41,7 @@ uidkey_auth = UidKeyAuth()
 @router.get(
     "/infodengue/",
     response={
-        200: List[HistoricoAlertaSchema],
+        200: List[schema.HistoricoAlertaSchema],
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
@@ -64,7 +53,7 @@ uidkey_auth = UidKeyAuth()
 def get_infodengue(
     request,
     disease: Literal["dengue", "zika", "chik", "chikungunya"],
-    filters: HistoricoAlertaFilterSchema = Query(...),
+    filters: filters.HistoricoAlertaFilterSchema = Query(...),
     # fmt: off
     uf: Optional[Literal[
         "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
@@ -110,7 +99,7 @@ def get_infodengue(
 @router.get(
     "/climate/",
     response={
-        200: List[CopernicusBrasilSchema],
+        200: List[schema.CopernicusBrasilSchema],
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
@@ -121,7 +110,7 @@ def get_infodengue(
 @csrf_exempt
 def get_copernicus_brasil(
     request,
-    filters: CopernicusBrasilFilterSchema = Query(...),
+    filters: filters.CopernicusBrasilFilterSchema = Query(...),
     # fmt: off
     uf: Optional[Literal[
         "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
@@ -156,7 +145,7 @@ def get_copernicus_brasil(
 @router.get(
     "/climate/weekly/",
     response={
-        200: List[CopernicusBrasilWeeklySchema],
+        200: List[schema.CopernicusBrasilWeeklySchema],
         400: BadRequestSchema,
         404: NotFoundSchema,
         500: InternalErrorSchema,
@@ -168,8 +157,8 @@ def get_copernicus_brasil(
 @csrf_exempt
 def get_copernicus_brasil_weekly(
     request,
-    params: CopernicusBrasilWeeklyParams = Query(...),
-    filters: CopernicusBrasilWeeklyFilterSchema = Query(...),
+    params: schema.CopernicusBrasilWeeklyParams = Query(...),
+    filters: filters.CopernicusBrasilWeeklyFilterSchema = Query(...),
     **kwargs,
 ):
     APILog.from_request(request)
@@ -260,7 +249,7 @@ def get_copernicus_brasil_weekly(
 @router.get(
     "/mosquito/",
     response={
-        200: List[ContaOvosSchema],
+        200: List[schema.ContaOvosSchema],
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
@@ -270,7 +259,7 @@ def get_copernicus_brasil_weekly(
 @csrf_exempt
 def get_contaovos(
     request,
-    params: ContaOvosParams = Query(...),
+    params: schema.ContaOvosParams = Query(...),
     municipality: Optional[str] = None,
 ):
     APILog.from_request(request)
@@ -285,7 +274,7 @@ def get_contaovos(
     response = requests.get(url, params=params, timeout=20)
 
     if response.status_code == 200:
-        return 200, [ContaOvosSchema(**i) for i in response.json()]
+        return 200, [schema.ContaOvosSchema(**i) for i in response.json()]
 
     if response.status_code == 500:
         return 500, {
@@ -298,7 +287,7 @@ def get_contaovos(
 @router.get(
     "/episcanner/",
     response={
-        200: List[EpiScannerSchema],
+        200: List[schema.EpiScannerSchema],
         404: NotFoundSchema,
         500: InternalErrorSchema,
     },
@@ -376,8 +365,77 @@ def get_episcanner(
     #         }
 
     objs = [
-        EpiScannerSchema(**d)
+        schema.EpiScannerSchema(**d)
         for d in df.to_dict(orient="records")  # pyright: ignore
     ]
 
     return 200, objs
+
+
+@router.get(
+    "/charts/municipality/temperature/",
+    response=List[schema.MunTempOut],
+    auth=None,
+    tags=["datastore", "charts"],
+    include_in_schema=False,
+)
+def municipality_daily_temperature(
+    request, geocode: int, start: datetime.date, end: datetime.date
+):
+    return (
+        CopernicusBrasil.objects.using("infodengue")
+        .filter(geocodigo=geocode, date__gte=start, date__lte=end)
+        .order_by("date")
+        .values(
+            "date",
+            "epiweek",
+            "temp_min",
+            "temp_med",
+            "temp_max",
+        )
+    )
+
+
+@router.get(
+    "/charts/municipality/accumulated-waterfall/",
+    response=List[schema.MunAccWaterfallOut],
+    auth=None,
+    tags=["datastore", "charts"],
+    include_in_schema=False,
+)
+def municipality_daily_accumulated_waterfall(
+    request, geocode: int, start: datetime.date, end: datetime.date
+):
+    return (
+        CopernicusBrasil.objects.using("infodengue")
+        .filter(geocodigo=geocode, date__gte=start, date__lte=end)
+        .order_by("date")
+        .values(
+            "date",
+            "epiweek",
+            "precip_tot",
+        )
+    )
+
+
+@router.get(
+    "/charts/municipality/umid-pressao-med/",
+    response=List[schema.MunUmidPressMedOut],
+    auth=None,
+    tags=["datastore", "charts"],
+    include_in_schema=False,
+)
+def municipality_daily_umid_press_med(
+    request, geocode: int, start: datetime.date, end: datetime.date
+):
+    return (
+        CopernicusBrasil.objects.using("infodengue")
+        .filter(geocodigo=geocode, date__gte=start, date__lte=end)
+        .order_by("date")
+        .values(
+            "date",
+            "epiweek",
+            "umid_med",
+            "pressao_med",
+        )
+    )

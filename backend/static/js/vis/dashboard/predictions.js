@@ -1223,7 +1223,8 @@ async function populateModels(params, onChange) {
     const onSearch = debounce((query) => {
       const filtered = models.filter(m =>
         m.name.toLowerCase().includes(query.toLowerCase()) ||
-        String(m.id).toLowerCase().includes(query.toLowerCase())
+        String(m.id).toLowerCase().includes(query.toLowerCase()) ||
+        m.author.toLowerCase().includes(query.toLowerCase())
       );
       render(filtered);
     }, 100);

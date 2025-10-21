@@ -3,7 +3,7 @@ services:
     ports:
       - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - ../src/:/opt/services/mosqlimate
+      - ../backend/:/opt/services/mosqlimate
       - django_data:/opt/services/storage
     networks:
       - infodengue-dev_infodengue

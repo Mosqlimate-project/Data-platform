@@ -44,7 +44,7 @@
         "assets": [
           "pyproject.toml",
           "CHANGELOG.md",
-          "src/mosqlimate/__init__.py"
+          "backend/mosqlimate/__init__.py"
         ],
         "message": "chore(release): ${nextRelease.version}"
       }

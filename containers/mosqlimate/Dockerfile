@@ -66,7 +66,7 @@ RUN pip install "cython<3.0.0" \
   && poetry install --no-root --without pre-commit,dev,docs
 
 COPY --chown=mosqlimate:mosqlimate containers/entrypoint.sh /opt/entrypoint.sh
-ADD --chown=mosqlimate:mosqlimate src/ /opt/services/mosqlimate/
+ADD --chown=mosqlimate:mosqlimate backend/ /opt/services/mosqlimate/
 
 RUN chmod +x /opt/entrypoint.sh \
   && echo "source /opt/entrypoint.sh" > ~/.bashrc
