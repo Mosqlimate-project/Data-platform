@@ -335,7 +335,6 @@ async function update(dashboard) {
 
   await renderPredictList(dashboard);
   await renderPredictsChart(dashboard);
-  await setDateWindowRange(dashboard);
 
   updateEl.disabled = true;
 }

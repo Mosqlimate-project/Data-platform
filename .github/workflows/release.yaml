@@ -51,7 +51,7 @@ jobs:
           # # https://github.com/yaml/pyyaml/issues/724
           # pip install "cython<3.0.0" 
           # pip install --no-build-isolation "pyyaml<6.0"
-          poetry install --only dev
+          poetry install --only dev --no-root
 
       - name: Run semantic release (for tests)
         if: ${{ github.event_name != 'workflow_dispatch' }}

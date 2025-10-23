@@ -35,6 +35,7 @@ class Tag(models.Model):
         ],
         help_text=_("Color in hexadecimal format. E.g: #ffffff"),
     )
+    active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
