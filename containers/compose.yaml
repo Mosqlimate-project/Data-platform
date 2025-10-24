@@ -1,4 +1,19 @@
 services:
+  frontend:
+    container_name: mosqlimate-frontend
+    build:
+      context: ..
+      dockerfile: containers/frontend/Dockerfile
+      args:
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+    env_file:
+      - ../.env
+    ports:
+      - ${FRONTEND_PORT}:3000
+    restart: unless-stopped
+
+
   django:
     hostname: mosqlimate-django
     restart: unless-stopped
