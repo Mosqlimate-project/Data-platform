@@ -5,6 +5,9 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
+import Image from "next/image";
+import LanguageSelector from "../components/Language";
+
 
 const links = [
   { href: '/', label: 'Home' },
@@ -23,7 +26,13 @@ export default function Navbar() {
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
       <div className="flex items-center gap-8">
         <div className="w-8 h-8 bg-hover rounded-full flex items-center justify-center">
-          <span className="text-sm text-text opacity-80">I</span>
+          <Image
+            src="/mosquito.svg"
+            alt="Logo"
+            width={60}
+            height={60}
+            priority
+          />
         </div>
 
         <div className="flex gap-6">
@@ -43,6 +52,7 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
+        <LanguageSelector />
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="p-2 rounded-md border border-border hover:bg-hover transition-colors"
@@ -130,7 +140,7 @@ export default function Navbar() {
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2 text-gray-500"
+                      className="w-5 h-5 mr-2"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
