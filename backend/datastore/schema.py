@@ -5,6 +5,27 @@ from pydantic import BaseModel, validator
 from ninja import Field, Schema
 
 
+class EndpointDataVar(Schema):
+    variable: str
+    type: str
+    description: str
+
+
+class EndpointChartOption(Schema):
+    option: str
+    type: str
+
+
+class EndpointDetails(Schema):
+    endpoint: str
+    name: str
+    description: str
+    tags: list[str]
+    more_info_link: str
+    data_variables: list[EndpointDataVar]
+    chart_options: list[EndpointChartOption]
+
+
 class DengueGlobalSchema(Schema):
     geocodigo: int
     nome: str
