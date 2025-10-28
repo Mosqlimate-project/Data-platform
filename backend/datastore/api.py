@@ -14,6 +14,7 @@ from django.db.utils import OperationalError
 from django.db.models import F, Avg, Sum
 from django.db.models.functions import Round
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
@@ -36,6 +37,262 @@ router = Router()
 paginator = PagesPagination
 paginator.max_per_page = 300
 uidkey_auth = UidKeyAuth()
+
+
+@router.get(
+    "/endpoints/",
+    response=List[schema.EndpointDetails],
+    include_in_schema=False,
+)
+@csrf_exempt
+def get_endpoints(request):
+    def var(var: str, typ: str, desc: str) -> schema.EndpointDataVar:
+        return schema.EndpointDataVar(variable=var, type=typ, description=desc)
+
+    def opt(option: str, typ: str) -> schema.EndpointChartOption:
+        return schema.EndpointChartOption(option=option, type=typ)
+
+    infodengue = {
+        "endpoint": "/infodengue/",
+        "name": _("Mosquito-borne Diseases"),
+        "description": _(
+            "This endpoint gives access to data from the Infodengue project, "
+            "which provide a number of epidemiological variables for all the "
+            "Brazilian municipalities on a weekly time scale. The request "
+            "parameters and data variables are described below."
+        ),
+        "more_info_link": (
+            "https://api.mosqlimate.org/docs/datastore/GET/infodengue/"
+        ),
+        "tags": [_("dengue"), _("municipal"), _("weekly")],
+        "data_variables": [
+            var("data_iniSE", "str", _("Start date of epidemiological week")),
+            var("SE", "int", _("Epidemiological week")),
+            var(
+                "casos_est",
+                "float",
+                _(
+                    "Estimated number of cases per week using the nowcasting model"
+                ),
+            ),
+            var(
+                "casos_est_min",
+                "int",
+                _("95% credibility interval of the estimated number of cases"),
+            ),
+            var(
+                "casos",
+                "int",
+                _(
+                    "Number of notified cases per week (values are retrospectively"
+                    "updated every week)"
+                ),
+            ),
+            var("municipio_geocodigo", "int", _("IBGE's municipality code")),
+            var("p_rt1", "float", _("Probability (Rt > 1)")),
+            var(
+                "p_inc100k",
+                "float",
+                _("Estimated incidence rate (cases per pop x 100.00)"),
+            ),
+            var("Localidade_id", "int", "Sub-municipality division"),
+            var(
+                "nivel",
+                "int",
+                _("Alert level (1 = green, 2 = yellow, 3 = orange, 4 = red)"),
+            ),
+            var("id", "int", _("Numeric index")),
+            var("versao_modelo", "str", _("Model version")),
+            var(
+                "Rt",
+                "float",
+                _("Point estimate of the reproductive number of cases"),
+            ),
+            var("municipio_nome", "str", _("Municipality's name")),
+            var("pop", "float", _("Population (IBGE)")),
+            var(
+                "receptivo",
+                "int",
+                _(
+                    "Indicates climate receptivity, i.e., conditions for high "
+                    "vectorial capacity. 0 = unfavorable, 1 = favorable, 2 = "
+                    "favorable this week and last week, 3 = favorable for at "
+                    "least three weeks"
+                ),
+            ),
+            var(
+                "transmissao",
+                "int",
+                _(
+                    "Evidence of sustained transmission: 0 = no evidence, 1 = "
+                    "possible, 2 = likely, 3 = highly likely"
+                ),
+            ),
+            var(
+                "nivel_inc",
+                "int",
+                _(
+                    "Estimated incidence below pre-epidemic threshold, "
+                    "1 = above pre-epidemic threshold but below epidemic threshold"
+                    ", 2 = above epidemic threshold"
+                ),
+            ),
+            var(
+                "umidmax",
+                "float",
+                _("Average daily maximum humidity percentages along the week"),
+            ),
+            var(
+                "umidmed",
+                "float",
+                _("Average daily humidity percentages along the week"),
+            ),
+            var(
+                "umidmin",
+                "float",
+                _("Average daily minimum humidity percentages along the week"),
+            ),
+            var(
+                "tempmax",
+                "float",
+                _("Average daily maximum temperatures along the week"),
+            ),
+            var(
+                "tempmed",
+                "float",
+                _("Average daily temperatures along the week"),
+            ),
+            var(
+                "tempmin",
+                "float",
+                _("Average daily minimum temperatures along the week"),
+            ),
+            var(
+                "casprov",
+                "int",
+                _(
+                    "Probable number of cases per week (cases - discarded cases)"
+                ),
+            ),
+            var(
+                "casprov_est",
+                "float",
+                _("Probable number of estimated cases per week"),
+            ),
+            var(
+                "casprov_est_min",
+                "int",
+                _("Credibility interval of the probable number of cases"),
+            ),
+            var(
+                "casprov_est_max",
+                "int",
+                _("Credibility interval of the probable number of cases"),
+            ),
+            var(
+                "casconf",
+                "int",
+                _("Cases effectively confirmed with laboratory testing"),
+            ),
+        ],
+        "chart_options": [
+            opt("disease", "str"),
+            opt("geocode", "int"),
+            opt("start", "date"),
+            opt("end", "date"),
+        ],
+    }
+
+    climate = {
+        "endpoint": "/climate/",
+        "name": _("Climate data"),
+        "description": _(
+            "Through this API endpoint, you can fetch several climate "
+            "variables that have been extracted for all brazilian "
+            "municipalities from the satellite-based reanalysis data provided "
+            "by Copernicus ERA5."
+        ),
+        "more_info_link": (
+            "https://api.mosqlimate.org/docs/datastore/GET/climate/"
+        ),
+        "tags": [_("temperature"), _("municipal"), _("daily")],
+        "data_variables": [
+            var("date", "date (YYYY-mm-dd)", _("Day of the year")),
+            var("geocodigo", "int", _("IBGE's municipality code")),
+            var("temp_min", "float (°C)", _("Minimum daily temperature")),
+            var("temp_med", "float (°C)", _("Average daily temperature")),
+            var("temp_max", "float (°C)", _("Maximum daily temperature")),
+            var("precip_min", "float (mm)", _("Minimum daily precipitation")),
+            var("precip_med", "float (mm)", _("Average daily precipitation")),
+            var("precip_max", "float (mm)", _("Maximum daily precipitation")),
+            var("precip_tot", "float (mm)", _("Total daily precipitation")),
+            var(
+                "pressao_min",
+                "float (atm)",
+                _("Minimum daily sea level pressure"),
+            ),
+            var(
+                "pressao_med",
+                "float (atm)",
+                _("Average daily sea level pressure"),
+            ),
+            var(
+                "pressao_max",
+                "float (atm)",
+                _("Maximum daily sea level pressure"),
+            ),
+            var("umid_min", "float (%)", _("Minimum daily relative humidity")),
+            var("umid_med", "float (%)", _("Average daily relative humidity")),
+            var("umid_max", "float (%)", _("Maximum daily relative humidity")),
+        ],
+        "chart_options": [
+            opt("geocode", "int"),
+            opt("start", "date"),
+            opt("end", "date"),
+        ],
+    }
+
+    mosquito = {
+        "endpoint": "/mosquito/",
+        "name": _("Mosquito Egg Count"),
+        "description": _(
+            "Here you get access to mosquito abundance data from the Contaovos"
+            " project, co-developed by the Mosqlimate project. These data, "
+            "described below, are based on eggtraps distributed throughout "
+            "Brasil according to a monitoring design specified by the Ministry"
+            " of Health."
+        ),
+        "more_info_link": (
+            "https://api.mosqlimate.org/docs/datastore/GET/mosquito/"
+        ),
+        "tags": [_("ContaOvos"), _("municipal"), _("daily")],
+        "data_variables": [
+            var("counting_id", "int", ""),
+            var("date", "str", ""),
+            var("date_collect", "str", ""),
+            var("eggs", "int", _("Eggs count")),
+            var("latitude", "float", _("Ovitrap latitude")),
+            var("longitude", "float", _("Ovitrap longitude")),
+            var("municipality", "str", _("Municipality name")),
+            var("municipality_code", "str", _("Geocode. Example: 3304557")),
+            var("ovitrap_id", "str", "Ovitrap ID"),
+            var("ovitrap_website_id", "int", ""),
+            var("state_code", "str", _("Geocode. Example: 33")),
+            var("state_name", "str", ""),
+            var("time", "str (date)", _("RFC 1123 date format")),
+            var("week", "int", _("Epidemiological week")),
+            var("year", "int", _("Year")),
+        ],
+        "chart_options": [
+            opt("geocode", "int"),
+            opt("start", "date"),
+            opt("end", "date"),
+        ],
+    }
+
+    endpoints = [infodengue, climate, mosquito]
+
+    return [schema.EndpointDetails(**e) for e in endpoints]
 
 
 @router.get(

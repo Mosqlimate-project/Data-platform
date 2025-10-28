@@ -25,7 +25,7 @@ export default function Navbar() {
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
       <div className="flex items-center gap-8">
-        <div className="w-8 h-8 bg-hover rounded-full flex items-center justify-center">
+        <div className="h-8 bg-hover rounded-full flex items-center justify-center">
           <Image
             src="/mosquito.svg"
             alt="Logo"
@@ -35,7 +35,7 @@ export default function Navbar() {
           />
         </div>
 
-        <div className="flex gap-6">
+        <div className="hidden md:flex gap-6">
           {links.map((link) => (
             <Link
               key={link.href}
