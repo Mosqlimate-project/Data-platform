@@ -183,3 +183,4 @@ tests/report/
 */media/
 *cache/
 !macro_health_geocodes.json
+.next

@@ -4,15 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import LanguageSelector from "../components/Language";
 
 
 const links = [
   { href: '/', label: 'Home' },
-  { href: '/models', label: 'Models' },
-  { href: '/predictions', label: 'Predictions' },
+  { href: '/registry/models', label: 'Models' },
+  { href: '/registry/predictions', label: 'Predictions' },
   { href: '/datastore', label: 'Datastore' },
   { href: '/docs', label: 'Docs' },
 ];
@@ -21,6 +21,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
@@ -55,7 +62,7 @@ export default function Navbar() {
         <LanguageSelector />
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-md border border-border hover:bg-hover transition-colors"
+          className="p-2 rounded-md border border-border hover:bg-hover transition-colors items-center justify-center"
           title="Toggle theme"
         >
           {theme === 'dark' ? (

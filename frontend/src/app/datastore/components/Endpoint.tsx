@@ -61,10 +61,9 @@ export function Layout({
   return (
     <div className="grid grid-cols-[3fr_2fr] gap-6">
       <div
-        className={`border rounded-md p-4 flex items-center justify-center text-sm font-medium transition-colors ${chartStyles[selectedChart] || "bg-gray-100 text-gray-800"
+        className={`border rounded-md p-4 flex items-center justify-center text-sm font-medium transition-colors ${chartStyles[selectedChart] || "text-gray-800"
           }`}
       >
-        {selectedChart ? `Preview for "${selectedChart}" chart` : "Select a chart"}
       </div>
 
       <div className="flex flex-col gap-3">

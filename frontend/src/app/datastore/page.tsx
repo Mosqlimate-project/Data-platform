@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
-import { Layout } from "./Endpoint";
+import { Layout } from "./components/Endpoint";
 
 export default function DatastorePage() {
   const [selected, setSelected] = useState<number | null>(null);
@@ -47,7 +47,7 @@ export default function DatastorePage() {
   };
 
   return (
-    <section className="p-8 flex flex-col gap-8">
+    <section className="md:p-8 md:flex md:flex-col md:gap-8 md:max-w-[1800px] md:w-full">
       <h1 className="text-2xl font-bold text-[var(--color-text)]">Datastore</h1>
 
       <div className="overflow-x-auto flex gap-4 pb-2">

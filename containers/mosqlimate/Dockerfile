@@ -28,10 +28,6 @@ RUN apt-get update -y && \
     /var/cache/apt/archives \
     /tmp/*
 
-# Workaround for error: (OSError: /lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.30' not found)
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update -y && \
-  apt-get install -y gcc-13 g++-13 libstdc++6
-
 RUN addgroup --gid ${GID} mosqlimate \
   && useradd --uid ${UID} --gid ${GID} -ms /bin/bash mosqlimate \
   && mkdir -p /opt/services/mosqlimate \
