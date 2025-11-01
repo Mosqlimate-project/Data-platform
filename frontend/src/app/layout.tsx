@@ -1,8 +1,5 @@
 import '../globals.css';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Chatbot from "../components/Chatbot";
-import { ThemeProvider } from 'next-themes';
+import ClientProviders from '@/components/ClientProviders';
 
 export const metadata = {
   title: "Mosqlimate",
@@ -10,20 +7,11 @@ export const metadata = {
   icons: "/favicon.ico",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className="min-h-screen flex flex-col transition-colors">
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <Navbar />
-          <main className="flex-1 flex flex-col md:items-center">{children}</main>
-          <Footer />
-          <Chatbot />
-        </ThemeProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
