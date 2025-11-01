@@ -18,8 +18,10 @@ def include_model_tags(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Tag)
 def tags_post_save(sender, instance, created, **kwargs):
+    from registry.models import random_rgb
+
     if created and instance.color is None:
-        instance.color = Tag.random_rgb()
+        instance.color = random_rgb()
         instance.save()
 
 

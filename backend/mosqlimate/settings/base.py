@@ -286,7 +286,7 @@ CHANNEL_LAYERS = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DJANGO_LOG_LEVEL = env("DJANGO_LOG_LEVEL") or "INFO"
+DJANGO_LOG_LEVEL = env("DJANGO_LOG_LEVEL", default="INFO")
 
 LOGGING = {
     "version": 1,

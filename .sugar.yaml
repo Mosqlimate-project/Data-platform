@@ -1,50 +1,32 @@
-version: 1.8.0
-compose-app: docker-compose
+backend: compose
 env-file: .env
 defaults:
-  group: {{ env.ENV }}
-groups:
+  profile: "${{ env.ENV }}"
+  project-name: mosqlimate
+profiles:
+  dev:
+    env-file: .env
+    config-path:
+      - containers/compose.yaml
+      - containers/compose-dev.yaml
+    services:
+      available:
+        - name: frontend
+        - name: django
+        - name: worker
+        - name: postgres
+        - name: documentation
+        - name: redis
+        - name: ollama
+
   prod:
-    project-name: mosqlimate
-    compose-path: 
+    env-file: .env
+    config-path:
       - containers/compose.yaml
       - containers/compose-prod.yaml
-    env-file: .env
     services:
-      default: django,worker,postgres,documentation,redis,ollama
       available:
-        - name: django
-        - name: worker
-        - name: postgres
-        - name: documentation
-        - name: redis
-        - name: ollama
-
-  dev:
-    project-name: mosqlimate
-    compose-path:
-      - containers/compose.yaml
-      - containers/compose-dev.yaml
-    env-file: .env
-    services:
-      default: django,worker,postgres,documentation,redis,ollama
-      available:
-        - name: django
-        - name: worker
-        - name: postgres
-        - name: documentation
-        - name: redis
-        - name: ollama
-
-  ci:
-    project-name: mosqlimate
-    compose-path:
-      - containers/compose.yaml
-      - containers/compose-dev.yaml
-    env-file: .env
-    services:
-      default: django,worker,postgres,documentation,redis
-      available:
+        - name: frontend
         - name: django
         - name: worker
         - name: postgres
