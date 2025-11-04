@@ -19,6 +19,10 @@ def get_plangs_path() -> str:
     return os.path.join(settings.STATIC_ROOT, "img/plangs")
 
 
+def random_rgb() -> str:
+    return f"#{rr(255):02x}{rr(255):02x}{rr(255):02x}"
+
+
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
     group = models.CharField(unique=False, null=True)

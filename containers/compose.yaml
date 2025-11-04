@@ -18,7 +18,8 @@ services:
     hostname: mosqlimate-django
     restart: unless-stopped
     environment:
-        PYTHONUNBUFFERED: 1
+      RUN_MIGRATE: 1 # CI
+      PYTHONUNBUFFERED: 1
     build:
       context: ..
       dockerfile: containers/mosqlimate/Dockerfile

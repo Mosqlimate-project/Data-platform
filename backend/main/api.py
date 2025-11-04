@@ -60,6 +60,14 @@ api.add_router("/log/", router=log_router)
 api.add_router("/maps/", router=maps_router)
 
 
+@router.get("/session_key/", include_in_schema=False)
+@csrf_exempt
+def get_session_key(request):
+    if not request.session.session_key:
+        request.session.create()
+    return {"session_key": request.session.session_key}
+
+
 @api.exception_handler(InvalidUIDKey)
 def on_invalid_token(request, exc):
     docs_url = request.build_absolute_uri(reverse("docs"))

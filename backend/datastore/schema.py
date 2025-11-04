@@ -225,6 +225,7 @@ class MunAccWaterfallOut(Schema):
     date: date
     epiweek: int
     precip_tot: float
+    precip_med: float
 
 
 class MunUmidPressMedOut(Schema):

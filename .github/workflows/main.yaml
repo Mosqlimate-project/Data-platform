@@ -61,7 +61,8 @@ jobs:
 
     - name: Start containers
       run: |
-        sugar up --group ci --options -d
+        docker network create infodengue-dev_infodengue
+        sugar compose up --options -d
 
     # Datastore models mostly consist in External db connections
     # - name: Test datastore

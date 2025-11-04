@@ -178,8 +178,9 @@ tests/coverage_html/
 tests/.coverage*
 build/
 tests/report/
-# data/
+data/
 */staticfiles/
 */media/
 *cache/
 !macro_health_geocodes.json
+.next

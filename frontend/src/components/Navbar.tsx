@@ -4,15 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import LanguageSelector from "../components/Language";
+import { useTranslation } from "react-i18next";
 
 
 const links = [
   { href: '/', label: 'Home' },
-  { href: '/models', label: 'Models' },
-  { href: '/predictions', label: 'Predictions' },
+  { href: '/registry/models', label: 'Models' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/datastore', label: 'Datastore' },
   { href: '/docs', label: 'Docs' },
 ];
@@ -21,6 +22,14 @@ export default function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation("common");
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
@@ -45,17 +54,16 @@ export default function Navbar() {
                 pathname === link.href && 'font-medium underline'
               )}
             >
-              {link.label}
+              {t(link.label)}
             </Link>
           ))}
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <LanguageSelector />
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-md border border-border hover:bg-hover transition-colors"
+          className="p-2 rounded-md border border-border hover:bg-hover transition-colors items-center justify-center"
           title="Toggle theme"
         >
           {theme === 'dark' ? (
@@ -88,8 +96,10 @@ export default function Navbar() {
           )}
         </button>
 
+        <LanguageSelector />
+
         <button className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
-          Login
+          {t("Login")}
         </button>
 
         <div className="relative">
@@ -110,7 +120,7 @@ export default function Navbar() {
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 top-full mt-[30px] w-52 bg-bg border border-border rounded-md shadow-lg z-50 overflow-hidden transition-all">
+            <div className="absolute right-0 top-full mt-[5px] w-52 bg-bg border border-border rounded-md shadow-lg z-50 overflow-hidden transition-all">
               <ul className="flex flex-col">
                 <li>
                   <Link
@@ -135,7 +145,7 @@ export default function Navbar() {
 
                 <li>
                   <Link
-                    href="/models"
+                    href="/registry/models/"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
                   >
                     <svg
@@ -153,27 +163,6 @@ export default function Navbar() {
                       <path d="M12 11v10l8-4V7l-8 4z" />
                     </svg>
                     Models
-                  </Link>
-                </li>
-
-                <li>
-                  <Link
-                    href="/predictions"
-                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M3 17l6-6 4 4 8-8" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx="3" cy="17" r="1.5" />
-                      <circle cx="9" cy="11" r="1.5" />
-                      <circle cx="13" cy="15" r="1.5" />
-                      <circle cx="21" cy="7" r="1.5" />
-                    </svg>
-                    Predictions
                   </Link>
                 </li>
 

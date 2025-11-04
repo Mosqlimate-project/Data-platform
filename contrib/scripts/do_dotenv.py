@@ -101,6 +101,10 @@ dj_port = var_in(
     "DJANGO_PORT", input_text="  Django port [8042]: ", default_val=8042
 )
 
+frontend_port = var_in(
+    "FRONTEND_PORT", input_text="  Frontend port [3000]: ", default_val=3000
+)
+
 def_dj_host_data = def_data_dir / "django"
 
 dj_host_data = var_in(
@@ -241,6 +245,8 @@ dotenv_template = templates.get_template("env.tpl")
 dotenv_file = project_dir / ".env"
 
 variables = {
+    # [Frontend]
+    "FRONTEND_PORT": frontend_port,
     # [Django Core]
     "ENV": env,
     "SECRET_KEY": secret_key,

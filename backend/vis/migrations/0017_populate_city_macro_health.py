@@ -11,7 +11,7 @@ def populate_city_macro_health(apps, schema_editor):
     import json
 
     geocodes_file = os.path.join(
-        settings.STATIC_ROOT, "data/geo/macro_health_geocodes.json"
+        settings.BASE_DIR, "static/data/geo/macro_health_geocodes.json"
     )
 
     with open(geocodes_file, "r") as f:

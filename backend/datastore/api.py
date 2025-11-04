@@ -671,6 +671,7 @@ def municipality_daily_accumulated_waterfall(
             "date",
             "epiweek",
             "precip_tot",
+            "precip_med",
         )
     )
 
