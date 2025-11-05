@@ -1,6 +1,9 @@
-'use client';
+"use client";
 
 import { useState } from "react";
+import TemperatureChart from "./TemperatureChart";
+import AccumulatedWaterfallChart from "./AccumulatedWaterfallChart";
+import AirChart from "./UmidPressaoMedChart"
 
 export function AccordionCard({
   title,
@@ -24,18 +27,22 @@ export function AccordionCard({
       >
         {title}
       </button>
-      {isOpen && <div className="p-4 text-sm bg-[var(--color-bg)]">{children}</div>}
+      {isOpen && (
+        <div className="p-4 text-sm bg-[var(--color-bg)]">{children}</div>
+      )}
     </div>
   );
 }
 
 export function Layout({
   title,
+  endpoint,
   description,
   dataVariables,
   chartOptions,
 }: {
   title: string;
+  endpoint: string;
   description: string;
   dataVariables?: { variable: string; type: string; description: string }[];
   chartOptions?: { option: string; type: string }[];
@@ -44,13 +51,24 @@ export function Layout({
   const [selectedChart, setSelectedChart] = useState<string>(
     chartOptions && chartOptions.length > 0 ? chartOptions[0].option : "Default"
   );
+
   const [selectedDisease, setSelectedDisease] = useState("dengue");
-  const [geocode, setGeocode] = useState<number | undefined>();
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [geocode, setGeocode] = useState<number>(3304557);
+  const [startDate, setStartDate] = useState<string>("2023-01-01");
+  const [endDate, setEndDate] = useState<string>("2023-03-03");
 
   const toggleCard = (key: string) =>
     setOpenCard((prev) => (prev === key ? null : key));
+
+  const handleStartDateChange = (value: string) => {
+    if (endDate && value > endDate) return;
+    setStartDate(value);
+  };
+
+  const handleEndDateChange = (value: string) => {
+    if (startDate && value < startDate) return;
+    setEndDate(value);
+  };
 
   const chartStyles: Record<string, string> = {
     Default: "bg-gray-100 text-gray-800",
@@ -59,14 +77,26 @@ export function Layout({
   };
 
   return (
-    <div className="grid grid-cols-[3fr_2fr] gap-6">
+    <div className="flex flex-col md:flex-row gap-6">
       <div
-        className={`border rounded-md p-4 flex items-center justify-center text-sm font-medium transition-colors ${chartStyles[selectedChart] || "text-gray-800"
+        className={`border rounded-md p-4 flex flex-col items-center justify-center text-sm font-medium transition-colors w-full ${chartStyles[selectedChart] || "text-gray-800"
           }`}
       >
+        {endpoint === "/climate/" && geocode && startDate && endDate ? (
+          <>
+            <TemperatureChart geocode={String(geocode)} start={startDate} end={endDate} />
+            <AccumulatedWaterfallChart geocode={String(geocode)} start={startDate} end={endDate} />
+            <AirChart geocode={String(geocode)} start={startDate} end={endDate} />
+          </>
+        ) : (
+          <p className="opacity-60 text-center">
+            Fill in parameters to view the chart
+          </p>
+        )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      {/* Controls Section */}
+      <div className="flex flex-col gap-3 w-full md:w-2/5">
         <AccordionCard
           title="Description"
           isOpen={openCard === "Description"}
@@ -112,23 +142,25 @@ export function Layout({
             onClick={() => toggleCard("Charts")}
           >
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Disease</label>
-                <select
-                  value={selectedDisease}
-                  onChange={(e) => setSelectedDisease(e.target.value)}
-                  className="border rounded-md px-2 py-1"
-                >
-                  <option value="dengue">Dengue</option>
-                  <option value="chikungunya">Chikungunya</option>
-                </select>
-              </div>
+              {endpoint === "/infodengue/" && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium">Disease</label>
+                  <select
+                    value={selectedDisease}
+                    onChange={(e) => setSelectedDisease(e.target.value)}
+                    className="border rounded-md px-2 py-1"
+                  >
+                    <option value="dengue">Dengue</option>
+                    <option value="chikungunya">Chikungunya</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Geocode</label>
                 <input
                   type="number"
-                  value={geocode}
+                  value={geocode || ""}
                   onChange={(e) => setGeocode(Number(e.target.value))}
                   className="border rounded-md px-2 py-1"
                 />
@@ -140,23 +172,23 @@ export function Layout({
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
                     className="border rounded-md px-2 py-1"
                   />
+
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
                   <label className="text-sm font-medium">End Date</label>
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => handleEndDateChange(e.target.value)}
                     className="border rounded-md px-2 py-1"
                   />
                 </div>
               </div>
             </div>
           </AccordionCard>
-
         )}
       </div>
     </div>
