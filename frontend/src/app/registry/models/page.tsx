@@ -69,7 +69,6 @@ export default function RegistryModels() {
                 type={model.type}
                 predictions={model.predictions}
                 lastUpdate={model.lastUpdate}
-                onClick={() => console.log(`Clicked ${model.repo}`)}
               />
             ))}
           </div>

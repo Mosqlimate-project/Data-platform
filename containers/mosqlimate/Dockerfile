@@ -67,9 +67,9 @@ ADD --chown=mosqlimate:mosqlimate backend/ /opt/services/mosqlimate/
 RUN chmod +x /opt/entrypoint.sh \
   && echo "source /opt/entrypoint.sh" > ~/.bashrc
 
-ARG DJANGO_CONTAINER_DATA_PATH
-ENV DJANGO_CONTAINER_DATA_PATH ${DJANGO_CONTAINER_DATA_PATH}
-RUN mkdir -p ${DJANGO_CONTAINER_DATA_PATH}/static
+ARG BACKEND_CONTAINER_DATA_PATH
+ENV BACKEND_CONTAINER_DATA_PATH ${BACKEND_CONTAINER_DATA_PATH}
+RUN mkdir -p ${BACKEND_CONTAINER_DATA_PATH}/static
 
 ENV PYTHONPATH='/opt/services/mosqlimate'
 

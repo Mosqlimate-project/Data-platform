@@ -14,8 +14,8 @@ services:
     restart: unless-stopped
 
 
-  django:
-    hostname: mosqlimate-django
+  backend:
+    hostname: mosqlimate-backend
     restart: unless-stopped
     environment:
       RUN_MIGRATE: 1 # CI
@@ -28,14 +28,14 @@ services:
         #       the .env file
         - UID=${HOST_UID}
         - GID=${HOST_GID}
-        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
+        - BACKEND_CONTAINER_DATA_PATH=${BACKEND_CONTAINER_DATA_PATH}
     env_file:
       - ../.env
     user: "mosqlimate:mosqlimate"
     volumes:
-      - ${EPISCANNER_HOST_DATA_DIR}:${DJANGO_CONTAINER_DATA_PATH}/episcanner
+      - ${EPISCANNER_HOST_DATA_DIR}:${BACKEND_CONTAINER_DATA_PATH}/episcanner
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:${DJANGO_PORT}/status"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}/status"]
       interval: 60s
       timeout: 10s
       retries: 5
@@ -43,7 +43,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: daphne -b 0.0.0.0 -p ${DJANGO_PORT} mosqlimate.asgi:application
+    command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
     networks:
       - mosqlimate
 
@@ -56,7 +56,7 @@ services:
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
-        - DJANGO_CONTAINER_DATA_PATH=${DJANGO_CONTAINER_DATA_PATH}
+        - BACKEND_CONTAINER_DATA_PATH=${BACKEND_CONTAINER_DATA_PATH}
     env_file:
       - ../.env
     ports:
@@ -123,7 +123,7 @@ services:
     tty: true
     entrypoint: ["/entrypoint.sh"]
     depends_on:
-      django:
+      backend:
         condition: service_healthy
     networks:
       - mosqlimate

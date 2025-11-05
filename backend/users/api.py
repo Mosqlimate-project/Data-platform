@@ -1,12 +1,88 @@
 from ninja import Router
 from ninja.security import django_auth
+from django.contrib.auth import get_user_model, authenticate
 
-from main.schema import ForbiddenSchema, NotFoundSchema
+from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 
 from .models import CustomUser
-from .schema import UserInPost, UserSchema
+from .schema import (
+    UserInPost,
+    UserSchema,
+    LoginOut,
+    UserOut,
+    RefreshOut,
+    LoginIn,
+    RegisterIn,
+)
+from .jwt import create_access_token, create_refresh_token, decode_token
 
 router = Router()
+
+User = get_user_model()
+
+
+@router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
+def login(request, payload: LoginIn):
+    if payload.email:
+        user_obj = User.objects.filter(email__iexact=payload.email).first()
+        if not user_obj:
+            return 401, {"detail": "Email not registered"}
+        username = user_obj.username
+    elif payload.username:
+        username = payload.username
+    else:
+        return 401, {"detail": "Username or email required"}
+
+    user = authenticate(username=username, password=payload.password)
+
+    if not user:
+        return 401, {"detail": "Unauthorized"}
+
+    return {
+        "access_token": create_access_token({"sub": str(user.pk)}),
+        "refresh_token": create_refresh_token({"sub": str(user.pk)}),
+    }
+
+
+@router.post(
+    "/register",
+    response={201: UserOut, 401: ForbiddenSchema, 400: BadRequestSchema},
+)
+def register(request, payload: RegisterIn):
+    if User.objects.filter(email=payload.email).exists():
+        return 400, {"detail": "Email already registered"}
+
+    if User.objects.filter(username=payload.username).exists():
+        return 400, {"detail": "Username already registered"}
+
+    user = User.objects.create_user(
+        first_name=payload.name,
+        username=payload.username,
+        email=payload.email,
+        password=payload.password,
+        is_staff=False,
+    )
+
+    return 201, user
+
+
+@router.post("/refresh", response={200: RefreshOut, 401: ForbiddenSchema})
+def refresh_token(request, token: str):
+    payload = decode_token(token)
+
+    if not payload or payload.get("type") != "refresh":
+        return 401, {"detail": "Invalid or expired token"}
+
+    user_id = payload.get("sub")
+
+    try:
+        User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return 401, {"detail": "User not found"}
+
+    return {
+        "access_token": create_access_token({"sub": str(user_id)}),
+    }
 
 
 @router.put(

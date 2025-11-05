@@ -1,10 +1,14 @@
 services:
-  django:
+  frontend:
+    environment:
+        FRONTEND_ENV: dev
+
+  backend:
     ports:
-      - ${DJANGO_PORT}:${DJANGO_PORT}
+      - ${BACKEND_PORT}:8042
     volumes:
       - ../backend/:/opt/services/mosqlimate
-      - django_data:/opt/services/storage
+      - backend_data:/opt/services/storage
     networks:
       - infodengue-dev_infodengue
     command: python manage.py runserver 0.0.0.0:8042
@@ -14,7 +18,7 @@ services:
       - infodengue-dev_infodengue
 
 volumes:
-  django_data:
+  backend_data:
 
 networks:
   infodengue-dev_infodengue:

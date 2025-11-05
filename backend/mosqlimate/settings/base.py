@@ -18,8 +18,8 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = str(env("ENV")).lower() == "dev"
 
-DJANGO_CONTAINER_DATA_PATH = Path(
-    env("DJANGO_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
+BACKEND_CONTAINER_DATA_PATH = Path(
+    env("BACKEND_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
 )
 
 ALLOWED_HOSTS = [
@@ -157,8 +157,10 @@ DATABASE_ROUTERS = (
     "datastore.routers.WeatherRouter",
 )
 
-# 2 Factor Authentication (allauth)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
+# Login & JWT
+JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
+JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(env("JWT_REFRESH_EXPIRE_DAYS", default=7))
+JWT_ALGORITHM = "HS256"
 
 ##
 CACHES = {
@@ -258,7 +260,7 @@ STATICFILES_FINDERS = [
 
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
+MEDIA_ROOT = BACKEND_CONTAINER_DATA_PATH / "media"
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 

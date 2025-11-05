@@ -98,7 +98,7 @@ gid = var_in(
     default_val=os.getgid(),
 )
 dj_port = var_in(
-    "DJANGO_PORT", input_text="  Django port [8042]: ", default_val=8042
+    "BACKEND_PORT", input_text="  Django port [8042]: ", default_val=8042
 )
 
 frontend_port = var_in(
@@ -108,12 +108,12 @@ frontend_port = var_in(
 def_dj_host_data = def_data_dir / "django"
 
 dj_host_data = var_in(
-    "DJANGO_HOST_DATA_PATH",
+    "BACKEND_HOST_DATA_PATH",
     input_text=(f"  Django data storage dir on host [{def_dj_host_data}]: "),
     default_val=def_dj_host_data.absolute(),
 )
 dj_cont_data = var_in(
-    "DJANGO_CONTAINER_DATA_PATH",
+    "BACKEND_CONTAINER_DATA_PATH",
     input_text=(
         "  Django data storage dir on container [/opt/services/storage/django]: "
     ),
@@ -255,9 +255,9 @@ variables = {
     # [Django Image]
     "HOST_UID": uid,
     "HOST_GID": gid,
-    "DJANGO_PORT": dj_port,
-    "DJANGO_HOST_DATA_PATH": str(dj_host_data),
-    "DJANGO_CONTAINER_DATA_PATH": str(dj_cont_data),
+    "BACKEND_PORT": dj_port,
+    "BACKEND_HOST_DATA_PATH": str(dj_host_data),
+    "BACKEND_CONTAINER_DATA_PATH": str(dj_cont_data),
     # [Django Worker]
     "WORKER_PORT": worker_port,
     # [Django Oauth]
