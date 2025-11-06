@@ -1,12 +1,7 @@
-const ENV = process.env.FRONTEND_ENV || process.env.NODE_ENV;
+export const BACKEND_BASE_URL = process.env.NODE_ENV === "production"
+  ? "https://api.mosqlimate.org" : "http://0.0.0.0:8042";
 
-let API_BASE_URL: string;
-
-if (["production", "prod", "dev"].includes(ENV)) {
-  API_BASE_URL = "http://backend:8042/api";
-} else {
-  API_BASE_URL = "http://0.0.0.0:8042/api";
-}
+export const API_BASE_URL = `${BACKEND_BASE_URL}/api`;
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const headers = {

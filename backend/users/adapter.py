@@ -1,5 +1,5 @@
-from django.urls import reverse
 from django.core.cache import cache
+from django.conf import settings
 from allauth.account.adapter import DefaultAccountAdapter
 
 
@@ -13,6 +13,5 @@ class RedirectOnLogin(DefaultAccountAdapter):
 
         if user:
             cache.set(session.session_key, user.api_key(), timeout=3600)
-            return reverse("profile", args=[user.username])
-        else:
-            return reverse("home")
+
+        return getattr(settings, "FRONTEND_URL")

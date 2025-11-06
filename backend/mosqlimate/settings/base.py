@@ -51,6 +51,8 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.orcid",
     "django_celery_beat",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
@@ -89,6 +91,7 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "users.middleware.SessionCacheMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"
@@ -178,16 +181,30 @@ CACHES = {
 SOCIALACCOUNT_PROVIDERS = {
     "github": {
         "VERIFIED_EMAIL": True,
-        "SCOPE": [
-            "read:user",
-            "user:email",
-        ],
+        "SCOPE": ["read:user", "user:email"],
         "APP": {
             "client_id": env("GITHUB_CLIENT_ID"),
             "secret": env("GITHUB_SECRET"),
             "key": "",
         },
-    }
+    },
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "APP": {
+            "client_id": env("GOOGLE_CLIENT_ID"),
+            "secret": env("GOOGLE_SECRET"),
+            "key": "",
+        },
+    },
+    "orcid": {
+        "APP": {
+            "client_id": env("ORCID_CLIENT_ID"),
+            "secret": env("ORCID_SECRET"),
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "APP_NAME": "mosqlimate",
+        "REDIRECT_URI": "http://0.0.0.0:8042/api/user/social/callback/orcid/",
+    },
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -198,11 +215,15 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 2  # select * from django_site;
 
 AUTH_USER_MODEL = "users.CustomUser"
+FRONTEND_PORT = env("FRONTEND_PORT")
+FRONTEND_URL = env("FRONTEND_URL", default=f"http://0.0.0.0:{FRONTEND_PORT}/")
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
 ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

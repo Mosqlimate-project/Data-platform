@@ -1,6 +1,10 @@
 from ninja import Router
 from ninja.security import django_auth
 from django.contrib.auth import get_user_model, authenticate
+from django.http import JsonResponse
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.orcid.views import OrcidOAuth2Adapter
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 
@@ -19,6 +23,28 @@ from .jwt import create_access_token, create_refresh_token, decode_token
 router = Router()
 
 User = get_user_model()
+
+
+@router.get("/social/callback/{provider}/")
+def social_callback(request, provider: str, code: str, state: str):
+    if provider == "github":
+        adapter = GitHubOAuth2Adapter(request)
+    elif provider == "google":
+        adapter = GoogleOAuth2Adapter(request)
+    elif provider == "orcid":
+        adapter = OrcidOAuth2Adapter(request)
+    else:
+        return JsonResponse({"error": "Unknown provider"}, status=400)
+
+    login = adapter.complete_login(request, app=None)
+    data = login.account.extra_data
+
+    return {
+        "email": data.get("email"),
+        "name": data.get("name") or data.get("login"),
+        "provider_id": data.get("id") or data.get("orcid"),
+        "provider": provider,
+    }
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})

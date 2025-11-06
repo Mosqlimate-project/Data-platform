@@ -37,7 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
 
-      {/* Always render the modals but toggle visibility using "open" */}
       <LoginModal open={showLogin} onClose={() => setShowLogin(false)} />
       <RegisterModal open={showRegister} onClose={() => setShowRegister(false)} />
     </AuthContext.Provider>

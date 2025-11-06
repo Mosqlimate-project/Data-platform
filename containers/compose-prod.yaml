@@ -1,4 +1,8 @@
 services:
+  frontend:
+    environment:
+        NODE_ENV: production
+
   backend:
     ports:
       - ${BACKEND_PORT}:${BACKEND_PORT}

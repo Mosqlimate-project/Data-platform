@@ -2,7 +2,9 @@
 
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
+import { SiOrcid } from 'react-icons/si';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_BASE_URL } from "@/lib/api";
 
 interface RegisterModalProps {
   open: boolean;
@@ -12,8 +14,8 @@ interface RegisterModalProps {
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   if (!open) return null;
 
-  const handleSocialRegister = (provider: 'google' | 'github') => {
-    console.log(`Register with ${provider}`);
+  const handleSocialRegister = (provider: 'google' | 'github' | 'orcid') => {
+    window.location.href = `${BACKEND_BASE_URL}/accounts/${provider}/login/`;
   };
 
   return (
@@ -43,7 +45,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
               Create your account
             </h2>
 
-            {/* Social Register */}
             <div className="flex justify-center gap-3 mb-6">
               <button
                 onClick={() => handleSocialRegister('google')}
@@ -59,6 +60,13 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <FaGithub size={18} className="text-gray-800 dark:text-white" />
                 <span>GitHub</span>
               </button>
+              <button
+                onClick={() => handleSocialRegister('orcid')}
+                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+              >
+                <SiOrcid size={18} className="text-[#A6CE39]" />
+                <span>ORCID</span>
+              </button>
             </div>
 
             <div className="relative mb-6">
@@ -72,7 +80,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
               </div>
             </div>
 
-            {/* Register Form */}
             <form
               className="flex flex-col gap-3"
               onSubmit={(e) => {

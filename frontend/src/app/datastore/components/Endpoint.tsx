@@ -95,7 +95,6 @@ export function Layout({
         )}
       </div>
 
-      {/* Controls Section */}
       <div className="flex flex-col gap-3 w-full md:w-2/5">
         <AccordionCard
           title="Description"
