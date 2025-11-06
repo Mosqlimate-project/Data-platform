@@ -5,7 +5,11 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { SiOrcid } from 'react-icons/si';
 import { motion, AnimatePresence } from 'framer-motion';
+<<<<<<< HEAD
 import { oauthLogin } from "@/lib/api/auth";
+=======
+import { BACKEND_BASE_URL } from "@/lib/api";
+>>>>>>> 3718eeb (configure allauth with orcid and google)
 
 interface LoginModalProps {
   open: boolean;
@@ -22,6 +26,13 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
     openRegister();
   };
 
+<<<<<<< HEAD
+=======
+  const handleSocialLogin = (provider: 'google' | 'github' | 'orcid') => {
+    window.location.href = `${BACKEND_BASE_URL}/accounts/${provider}/login/`;
+  };
+
+>>>>>>> 3718eeb (configure allauth with orcid and google)
   return (
     <AnimatePresence>
       {open && (
@@ -65,7 +76,11 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
                 <span>GitHub</span>
               </button>
               <button
+<<<<<<< HEAD
                 onClick={() => oauthLogin('orcid')}
+=======
+                onClick={() => handleSocialLogin('orcid')}
+>>>>>>> 3718eeb (configure allauth with orcid and google)
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <SiOrcid size={18} className="text-[#A6CE39]" />
