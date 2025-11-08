@@ -11,12 +11,13 @@ load_dotenv()
 
 env = environ.Env()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+ENV = env("ENV", default="dev")  # or "prod"
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = str(env("ENV")).lower() == "dev"
+DEBUG = ENV.lower() == "dev"
 
 BACKEND_CONTAINER_DATA_PATH = Path(
     env("BACKEND_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
@@ -160,10 +161,33 @@ DATABASE_ROUTERS = (
     "datastore.routers.WeatherRouter",
 )
 
+BACKEND_PORT = env("BACKEND_PORT", default=8042)
+BACKEND_URL = (
+    "https://api.mosqlimate.org"
+    if ENV == "prod"
+    else f"http://0.0.0.0:{BACKEND_PORT}"
+)
+
+FRONTEND_PORT = env("FRONTEND_PORT")
+FRONTEND_URL = env(
+    "FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}/"
+)
+
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
 JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(env("JWT_REFRESH_EXPIRE_DAYS", default=7))
 JWT_ALGORITHM = "HS256"
+
+# OAuth
+GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
+GITHUB_SECRET = env("GITHUB_SECRET")
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
+GOOGLE_SECRET = env("GOOGLE_SECRET")
+
+ORCID_CLIENT_ID = env("ORCID_CLIENT_ID")
+ORCID_SECRET = env("ORCID_SECRET")
+
 
 ##
 CACHES = {
@@ -171,40 +195,10 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": f"{BASE_DIR.parent}/djangocache",
         "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Adjust as needed
-            "CULL_FREQUENCY": 10,  # Adjust as needed
+            "MAX_ENTRIES": 1000,
+            "CULL_FREQUENCY": 10,
         },
     }
-}
-
-
-SOCIALACCOUNT_PROVIDERS = {
-    "github": {
-        "VERIFIED_EMAIL": True,
-        "SCOPE": ["read:user", "user:email"],
-        "APP": {
-            "client_id": env("GITHUB_CLIENT_ID"),
-            "secret": env("GITHUB_SECRET"),
-            "key": "",
-        },
-    },
-    "google": {
-        "SCOPE": ["profile", "email"],
-        "APP": {
-            "client_id": env("GOOGLE_CLIENT_ID"),
-            "secret": env("GOOGLE_SECRET"),
-            "key": "",
-        },
-    },
-    "orcid": {
-        "APP": {
-            "client_id": env("ORCID_CLIENT_ID"),
-            "secret": env("ORCID_SECRET"),
-        },
-        "OAUTH_PKCE_ENABLED": True,
-        "APP_NAME": "mosqlimate",
-        "REDIRECT_URI": "http://0.0.0.0:8042/api/user/social/callback/orcid/",
-    },
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -215,8 +209,6 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 2  # select * from django_site;
 
 AUTH_USER_MODEL = "users.CustomUser"
-FRONTEND_PORT = env("FRONTEND_PORT")
-FRONTEND_URL = env("FRONTEND_URL", default=f"http://0.0.0.0:{FRONTEND_PORT}/")
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL

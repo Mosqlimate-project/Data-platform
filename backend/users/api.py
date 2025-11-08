@@ -1,13 +1,13 @@
+from typing import Literal
+
+import httpx
 from ninja import Router
 from ninja.security import django_auth
+from ninja.decorators import decorate_view
 from django.contrib.auth import get_user_model, authenticate
-from django.http import JsonResponse
-from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.orcid.views import OrcidOAuth2Adapter
+from django.views.decorators.cache import never_cache
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
-
 from .models import CustomUser
 from .schema import (
     UserInPost,
@@ -19,32 +19,67 @@ from .schema import (
     RegisterIn,
 )
 from .jwt import create_access_token, create_refresh_token, decode_token
+from .providers import (
+    OAuthProvider,
+    GoogleProvider,
+    GithubProvider,
+    OrcidProvider,
+)
 
-router = Router()
+router = Router(tags=["user"])
 
 User = get_user_model()
 
+PROVIDERS = {
+    "google": GoogleProvider,
+    "github": GithubProvider,
+    "orcid": OrcidProvider,
+}
 
-@router.get("/social/callback/{provider}/")
-def social_callback(request, provider: str, code: str, state: str):
-    if provider == "github":
-        adapter = GitHubOAuth2Adapter(request)
-    elif provider == "google":
-        adapter = GoogleOAuth2Adapter(request)
-    elif provider == "orcid":
-        adapter = OrcidOAuth2Adapter(request)
-    else:
-        return JsonResponse({"error": "Unknown provider"}, status=400)
 
-    login = adapter.complete_login(request, app=None)
-    data = login.account.extra_data
+@router.get(
+    "/oauth/login/{provider}/",
+    response={200: str, 400: BadRequestSchema},
+    # include_in_schema=False
+)
+@decorate_view(never_cache)
+def oauth_login(request, provider: Literal["google", "github", "orcid"]):
+    Client = PROVIDERS.get(provider)
+    return Client(request).get_auth_url()
 
-    return {
-        "email": data.get("email"),
-        "name": data.get("name") or data.get("login"),
-        "provider_id": data.get("id") or data.get("orcid"),
-        "provider": provider,
-    }
+
+@router.get(
+    "/oauth/callback/{provider}/",
+    response={200: dict, 400: BadRequestSchema},
+    # include_in_schema=False
+)
+def oauth_callback(
+    request,
+    provider: Literal["google", "github", "orcid"],
+    code: str,
+    state: str,
+):
+    Client = PROVIDERS.get(provider)
+    client: OAuthProvider = Client(request)
+
+    try:
+        client.decode_state(state)
+    except ValueError:
+        return 400, {"message": "Invalid or expired state"}
+
+    try:
+        token_data = client.get_token(code)
+        access_token = token_data.get("access_token")
+
+        if not access_token:
+            return 400, {"message": "Missing access token"}
+
+        return client.get_user_info(access_token, token_data)
+
+    except httpx.HTTPError as e:
+        return 400, {"message": f"HTTP error: {e}"}
+    except Exception as e:
+        return 400, {"message": str(e)}
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})

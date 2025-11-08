@@ -5,6 +5,11 @@ from pydantic import EmailStr
 from ninja import Schema, Field
 
 
+class OauthUser(Schema):
+    name: Optional[str]
+    last_name: Optional[str]
+
+
 class UserSchema(Schema):
     name: Annotated[Optional[str], Field(None, description="User's full name")]
     username: Annotated[
