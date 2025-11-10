@@ -165,13 +165,12 @@ BACKEND_PORT = env("BACKEND_PORT", default=8042)
 BACKEND_URL = (
     "https://api.mosqlimate.org"
     if ENV == "prod"
-    else f"http://0.0.0.0:{BACKEND_PORT}"
+    else f"http://0.0.0.0:{
+        BACKEND_PORT}"
 )
 
 FRONTEND_PORT = env("FRONTEND_PORT")
-FRONTEND_URL = env(
-    "FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}/"
-)
+FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
 
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
@@ -212,7 +211,7 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
-ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
+ACCOUNT_ADAPTER = "users.adapters.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True

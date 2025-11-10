@@ -30,6 +30,22 @@ class OAuthProvider(ABC):
                 "localhost",
             )
 
+    @classmethod
+    def from_request(
+        cls,
+        request: HttpRequest,
+        provider: Literal["google", "github", "orcid"],
+    ) -> "OAuthProvider":
+        providers = {
+            "github": GithubProvider,
+            "google": GoogleProvider,
+            "orcid": OrcidProvider,
+        }
+        provider = providers.get(provider)
+        if not provider:
+            raise ValueError(f"Unsupported provider: {provider}")
+        return provider(request)
+
     @property
     def state(self):
         payload = {

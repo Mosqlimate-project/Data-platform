@@ -4,11 +4,14 @@ import httpx
 from ninja import Router
 from ninja.security import django_auth
 from ninja.decorators import decorate_view
+from django.core import signing
+from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
+from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
-from .models import CustomUser
+from .models import CustomUser, OAuthAccount
 from .schema import (
     UserInPost,
     UserSchema,
@@ -19,48 +22,40 @@ from .schema import (
     RegisterIn,
 )
 from .jwt import create_access_token, create_refresh_token, decode_token
-from .providers import (
-    OAuthProvider,
-    GoogleProvider,
-    GithubProvider,
-    OrcidProvider,
-)
+from .providers import OAuthProvider
+from .adapters import OAuthAdapter
 
 router = Router(tags=["user"])
 
 User = get_user_model()
 
-PROVIDERS = {
-    "google": GoogleProvider,
-    "github": GithubProvider,
-    "orcid": OrcidProvider,
-}
-
 
 @router.get(
     "/oauth/login/{provider}/",
-    response={200: str, 400: BadRequestSchema},
-    # include_in_schema=False
+    response={200: dict, 400: BadRequestSchema},
+    auth=None,
+    include_in_schema=False,
 )
 @decorate_view(never_cache)
 def oauth_login(request, provider: Literal["google", "github", "orcid"]):
-    Client = PROVIDERS.get(provider)
-    return Client(request).get_auth_url()
+    auth_url = OAuthProvider.from_request(request, provider).get_auth_url()
+    return {"auth_url": auth_url}
 
 
 @router.get(
     "/oauth/callback/{provider}/",
     response={200: dict, 400: BadRequestSchema},
-    # include_in_schema=False
+    include_in_schema=False,
+    auth=None,
 )
+@decorate_view(never_cache)
 def oauth_callback(
     request,
     provider: Literal["google", "github", "orcid"],
     code: str,
     state: str,
 ):
-    Client = PROVIDERS.get(provider)
-    client: OAuthProvider = Client(request)
+    client = OAuthProvider.from_request(request, provider)
 
     try:
         client.decode_state(state)
@@ -70,16 +65,91 @@ def oauth_callback(
     try:
         token_data = client.get_token(code)
         access_token = token_data.get("access_token")
-
         if not access_token:
             return 400, {"message": "Missing access token"}
-
-        return client.get_user_info(access_token, token_data)
-
+        raw_info = client.get_user_info(access_token, token_data)
     except httpx.HTTPError as e:
         return 400, {"message": f"HTTP error: {e}"}
     except Exception as e:
         return 400, {"message": str(e)}
+
+    adapter = OAuthAdapter.from_request(request, provider, raw_info)
+    provider_id = adapter.provider_id
+
+    try:
+        account = OAuthAccount.objects.select_related("user").get(
+            provider=provider,
+            provider_id=provider_id,
+        )
+        user = account.user
+
+        data = signing.dumps(
+            {
+                "access_token": create_access_token({"sub": str(user.pk)}),
+                "refresh_token": create_refresh_token({"sub": str(user.pk)}),
+            },
+            compress=True,
+            salt="oauth-callback",
+        )
+
+        return HttpResponseRedirect(
+            f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+        )
+
+    except OAuthAccount.DoesNotExist:
+        auth_header = request.headers.get("Authorization")
+        user = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+            payload = decode_token(token)
+            if payload and payload.get("type") == "access":
+                user_id = payload.get("sub")
+                try:
+                    user = User.objects.get(pk=user_id)
+                except User.DoesNotExist:
+                    user = None
+
+        if user:
+            account, created = OAuthAccount.objects.update_or_create(
+                provider=provider,
+                provider_id=provider_id,
+                defaults={
+                    "user": user,
+                    "raw_info": raw_info,
+                },
+            )
+            action = "link" if created else "update"
+            data = signing.dumps(
+                {
+                    "action": action,
+                    "message": f"{provider} account {action}",
+                },
+                compress=True,
+                salt="oauth-callback",
+            )
+            return HttpResponseRedirect(
+                f"{settings.FRONTEND_URL}/oauth/link?data={data}",
+            )
+
+        data = signing.dumps(
+            {
+                "action": "register",
+                "first_name": adapter.first_name,
+                "last_name": adapter.last_name,
+                "email": adapter.email,
+                "avatar_url": adapter.avatar_url,
+                # To save OAuthAccount on /register/
+                "provider": provider,
+                "provider_id": provider_id,
+                "raw_info": raw_info,
+            },
+            compress=True,
+            salt="oauth-callback",
+        )
+
+        return HttpResponseRedirect(
+            f"{settings.FRONTEND_URL}/oauth/register?data={data}",
+        )
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})

@@ -4,7 +4,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { SiOrcid } from 'react-icons/si';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { oauthLogin } from "@/lib/api/auth";
 
 interface RegisterModalProps {
   open: boolean;
@@ -13,10 +13,6 @@ interface RegisterModalProps {
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   if (!open) return null;
-
-  const handleSocialRegister = (provider: 'google' | 'github' | 'orcid') => {
-    window.location.href = `${BACKEND_BASE_URL}/accounts/${provider}/login/`;
-  };
 
   return (
     <AnimatePresence>
@@ -47,21 +43,21 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
             <div className="flex justify-center gap-3 mb-6">
               <button
-                onClick={() => handleSocialRegister('google')}
+                onClick={() => oauthLogin('google')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <FcGoogle size={18} />
                 <span>Google</span>
               </button>
               <button
-                onClick={() => handleSocialRegister('github')}
+                onClick={() => oauthLogin('github')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <FaGithub size={18} className="text-gray-800 dark:text-white" />
                 <span>GitHub</span>
               </button>
               <button
-                onClick={() => handleSocialRegister('orcid')}
+                onClick={() => oauthLogin('orcid')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <SiOrcid size={18} className="text-[#A6CE39]" />

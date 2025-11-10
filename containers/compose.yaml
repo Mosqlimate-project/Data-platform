@@ -18,7 +18,7 @@ services:
     hostname: mosqlimate-backend
     restart: unless-stopped
     environment:
-      RUN_MIGRATE: 1 # CI
+      RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
     build:
       context: ..
