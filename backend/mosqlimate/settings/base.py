@@ -194,12 +194,8 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": f"{BASE_DIR.parent}/djangocache",
         "OPTIONS": {
-<<<<<<< HEAD
             "MAX_ENTRIES": 1000,
             "CULL_FREQUENCY": 10,
-=======
-            "MAX_ENTRIES": 1000,  # Adjust as needed
-            "CULL_FREQUENCY": 10,  # Adjust as needed
         },
     }
 }
@@ -213,7 +209,6 @@ SOCIALACCOUNT_PROVIDERS = {
             "client_id": env("GITHUB_CLIENT_ID"),
             "secret": env("GITHUB_SECRET"),
             "key": "",
->>>>>>> 3718eeb (configure allauth with orcid and google)
         },
     },
     "google": {
@@ -248,11 +243,7 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"http://0.0.0.0:{FRONTEND_PORT}/")
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
-<<<<<<< HEAD
 ACCOUNT_ADAPTER = "users.adapters.RedirectOnLogin"
-=======
-ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
->>>>>>> 3718eeb (configure allauth with orcid and google)
 SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True

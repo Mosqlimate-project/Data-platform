@@ -7,15 +7,8 @@ from ninja.decorators import decorate_view
 from django.core import signing
 from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
-<<<<<<< HEAD
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
-=======
-from django.http import JsonResponse
-from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.orcid.views import OrcidOAuth2Adapter
->>>>>>> 3718eeb (configure allauth with orcid and google)
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 from .models import CustomUser, OAuthAccount
@@ -37,7 +30,28 @@ router = Router(tags=["user"])
 User = get_user_model()
 
 
-<<<<<<< HEAD
+@router.get(
+    "/check-username/",
+    auth=None,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def check_username(request, username: str):
+    exists = User.objects.filter(username__iexact=username).exists()
+    return {"ok": not exists}
+
+
+@router.get(
+    "/check-email/",
+    auth=None,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def check_email(request, email: str):
+    exists = User.objects.filter(email__iexact=email).exists()
+    return {"ok": not exists}
+
+
 @router.get(
     "/oauth/login/{provider}/",
     response={200: dict, 400: BadRequestSchema},
@@ -158,28 +172,6 @@ def oauth_callback(
         return HttpResponseRedirect(
             f"{settings.FRONTEND_URL}/oauth/register?data={data}",
         )
-=======
-@router.get("/social/callback/{provider}/")
-def social_callback(request, provider: str, code: str, state: str):
-    if provider == "github":
-        adapter = GitHubOAuth2Adapter(request)
-    elif provider == "google":
-        adapter = GoogleOAuth2Adapter(request)
-    elif provider == "orcid":
-        adapter = OrcidOAuth2Adapter(request)
-    else:
-        return JsonResponse({"error": "Unknown provider"}, status=400)
-
-    login = adapter.complete_login(request, app=None)
-    data = login.account.extra_data
-
-    return {
-        "email": data.get("email"),
-        "name": data.get("name") or data.get("login"),
-        "provider_id": data.get("id") or data.get("orcid"),
-        "provider": provider,
-    }
->>>>>>> 3718eeb (configure allauth with orcid and google)
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})

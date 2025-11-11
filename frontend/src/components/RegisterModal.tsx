@@ -1,14 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { SiOrcid } from 'react-icons/si';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
 import { oauthLogin } from "@/lib/api/auth";
-=======
-import { BACKEND_BASE_URL } from "@/lib/api";
->>>>>>> 3718eeb (configure allauth with orcid and google)
+import { apiFetch } from '@/lib/api';
 
 interface RegisterModalProps {
   open: boolean;
@@ -16,15 +14,11 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+
   if (!open) return null;
 
-<<<<<<< HEAD
-=======
-  const handleSocialRegister = (provider: 'google' | 'github' | 'orcid') => {
-    window.location.href = `${BACKEND_BASE_URL}/accounts/${provider}/login/`;
-  };
-
->>>>>>> 3718eeb (configure allauth with orcid and google)
   return (
     <AnimatePresence>
       {open && (
@@ -68,11 +62,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <span>GitHub</span>
               </button>
               <button
-<<<<<<< HEAD
                 onClick={() => oauthLogin('orcid')}
-=======
-                onClick={() => handleSocialRegister('orcid')}
->>>>>>> 3718eeb (configure allauth with orcid and google)
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <SiOrcid size={18} className="text-[#A6CE39]" />
@@ -93,43 +83,70 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
             <form
               className="flex flex-col gap-3"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                onClose();
+                const form = e.currentTarget;
+                const username = (form.username as HTMLInputElement).value.trim();
+                const email = (form.email as HTMLInputElement).value.trim();
+
+                setUsernameError('');
+                setEmailError('');
+
+                try {
+                  const usernameResp = await apiFetch(`/user/check-username/?username=${username}`);
+                  const emailResp = await apiFetch(`/user/check-email/?email=${email}`);
+
+                  let hasError = false;
+
+                  if (!usernameResp.ok) {
+                    setUsernameError('Username is already taken');
+                    hasError = true;
+                  }
+
+                  if (!emailResp.ok) {
+                    setEmailError('Email is already registered');
+                    hasError = true;
+                  }
+
+                  if (!hasError) {
+                    const params = new URLSearchParams({ username, email });
+                    window.location.href = `/register?${params.toString()}`;
+                  }
+                } catch (err) {
+                  console.error("Validation error:", err);
+                }
               }}
             >
-              <input
-                name="name"
-                placeholder="Full name"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                required
-              />
-              <input
-                name="username"
-                placeholder="Username"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                required
-              />
+              <div>
+                <input
+                  name="username"
+                  placeholder="Username"
+                  className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
+                  required
+                />
+                {usernameError && (
+                  <p className="text-red-500 text-xs mt-1">{usernameError}</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
+                  required
+                />
+                {emailError && (
+                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                )}
+              </div>
 
               <button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
               >
-                Create Account
+                Continue
               </button>
 
               <button
