@@ -69,12 +69,10 @@ export default function RegistryModels() {
                 type={model.type}
                 predictions={model.predictions}
                 lastUpdate={model.lastUpdate}
-                onClick={() => console.log(`Clicked ${model.repo}`)}
               />
             ))}
           </div>
 
-          {/* Pagination */}
           <div className="flex justify-center mt-6 gap-2">
             <button
               onClick={() => setPage((p) => Math.max(p - 1, 1))}

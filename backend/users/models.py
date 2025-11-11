@@ -45,6 +45,23 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
 
+class OAuthAccount(models.Model):
+    class Providers(models.TextChoices):
+        GOOGLE = "google", "Google"
+        GITHUB = "github", "GitHub"
+        ORCID = "orcid", "Orcid"
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    provider = models.CharField(max_length=20, choices=Providers.choices)
+    provider_id = models.CharField(max_length=255)
+    raw_info = models.JSONField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("provider", "provider_id")
+
+
 @receiver(post_save, sender=CustomUser)
 def create_author(sender, instance, created, **kwargs):
     """Creates Author when User is created"""

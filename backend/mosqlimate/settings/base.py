@@ -11,15 +11,16 @@ load_dotenv()
 
 env = environ.Env()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+ENV = env("ENV", default="dev")  # or "prod"
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = str(env("ENV")).lower() == "dev"
+DEBUG = ENV.lower() == "dev"
 
-DJANGO_CONTAINER_DATA_PATH = Path(
-    env("DJANGO_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
+BACKEND_CONTAINER_DATA_PATH = Path(
+    env("BACKEND_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
 )
 
 ALLOWED_HOSTS = [
@@ -51,6 +52,8 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.orcid",
     "django_celery_beat",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
@@ -89,6 +92,7 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "users.middleware.SessionCacheMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "mosqlimate.urls"
@@ -157,8 +161,32 @@ DATABASE_ROUTERS = (
     "datastore.routers.WeatherRouter",
 )
 
-# 2 Factor Authentication (allauth)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
+BACKEND_PORT = env("BACKEND_PORT", default=8042)
+BACKEND_URL = (
+    "https://api.mosqlimate.org"
+    if ENV == "prod"
+    else f"http://0.0.0.0:{
+        BACKEND_PORT}"
+)
+
+FRONTEND_PORT = env("FRONTEND_PORT")
+FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
+
+# Login & JWT
+JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
+JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(env("JWT_REFRESH_EXPIRE_DAYS", default=7))
+JWT_ALGORITHM = "HS256"
+
+# OAuth
+GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
+GITHUB_SECRET = env("GITHUB_SECRET")
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
+GOOGLE_SECRET = env("GOOGLE_SECRET")
+
+ORCID_CLIENT_ID = env("ORCID_CLIENT_ID")
+ORCID_SECRET = env("ORCID_SECRET")
+
 
 ##
 CACHES = {
@@ -166,24 +194,8 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": f"{BASE_DIR.parent}/djangocache",
         "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Adjust as needed
-            "CULL_FREQUENCY": 10,  # Adjust as needed
-        },
-    }
-}
-
-
-SOCIALACCOUNT_PROVIDERS = {
-    "github": {
-        "VERIFIED_EMAIL": True,
-        "SCOPE": [
-            "read:user",
-            "user:email",
-        ],
-        "APP": {
-            "client_id": env("GITHUB_CLIENT_ID"),
-            "secret": env("GITHUB_SECRET"),
-            "key": "",
+            "MAX_ENTRIES": 1000,
+            "CULL_FREQUENCY": 10,
         },
     }
 }
@@ -198,9 +210,11 @@ SITE_ID = 2  # select * from django_site;
 AUTH_USER_MODEL = "users.CustomUser"
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_ADAPTER = "users.adapter.RedirectOnLogin"
+ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
+ACCOUNT_ADAPTER = "users.adapters.RedirectOnLogin"
 SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -258,7 +272,7 @@ STATICFILES_FINDERS = [
 
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = DJANGO_CONTAINER_DATA_PATH / "media"
+MEDIA_ROOT = BACKEND_CONTAINER_DATA_PATH / "media"
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 

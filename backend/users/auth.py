@@ -1,14 +1,27 @@
-from ninja.security import APIKeyHeader
+from ninja.security import APIKeyHeader, HttpBearer
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+
+from .jwt import decode_token
 
 User = get_user_model()
 
 
 class InvalidUIDKey(Exception):
     pass
+
+
+class JWTAuth(HttpBearer):
+    def authenticate(self, request, token):
+        payload = decode_token(token)
+        if not payload:
+            return None
+        try:
+            return User.objects.get(pk=payload["sub"])
+        except User.DoesNotExist:
+            return None
 
 
 class UidKeyAuth(APIKeyHeader):

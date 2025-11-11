@@ -1,6 +1,5 @@
 FROM node:20-alpine AS base
 WORKDIR /app
-ENV NODE_ENV=production
 
 FROM base AS deps
 COPY frontend/package*.json ./
@@ -13,7 +12,6 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV=production
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public

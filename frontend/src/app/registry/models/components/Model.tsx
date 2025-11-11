@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface ThumbnailProps {
   repo: string;
   type: string;
   predictions: number;
   lastUpdate: Date;
-  onClick?: () => void;
 }
 
 function timeAgo(date: Date): string {
@@ -28,17 +28,23 @@ function timeAgo(date: Date): string {
   return `${years} year${years !== 1 ? "s" : ""} ago`;
 }
 
-export default function Thumbnail({ repo, type, predictions, lastUpdate, onClick }: ThumbnailProps) {
+export default function Thumbnail({ repo, type, predictions, lastUpdate }: ThumbnailProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/model/${repo}`);
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="
-    flex flex-col
-    p-3 rounded-xl border border-[var(--color-border)]
-    transition cursor-pointer w-full
-    bg-[var(--color-bg)] hover:bg-[var(--color-accent)]
-    hover:text-white 
-  "
+        flex flex-col
+        p-3 rounded-xl border border-[var(--color-border)]
+        transition cursor-pointer w-full
+        bg-[var(--color-bg)] hover:bg-[var(--color-accent)]
+        hover:text-white
+      "
     >
       <div className="flex items-center gap-2 mb-2 w-full">
         <div className="w-6 h-6 overflow-hidden rounded bg-gray-200 flex-shrink-0">

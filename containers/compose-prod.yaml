@@ -1,9 +1,13 @@
 services:
-  django:
+  frontend:
+    environment:
+        NODE_ENV: production
+
+  backend:
     ports:
-      - ${DJANGO_PORT}:${DJANGO_PORT}
+      - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
-      - ${DJANGO_HOST_DATA_PATH}:${DJANGO_CONTAINER_DATA_PATH}
+      - ${BACKEND_HOST_DATA_PATH}:${BACKEND_CONTAINER_DATA_PATH}
     networks:
       - infodengue-prod_infodengue
 

@@ -39,6 +39,7 @@ export default function DatastorePage() {
     return (
       <Layout
         title={endpoint.name}
+        endpoint={endpoint.endpoint}
         description={endpoint.description}
         dataVariables={endpoint.data_variables}
         chartOptions={endpoint.chart_options}

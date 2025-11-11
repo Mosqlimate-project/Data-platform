@@ -1,18 +1,14 @@
-const API_BASE_URL = process.env.API_BASE_URL || "http://0.0.0.0:8042/api";
+export const BACKEND_BASE_URL = process.env.NODE_ENV === "production"
+  ? "https://api.mosqlimate.org" : "http://0.0.0.0:8042";
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const lang = (
-    typeof window !== "undefined" ? localStorage.getItem("lang") ||
-      "en-us" : "en-us"
-  );
-
   const headers = {
     "Content-Type": "application/json",
-    "Accept-Language": lang,
+    Accept: "application/json",
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
     ...options,
     headers,
   });

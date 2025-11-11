@@ -568,7 +568,7 @@ def get_episcanner(
     APILog.from_request(request)
     db = duckdb.connect(
         str(
-            settings.DJANGO_CONTAINER_DATA_PATH
+            settings.BACKEND_CONTAINER_DATA_PATH
             / "episcanner"
             / "episcanner.duckdb"
         ),

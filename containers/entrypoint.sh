@@ -15,7 +15,7 @@ source activate mosqlimate
 
 set +ex
 
-if [ "${CI}" = "true" ] || [ "${RUN_MIGRATE}" = "1" ]; then
+if [ "${CI}" = "true" ] || [ "${RUN_MIGRATE}" = "true" ]; then
   echo "Running migrations..."
   python manage.py migrate --noinput
 fi

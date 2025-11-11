@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import Image from "next/image";
 import LanguageSelector from "../components/Language";
 import { useTranslation } from "react-i18next";
+import { useAuth } from './AuthProvider';
 
 
 const links = [
@@ -24,6 +25,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation("common");
+  const { user, logout, openLogin, openRegister } = useAuth();
 
   useEffect(() => setMounted(true), []);
 
@@ -98,7 +100,7 @@ export default function Navbar() {
 
         <LanguageSelector />
 
-        <button className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
+        <button onClick={openLogin} className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
           {t("Login")}
         </button>
 
