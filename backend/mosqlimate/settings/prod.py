@@ -8,10 +8,13 @@ USE_X_FORWARDED_HOST = True
 
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
+    "https://mosqlimate.org",
     "https://*.mosqlimate.org",
     "http://localhost",
-    "http://0.0.0.0:8042",
+    f"http://0.0.0.0:{FRONTEND_PORT}",  # noqa: F405
     "http://django",
+    f"http://localhost:{FRONTEND_PORT}",  # noqa: F405
+    f"http://0.0.0.0:{FRONTEND_PORT}",  # noqa: F405
 ]
 
 # https://docs.djangoproject.com/en/4.2/ref/middleware/#http-strict-transport-security

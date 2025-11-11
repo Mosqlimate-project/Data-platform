@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
-from .models import CustomUser, OAuthAccount
+from .models import OAuthAccount
 from .schema import (
     UserInPost,
     UserSchema,
@@ -156,6 +156,7 @@ def oauth_callback(
         data = signing.dumps(
             {
                 "action": "register",
+                "username": adapter.username,
                 "first_name": adapter.first_name,
                 "last_name": adapter.last_name,
                 "email": adapter.email,
@@ -211,15 +212,16 @@ def login(request, payload: LoginIn):
 
 
 @router.post(
-    "/register",
+    "/register/",
+    auth=None,
     response={201: UserOut, 401: ForbiddenSchema, 400: BadRequestSchema},
 )
 def register(request, payload: RegisterIn):
     if User.objects.filter(email=payload.email).exists():
-        return 400, {"detail": "Email already registered"}
+        return 400, {"message": "Email already registered"}
 
     if User.objects.filter(username=payload.username).exists():
-        return 400, {"detail": "Username already registered"}
+        return 400, {"message": "Username already registered"}
 
     user = User.objects.create_user(
         first_name=payload.name,
@@ -264,7 +266,7 @@ def update_user(request, username: str, payload: UserInPost):
     were inherit from a 3rd party OAuth User
     """
     try:
-        user = CustomUser.objects.get(username=username)
+        user = User.objects.get(username=username)
 
         if request.user != user:  # TODO: Enable admins here
             return 403, {
@@ -275,5 +277,5 @@ def update_user(request, username: str, payload: UserInPost):
         user.last_name = payload.last_name
         user.save()
         return 201, user
-    except CustomUser.DoesNotExist:
+    except User.DoesNotExist:
         return 404, {"message": "Author not found"}

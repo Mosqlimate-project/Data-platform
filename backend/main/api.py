@@ -33,7 +33,7 @@ class NinjaAPI(API):
 
 
 api = NinjaAPI(
-    csrf=True,
+    csrf=False,
     title="Mosqlimate API",
     description=(
         "<h3>Welcome to Mosqlimate API Reference</h3>"

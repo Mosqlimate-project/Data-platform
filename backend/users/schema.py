@@ -1,5 +1,5 @@
 from typing_extensions import Annotated
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import EmailStr
 
 from ninja import Schema, Field
@@ -38,10 +38,16 @@ class LoginOut(Schema):
 
 
 class RegisterIn(Schema):
-    name: str
+    provider: Optional[Literal["google", "github", "orcid"]] = None
+    provider_id: Optional[str] = None
+    raw_info: Optional[dict] = None
+    avatar_url: Optional[str] = None
+    homepage_url: Optional[str] = None
     username: str
-    password: str
+    first_name: str
+    last_name: str
     email: EmailStr
+    password: str
 
 
 class UserOut(Schema):

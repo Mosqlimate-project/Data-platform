@@ -14,10 +14,34 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
+  const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');
 
   if (!open) return null;
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+
+    if (value.length < 4) {
+      setUsernameError('Username too short');
+      return;
+    }
+
+    if (value.length > 25) {
+      setUsernameError('Username too long');
+      return;
+    }
+
+    const validPattern = /^[a-zA-Z0-9._]+$/;
+    if (!validPattern.test(value)) {
+      setUsernameError('Invalid username');
+      return;
+    }
+
+    setUsernameError('');
+  };
 
   return (
     <AnimatePresence>
@@ -121,6 +145,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <input
                   name="username"
                   placeholder="Username"
+                  value={username}
+                  onChange={handleUsernameChange}
                   className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
                   required
                 />
@@ -144,7 +170,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
+                disabled={!username || !!usernameError || !!emailError}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
               >
                 Continue
               </button>

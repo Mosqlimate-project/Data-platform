@@ -23,9 +23,9 @@ function RegisterPageContent() {
   const initialEmail = params.get('email') || '';
 
   const [loading, setLoading] = useState(!!data);
+  const [oauthInfo, setOauthInfo] = useState<any | null>(null);
   const [username, setUsername] = useState(initialUsername);
   const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
   const [email, setEmail] = useState(initialEmail);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -38,7 +38,6 @@ function RegisterPageContent() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordScore, setPasswordScore] = useState<number | null>(null);
   const [passwordFeedback, setPasswordFeedback] = useState('');
-  const [emailError, setEmailError] = useState('');
 
   const ran = useRef(false);
 
@@ -54,6 +53,7 @@ function RegisterPageContent() {
         setFirstName(info.first_name || '');
         setLastName(info.last_name || '');
         if (info.avatar_url) setAvatarUrl(info.avatar_url);
+        setOauthInfo(info);
       } catch {
         toast.error('Invalid or expired login');
         router.push('/');
@@ -80,53 +80,76 @@ function RegisterPageContent() {
     }
   }
 
-  async function checkAvailability() {
-    setUsernameError('');
-    setEmailError('');
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
 
-    if (username) {
-      try {
-        const res = await apiFetch(`/user/check-username/?username=${encodeURIComponent(username)}`);
-        if (!res.ok) setUsernameError('This username is already taken.');
-      } catch {
-        setUsernameError('Could not verify username.');
+    if (value.length < 4) {
+      setUsernameError('Username too short');
+      return;
+    }
+
+    if (value.length > 25) {
+      setUsernameError('Username too long');
+      return;
+    }
+
+    const validPattern = /^[a-zA-Z0-9._]+$/;
+    if (!validPattern.test(value)) {
+      setUsernameError('Invalid username');
+      return;
+    }
+
+    setUsernameError('');
+  };
+
+  async function checkUsernameAvailability(username: string) {
+    try {
+      const res = await apiFetch(`/user/check-username/?username=${encodeURIComponent(username)}`);
+      if (!res.ok) {
+        setUsernameError('Username is already taken.');
+        return false;
+      } else {
+        setUsernameError('');
+        return true;
       }
+    } catch {
+      setUsernameError('Could not verify username.');
+      return false;
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await checkAvailability();
-    if (!agree || usernameError || emailError) return;
+
+    const available = await checkUsernameAvailability(username);
+    if (!agree || !available || usernameError) return;
 
     if (zxcvbn(password).score < 2) {
-      setPasswordError('Password is too weak.');
+      setPasswordError("Password is too weak.");
       return;
     }
 
-    if (password !== repeatPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    } else {
-      setPasswordError('');
-    }
+    const payload = {
+      username,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password,
+      avatar_url: avatar || null,
+      homepage_url: homepage || null,
+      provider: oauthInfo?.provider || null,
+      provider_id: oauthInfo?.provider_id || null,
+      raw_info: oauthInfo?.raw_info || null,
+    };
 
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('first_name', firstName);
-    formData.append('last_name', lastName);
-    formData.append('email', email);
-    formData.append('password', password);
-    if (avatar) formData.append('avatar', avatar);
-    if (homepage) formData.append('homepage', homepage);
-
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/register/`, {
-      method: 'POST',
-      body: formData,
+    await apiFetch("/user/register/", {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
 
-    toast.success('Account created!');
-    router.push('/');
+    toast.success("Account created!");
+    router.push("/");
   }
 
   return (
@@ -141,7 +164,6 @@ function RegisterPageContent() {
           </div>
         )}
 
-        {/* Avatar Circle */}
         <div className="relative mb-6">
           <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
             {avatarUrl ? (
@@ -177,17 +199,17 @@ function RegisterPageContent() {
         </div>
 
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-1">
-          Complete your profile
+          Finish your profile
         </h1>
         <p className="text-center text-gray-500 dark:text-gray-400 mb-8">
-          One last step to join the community
+          Complete with your information to register
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={handleUsernameChange}
             error={usernameError}
             required
             className="md:col-span-2"
@@ -199,39 +221,31 @@ function RegisterPageContent() {
               type="password"
               value={password}
               onChange={handlePasswordChange}
+              error={passwordError}
               required
             />
             {passwordScore !== null && (
               <p className={`text-sm mt-1 ${passwordScore < 2 ? 'text-red-500' :
                 passwordScore < 4 ? 'text-yellow-500' :
                   'text-green-500'
-                }`}
-              >
-                {passwordFeedback || ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordScore]}
+                }`}>
+                {passwordScore < 2 ? 'Password is too weak' : passwordFeedback || ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordScore]}
               </p>
             )}
           </div>
 
           <Input
-            label="Repeat Password"
-            type="password"
-            value={repeatPassword}
-            onChange={(e) => setRepeatPassword(e.target.value)}
-            required
-            error={passwordError}
-            className="md:col-span-2"
-          />
-
-          <Input
             label="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
+            required
           />
 
           <Input
             label="Last name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
+            required
           />
 
           <Input
@@ -264,7 +278,14 @@ function RegisterPageContent() {
 
         <button
           type="submit"
-          disabled={!agree || loading}
+          disabled={
+            !agree ||
+            loading ||
+            (passwordScore !== null && passwordScore < 2) ||
+            !username || !!usernameError ||
+            !password ||
+            !email
+          }
           className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-md py-2 transition-all shadow-sm hover:shadow-md"
         >
           Create Account
