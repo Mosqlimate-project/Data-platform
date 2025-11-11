@@ -174,6 +174,19 @@ def oauth_callback(
         )
 
 
+@router.get(
+    "/oauth/decode/",
+    include_in_schema=False,
+    auth=None,
+)
+def oauth_decode(request, data: str):
+    try:
+        decoded = signing.loads(data, salt="oauth-callback", max_age=300)
+    except signing.BadSignature:
+        return 400, {"message": "Invalid or expired data"}
+    return decoded
+
+
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
 def login(request, payload: LoginIn):
     if payload.email:

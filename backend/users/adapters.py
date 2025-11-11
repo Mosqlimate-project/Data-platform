@@ -39,6 +39,10 @@ class OAuthAdapter(ABC):
 
     @property
     @abstractmethod
+    def username(self) -> str: ...
+
+    @property
+    @abstractmethod
     def first_name(self) -> str: ...
 
     @property
@@ -64,6 +68,10 @@ class GoogleAdapter(OAuthAdapter):
         if not email:
             raise ValueError("User info must include a public email")
         return email
+
+    @property
+    def username(self) -> str:
+        return ""
 
     @property
     def first_name(self) -> str:
@@ -95,6 +103,10 @@ class GithubAdapter(OAuthAdapter):
         if not email:
             raise ValueError("User info must include a public email")
         return email
+
+    @property
+    def username(self) -> str:
+        return self.data.get("login", "")
 
     @property
     def first_name(self) -> str:
@@ -129,16 +141,18 @@ class OrcidAdapter(OAuthAdapter):
         return primary["email"]
 
     @property
+    def username(self) -> str:
+        return ""
+
+    @property
     def first_name(self) -> str:
-        return (
-            self.data.get("name", {}).get("given-names", {}).get("value", "")
-        )
+        data = self.data
+        return data.get("name", {}).get("given-names", {}).get("value", "")
 
     @property
     def last_name(self) -> str:
-        return (
-            self.data.get("name", {}).get("family-name", {}).get("value", "")
-        )
+        data = self.data
+        return data.get("name", {}).get("family-name", {}).get("value", "")
 
     @property
     def avatar_url(self) -> str:

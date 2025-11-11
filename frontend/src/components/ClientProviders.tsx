@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
 import { AuthProvider } from '@/components/AuthProvider';
+import { Toaster } from 'react-hot-toast';
 
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
         <AuthProvider>
           <Navbar />
           <main className="flex-1 flex flex-col md:items-center">{children}</main>
+          <Toaster position="bottom-left" />
           <Footer />
           <Chatbot />
         </AuthProvider>
