@@ -57,4 +57,3 @@ class UserOut(Schema):
 
 class RefreshOut(Schema):
     access_token: str = None
-    token_type: str = "bearer"

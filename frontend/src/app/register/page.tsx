@@ -4,6 +4,7 @@ import zxcvbn from 'zxcvbn';
 import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { oauthDecode } from '@/lib/api/auth';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -47,7 +48,7 @@ function RegisterPageContent() {
 
     (async () => {
       try {
-        const info = await apiFetch(`/user/oauth/decode/?data=${encodeURIComponent(data)}`);
+        const info = await oauthDecode(data);
         setEmail(info.email || '');
         setUsername(info.username || '');
         setFirstName(info.first_name || '');

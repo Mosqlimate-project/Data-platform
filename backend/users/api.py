@@ -21,6 +21,7 @@ from .schema import (
     LoginIn,
     RegisterIn,
 )
+from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
@@ -119,6 +120,34 @@ def oauth_callback(
         )
 
     except OAuthAccount.DoesNotExist:
+        email = raw_info.get("email")
+        existing_user = None
+        if email:
+            existing_user = User.objects.filter(email__iexact=email).first()
+
+        if existing_user:
+            OAuthAccount.objects.update_or_create(
+                user=existing_user,
+                provider=provider,
+                provider_id=provider_id,
+                defaults={"raw_info": raw_info},
+            )
+
+            data = signing.dumps(
+                {
+                    "access_token": create_access_token(
+                        {"sub": str(existing_user.pk)},
+                    ),
+                    "refresh_token": create_refresh_token(
+                        {"sub": str(existing_user.pk)}
+                    ),
+                },
+                compress=True,
+                salt="oauth-callback",
+            )
+            return HttpResponseRedirect(
+                f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+            )
         auth_header = request.headers.get("Authorization")
         user = None
         if auth_header and auth_header.startswith("Bearer "):
@@ -161,7 +190,6 @@ def oauth_callback(
                 "last_name": adapter.last_name,
                 "email": adapter.email,
                 "avatar_url": adapter.avatar_url,
-                # To save OAuthAccount on /register/
                 "provider": provider,
                 "provider_id": provider_id,
                 "raw_info": raw_info,
@@ -178,6 +206,7 @@ def oauth_callback(
 @router.get(
     "/oauth/decode/",
     include_in_schema=False,
+    response={200: dict, 400: BadRequestSchema},
     auth=None,
 )
 def oauth_decode(request, data: str):
@@ -186,6 +215,18 @@ def oauth_decode(request, data: str):
     except signing.BadSignature:
         return 400, {"message": "Invalid or expired data"}
     return decoded
+
+
+@router.get(
+    "/me/",
+    response={200: UserOut, 400: BadRequestSchema},
+    auth=JWTAuth(),
+)
+def me(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    return user
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
@@ -234,7 +275,11 @@ def register(request, payload: RegisterIn):
     return 201, user
 
 
-@router.post("/refresh", response={200: RefreshOut, 401: ForbiddenSchema})
+@router.post(
+    "/refresh/",
+    auth=None,
+    response={200: RefreshOut, 401: ForbiddenSchema},
+)
 def refresh_token(request, token: str):
     payload = decode_token(token)
 

@@ -1,24 +1,44 @@
-export const BACKEND_BASE_URL = process.env.NODE_ENV === "production"
-  ? "https://api.mosqlimate.org" : "http://0.0.0.0:8042";
+import { getAccessToken } from "./auth";
 
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const isFormData = options.body instanceof FormData;
+export const BACKEND_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://api.mosqlimate.org"
+    : "http://0.0.0.0:8042";
 
-  const headers = {
-    Accept: "application/json",
-    ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    ...options.headers,
-  };
+interface ApiFetchOptions extends RequestInit {
+  token?: string;
+}
 
-  const response = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
-    ...options,
-    headers,
-  });
+export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
+  let token = options.token || localStorage.getItem("access_token");
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Request failed: ${response.status}`);
+  try {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+      ...(options.headers as Record<string, string>),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    let res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (res.status === 401 && localStorage.getItem("refresh_token")) {
+      token = await getAccessToken();
+      headers.Authorization = `Bearer ${token}`;
+      res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, { ...options, headers });
+    }
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || `Request failed: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
-
-  return response.json();
 }
