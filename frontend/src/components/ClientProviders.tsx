@@ -16,7 +16,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
       <ThemeProvider attribute="class" defaultTheme="light">
         <AuthProvider>
           <Navbar />
-          <main className="flex-1 flex flex-col md:items-center">{children}</main>
+          <main className="md:items-center">{children}</main>
           <Toaster position="bottom-left" />
           <Footer />
           <Chatbot />

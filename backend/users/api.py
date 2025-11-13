@@ -2,7 +2,6 @@ from typing import Literal
 
 import httpx
 from ninja import Router
-from ninja.security import django_auth
 from ninja.decorators import decorate_view
 from django.core import signing
 from django.conf import settings
@@ -26,7 +25,7 @@ from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
 
-router = Router(tags=["user"], auth=django_auth)
+router = Router(tags=["user"])
 
 User = get_user_model()
 
@@ -34,7 +33,6 @@ User = get_user_model()
 @router.get(
     "/check-username/",
     include_in_schema=False,
-    auth=None,
 )
 @decorate_view(never_cache)
 def check_username(request, username: str):
@@ -45,7 +43,6 @@ def check_username(request, username: str):
 @router.get(
     "/check-email/",
     include_in_schema=False,
-    auth=None,
 )
 @decorate_view(never_cache)
 def check_email(request, email: str):
@@ -118,10 +115,9 @@ def oauth_callback(
         )
 
     except OAuthAccount.DoesNotExist:
-        email = raw_info.get("email")
-        existing_user = None
-        if email:
-            existing_user = User.objects.filter(email__iexact=email).first()
+        existing_user = User.objects.filter(
+            email__iexact=adapter.email,
+        ).first()
 
         if existing_user:
             OAuthAccount.objects.update_or_create(

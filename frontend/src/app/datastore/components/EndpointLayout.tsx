@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import TemperatureChart from "../components/charts/Temperature";
-import AccumulatedWaterfallChart from "../components/charts/AccumulatedWaterfall";
-import AirChart from "../components/charts/UmidPressaoMed"
+import { useState, cloneElement, isValidElement, ReactNode } from "react";
 
 export function AccordionCard({
   title,
@@ -14,7 +11,7 @@ export function AccordionCard({
   title: string;
   isOpen: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="border rounded-md overflow-hidden transition-all">
@@ -27,70 +24,58 @@ export function AccordionCard({
       >
         {title}
       </button>
-      {isOpen && (
-        <div className="p-4 text-sm bg-[var(--color-bg)]">{children}</div>
-      )}
+      {isOpen && <div className="p-4 text-sm bg-[var(--color-bg)]">{children}</div>}
     </div>
   );
 }
 
-export function Layout({
+export function EndpointLayout({
   title,
-  endpoint,
   description,
   dataVariables,
   chartOptions,
+  endpoint,
+  children,
 }: {
   title: string;
   endpoint: string;
   description: string;
   dataVariables?: { variable: string; type: string; description: string }[];
   chartOptions?: { option: string; type: string }[];
+  children?: ReactNode;
 }) {
-  const [openCard, setOpenCard] = useState<"Charts" | string | null>("Charts");
-  const [selectedChart, setSelectedChart] = useState<string>(
-    chartOptions && chartOptions.length > 0 ? chartOptions[0].option : "Default"
-  );
+  const [openCard, setOpenCard] = useState<string | null>("Description");
+  const toggleCard = (key: string) => setOpenCard((prev) => (prev === key ? null : key));
 
-  const [selectedDisease, setSelectedDisease] = useState("dengue");
   const [geocode, setGeocode] = useState<number>(3304557);
-  const [startDate, setStartDate] = useState<string>("2023-01-01");
-  const [endDate, setEndDate] = useState<string>("2023-03-03");
+  const [startDate, setStartDate] = useState("2023-01-01");
+  const [endDate, setEndDate] = useState("2023-03-03");
+  const [selectedDisease, setSelectedDisease] = useState("dengue");
 
-  const toggleCard = (key: string) =>
-    setOpenCard((prev) => (prev === key ? null : key));
-
-  const handleStartDateChange = (value: string) => {
-    if (endDate && value > endDate) return;
-    setStartDate(value);
+  const handleStartDateChange = (v: string) => {
+    if (endDate && v > endDate) return;
+    setStartDate(v);
+  };
+  const handleEndDateChange = (v: string) => {
+    if (startDate && v < startDate) return;
+    setEndDate(v);
   };
 
-  const handleEndDateChange = (value: string) => {
-    if (startDate && value < startDate) return;
-    setEndDate(value);
-  };
-
-  const chartStyles: Record<string, string> = {
-    Default: "bg-gray-100 text-gray-800",
-    Heatmap: "bg-red-100 text-red-800",
-    Timeline: "bg-blue-100 text-blue-800",
-  };
+  const injectedChildren = isValidElement(children)
+    ? cloneElement(children, {
+      geocode: String(geocode),
+      start: startDate,
+      end: endDate,
+      disease: selectedDisease,
+    })
+    : children;
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
-      <div
-        className={`border rounded-md p-4 flex flex-col items-center justify-center text-sm font-medium transition-colors w-full ${chartStyles[selectedChart] || "text-gray-800"
-          }`}
-      >
-        {endpoint === "/climate/" && geocode && startDate && endDate ? (
-          <>
-            <TemperatureChart geocode={String(geocode)} start={startDate} end={endDate} />
-            <AccumulatedWaterfallChart geocode={String(geocode)} start={startDate} end={endDate} />
-            <AirChart geocode={String(geocode)} start={startDate} end={endDate} />
-          </>
-        ) : (
+      <div className="border rounded-md p-4 flex flex-col items-center justify-center text-sm font-medium w-full bg-[var(--color-bg)]">
+        {injectedChildren || (
           <p className="opacity-60 text-center">
-            Fill in parameters to view the chart
+            No chart visualization defined for this endpoint.
           </p>
         )}
       </div>
@@ -120,10 +105,7 @@ export function Layout({
               </thead>
               <tbody>
                 {dataVariables.map((v) => (
-                  <tr
-                    key={v.variable}
-                    className="border-b border-[var(--color-border)]"
-                  >
+                  <tr key={v.variable} className="border-b border-[var(--color-border)]">
                     <td className="px-3 py-1">{v.variable}</td>
                     <td className="px-3 py-1">{v.type}</td>
                     <td className="px-3 py-1">{v.description}</td>
@@ -174,7 +156,6 @@ export function Layout({
                     onChange={(e) => handleStartDateChange(e.target.value)}
                     className="border rounded-md px-2 py-1"
                   />
-
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
                   <label className="text-sm font-medium">End Date</label>

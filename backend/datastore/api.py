@@ -9,7 +9,6 @@ from epiweeks import Week
 from ninja import Router, Query
 from ninja.errors import HttpError
 from ninja.pagination import paginate
-from ninja.security import django_auth
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
 from django.db.models import F, Avg, Sum
@@ -33,7 +32,7 @@ from .models import (
 from datastore import schema, filters
 
 
-router = Router(auth=django_auth)
+router = Router(tags=["datastore"])
 
 paginator = PagesPagination
 paginator.max_per_page = 300
@@ -45,7 +44,6 @@ uidkey_auth = UidKeyAuth()
     response=List[schema.EndpointDetails],
     include_in_schema=False,
 )
-@csrf_exempt
 def get_endpoints(request):
     def var(var: str, typ: str, desc: str) -> schema.EndpointDataVar:
         return schema.EndpointDataVar(variable=var, type=typ, description=desc)
@@ -683,7 +681,8 @@ def get_episcanner(
     if df.empty:
         return 404, {
             "message": (
-                f"No data for specific query (disease={disease}, uf={uf}, year={year})"
+                f"No data for specific query (disease={disease}, uf={
+                    uf}, year={year})"
             )
         }
 
