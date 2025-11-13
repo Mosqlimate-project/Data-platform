@@ -33,6 +33,9 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=255, blank=True, null=True)
+    homepage = models.URLField(max_length=255, null=True)
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    avatar_url = models.URLField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # To change User name, change first_name and last_name
@@ -41,6 +44,13 @@ class CustomUser(AbstractUser):
 
     def api_key(self):
         return f"{self.username}:{self.uuid}"
+
+    def get_avatar(self):
+        if self.avatar:
+            return self.avatar.url
+        if self.avatar_url:
+            return self.avatar_url
+        return None
 
     objects = CustomUserManager()
 

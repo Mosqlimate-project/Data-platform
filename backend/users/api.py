@@ -2,7 +2,6 @@ from typing import Literal
 
 import httpx
 from ninja import Router
-from ninja.security import django_auth
 from ninja.decorators import decorate_view
 from django.core import signing
 from django.conf import settings
@@ -11,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
-from .models import CustomUser, OAuthAccount
+from .models import OAuthAccount
 from .schema import (
     UserInPost,
     UserSchema,
@@ -21,6 +20,7 @@ from .schema import (
     LoginIn,
     RegisterIn,
 )
+from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
@@ -31,9 +31,28 @@ User = get_user_model()
 
 
 @router.get(
+    "/check-username/",
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def check_username(request, username: str):
+    exists = User.objects.filter(username__iexact=username).exists()
+    return {"ok": not exists}
+
+
+@router.get(
+    "/check-email/",
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def check_email(request, email: str):
+    exists = User.objects.filter(email__iexact=email).exists()
+    return {"ok": not exists}
+
+
+@router.get(
     "/oauth/login/{provider}/",
     response={200: dict, 400: BadRequestSchema},
-    auth=None,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -46,7 +65,6 @@ def oauth_login(request, provider: Literal["google", "github", "orcid"]):
     "/oauth/callback/{provider}/",
     response={200: dict, 400: BadRequestSchema},
     include_in_schema=False,
-    auth=None,
 )
 @decorate_view(never_cache)
 def oauth_callback(
@@ -97,6 +115,33 @@ def oauth_callback(
         )
 
     except OAuthAccount.DoesNotExist:
+        existing_user = User.objects.filter(
+            email__iexact=adapter.email,
+        ).first()
+
+        if existing_user:
+            OAuthAccount.objects.update_or_create(
+                user=existing_user,
+                provider=provider,
+                provider_id=provider_id,
+                defaults={"raw_info": raw_info},
+            )
+
+            data = signing.dumps(
+                {
+                    "access_token": create_access_token(
+                        {"sub": str(existing_user.pk)},
+                    ),
+                    "refresh_token": create_refresh_token(
+                        {"sub": str(existing_user.pk)}
+                    ),
+                },
+                compress=True,
+                salt="oauth-callback",
+            )
+            return HttpResponseRedirect(
+                f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+            )
         auth_header = request.headers.get("Authorization")
         user = None
         if auth_header and auth_header.startswith("Bearer "):
@@ -134,11 +179,11 @@ def oauth_callback(
         data = signing.dumps(
             {
                 "action": "register",
+                "username": adapter.username,
                 "first_name": adapter.first_name,
                 "last_name": adapter.last_name,
                 "email": adapter.email,
                 "avatar_url": adapter.avatar_url,
-                # To save OAuthAccount on /register/
                 "provider": provider,
                 "provider_id": provider_id,
                 "raw_info": raw_info,
@@ -150,6 +195,31 @@ def oauth_callback(
         return HttpResponseRedirect(
             f"{settings.FRONTEND_URL}/oauth/register?data={data}",
         )
+
+
+@router.get(
+    "/oauth/decode/",
+    include_in_schema=False,
+    response={200: dict, 400: BadRequestSchema},
+)
+def oauth_decode(request, data: str):
+    try:
+        decoded = signing.loads(data, salt="oauth-callback", max_age=300)
+    except signing.BadSignature:
+        return 400, {"message": "Invalid or expired data"}
+    return decoded
+
+
+@router.get(
+    "/me/",
+    response={200: UserOut, 400: BadRequestSchema},
+    auth=JWTAuth(),
+)
+def me(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    return user
 
 
 @router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
@@ -176,15 +246,16 @@ def login(request, payload: LoginIn):
 
 
 @router.post(
-    "/register",
+    "/register/",
     response={201: UserOut, 401: ForbiddenSchema, 400: BadRequestSchema},
+    auth=None,
 )
 def register(request, payload: RegisterIn):
     if User.objects.filter(email=payload.email).exists():
-        return 400, {"detail": "Email already registered"}
+        return 400, {"message": "Email already registered"}
 
     if User.objects.filter(username=payload.username).exists():
-        return 400, {"detail": "Username already registered"}
+        return 400, {"message": "Username already registered"}
 
     user = User.objects.create_user(
         first_name=payload.name,
@@ -197,7 +268,10 @@ def register(request, payload: RegisterIn):
     return 201, user
 
 
-@router.post("/refresh", response={200: RefreshOut, 401: ForbiddenSchema})
+@router.post(
+    "/refresh/",
+    response={200: RefreshOut, 401: ForbiddenSchema},
+)
 def refresh_token(request, token: str):
     payload = decode_token(token)
 
@@ -219,7 +293,6 @@ def refresh_token(request, token: str):
 @router.put(
     "/{username}",
     response={201: UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
     include_in_schema=False,
 )
 def update_user(request, username: str, payload: UserInPost):
@@ -229,7 +302,7 @@ def update_user(request, username: str, payload: UserInPost):
     were inherit from a 3rd party OAuth User
     """
     try:
-        user = CustomUser.objects.get(username=username)
+        user = User.objects.get(username=username)
 
         if request.user != user:  # TODO: Enable admins here
             return 403, {
@@ -240,5 +313,5 @@ def update_user(request, username: str, payload: UserInPost):
         user.last_name = payload.last_name
         user.save()
         return 201, user
-    except CustomUser.DoesNotExist:
+    except User.DoesNotExist:
         return 404, {"message": "Author not found"}

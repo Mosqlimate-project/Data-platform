@@ -200,6 +200,36 @@ CACHES = {
     }
 }
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "VERIFIED_EMAIL": True,
+        "SCOPE": ["read:user", "user:email"],
+        "APP": {
+            "client_id": env("GITHUB_CLIENT_ID"),
+            "secret": env("GITHUB_SECRET"),
+            "key": "",
+        },
+    },
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "APP": {
+            "client_id": env("GOOGLE_CLIENT_ID"),
+            "secret": env("GOOGLE_SECRET"),
+            "key": "",
+        },
+    },
+    "orcid": {
+        "APP": {
+            "client_id": env("ORCID_CLIENT_ID"),
+            "secret": env("ORCID_SECRET"),
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "APP_NAME": "mosqlimate",
+        "REDIRECT_URI": "http://0.0.0.0:8042/api/user/social/callback/orcid/",
+    },
+}
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -208,6 +238,8 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 2  # select * from django_site;
 
 AUTH_USER_MODEL = "users.CustomUser"
+FRONTEND_PORT = env("FRONTEND_PORT")
+FRONTEND_URL = env("FRONTEND_URL", default=f"http://0.0.0.0:{FRONTEND_PORT}/")
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL

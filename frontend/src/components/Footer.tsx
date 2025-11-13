@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="w-full p-6 bg-gray-100 dark:bg-gray-800 text-center">
+    <footer className="border-t w-full p-6 bg-[var(--color-bg)] text-center border-[var(--color-border)] text-[var(--color-text)]">
     </footer>
   );
 }

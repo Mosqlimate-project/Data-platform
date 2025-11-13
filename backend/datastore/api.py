@@ -32,7 +32,7 @@ from .models import (
 from datastore import schema, filters
 
 
-router = Router()
+router = Router(tags=["datastore"])
 
 paginator = PagesPagination
 paginator.max_per_page = 300
@@ -44,7 +44,6 @@ uidkey_auth = UidKeyAuth()
     response=List[schema.EndpointDetails],
     include_in_schema=False,
 )
-@csrf_exempt
 def get_endpoints(request):
     def var(var: str, typ: str, desc: str) -> schema.EndpointDataVar:
         return schema.EndpointDataVar(variable=var, type=typ, description=desc)
@@ -312,11 +311,37 @@ def get_infodengue(
     disease: Literal["dengue", "zika", "chik", "chikungunya"],
     filters: filters.HistoricoAlertaFilterSchema = Query(...),
     # fmt: off
-    uf: Optional[Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
-    ]] = None,
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
     # fmt: on
     **kwargs,
 ):
@@ -369,11 +394,37 @@ def get_copernicus_brasil(
     request,
     filters: filters.CopernicusBrasilFilterSchema = Query(...),
     # fmt: off
-    uf: Optional[Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
-    ]] = None,
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
     # fmt: on
     **kwargs,
 ):
@@ -557,9 +608,33 @@ def get_episcanner(
     # fmt: off
     disease: Literal["dengue", "zika", "chikungunya"],
     uf: Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
+        "AC",
+        "AL",
+        "AP",
+        "AM",
+        "BA",
+        "CE",
+        "ES",
+        "GO",
+        "MA",
+        "MT",
+        "MS",
+        "MG",
+        "PA",
+        "PB",
+        "PR",
+        "PE",
+        "PI",
+        "RJ",
+        "RN",
+        "RS",
+        "RO",
+        "RR",
+        "SC",
+        "SP",
+        "SE",
+        "TO",
+        "DF",
     ],
     # fmt: on
     year: int = datetime.datetime.now().year,
@@ -606,8 +681,8 @@ def get_episcanner(
     if df.empty:
         return 404, {
             "message": (
-                "No data for specific query "
-                f"(disease={disease}, uf={uf}, year={year})"
+                f"No data for specific query (disease={disease}, uf={
+                    uf}, year={year})"
             )
         }
 

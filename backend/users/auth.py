@@ -14,7 +14,9 @@ class InvalidUIDKey(Exception):
 
 
 class JWTAuth(HttpBearer):
-    def authenticate(self, request, token):
+    def authenticate(self, request, token=None):
+        if not token:
+            token = request.COOKIES.get("access_token")
         payload = decode_token(token)
         if not payload:
             return None

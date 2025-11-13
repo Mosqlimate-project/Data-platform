@@ -13,7 +13,7 @@ import { useAuth } from './AuthProvider';
 
 const links = [
   { href: '/', label: 'Home' },
-  { href: '/registry/models', label: 'Models' },
+  { href: '/models', label: 'Models' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/datastore', label: 'Datastore' },
   { href: '/docs', label: 'Docs' },
@@ -147,7 +147,7 @@ export default function Navbar() {
 
                 <li>
                   <Link
-                    href="/registry/models/"
+                    href="/models"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
                   >
                     <svg
