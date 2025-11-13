@@ -1,44 +1,40 @@
-import { getAccessToken } from "./auth";
+import Cookies from 'js-cookie';
+import { csrfToken } from './auth';
 
 export const BACKEND_BASE_URL =
   process.env.NODE_ENV === "production"
     ? "https://api.mosqlimate.org"
-    : "http://0.0.0.0:8042";
+    : "http://localhost:8042";
 
 interface ApiFetchOptions extends RequestInit {
-  token?: string;
+  auth?: boolean;
 }
 
 export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
-  let token = options.token || localStorage.getItem("access_token");
+  const csrf = Cookies.get('csrftoken') || (await csrfToken());
+  const token = Cookies.get('access_token');
 
-  try {
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-      ...(options.headers as Record<string, string>),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(csrf ? { 'X-CSRFToken': csrf } : {}),
+    ...(options.headers as Record<string, string>),
+  };
 
-    let res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    if (res.status === 401 && localStorage.getItem("refresh_token")) {
-      token = await getAccessToken();
-      headers.Authorization = `Bearer ${token}`;
-      res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, { ...options, headers });
-    }
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText || `Request failed: ${res.status}`);
-    }
-
-    return res.json();
-  } catch (err) {
-    console.error(err);
-    throw err;
+  if (options.auth !== false && token) {
+    headers.Authorization = `Bearer ${token}`;
   }
+
+  const res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+
+  return res.json();
 }

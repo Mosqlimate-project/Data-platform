@@ -89,7 +89,7 @@ def about(request):
 
 
 def docs(response):
-    return redirect("http://0.0.0.0:8043/", code=302)
+    return redirect("http://localhost:8043/", code=302)
 
 
 class ModelsView(View):

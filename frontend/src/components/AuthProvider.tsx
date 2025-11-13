@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useState, useContext, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import { apiFetch } from '@/lib/api';
@@ -25,39 +26,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  const fetchUser = async (token: string) => {
+  const fetchUser = async () => {
     try {
-      const data = await apiFetch('/user/me/', {
-        token,
-      });
+      const data = await apiFetch('/user/me/');
       setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
     } catch (err) {
       console.warn('Failed to fetch user', err);
     }
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const accessToken = localStorage.getItem('access_token');
-
-    if (storedUser && accessToken) {
-      setUser(JSON.parse(storedUser));
-    } else if (accessToken) {
-      fetchUser(accessToken);
-    }
+    const accessToken = Cookies.get('access_token');
+    if (accessToken) fetchUser();
   }, []);
 
   useEffect(() => {
+    // OAuth redirect case: tokens come in URL hash
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');
 
     if (accessToken && refreshToken) {
-      localStorage.setItem('access_token', accessToken);
-      localStorage.setItem('refresh_token', refreshToken);
-      fetchUser(accessToken);
+      const secure = window.location.protocol === 'https:';
+      const commonOptions = { path: '/', sameSite: 'lax' as const, secure };
+
+      Cookies.set('access_token', accessToken, { ...commonOptions });
+      Cookies.set('refresh_token', refreshToken, { ...commonOptions });
+      fetchUser();
 
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -65,9 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    Cookies.remove('access_token');
+    Cookies.remove('refresh_token');
+    Cookies.remove('csrftoken');
   };
 
   return (

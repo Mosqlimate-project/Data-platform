@@ -26,15 +26,15 @@ from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
 
-router = Router(tags=["user"])
+router = Router(tags=["user"], auth=django_auth)
 
 User = get_user_model()
 
 
 @router.get(
     "/check-username/",
-    auth=None,
     include_in_schema=False,
+    auth=None,
 )
 @decorate_view(never_cache)
 def check_username(request, username: str):
@@ -44,8 +44,8 @@ def check_username(request, username: str):
 
 @router.get(
     "/check-email/",
-    auth=None,
     include_in_schema=False,
+    auth=None,
 )
 @decorate_view(never_cache)
 def check_email(request, email: str):
@@ -56,7 +56,6 @@ def check_email(request, email: str):
 @router.get(
     "/oauth/login/{provider}/",
     response={200: dict, 400: BadRequestSchema},
-    auth=None,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -69,7 +68,6 @@ def oauth_login(request, provider: Literal["google", "github", "orcid"]):
     "/oauth/callback/{provider}/",
     response={200: dict, 400: BadRequestSchema},
     include_in_schema=False,
-    auth=None,
 )
 @decorate_view(never_cache)
 def oauth_callback(
@@ -207,7 +205,6 @@ def oauth_callback(
     "/oauth/decode/",
     include_in_schema=False,
     response={200: dict, 400: BadRequestSchema},
-    auth=None,
 )
 def oauth_decode(request, data: str):
     try:
@@ -254,8 +251,8 @@ def login(request, payload: LoginIn):
 
 @router.post(
     "/register/",
-    auth=None,
     response={201: UserOut, 401: ForbiddenSchema, 400: BadRequestSchema},
+    auth=None,
 )
 def register(request, payload: RegisterIn):
     if User.objects.filter(email=payload.email).exists():
@@ -277,7 +274,6 @@ def register(request, payload: RegisterIn):
 
 @router.post(
     "/refresh/",
-    auth=None,
     response={200: RefreshOut, 401: ForbiddenSchema},
 )
 def refresh_token(request, token: str):
@@ -301,7 +297,6 @@ def refresh_token(request, token: str):
 @router.put(
     "/{username}",
     response={201: UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
-    auth=django_auth,
     include_in_schema=False,
 )
 def update_user(request, username: str, payload: UserInPost):

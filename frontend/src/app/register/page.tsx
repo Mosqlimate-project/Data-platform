@@ -106,7 +106,7 @@ function RegisterPageContent() {
 
   async function checkUsernameAvailability(username: string) {
     try {
-      const res = await apiFetch(`/user/check-username/?username=${encodeURIComponent(username)}`);
+      const res = await apiFetch(`/user/check-username/?username=${encodeURIComponent(username)}`, { auth: false });
       if (!res.ok) {
         setUsernameError('Username is already taken.');
         return false;

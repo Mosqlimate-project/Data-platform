@@ -133,8 +133,8 @@ worker_port = var_in(
 print("\nDjango OAuth:")
 site_domain = var_in(
     "SITE_DOMAIN",
-    input_text=f"  Django Sites domain [0.0.0.0:{dj_port}]: ",
-    default_val=f"0.0.0.0:{dj_port}",
+    input_text=f"  Django Sites domain [localhost:{dj_port}]: ",
+    default_val=f"localhost:{dj_port}",
 )
 site_name = var_in(
     "SITE_NAME",
@@ -292,10 +292,11 @@ variables = {
     "REDIS_PORT": redis_port,
     # [EpiScanner]
     "EPISCANNER_HOST_DATA_DIR": os.path.join(
-        os.path.expanduser("~"), "episcanner"
+        os.path.expanduser("~"),
+        "episcanner",
     ),
     # [Mosqlient]
-    "MOSQLIENT_API_URL": "http://0.0.0.0:8042/api/",
+    "MOSQLIENT_API_URL": "http://localhost:8042/api/",
 }
 
 if not CI:

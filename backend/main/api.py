@@ -2,11 +2,13 @@ import os
 import json
 
 from django.urls import reverse
-from ninja import Router, Schema, Swagger
+from ninja import Router, Swagger
 from ninja import NinjaAPI as API
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.middleware.csrf import get_token
 
 from registry.api import router as registry_router
 from datastore.api import router as datastore_router
@@ -15,7 +17,7 @@ from users.api import router as users_router
 from main.APILog.api import router as log_router
 from maps.api import router as maps_router
 from users.auth import InvalidUIDKey
-from main.schema import NotFoundSchema
+from main.schema import NotFoundSchema, MunicipalityInfoSchema, StateInfoSchema
 from main.utils import UF_CODES, UFs
 
 os.environ["NINJA_SKIP_REGISTRY"] = "yes"
@@ -33,13 +35,13 @@ class NinjaAPI(API):
 
 
 api = NinjaAPI(
-    csrf=False,
+    csrf=True,
     title="Mosqlimate API",
     description=(
         "<h3>Welcome to Mosqlimate API Reference</h3>"
         "<p>In <a href=/api/docs>API Demo</a>, you can test the API calls to "
-        "Mosqlimate's Platform. Note that the POST calls won't save any result "
-        "in the database.</p>"
+        "Mosqlimate's Platform. Note that the POST calls won't save any result"
+        " in the database.</p>"
         "<p>See <a href=/docs/overview>API Overview</a> to more detailed "
         "information about the endpoints.</p>"
         "<p>See <a href=/docs/uid-key>Authorization</a> to check how to "
@@ -68,6 +70,24 @@ def get_session_key(request):
     return {"session_key": request.session.session_key}
 
 
+@router.get("/csrf/", include_in_schema=False)
+@csrf_exempt
+@never_cache
+def get_csrf_token(request):
+    token = get_token(request)
+    response = JsonResponse({"csrf_token": token})
+    response.set_cookie(
+        "csrftoken",
+        token,
+        max_age=31449600,
+        httponly=False,
+        samesite="Lax",
+        secure=not settings.DEBUG,
+        path="/",
+    )
+    return response
+
+
 @api.exception_handler(InvalidUIDKey)
 def on_invalid_token(request, exc):
     docs_url = request.build_absolute_uri(reverse("docs"))
@@ -76,21 +96,6 @@ def on_invalid_token(request, exc):
         {"detail": f"Unauthorized. See {docs_url}"},
         status=401,
     )
-
-
-class MunicipalityInfoSchema(Schema):
-    municipio: str
-    codigo_uf: int
-    uf: str
-    uf_nome: str
-    fuso_horario: str
-    latitude: float
-    longitude: float
-
-
-class StateInfoSchema(Schema):
-    name: str
-    uf: str
 
 
 @router.get(

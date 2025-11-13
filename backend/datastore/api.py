@@ -9,6 +9,7 @@ from epiweeks import Week
 from ninja import Router, Query
 from ninja.errors import HttpError
 from ninja.pagination import paginate
+from ninja.security import django_auth
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
 from django.db.models import F, Avg, Sum
@@ -32,7 +33,7 @@ from .models import (
 from datastore import schema, filters
 
 
-router = Router()
+router = Router(auth=django_auth)
 
 paginator = PagesPagination
 paginator.max_per_page = 300
@@ -312,11 +313,37 @@ def get_infodengue(
     disease: Literal["dengue", "zika", "chik", "chikungunya"],
     filters: filters.HistoricoAlertaFilterSchema = Query(...),
     # fmt: off
-    uf: Optional[Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
-    ]] = None,
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
     # fmt: on
     **kwargs,
 ):
@@ -369,11 +396,37 @@ def get_copernicus_brasil(
     request,
     filters: filters.CopernicusBrasilFilterSchema = Query(...),
     # fmt: off
-    uf: Optional[Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
-    ]] = None,
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
     # fmt: on
     **kwargs,
 ):
@@ -557,9 +610,33 @@ def get_episcanner(
     # fmt: off
     disease: Literal["dengue", "zika", "chikungunya"],
     uf: Literal[
-        "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG",
-        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP",
-        "SE", "TO", "DF"
+        "AC",
+        "AL",
+        "AP",
+        "AM",
+        "BA",
+        "CE",
+        "ES",
+        "GO",
+        "MA",
+        "MT",
+        "MS",
+        "MG",
+        "PA",
+        "PB",
+        "PR",
+        "PE",
+        "PI",
+        "RJ",
+        "RN",
+        "RS",
+        "RO",
+        "RR",
+        "SC",
+        "SP",
+        "SE",
+        "TO",
+        "DF",
     ],
     # fmt: on
     year: int = datetime.datetime.now().year,
@@ -606,8 +683,7 @@ def get_episcanner(
     if df.empty:
         return 404, {
             "message": (
-                "No data for specific query "
-                f"(disease={disease}, uf={uf}, year={year})"
+                f"No data for specific query (disease={disease}, uf={uf}, year={year})"
             )
         }
 
