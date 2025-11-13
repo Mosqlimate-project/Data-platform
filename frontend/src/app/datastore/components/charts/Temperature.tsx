@@ -15,6 +15,7 @@ interface TemperatureChartProps {
   geocode: string;
   start: string;
   end: string;
+  disease?: string;
 }
 
 export default function TemperatureChart({ geocode, start, end }: TemperatureChartProps) {

@@ -14,6 +14,7 @@ interface UmidPressaoChartProps {
   geocode: string;
   start: string;
   end: string;
+  disease?: string;
 }
 
 export default function UmidPressaoMedChart({ geocode, start, end }: UmidPressaoChartProps) {
