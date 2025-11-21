@@ -14,6 +14,7 @@ interface PrecipitationChartProps {
   geocode: string;
   start: string;
   end: string;
+  disease?: string;
 }
 
 export default function PrecipitationChart({ geocode, start, end }: PrecipitationChartProps) {

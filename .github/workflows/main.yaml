@@ -10,7 +10,6 @@ jobs:
   build:
     environment: build
     env:
-      CI: 1 # anything but falsy values
       INFODENGUE_POSTGRES_URI: TODO # ${{ secrets.INFODENGUEDEV_POSTGRES_URI }}
       GITHUB_CLIENT_ID: TODO # ${{ secrets.PROVISORY_GITHUB_CLIENT_ID }}
       GITHUB_SECRET: TODO # ${{ secrets.PROVISORY_GITHUB_SECRET }}
@@ -60,6 +59,13 @@ jobs:
         python contrib/scripts/do_psqlconf.py
 
     - name: Start containers
+      env:
+        GITHUB_CLIENT_ID: "-"
+        GITHUB_CLIENT_SECRET: "-"
+        GOOGLE_CLIENT_ID: "-"
+        GOOGLE_CLIENT_SECRET: "-"
+        ORCID_CLIENT_ID: "-"
+        ORCID_CLIENT_SECRET: "-"
       run: |
         docker network create infodengue-dev_infodengue
         sugar compose up --options -d

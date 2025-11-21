@@ -37,3 +37,18 @@ class InternalErrorSchema(Schema):
     """500"""
 
     message: str
+
+
+class MunicipalityInfoSchema(Schema):
+    municipio: str
+    codigo_uf: int
+    uf: str
+    uf_nome: str
+    fuso_horario: str
+    latitude: float
+    longitude: float
+
+
+class StateInfoSchema(Schema):
+    name: str
+    uf: str
