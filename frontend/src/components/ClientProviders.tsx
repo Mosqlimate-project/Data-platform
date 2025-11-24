@@ -15,11 +15,13 @@ export default function ClientProviders({ children }: { children: React.ReactNod
     <I18nextProvider i18n={i18n}>
       <ThemeProvider attribute="class" defaultTheme="light">
         <AuthProvider>
-          <Navbar />
-          <main className="md:items-center">{children}</main>
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1 md:items-center">{children}</main>
+            <Footer />
+            <Chatbot />
+          </div>
           <Toaster position="bottom-left" />
-          <Footer />
-          <Chatbot />
         </AuthProvider>
       </ThemeProvider>
     </I18nextProvider>

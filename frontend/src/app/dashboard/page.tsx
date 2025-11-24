@@ -58,7 +58,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex">
       <Sidebar onSelect={setActiveTab} />
 
       <main className="flex-1 border-l border-[var(--color-border)] p-6">

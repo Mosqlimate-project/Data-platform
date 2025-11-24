@@ -127,7 +127,7 @@ redis_port = var_in(
 
 print("\nDjango Image:")
 worker_port = var_in(
-    "WORKER_PORT", input_text="  Django Worker port [8044]: ", default=8045
+    "WORKER_PORT", input_text="  Django Worker port [8045]: ", default=8045
 )
 
 print("\nDjango OAuth:")
@@ -145,37 +145,37 @@ github_id = var_in(
     "GITHUB_CLIENT_ID",
     input_text="  GitHub Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 github_secret = var_in(
     "GITHUB_SECRET",
     input_text="  Github API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 google_id = var_in(
     "GOOGLE_CLIENT_ID",
     input_text="  Google Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 google_secret = var_in(
     "GOOGLE_SECRET",
     input_text="  Google API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 orcid_id = var_in(
     "ORCID_CLIENT_ID",
     input_text="  Orcid Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 orcid_secret = var_in(
     "ORCID_SECRET",
     input_text="  Orcid API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 
 print("\nDjango PostgreSQL config:")
