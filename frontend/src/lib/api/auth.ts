@@ -41,6 +41,26 @@ export async function oauthLogin(provider: "google" | "github" | "orcid") {
   window.location.href = url.auth_url;
 }
 
+export async function credentialsLogin(identifier: string, password: string) {
+  const csrf = await csrfToken();
+
+  const res = await fetch(`${BACKEND_BASE_URL}/api/user/login/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrf,
+    },
+    credentials: "include",
+    body: JSON.stringify({ identifier, password }),
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text() || `${res.status}`);
+  }
+
+  return res.json();
+}
+
 export async function getAccessToken(): Promise<string> {
   let token = Cookies.get("access_token");
   const refreshToken = Cookies.get("refresh_token");

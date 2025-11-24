@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   openLogin: () => void;
   openRegister: () => void;
+  fetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  const hasFetchedUser = useRef(false);
 
   const fetchUser = async () => {
     try {
@@ -36,12 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    if (hasFetchedUser.current) return;
+
     const accessToken = Cookies.get('access_token');
-    if (accessToken) fetchUser();
+    if (accessToken) {
+      hasFetchedUser.current = true;
+      fetchUser();
+    }
   }, []);
 
   useEffect(() => {
-    // OAuth redirect case: tokens come in URL hash
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const accessToken = params.get('access_token');
@@ -51,9 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const secure = window.location.protocol === 'https:';
       const commonOptions = { path: '/', sameSite: 'lax' as const, secure };
 
-      Cookies.set('access_token', accessToken, { ...commonOptions });
-      Cookies.set('refresh_token', refreshToken, { ...commonOptions });
-      fetchUser();
+      Cookies.set('access_token', accessToken, commonOptions);
+      Cookies.set('refresh_token', refreshToken, commonOptions);
+
+      if (!hasFetchedUser.current) {
+        hasFetchedUser.current = true;
+        fetchUser();
+      }
 
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -64,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     Cookies.remove('access_token');
     Cookies.remove('refresh_token');
     Cookies.remove('csrftoken');
+    hasFetchedUser.current = false;
   };
 
   return (
@@ -73,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         openLogin: () => setShowLogin(true),
         openRegister: () => setShowRegister(true),
+        fetchUser,
       }}
     >
       {children}

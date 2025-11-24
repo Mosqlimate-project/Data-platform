@@ -5,7 +5,8 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { SiOrcid } from 'react-icons/si';
 import { motion, AnimatePresence } from 'framer-motion';
-import { oauthLogin } from "@/lib/api/auth";
+
+import { oauthLogin } from '@/lib/api/auth';
 import { apiFetch } from '@/lib/api';
 
 interface RegisterModalProps {
@@ -15,32 +16,75 @@ interface RegisterModalProps {
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');
 
   if (!open) return null;
 
+  const validateUsername = (value: string) => {
+    if (value.length < 4) return 'Username too short';
+    if (value.length > 25) return 'Username too long';
+    if (!/^[a-zA-Z0-9._]+$/.test(value)) return 'Invalid username';
+    return '';
+  };
+
+  const validateEmail = (value: string) => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return "Invalid email";
+    }
+    return '';
+  };
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.trim();
     setUsername(value);
+    setUsernameError(validateUsername(value));
+  };
 
-    if (value.length < 4) {
-      setUsernameError('Username too short');
-      return;
-    }
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setEmail(value);
+    setEmailError(validateEmail(value));
+  };
 
-    if (value.length > 25) {
-      setUsernameError('Username too long');
-      return;
-    }
+  const checkUsernameAvailable = async (username: string) => {
+    const resp = await apiFetch(`/user/check-username/?username=${username}`);
+    return resp.ok ? null : 'Username is already taken';
+  };
 
-    const validPattern = /^[a-zA-Z0-9._]+$/;
-    if (!validPattern.test(value)) {
-      setUsernameError('Invalid username');
-      return;
-    }
+  const checkEmailAvailable = async (email: string) => {
+    const resp = await apiFetch(`/user/check-email/?email=${email}`);
+    return resp.ok ? null : 'Email is already registered';
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const usernameValue = form.username.value.trim();
+    const emailValue = form.email.value.trim();
+
 
     setUsernameError('');
+    setEmailError('');
+
+    const localValidation = validateUsername(usernameValue);
+    if (localValidation) {
+      setUsernameError(localValidation);
+      return;
+    }
+
+    const usernameErr = await checkUsernameAvailable(usernameValue);
+    const emailErr = await checkEmailAvailable(emailValue);
+
+    if (usernameErr) setUsernameError(usernameErr);
+    if (emailErr) setEmailError(emailErr);
+
+    if (!usernameErr && !emailErr) {
+      const params = new URLSearchParams({ username: usernameValue, email: emailValue });
+      window.location.href = `/register?${params.toString()}`;
+    }
   };
 
   return (
@@ -105,48 +149,13 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
               </div>
             </div>
 
-            <form
-              className="flex flex-col gap-3"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                const username = (form.username as HTMLInputElement).value.trim();
-                const email = (form.email as HTMLInputElement).value.trim();
-
-                setUsernameError('');
-                setEmailError('');
-
-                try {
-                  const usernameResp = await apiFetch(`/user/check-username/?username=${username}`);
-                  const emailResp = await apiFetch(`/user/check-email/?email=${email}`);
-
-                  let hasError = false;
-
-                  if (!usernameResp.ok) {
-                    setUsernameError('Username is already taken');
-                    hasError = true;
-                  }
-
-                  if (!emailResp.ok) {
-                    setEmailError('Email is already registered');
-                    hasError = true;
-                  }
-
-                  if (!hasError) {
-                    const params = new URLSearchParams({ username, email });
-                    window.location.href = `/register?${params.toString()}`;
-                  }
-                } catch (err) {
-                  console.error("Validation error:", err);
-                }
-              }}
-            >
+            <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
               <div>
                 <input
                   name="username"
-                  placeholder="Username"
                   value={username}
                   onChange={handleUsernameChange}
+                  placeholder="Username"
                   className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
                   required
                 />
@@ -159,6 +168,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <input
                   type="email"
                   name="email"
+                  value={email}
+                  onChange={handleEmailChange}
                   placeholder="Email"
                   className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
                   required
@@ -177,8 +188,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
               </button>
 
               <button
-                onClick={onClose}
                 type="button"
+                onClick={onClose}
                 className="text-sm text-gray-500 dark:text-gray-400 underline mt-3"
               >
                 Cancel

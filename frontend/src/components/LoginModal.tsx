@@ -4,8 +4,9 @@ import { useAuth } from './AuthProvider';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { SiOrcid } from 'react-icons/si';
+import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
-import { oauthLogin } from "@/lib/api/auth";
+import { oauthLogin, credentialsLogin, } from "@/lib/api/auth";
 
 interface LoginModalProps {
   open: boolean;
@@ -13,7 +14,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ open, onClose }: LoginModalProps) {
-  const { openRegister } = useAuth();
+  const { user, logout, openLogin, openRegister, fetchUser } = useAuth();
 
   if (!open) return null;
 
@@ -82,22 +83,41 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
                   or login with your account
                 </span>
               </div>
-            </div>
-
-            <form
+            </div><form
               className="flex flex-col gap-3"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                onClose();
+
+                const form = e.currentTarget;
+                const dataForm = new FormData(form);
+
+                const username = dataForm.get("username") as string;
+                const password = dataForm.get("password") as string;
+
+                try {
+                  const data = await credentialsLogin(username, password);
+
+                  const secure = window.location.protocol === "https:";
+                  Cookies.set("access_token", data.access_token, { path: "/", secure, sameSite: "lax" });
+                  Cookies.set("refresh_token", data.refresh_token, { path: "/", secure, sameSite: "lax" });
+
+                  await fetchUser();
+                  onClose();
+                } catch (err) {
+                  console.error(err);
+                  alert("Invalid username or password");
+                }
               }}
             >
               <input
+                name="username"
                 type="text"
                 placeholder="Username or Email"
                 className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
               <input
+                name="password"
                 type="password"
                 placeholder="Password"
                 className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"

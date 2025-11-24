@@ -11,8 +11,11 @@ interface ApiFetchOptions extends RequestInit {
 }
 
 export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
-  const csrf = Cookies.get('csrftoken') || (await csrfToken());
-  const token = Cookies.get('access_token');
+  let csrf = Cookies.get('csrftoken');
+
+  if (!csrf && options.method && options.method !== 'GET') {
+    csrf = await csrfToken();
+  }
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -21,6 +24,7 @@ export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) 
     ...(options.headers as Record<string, string>),
   };
 
+  const token = Cookies.get('access_token');
   if (options.auth !== false && token) {
     headers.Authorization = `Bearer ${token}`;
   }

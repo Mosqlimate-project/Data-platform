@@ -8,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
+from pydantic.networks import validate_email
+from pydantic_core import PydanticCustomError
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 from .models import OAuthAccount
@@ -222,22 +224,24 @@ def me(request):
     return user
 
 
-@router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
+@router.post(
+    "/login/",
+    response={200: LoginOut, 403: ForbiddenSchema},
+)
 def login(request, payload: LoginIn):
-    if payload.email:
-        user_obj = User.objects.filter(email__iexact=payload.email).first()
+    identifier = payload.identifier
+    try:
+        validate_email(identifier)
+        user_obj = User.objects.filter(email__iexact=identifier).first()
         if not user_obj:
-            return 401, {"detail": "Email not registered"}
+            return 403, {"message": "Email not registered"}
         username = user_obj.username
-    elif payload.username:
-        username = payload.username
-    else:
-        return 401, {"detail": "Username or email required"}
+    except PydanticCustomError:
+        username = identifier
 
     user = authenticate(username=username, password=payload.password)
-
     if not user:
-        return 401, {"detail": "Unauthorized"}
+        return 403, {"message": "Unauthorized"}
 
     return {
         "access_token": create_access_token({"sub": str(user.pk)}),
