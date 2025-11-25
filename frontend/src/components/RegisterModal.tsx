@@ -29,13 +29,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
     return '';
   };
 
-  const validateEmail = (value: string) => {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return "Invalid email";
-    }
-    return '';
-  };
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
     setUsername(value);
@@ -45,7 +38,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
     setEmail(value);
-    setEmailError(validateEmail(value));
+    setEmailError(e.target.validity.valid ? "" : "Invalid email");
   };
 
   const checkUsernameAvailable = async (username: string) => {

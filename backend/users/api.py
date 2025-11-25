@@ -18,9 +18,9 @@ from .schema import (
     UserSchema,
     LoginOut,
     UserOut,
-    RefreshOut,
     LoginIn,
     RegisterIn,
+    RefreshIn,
 )
 from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
@@ -274,10 +274,10 @@ def register(request, payload: RegisterIn):
 
 @router.post(
     "/refresh/",
-    response={200: RefreshOut, 401: ForbiddenSchema},
+    response={200: LoginOut, 401: ForbiddenSchema},
 )
-def refresh_token(request, token: str):
-    payload = decode_token(token)
+def refresh_token(request, data: RefreshIn):
+    payload = decode_token(data.refresh_token)
 
     if not payload or payload.get("type") != "refresh":
         return 401, {"detail": "Invalid or expired token"}
@@ -291,6 +291,7 @@ def refresh_token(request, token: str):
 
     return {
         "access_token": create_access_token({"sub": str(user_id)}),
+        "refresh_token": data.refresh_token,
     }
 
 

@@ -65,5 +65,5 @@ class UserOut(Schema):
     email: str
 
 
-class RefreshOut(Schema):
-    access_token: str = None
+class RefreshIn(Schema):
+    refresh_token: str
