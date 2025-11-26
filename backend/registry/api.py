@@ -36,6 +36,7 @@ from .schema import (
     AuthorSchema,
     ModelFilterSchema,
     ModelSchema,
+    ModelThumbs,
     PredictionFilterSchema,
     PredictionSchema,
     PredictionOut,
@@ -213,6 +214,18 @@ def list_models(
         APILog.from_request(request)
     models = Model.objects.all()
     models = filters.filter(models)
+    return models.order_by("-updated")
+
+
+@router.get(
+    "/models/thumbnails/",
+    response=List[ModelThumbs],
+    auth=uidkey_auth,
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+def models_thumbnails(request):
+    models = Model.objects.all()
     return models.order_by("-updated")
 
 

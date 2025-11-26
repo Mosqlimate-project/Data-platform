@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
 
 interface User {
   id: string;
@@ -15,23 +13,20 @@ interface User {
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const data = await apiFetch('/user/me/');
         setUser(data);
-      } catch (err: any) {
-        toast.error('Please log in first');
-        router.push('/');
+      } catch (err) {
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [router]);
+  }, []);
 
   return (
     <div className="max-w-md mx-auto p-6 bg-[var(--color-bg)] rounded-2xl shadow border border-gray-200 dark:border-neutral-700">

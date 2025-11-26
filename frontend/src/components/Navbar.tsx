@@ -100,9 +100,21 @@ export default function Navbar() {
 
         <LanguageSelector />
 
-        <button onClick={openLogin} className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
-          {t("Login")}
-        </button>
+        {user ? (
+          <button
+            onClick={logout}
+            className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors"
+          >
+            {t("Logout")}
+          </button>
+        ) : (
+          <button
+            onClick={openLogin}
+            className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors"
+          >
+            {t("Login")}
+          </button>
+        )}
 
         <div className="relative">
           <button

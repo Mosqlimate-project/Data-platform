@@ -164,6 +164,25 @@ class Author(models.Model):
         verbose_name_plural = _("Authors")
 
 
+class ModelRepository(models.Model):
+    class Providers(models.TextChoices):
+        GITHUB = "github", "GitHub"
+        GITLAB = "gitlab", "GitLab"
+
+    provider = models.CharField(choices=Providers.choices)
+    owner = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.owner}/{self.name} ({self.provider})"
+
+    class Meta:
+        unique_together = ("provider", "owner", "name")
+
+
 class Model(models.Model):
     class Diseases(models.TextChoices):
         CHIKUNGUNYA = "chikungunya", _("Chikungunya")

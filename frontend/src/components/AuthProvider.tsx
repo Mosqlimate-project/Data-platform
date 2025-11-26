@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import { apiFetch } from '@/lib/api';
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -14,6 +15,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  loadingUser: boolean;
   logout: () => void;
   openLogin: () => void;
   openRegister: () => void;
@@ -24,9 +26,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
+  const router = useRouter();
   const hasFetchedUser = useRef(false);
 
   const fetchUser = async () => {
@@ -35,6 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data);
     } catch (err) {
       console.warn('Failed to fetch user', err);
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
@@ -42,9 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (hasFetchedUser.current) return;
 
     const accessToken = Cookies.get('access_token');
+    hasFetchedUser.current = true;
+
     if (accessToken) {
-      hasFetchedUser.current = true;
       fetchUser();
+    } else {
+      setLoadingUser(false);
     }
   }, []);
 
@@ -56,32 +66,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (accessToken && refreshToken) {
       const secure = window.location.protocol === 'https:';
-      const commonOptions = { path: '/', sameSite: 'lax' as const, secure };
+      const opts = { path: '/', sameSite: 'lax' as const, secure };
 
-      Cookies.set('access_token', accessToken, commonOptions);
-      Cookies.set('refresh_token', refreshToken, commonOptions);
+      Cookies.set('access_token', accessToken, opts);
+      Cookies.set('refresh_token', refreshToken, opts);
 
-      if (!hasFetchedUser.current) {
-        hasFetchedUser.current = true;
-        fetchUser();
-      }
+      hasFetchedUser.current = true;
+      fetchUser();
 
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
   const logout = () => {
+    Cookies.remove("access_token");
+    Cookies.remove("refresh_token");
     setUser(null);
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    Cookies.remove('csrftoken');
-    hasFetchedUser.current = false;
+    router.push("/");
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        loadingUser,
         logout,
         openLogin: () => setShowLogin(true),
         openRegister: () => setShowRegister(true),
@@ -89,8 +97,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      <LoginModal open={showLogin} onClose={() => setShowLogin(false)} />
-      <RegisterModal open={showRegister} onClose={() => setShowRegister(false)} />
+
+      <LoginModal
+        open={showLogin}
+        onClose={() => setShowLogin(false)}
+        onCancel={() => {
+          window.dispatchEvent(new Event("login-cancelled"));
+        }}
+      />
+
+      <RegisterModal
+        open={showRegister}
+        onClose={() => setShowRegister(false)}
+      />
     </AuthContext.Provider>
   );
 }

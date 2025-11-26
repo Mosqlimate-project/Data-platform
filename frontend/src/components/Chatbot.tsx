@@ -12,7 +12,6 @@ interface Message {
   source: "user" | "bot" | "system" | "waiting";
 }
 
-// Your theme object (looks great!)
 const theme = {
   plain: {
     backgroundColor: "transparent",
@@ -49,16 +48,18 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    let sessionKey: string;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
     async function init() {
       const res = await apiFetch("/session_key/");
-      sessionKey = res.session_key;
-
+      const sessionKey = res.session_key;
+      const backend_url = process.env.NODE_ENV === "production" ? "api.mosqlimate.org" : "localhost:8042";
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const ws = new WebSocket(`${protocol}://0.0.0.0:8042/ws/chat/${sessionKey}/`);
+      const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
       socketRef.current = ws;
 
       ws.onmessage = (event) => {

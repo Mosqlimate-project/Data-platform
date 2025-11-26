@@ -1,24 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
+  const access = req.cookies.get("access_token");
+  const refresh = req.cookies.get("refresh_token");
 
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  const res = NextResponse.next();
+
+  if (!access && !refresh) {
+    res.cookies.set("requires_auth", "1", { path: "/" });
+  } else {
+    res.cookies.delete("requires_auth");
   }
 
-  try {
-    jwt.verify(token, process.env.SECRET_KEY!);
-    return NextResponse.next();
-  } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+  return res;
 }
 
 export const config = {
-  matcher: [
-    "/profile/:path*",
-  ],
+  matcher: ["/profile/:path*"],
 };

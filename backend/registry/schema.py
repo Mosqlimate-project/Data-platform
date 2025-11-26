@@ -144,6 +144,15 @@ class ModelSchema(Schema):
     ]
 
 
+class ModelThumbs(Schema):
+    organization: str
+    repository: str
+    avatar_url: Optional[str] = None
+    disease: str
+    predictions: int
+    last_update: dt
+
+
 class ModelFilterSchema(FilterSchema):
     """url/?paremeters to search for Models"""
 
