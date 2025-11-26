@@ -8,14 +8,15 @@ export function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
   if (!access && !refresh) {
-    res.cookies.set("requires_auth", "1", { path: "/" });
-  } else {
-    res.cookies.delete("requires_auth");
+    res.headers.set("x-requires-auth", "1");
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ["/profile/:path*"],
+  matcher: [
+    "/profile/:path*",
+    "/model/add",
+  ],
 };

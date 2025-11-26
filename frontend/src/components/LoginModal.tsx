@@ -1,12 +1,11 @@
 'use client';
 
+import React from "react";
 import { useAuth } from './AuthProvider';
-import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa';
-import { SiOrcid } from 'react-icons/si';
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
 import { oauthLogin, credentialsLogin } from "@/lib/api/auth";
+import { GoogleIcon, GithubIcon, OrcidIcon } from "@/utils/icons";
 
 interface LoginModalProps {
   open: boolean;
@@ -55,7 +54,9 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 onClick={() => oauthLogin('google')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <FcGoogle size={18} />
+                <React.Suspense fallback={null}>
+                  <GoogleIcon size={18} />
+                </React.Suspense>
                 <span>Google</span>
               </button>
 
@@ -63,7 +64,9 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 onClick={() => oauthLogin('github')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <FaGithub size={18} className="text-gray-800 dark:text-white" />
+                <React.Suspense fallback={null}>
+                  <GithubIcon size={18} className="text-gray-800 dark:text-white" />
+                </React.Suspense>
                 <span>GitHub</span>
               </button>
 
@@ -71,7 +74,9 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 onClick={() => oauthLogin('orcid')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <SiOrcid size={18} className="text-[#A6CE39]" />
+                <React.Suspense fallback={null}>
+                  <OrcidIcon size={18} className="text-[#A6CE39]" />
+                </React.Suspense>
                 <span>ORCID</span>
               </button>
             </div>
