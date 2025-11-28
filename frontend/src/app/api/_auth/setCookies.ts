@@ -9,6 +9,8 @@ export function setTokens(
 ) {
   const isProd = process.env.NODE_ENV === "production";
 
+  console.log(`--------------------> ${accessToken}`)
+  console.log(refreshToken)
   res.cookies.set("access_token", accessToken, {
     httpOnly: true,
     secure: isProd,

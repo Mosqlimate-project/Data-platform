@@ -4,8 +4,8 @@ import React from "react";
 import { useAuth } from './AuthProvider';
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
-import { oauthLogin, credentialsLogin } from "@/lib/api/auth";
 import { GoogleIcon, GithubIcon, OrcidIcon } from "@/utils/icons";
+import { BACKEND_BASE_URL } from "@/lib/api";
 
 interface LoginModalProps {
   open: boolean;
@@ -14,7 +14,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ open, onClose, onCancel }: LoginModalProps) {
-  const { user, logout, openLogin, openRegister, fetchUser } = useAuth();
+  const { openRegister, fetchUser } = useAuth();
 
   if (!open) return null;
 
@@ -51,7 +51,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
             <div className="flex justify-center gap-3 mb-6">
               <button
-                onClick={() => oauthLogin('google')}
+                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/google/`}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
@@ -61,7 +61,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               </button>
 
               <button
-                onClick={() => oauthLogin('github')}
+                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/github/`}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
@@ -71,7 +71,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               </button>
 
               <button
-                onClick={() => oauthLogin('orcid')}
+                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/orcid/`}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
@@ -103,19 +103,19 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 const username = dataForm.get("username") as string;
                 const password = dataForm.get("password") as string;
 
-                try {
-                  const data = await credentialsLogin(username, password);
+                const resp = await fetch("/api/auth/set-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ identifier: username, password }),
+                });
 
-                  const secure = window.location.protocol === "https:";
-                  Cookies.set("access_token", data.access_token, { path: "/", secure, sameSite: "lax" });
-                  Cookies.set("refresh_token", data.refresh_token, { path: "/", secure, sameSite: "lax" });
-
-                  await fetchUser();
-                  onClose();
-                } catch (err) {
-                  console.error(err);
+                if (!resp.ok) {
                   alert("Invalid username or password");
+                  return;
                 }
+
+                await fetchUser();
+                onClose();
               }}
             >
               <input
@@ -142,6 +142,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               </button>
             </form>
 
+            {/* FOOTER */}
             <div className="flex flex-col items-center mt-5 text-sm text-gray-600 dark:text-gray-400">
 
               <button
@@ -152,11 +153,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               </button>
 
               <button
-                onClick={() => {
-                  Cookies.remove("requires_auth", { path: "/" });
-                  onClose();
-                  window.location.href = "/";
-                }}
+                onClick={handleCancel}
                 className="underline hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 Cancel

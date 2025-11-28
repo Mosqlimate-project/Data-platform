@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from jose import jwt, JWTError, ExpiredSignatureError
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 def create_access_token(data: dict, expire_minutes: int = None):
@@ -39,6 +40,8 @@ def decode_token(token: str):
             settings.SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
+    except ValidationError:
+        return None
     except ExpiredSignatureError:
         return None
     except JWTError:

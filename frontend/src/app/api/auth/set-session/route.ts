@@ -1,23 +1,27 @@
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { setTokens } from "@/app/api/_auth/setCookies";
+import { BACKEND_BASE_URL } from "@/lib/api";
 
-export async function POST(request: Request) {
-  const { access_token, refresh_token } = await request.json();
+export async function POST(req: NextRequest) {
+  const body = await req.json();
 
-  cookies().set("access_token", access_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 30,
+  const res = await fetch(`${BACKEND_BASE_URL}/api/user/login/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 
-  cookies().set("refresh_token", refresh_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+  if (!res.ok) {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
+
+  const data = await res.json();
+
+  const response = NextResponse.json({ ok: true });
+  setTokens(response, {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
   });
 
-  return new Response("ok");
+  return response;
 }

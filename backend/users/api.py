@@ -60,7 +60,7 @@ def check_email(request, email: str):
 @decorate_view(never_cache)
 def oauth_login(request, provider: Literal["google", "github", "orcid"]):
     auth_url = OAuthProvider.from_request(request, provider).get_auth_url()
-    return {"auth_url": auth_url}
+    return HttpResponseRedirect(auth_url)
 
 
 @router.get(
