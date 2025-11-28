@@ -1,5 +1,6 @@
 # [Frontend]
 FRONTEND_PORT={{FRONTEND_PORT}}
+FRONTEND_URL={{FRONTEND_URL}}
 
 # [Django Core]
 ENV={{ENV}}

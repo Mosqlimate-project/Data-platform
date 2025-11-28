@@ -105,6 +105,12 @@ frontend_port = var_in(
     "FRONTEND_PORT", input_text="  Frontend port [3000]: ", default=3000
 )
 
+frontend_url = var_in(
+    "FRONTEND_URL",
+    input_text=f"  Frontend url [http://localhost:{frontend_port}]: ",
+    default=f"http://localhost:{frontend_port}",
+)
+
 def_dj_host_data = def_data_dir / "django"
 
 dj_host_data = var_in(
@@ -273,6 +279,7 @@ dotenv_file = project_dir / ".env"
 variables = {
     # [Frontend]
     "FRONTEND_PORT": frontend_port,
+    "FRONTEND_URL": frontend_url,
     # [Django Core]
     "ENV": env,
     "SECRET_KEY": secret_key,

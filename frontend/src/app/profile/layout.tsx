@@ -13,6 +13,8 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
   const isProtected = pathname.startsWith("/profile");
 
+  console.log(user);
+
   useEffect(() => {
     if (!isProtected) {
       setBlocked(false);

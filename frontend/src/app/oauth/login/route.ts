@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { oauthDecode } from "@/lib/api/auth";
+import { setTokens } from "@/app/api/_auth/setCookies";
 
 export async function GET(req: NextRequest) {
-  const data = req.nextUrl.searchParams.get("data");
+  const access = req.nextUrl.searchParams.get("access_token");
+  const refresh = req.nextUrl.searchParams.get("refresh_token");
 
-  if (!data) {
-    return NextResponse.json({ message: "Missing data" }, { status: 400 });
+  if (!access || !refresh) {
+    return NextResponse.json(
+      { message: "Missing OAuth tokens" },
+      { status: 400 }
+    );
   }
 
-  const res = await oauthDecode(data);
+  const res = NextResponse.redirect(new URL("/", req.url));
 
-  if (res.access_token && res.refresh_token) {
-    const redirectUrl = new URL("/", req.url);
-    redirectUrl.hash = `access_token=${res.access_token}&refresh_token=${res.refresh_token}`;
-    return NextResponse.redirect(redirectUrl);
-  }
+  setTokens(res, {
+    accessToken: access,
+    refreshToken: refresh,
+  });
 
-  return NextResponse.json({ message: "Unexpected OAuth response" }, { status: 400 });
+  return res;
 }

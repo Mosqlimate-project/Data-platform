@@ -147,7 +147,7 @@ class ImplementationLanguage(models.Model):
 
 class Author(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        "users.CustomUser",
         on_delete=models.CASCADE,
         null=False,
         blank=False,
@@ -162,25 +162,6 @@ class Author(models.Model):
     class Meta:
         verbose_name = _("Author")
         verbose_name_plural = _("Authors")
-
-
-class ModelRepository(models.Model):
-    class Providers(models.TextChoices):
-        GITHUB = "github", "GitHub"
-        GITLAB = "gitlab", "GitLab"
-
-    provider = models.CharField(choices=Providers.choices)
-    owner = models.CharField(max_length=100)
-    name = models.CharField(max_length=100)
-    active = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.owner}/{self.name} ({self.provider})"
-
-    class Meta:
-        unique_together = ("provider", "owner", "name")
 
 
 class Model(models.Model):
@@ -424,3 +405,86 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
     if model.sprint:
         tags.add(Tag.objects.get(name="Sprint2425").id)
     return list(tags)
+
+
+# ---- Frontend new models:
+
+
+class Organization(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    members = models.ManyToManyField(
+        "users.CustomUser",
+        through="OrganizationMembership",
+        related_name="organizations",
+        blank=True,
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+
+class OrganizationMembership(models.Model):
+    class Roles(models.TextChoices):
+        OWNER = "owner", _("Owner")
+        MAINTAINER = "maintainer", _("Maintainer")
+        CONTRIBUTOR = "contributor", _("Contributor")
+
+    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    role = models.CharField(
+        max_length=20, choices=Roles.choices, default="contributor"
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "organization")
+
+
+class RepositoryContributor(models.Model):
+    class Permissions(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        WRITE = "write", _("Write")
+
+    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)
+    repository = models.ForeignKey(
+        "Repository",
+        on_delete=models.CASCADE,
+        related_name="repository_contributors",
+    )
+    permission = models.CharField(max_length=10, choices=Permissions.choices)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "repository")
+
+
+class Repository(models.Model):
+    class Providers(models.TextChoices):
+        GITHUB = "github", "GitHub"
+        GITLAB = "gitlab", "GitLab"
+
+    name = models.CharField(max_length=100)
+    provider = models.CharField(max_length=10, choices=Providers.choices)
+    owner = models.ForeignKey(
+        "users.CustomUser",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="repos",
+    )
+    organization = models.ForeignKey(
+        Organization,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="repos",
+    )
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("provider", "owner", "organization", "name")
+
+    def __str__(self):
+        owner = self.owner.username if self.owner else self.organization.name
+        return f"{owner}/{self.name} ({self.provider})"

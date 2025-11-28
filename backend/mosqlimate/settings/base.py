@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "mosqlimate-django",
+    "backend",
 ]
 
 DJANGO_APPS = [
@@ -65,10 +65,10 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "users",
     "main",
     "datastore",
     "registry",
-    "users",
     "vis",
     "chatbot",
     "maps",
@@ -165,8 +165,7 @@ BACKEND_PORT = env("BACKEND_PORT", default=8042)
 BACKEND_URL = (
     "https://api.mosqlimate.org"
     if ENV == "prod"
-    else f"http://0.0.0.0:{
-        BACKEND_PORT}"
+    else f"http://0.0.0.0:{BACKEND_PORT}"
 )
 
 FRONTEND_PORT = env("FRONTEND_PORT")

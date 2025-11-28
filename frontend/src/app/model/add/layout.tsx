@@ -15,6 +15,7 @@ export default function ModelAddLayout({
   const [blocked, setBlocked] = useState(true);
   const [loginTriggered, setLoginTriggered] = useState(false);
 
+  console.log(user);
   useEffect(() => {
     if (user) {
       setBlocked(false);
