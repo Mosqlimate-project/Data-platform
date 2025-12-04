@@ -39,15 +39,15 @@
 }
 
 :root {
-  --color-bg: #ffffff;
-  --color-text: #212538;
+  --color-bg: #EBEDF6;
+  --color-text: #2A3552;
   --color-border: #D3D3D7;
-  --color-accent: #212538;
+  --color-accent: #2A3552;
 }
 
 .dark {
-  --color-bg: #212538;
-  --color-text: #ffffff;
+  --color-bg: #2A3552;
+  --color-text: #EBEDF6;
   --color-border: #4D5160;
   --color-accent: #171A27;
 }
