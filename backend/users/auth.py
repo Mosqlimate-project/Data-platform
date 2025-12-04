@@ -9,21 +9,34 @@ from .jwt import decode_token
 User = get_user_model()
 
 
-class InvalidUIDKey(Exception):
-    pass
-
-
 class JWTAuth(HttpBearer):
-    def authenticate(self, request, token=None):
+    def authenticate(self, request, token):
         if not token:
             token = request.COOKIES.get("access_token")
+        if not token:
+            return None
+
         payload = decode_token(token)
+
         if not payload:
             return None
+
+        if payload.get("type") == "refresh":
+            return None
+
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+
         try:
-            return User.objects.get(pk=payload["sub"])
+            user = User.objects.get(pk=user_id)
+            return user
         except User.DoesNotExist:
             return None
+
+
+class InvalidUIDKey(Exception):
+    pass
 
 
 class UidKeyAuth(APIKeyHeader):

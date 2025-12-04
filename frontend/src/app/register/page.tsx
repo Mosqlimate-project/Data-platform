@@ -4,7 +4,6 @@ import zxcvbn from 'zxcvbn';
 import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
-import { oauthDecode } from '@/lib/api/auth';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -17,14 +16,16 @@ export default function RegisterPage() {
 
 function RegisterPageContent() {
   const params = useSearchParams();
-  const data = params.get('data');
   const router = useRouter();
+
+  const data = params.get('data');
 
   const initialUsername = params.get('username') || '';
   const initialEmail = params.get('email') || '';
 
   const [loading, setLoading] = useState(!!data);
   const [oauthInfo, setOauthInfo] = useState<any | null>(null);
+
   const [username, setUsername] = useState(initialUsername);
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState(initialEmail);
@@ -43,26 +44,12 @@ function RegisterPageContent() {
   const ran = useRef(false);
 
   useEffect(() => {
-    if (ran.current || !data) return;
+    if (!data || ran.current) return;
     ran.current = true;
 
-    (async () => {
-      try {
-        const info = await oauthDecode(data);
-        setEmail(info.email || '');
-        setUsername(info.username || '');
-        setFirstName(info.first_name || '');
-        setLastName(info.last_name || '');
-        if (info.avatar_url) setAvatarUrl(info.avatar_url);
-        setOauthInfo(info);
-      } catch {
-        toast.error('Invalid or expired login');
-        router.push('/');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [data, router]);
+    setOauthInfo({ raw: data });
+    setLoading(false);
+  }, [data]);
 
   function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
@@ -75,47 +62,36 @@ function RegisterPageContent() {
 
   function handleAvatarChange(file: File | null) {
     setAvatar(file);
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
-    }
+    setAvatarUrl(file ? URL.createObjectURL(file) : null);
   }
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUsername(value);
 
-    if (value.length < 4) {
-      setUsernameError('Username too short');
-      return;
-    }
-
-    if (value.length > 25) {
-      setUsernameError('Username too long');
-      return;
-    }
+    if (value.length < 4) return setUsernameError('Username too short');
+    if (value.length > 25) return setUsernameError('Username too long');
 
     const validPattern = /^[a-zA-Z0-9._]+$/;
-    if (!validPattern.test(value)) {
-      setUsernameError('Invalid username');
-      return;
-    }
+    if (!validPattern.test(value)) return setUsernameError('Invalid username');
 
     setUsernameError('');
   };
 
   async function checkUsernameAvailability(username: string) {
     try {
-      const res = await apiFetch(`/user/check-username/?username=${encodeURIComponent(username)}`, { auth: false });
+      const res = await apiFetch(
+        `/user/check-username/?username=${encodeURIComponent(username)}`,
+        { auth: false }
+      );
+
       if (!res.ok) {
-        setUsernameError('Username is already taken.');
+        setUsernameError('Username is already taken');
         return false;
-      } else {
-        setUsernameError('');
-        return true;
       }
+      return true;
     } catch {
-      setUsernameError('Could not verify username.');
+      setUsernameError('Could not verify username');
       return false;
     }
   }
@@ -127,30 +103,29 @@ function RegisterPageContent() {
     if (!agree || !available || usernameError) return;
 
     if (zxcvbn(password).score < 2) {
-      setPasswordError("Password is too weak.");
+      setPasswordError('Password is too weak');
       return;
     }
 
-    const payload = {
+    const payload: any = {
       username,
       first_name: firstName,
       last_name: lastName,
       email,
       password,
-      avatar_url: avatar || null,
       homepage_url: homepage || null,
-      provider: oauthInfo?.provider || null,
-      provider_id: oauthInfo?.provider_id || null,
-      raw_info: oauthInfo?.raw_info || null,
     };
 
-    await apiFetch("/user/register/", {
-      method: "POST",
+    if (oauthInfo?.raw) payload.oauth_data = oauthInfo.raw;
+
+    if (avatar) payload.avatar_file = avatar;
+
+    await apiFetch('/user/register/', {
+      method: 'POST',
       body: JSON.stringify(payload),
     });
-
-    toast.success("Account created!");
-    router.push("/");
+    toast.success('Account created!');
+    router.push('/');
   }
 
   return (
@@ -168,11 +143,7 @@ function RegisterPageContent() {
         <div className="relative mb-6">
           <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
             {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="object-cover w-full h-full"
-              />
+              <img src={avatarUrl} className="object-cover w-full h-full" />
             ) : (
               <div className="bg-gray-200 dark:bg-neutral-800 w-full h-full flex items-center justify-center text-gray-500 text-sm">
                 No avatar
@@ -194,14 +165,18 @@ function RegisterPageContent() {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3L12 16H9v-3z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3L12 16H9v-3z"
+              />
             </svg>
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-1">
-          Finish your profile
-        </h1>
+        <h1 className="text-2xl font-bold text-center mb-1">Finish your profile</h1>
+
         <p className="text-center text-gray-500 dark:text-gray-400 mb-8">
           Complete with your information to register
         </p>
@@ -226,11 +201,18 @@ function RegisterPageContent() {
               required
             />
             {passwordScore !== null && (
-              <p className={`text-sm mt-1 ${passwordScore < 2 ? 'text-red-500' :
-                passwordScore < 4 ? 'text-yellow-500' :
-                  'text-green-500'
-                }`}>
-                {passwordScore < 2 ? 'Password is too weak' : passwordFeedback || ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordScore]}
+              <p
+                className={`text-sm mt-1 ${passwordScore < 2
+                    ? 'text-red-500'
+                    : passwordScore < 4
+                      ? 'text-yellow-500'
+                      : 'text-green-500'
+                  }`}
+              >
+                {passwordScore < 2
+                  ? 'Password is too weak'
+                  : passwordFeedback ||
+                  ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordScore]}
               </p>
             )}
           </div>
@@ -262,15 +244,14 @@ function RegisterPageContent() {
           <input
             type="checkbox"
             checked={agree}
-            onChange={(e) => setAgree(e.target.checked)}
-            className="mr-2 accent-blue-600"
+            onChange={(e) => setAgree(e.target.checked)} className="mr-2 accent-blue-600"
           />
           <span className="text-sm text-gray-600 dark:text-gray-400">
             I accept the{' '}
             <a href="#" className="text-blue-600 hover:underline">
               Terms of Service
-            </a>{' '}
-            and the{' '}
+            </a>
+            {' and the '}
             <a href="#" className="text-blue-600 hover:underline">
               Code of Conduct
             </a>
@@ -283,7 +264,8 @@ function RegisterPageContent() {
             !agree ||
             loading ||
             (passwordScore !== null && passwordScore < 2) ||
-            !username || !!usernameError ||
+            !username ||
+            !!usernameError ||
             !password ||
             !email
           }
@@ -301,10 +283,16 @@ function Input({
   error,
   className = '',
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; className?: string }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  error?: string;
+  className?: string;
+}) {
   return (
     <div className={className}>
-      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">{label}</label>
+      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+        {label}
+      </label>
       <input
         {...props}
         className="w-full border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"

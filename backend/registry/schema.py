@@ -144,6 +144,15 @@ class ModelSchema(Schema):
     ]
 
 
+class ModelThumbs(Schema):
+    organization: str
+    repository: str
+    avatar_url: Optional[str] = None
+    disease: str
+    predictions: int
+    last_update: dt
+
+
 class ModelFilterSchema(FilterSchema):
     """url/?paremeters to search for Models"""
 
@@ -559,3 +568,7 @@ class PredictionFilterSchema(FilterSchema):
             description="Prediction for Sprint 2024/25",
         ),
     ]
+
+
+class ModelIncludeInit(Schema):
+    repo_url: str

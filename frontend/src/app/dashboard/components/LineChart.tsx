@@ -22,7 +22,7 @@ interface LineChartProps {
   predictions: PredictionData[];
 }
 
-export const LineChart: React.FC<LineChartProps> = ({ predictions }) => {
+const LineChart: React.FC<LineChartProps> = ({ predictions }) => {
   const xAxisData = predictions[0]?.data.map(d => d.date) || [];
 
   const series = predictions.flatMap(p => {
@@ -103,3 +103,5 @@ export const LineChart: React.FC<LineChartProps> = ({ predictions }) => {
 
   return <ReactECharts option={option} style={{ height: 400, width: "100%" }} />;
 };
+
+export default LineChart;

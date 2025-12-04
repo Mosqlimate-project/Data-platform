@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "mosqlimate-django",
+    "backend",
 ]
 
 DJANGO_APPS = [
@@ -65,10 +65,10 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "users",
     "main",
     "datastore",
     "registry",
-    "users",
     "vis",
     "chatbot",
     "maps",
@@ -91,7 +91,6 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "users.middleware.SessionCacheMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -165,8 +164,7 @@ BACKEND_PORT = env("BACKEND_PORT", default=8042)
 BACKEND_URL = (
     "https://api.mosqlimate.org"
     if ENV == "prod"
-    else f"http://0.0.0.0:{
-        BACKEND_PORT}"
+    else f"http://0.0.0.0:{BACKEND_PORT}"
 )
 
 FRONTEND_PORT = env("FRONTEND_PORT")
@@ -175,7 +173,7 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
 JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(env("JWT_REFRESH_EXPIRE_DAYS", default=7))
-JWT_ALGORITHM = "HS256"
+JWT_ALGORITHM = env("JWT_ALGORITHM", default="HS256")
 
 # OAuth
 GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
@@ -184,8 +182,8 @@ GITHUB_SECRET = env("GITHUB_SECRET")
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = env("GOOGLE_SECRET")
 
-ORCID_CLIENT_ID = env("ORCID_CLIENT_ID")
-ORCID_SECRET = env("ORCID_SECRET")
+GITLAB_CLIENT_ID = env("GITLAB_CLIENT_ID")
+GITLAB_SECRET = env("GITLAB_SECRET")
 
 
 ##

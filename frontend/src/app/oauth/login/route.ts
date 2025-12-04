@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { oauthDecode } from "@/lib/api/auth";
+import { setTokens } from "@/app/api/auth/setCookies";
+import { BACKEND_BASE_URL } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   const data = req.nextUrl.searchParams.get("data");
@@ -8,13 +9,32 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "Missing data" }, { status: 400 });
   }
 
-  const res = await oauthDecode(data);
+  const url = `${BACKEND_BASE_URL}/api/user/oauth/decode/?data=${encodeURIComponent(data)}`;
 
-  if (res.access_token && res.refresh_token) {
-    const redirectUrl = new URL("/", req.url);
-    redirectUrl.hash = `access_token=${res.access_token}&refresh_token=${res.refresh_token}`;
-    return NextResponse.redirect(redirectUrl);
+  const r = await fetch(url);
+  if (!r.ok) {
+    return NextResponse.json(
+      { message: "Invalid or expired data" },
+      { status: 400 }
+    );
   }
 
-  return NextResponse.json({ message: "Unexpected OAuth response" }, { status: 400 });
+  const decoded = await r.json();
+  const { access_token, refresh_token, next } = decoded;
+
+  if (!access_token || !refresh_token) {
+    return NextResponse.json(
+      { message: "Missing OAuth tokens" },
+      { status: 400 }
+    );
+  }
+
+  const res = NextResponse.redirect(new URL(next || "/", req.url));
+
+  setTokens(res, {
+    accessToken: access_token,
+    refreshToken: refresh_token,
+  });
+
+  return res;
 }

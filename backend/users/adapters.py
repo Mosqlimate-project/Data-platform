@@ -16,13 +16,13 @@ class OAuthAdapter(ABC):
     def from_request(
         cls,
         request: HttpRequest,
-        provider: Literal["google", "github", "orcid"],
+        provider: Literal["google", "github", "gitlab"],
         data: dict,
     ) -> "OAuthAdapter":
         adapters = {
             "github": GithubAdapter,
             "google": GoogleAdapter,
-            "orcid": OrcidAdapter,
+            "gitlab": GitlabAdapter,
         }
         adapter = adapters.get(provider)
         if not adapter:
@@ -121,43 +121,42 @@ class GithubAdapter(OAuthAdapter):
         return self.data.get("avatar_url", "")
 
 
-class OrcidAdapter(OAuthAdapter):
+class GitlabAdapter(OAuthAdapter):
     @property
     def provider_id(self) -> str:
-        info = self.data.get("name")
-        if not isinstance(info, dict):
-            raise ValueError("Invalid ORCID response: missing 'name' field")
-        path = info.get("path")
-        if not path:
-            raise ValueError("User info must include an unique identifier")
-        return path
+        return str(self.data.get("id"))
 
     @property
     def email(self) -> str:
-        emails = self.data.get("emails", {}).get("email", [])
-        primary = next((e for e in emails if e.get("primary")), None)
-        if not primary or not primary.get("email"):
-            raise ValueError("User info must include a public email")
-        return primary["email"]
+        email = self.data.get("email")
+        if not email:
+            raise ValueError("GitLab account has no public email")
+        return email
 
     @property
     def username(self) -> str:
-        return ""
+        return self.data.get("username", "")
 
     @property
     def first_name(self) -> str:
-        data = self.data
-        return data.get("name", {}).get("given-names", {}).get("value", "")
+        name = self.data.get("name", "").strip()
+        if not name:
+            return ""
+        return name.split()[0]
 
     @property
     def last_name(self) -> str:
-        data = self.data
-        return data.get("name", {}).get("family-name", {}).get("value", "")
+        name = self.data.get("name", "").strip()
+        if not name:
+            return ""
+        parts = name.split()
+        if len(parts) > 1:
+            return " ".join(parts[1:])
+        return ""
 
     @property
     def avatar_url(self) -> str:
-        # ORCID doesn't have a profile picture
-        return ""
+        return self.data.get("avatar_url", "")
 
 
 class RedirectOnLogin(DefaultAccountAdapter):

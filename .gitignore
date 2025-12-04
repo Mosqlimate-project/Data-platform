@@ -184,3 +184,5 @@ data/
 *cache/
 !macro_health_geocodes.json
 .next
+.pylintrc
+mkdocs/.wget-hsts
