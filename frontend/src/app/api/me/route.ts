@@ -1,11 +1,12 @@
-import { verifyUser } from "../_auth/verify";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyUser } from "../auth/verify";
 
-export async function GET() {
-  const user = await verifyUser();
+export async function GET(req: NextRequest) {
+  const user = await verifyUser(req);
 
   if (!user) {
-    return new Response("Unauthorized", { status: 401 });
+    return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  return Response.json({ user });
+  return NextResponse.json({ user });
 }

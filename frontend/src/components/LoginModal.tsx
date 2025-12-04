@@ -4,8 +4,10 @@ import React from "react";
 import { useAuth } from './AuthProvider';
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleIcon, GithubIcon, OrcidIcon } from "@/utils/icons";
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { usePathname } from 'next/navigation';
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub, FaGitlab } from "react-icons/fa";
+import { oauthLogin } from "@/lib/api/auth";
 
 interface LoginModalProps {
   open: boolean;
@@ -15,6 +17,7 @@ interface LoginModalProps {
 
 export default function LoginModal({ open, onClose, onCancel }: LoginModalProps) {
   const { openRegister, fetchUser } = useAuth();
+  const pathname = usePathname();
 
   if (!open) return null;
 
@@ -27,6 +30,10 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
     Cookies.remove("requires_auth", { path: "/" });
     onClose();
     window.location.href = "/";
+  };
+
+  const handleOAuth = (provider: "google" | "github" | "gitlab") => {
+    oauthLogin(provider, pathname);
   };
 
   return (
@@ -51,33 +58,33 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
             <div className="flex justify-center gap-3 mb-6">
               <button
-                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/google/`}
+                onClick={() => handleOAuth("google")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <GoogleIcon size={18} />
+                  <FcGoogle size={18} />
                 </React.Suspense>
                 <span>Google</span>
               </button>
 
               <button
-                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/github/`}
+                onClick={() => handleOAuth("github")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <GithubIcon size={18} className="text-gray-800 dark:text-white" />
+                  <FaGithub size={18} className="text-gray-800 dark:text-white" />
                 </React.Suspense>
                 <span>GitHub</span>
               </button>
 
               <button
-                onClick={() => window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/orcid/`}
+                onClick={() => handleOAuth("gitlab")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <OrcidIcon size={18} className="text-[#A6CE39]" />
+                  <FaGitlab size={18} className="text-[#A6CE39]" />
                 </React.Suspense>
-                <span>ORCID</span>
+                <span>GitLab</span>
               </button>
             </div>
 
@@ -116,6 +123,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
                 await fetchUser();
                 onClose();
+                window.location.reload();
               }}
             >
               <input
@@ -142,9 +150,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               </button>
             </form>
 
-            {/* FOOTER */}
             <div className="flex flex-col items-center mt-5 text-sm text-gray-600 dark:text-gray-400">
-
               <button
                 onClick={handleRegister}
                 className="underline hover:text-blue-600 dark:hover:text-blue-400 transition mb-2"
@@ -158,7 +164,6 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               >
                 Cancel
               </button>
-
             </div>
           </motion.div>
         </motion.div>

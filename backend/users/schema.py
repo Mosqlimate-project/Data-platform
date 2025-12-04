@@ -48,7 +48,7 @@ class LoginOut(Schema):
 
 
 class RegisterIn(Schema):
-    provider: Optional[Literal["google", "github", "orcid"]] = None
+    provider: Optional[Literal["google", "github", "gitlab"]] = None
     provider_id: Optional[str] = None
     raw_info: Optional[dict] = None
     avatar_url: Optional[str] = None

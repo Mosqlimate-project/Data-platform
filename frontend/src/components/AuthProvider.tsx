@@ -1,10 +1,7 @@
 'use client';
 import { createContext, useState, useContext, useEffect, useRef } from 'react';
-import Cookies from 'js-cookie';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
-import { apiFetch } from '@/lib/api';
-import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -16,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loadingUser: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
   openLogin: () => void;
   openRegister: () => void;
   fetchUser: () => Promise<void>;
@@ -30,15 +27,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  const router = useRouter();
   const hasFetchedUser = useRef(false);
 
   const fetchUser = async () => {
     try {
-      const data = await apiFetch('/user/me/');
-      setUser(data);
+      const res = await fetch('/api/me/');
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
+      }
     } catch (err) {
-      console.warn('Failed to fetch user', err);
+      console.warn('Failed to fetch user session:', err);
       setUser(null);
     } finally {
       setLoadingUser(false);
@@ -47,42 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (hasFetchedUser.current) return;
-
-    const accessToken = Cookies.get('access_token');
     hasFetchedUser.current = true;
-
-    if (accessToken) {
-      fetchUser();
-    } else {
-      setLoadingUser(false);
-    }
+    fetchUser();
   }, []);
 
-  useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-
-    if (accessToken && refreshToken) {
-      const secure = window.location.protocol === 'https:';
-      const opts = { path: '/', sameSite: 'lax' as const, secure };
-
-      Cookies.set('access_token', accessToken, opts);
-      Cookies.set('refresh_token', refreshToken, opts);
-
-      hasFetchedUser.current = true;
-      fetchUser();
-
-      window.history.replaceState({}, '', window.location.pathname);
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setUser(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed", error);
     }
-  }, []);
-
-  const logout = () => {
-    Cookies.remove("access_token");
-    Cookies.remove("refresh_token");
-    setUser(null);
-    router.push("/");
   };
 
   return (

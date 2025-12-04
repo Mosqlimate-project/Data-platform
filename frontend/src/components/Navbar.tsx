@@ -4,12 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from "next/image";
 import LanguageSelector from "../components/Language";
 import { useTranslation } from "react-i18next";
 import { useAuth } from './AuthProvider';
-
 
 const links = [
   { href: '/', label: 'Home' },
@@ -27,23 +26,33 @@ export default function Navbar() {
   const { t } = useTranslation("common");
   const { user, logout, openLogin, openRegister } = useAuth();
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) {
-    return null;
-  }
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
+  if (!mounted) return null;
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
       <div className="flex items-center gap-8">
         <div className="h-8 bg-hover rounded-full flex items-center justify-center">
-          <Image
-            src="/mosquito.svg"
-            alt="Logo"
-            width={60}
-            height={60}
-            priority
-          />
+          <Image src="/mosquito.svg" alt="Logo" width={60} height={60} priority />
         </div>
 
         <div className="hidden md:flex gap-6">
@@ -66,34 +75,15 @@ export default function Navbar() {
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="p-2 rounded-md border border-border hover:bg-hover transition-colors items-center justify-center"
-          title="Toggle theme"
         >
           {theme === 'dark' ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5 text-yellow-400"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 18a6 6 0 100-12 6 6 0 000 12z" />
-              <path
-                fillRule="evenodd"
-                d="M12 2a.75.75 0 01.75.75V5a.75.75 0 01-1.5 0V2.75A.75.75 0 0112 2zm0 16a.75.75 0 01.75.75V22a.75.75 0 01-1.5 0v-3.25A.75.75 0 0112 18zm10-6a.75.75 0 01-.75.75H18a.75.75 0 010-1.5h3.25A.75.75 0 0122 12zm-16 0a.75.75 0 01-.75.75H2a.75.75 0 010-1.5h3.25A.75.75 0 016 12zm13.03-7.78a.75.75 0 010 1.06L17.06 7.25a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm-10.06 10.06a.75.75 0 010 1.06L7 17.97a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm10.06 1.06a.75.75 0 010 1.06l-1.97 1.97a.75.75 0 11-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zM7 6.03a.75.75 0 010 1.06L5.03 9.06A.75.75 0 013.97 8l1.97-1.97A.75.75 0 017 6.03z"
-                clipRule="evenodd"
-              />
+              <path fillRule="evenodd" d="M12 2a.75.75 0 01.75.75V5a.75.75 0 01-1.5 0V2.75A.75.75 0 0112 2zm0 16a.75.75 0 01.75.75V22a.75.75 0 01-1.5 0v-3.25A.75.75 0 0112 18zm10-6a.75.75 0 01-.75.75H18a.75.75 0 010-1.5h3.25A.75.75 0 0122 12zm-16 0a.75.75 0 01-.75.75H2a.75.75 0 010-1.5h3.25A.75.75 0 016 12zm13.03-7.78a.75.75 0 010 1.06L17.06 7.25a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm-10.06 10.06a.75.75 0 010 1.06L7 17.97a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm10.06 1.06a.75.75 0 010 1.06l-1.97 1.97a.75.75 0 11-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zM7 6.03a.75.75 0 010 1.06L5.03 9.06A.75.75 0 013.97 8l1.97-1.97A.75.75 0 017 6.03z" clipRule="evenodd" />
             </svg>
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5 text-gray-800 dark:text-gray-200"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M17.293 15.293A8 8 0 118.707 6.707a6.5 6.5 0 108.586 8.586z"
-                clipRule="evenodd"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-800 dark:text-gray-200" viewBox="0 0 24 24" fill="currentColor">
+              <path fillRule="evenodd" d="M17.293 15.293A8 8 0 118.707 6.707a6.5 6.5 0 108.586 8.586z" clipRule="evenodd" />
             </svg>
           )}
         </button>
@@ -101,34 +91,22 @@ export default function Navbar() {
         <LanguageSelector />
 
         {user ? (
-          <button
-            onClick={logout}
-            className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors"
-          >
+          <button onClick={logout} className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
             {t("Logout")}
           </button>
         ) : (
-          <button
-            onClick={openLogin}
-            className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors"
-          >
+          <button onClick={openLogin} className="px-4 py-2 border border-border rounded-md hover:bg-hover transition-colors">
             {t("Login")}
           </button>
         )}
 
-        <div className="relative">
+        {/* 1. Attached Ref Here */}
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="p-2 border border-border rounded-md hover:bg-hover transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -136,22 +114,16 @@ export default function Navbar() {
           {dropdownOpen && (
             <div className="absolute right-0 top-full mt-[5px] w-52 bg-bg border border-border rounded-md shadow-lg z-50 overflow-hidden transition-all">
               <ul className="flex flex-col">
+                {/* 2. Added onClick={() => setDropdownOpen(false)} to ALL links below */}
                 <li>
                   <Link
                     href="/profile"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-                      <path
-                        fillRule="evenodd"
-                        d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"
-                      />
+                      <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
                     </svg>
                     Profile
                   </Link>
@@ -161,17 +133,9 @@ export default function Navbar() {
                   <Link
                     href="/models"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 7l8-4 8 4-8 4-8-4z" />
                       <path d="M4 7v10l8 4V11L4 7z" />
                       <path d="M12 11v10l8-4V7l-8 4z" />
@@ -184,13 +148,9 @@ export default function Navbar() {
                   <Link
                     href="/dashboard"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <rect x="3" y="3" width="7" height="7" rx="1" />
                       <rect x="14" y="3" width="7" height="7" rx="1" />
                       <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -203,13 +163,9 @@ export default function Navbar() {
                   <Link
                     href="/datastore"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M3.904 1.777C4.978 1.289 6.427 1 8 1s3.022.289 4.096.777C13.125 2.245 14 2.993 14 4s-.875 1.755-1.904 2.223C11.022 6.711 9.573 7 8 7s-3.022-.289-4.096-.777C2.875 5.755 2 5.007 2 4s.875-1.755 1.904-2.223" />
                       <path d="M2 6.161V7c0 1.007.875 1.755 1.904 2.223C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777C13.125 8.755 14 8.007 14 7v-.839c-.457.432-1.004.751-1.49.972C11.278 7.693 9.682 8 8 8s-3.278-.307-4.51-.867c-.486-.22-1.033-.54-1.49-.972" />
                       <path d="M2 9.161V10c0 1.007.875 1.755 1.904 2.223C4.978 12.711 6.427 13 8 13s3.022-.289 4.096-.777C13.125 11.755 14 11.007 14 10v-.839c-.457.432-1.004.751-1.49.972-1.232.56-2.828.867-4.51.867s-3.278-.307-4.51-.867c-.486-.22-1.033-.54-1.49-.972" />
@@ -223,13 +179,9 @@ export default function Navbar() {
                   <Link
                     href="/docs"
                     className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1z" />
                       <path d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
                     </svg>
@@ -241,7 +193,11 @@ export default function Navbar() {
                 <li><hr className="border-t border-border" /></li>
 
                 <li>
-                  <Link href="/forum" className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text">
+                  <Link
+                    href="/forum"
+                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
                       <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
@@ -251,7 +207,11 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="/papers" className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text">
+                  <Link
+                    href="/papers"
+                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M1.4 1.7c.217.289.65.84 1.725 1.274 1.093.44 2.885.774 5.834.528 2.02-.168 3.431.51 4.326 1.556C14.161 6.082 14.5 7.41 14.5 8.5q0 .344-.027.734C13.387 8.252 11.877 7.76 10.39 7.5c-2.016-.288-4.188-.445-5.59-2.045-.142-.162-.402-.102-.379.112.108.985 1.104 1.82 1.844 2.308 2.37 1.566 5.772-.118 7.6 3.071.505.8 1.374 2.7 1.75 4.292.07.298-.066.611-.354.715a.7.7 0 0 1-.161.042 1 1 0 0 1-1.08-.794c-.13-.97-.396-1.913-.868-2.77C12.173 13.386 10.565 14 8 14c-1.854 0-3.32-.544-4.45-1.435-1.124-.887-1.889-2.095-2.39-3.383-1-2.562-1-5.536-.65-7.28L.73.806z" />
                     </svg>
@@ -260,7 +220,11 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="/about" className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text">
+                  <Link
+                    href="/about"
+                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
                     </svg>
@@ -269,7 +233,11 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="/discord" className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text">
+                  <Link
+                    href="/discord"
+                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612" />
                     </svg>
@@ -278,7 +246,11 @@ export default function Navbar() {
                 </li>
 
                 <li>
-                  <Link href="/github" className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text">
+                  <Link
+                    href="/github"
+                    className="flex items-center px-4 py-2 hover:bg-hover transition-colors text-text"
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.303 3.438 9.8 8.205 11.387.6.111.82-.261.82-.577v-2.234c-3.338.724-4.033-1.415-4.033-1.415-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.775.419-1.305.762-1.605-2.665-.305-5.467-1.333-5.467-5.933 0-1.31.469-2.381 1.235-3.221-.123-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.46 11.46 0 013.003-.403c1.02.005 2.046.138 3.003.403 2.291-1.552 3.297-1.23 3.297-1.23.654 1.653.242 2.873.119 3.176.77.84 1.233 1.911 1.233 3.221 0 4.61-2.807 5.625-5.479 5.921.43.371.813 1.103.813 2.222v3.293c0 .319.218.694.825.576C20.565 21.796 24 17.299 24 12c0-6.63-5.373-12-12-12z" />
                     </svg>

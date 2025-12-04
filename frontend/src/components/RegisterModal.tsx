@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleIcon, GithubIcon, OrcidIcon } from "@/utils/icons";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub, FaGitlab } from "react-icons/fa";
 
 import { oauthLogin } from '@/lib/api/auth';
 import { apiFetch } from '@/lib/api';
@@ -111,7 +112,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <GoogleIcon size={18} />
+                  <FcGoogle size={18} />
                 </React.Suspense>
                 <span>Google</span>
               </button>
@@ -120,18 +121,18 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <GithubIcon size={18} className="text-gray-800 dark:text-white" />
+                  <FaGithub size={18} className="text-gray-800 dark:text-white" />
                 </React.Suspense>
                 <span>GitHub</span>
               </button>
               <button
-                onClick={() => oauthLogin('orcid')}
+                onClick={() => oauthLogin('gitlab')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <OrcidIcon size={18} className="text-[#A6CE39]" />
+                  <FaGitlab size={18} className="text-[#A6CE39]" />
                 </React.Suspense>
-                <span>ORCID</span>
+                <span>GitLab</span>
               </button>
             </div>
 

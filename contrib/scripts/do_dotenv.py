@@ -171,15 +171,15 @@ google_secret = var_in(
     required=False,
     default="",
 )
-orcid_id = var_in(
-    "ORCID_CLIENT_ID",
-    input_text="  Orcid Client ID (CONTRIBUTING.md)*: ",
+gitlab_id = var_in(
+    "GITLAB_CLIENT_ID",
+    input_text="  Gitlab Client ID (CONTRIBUTING.md)*: ",
     required=False,
     default="",
 )
-orcid_secret = var_in(
-    "ORCID_SECRET",
-    input_text="  Orcid API Secret (CONTRIBUTING.md)*: ",
+gitlab_secret = var_in(
+    "GITLAB_SECRET",
+    input_text="  Gitlab API Secret (CONTRIBUTING.md)*: ",
     required=False,
     default="",
 )
@@ -300,8 +300,8 @@ variables = {
     "GITHUB_SECRET": github_secret,
     "GOOGLE_CLIENT_ID": google_id,
     "GOOGLE_SECRET": google_secret,
-    "ORCID_CLIENT_ID": orcid_id,
-    "ORCID_SECRET": orcid_secret,
+    "GITLAB_CLIENT_ID": gitlab_id,
+    "GITLAB_SECRET": gitlab_secret,
     # [Django PostgreSQL]
     "POSTGRES_HOST": psql_host,
     "POSTGRES_PORT": psql_port,

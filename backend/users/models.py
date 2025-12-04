@@ -59,7 +59,7 @@ class OAuthAccount(models.Model):
     class Providers(models.TextChoices):
         GOOGLE = "google", "Google"
         GITHUB = "github", "GitHub"
-        ORCID = "orcid", "Orcid"
+        GITLAB = "gitlab", "GitLab"
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     provider = models.CharField(max_length=20, choices=Providers.choices)

@@ -1,22 +1,51 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { verifyUser } from "@/app/api/auth/verify";
 
-export function middleware(req: NextRequest) {
-  const access = req.cookies.get("access_token");
-  const refresh = req.cookies.get("refresh_token");
+const publicPaths = [
+  "/oauth/login",
+  "/oauth/register",
+  "/oauth/callback",
+  "/api/auth",
+  "/api/me",
+  "/_next",
+  "/favicon.ico",
+  "/public",
+];
 
-  const res = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  if (!access && !refresh) {
-    res.headers.set("x-requires-auth", "1");
+  const isPublic =
+    pathname === "/" ||
+    publicPaths.some((path) => pathname.startsWith(path));
+
+  if (isPublic) {
+    return NextResponse.next();
   }
 
-  return res;
+  const user = await verifyUser(request);
+
+  if (!user) {
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
+  const response = NextResponse.next();
+
+  if (user.headers) {
+    const setCookie = user.headers.get("set-cookie");
+    if (setCookie) {
+      response.headers.set("set-cookie", setCookie);
+    }
+  }
+
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/profile/:path*",
-    "/model/add",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

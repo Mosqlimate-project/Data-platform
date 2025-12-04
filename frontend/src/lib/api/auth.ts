@@ -1,8 +1,8 @@
 import { BACKEND_BASE_URL } from "@/lib/api";
 
 
-export function oauthLogin(provider: "google" | "github" | "orcid") {
-  window.location.href = `/api/oauth/${provider}`;
+export function oauthLogin(provider: "google" | "github" | "gitlab", next?: string) {
+  window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/${provider}/?next=${encodeURIComponent(next || "")}`;
 }
 
 export async function csrfToken(): Promise<string> {

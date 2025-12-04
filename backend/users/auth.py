@@ -1,5 +1,4 @@
 from ninja.security import APIKeyHeader, HttpBearer
-from ninja.errors import HttpError
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -12,27 +11,28 @@ User = get_user_model()
 
 class JWTAuth(HttpBearer):
     def authenticate(self, request, token):
+        if not token:
+            token = request.COOKIES.get("access_token")
+        if not token:
+            return None
+
         payload = decode_token(token)
 
         if not payload:
-            raise HttpError(401, "Invalid or expired token")
+            return None
 
         if payload.get("type") == "refresh":
-            raise HttpError(
-                401, "Refresh token cannot be used for authentication"
-            )
+            return None
 
         user_id = payload.get("sub")
-
         if not user_id:
-            raise HttpError(401, "Invalid token payload")
+            return None
 
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(pk=user_id)
+            return user
         except User.DoesNotExist:
-            raise HttpError(401, "User not found")
-
-        return user
+            return None
 
 
 class InvalidUIDKey(Exception):

@@ -1,38 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiFetch } from '@/lib/api';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  avatar_url?: string;
-}
+import { useAuth } from '@/components/AuthProvider';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await apiFetch('/user/me/');
-        setUser(data);
-      } catch (err) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user, loadingUser } = useAuth();
 
   return (
     <div className="max-w-md mx-auto p-6 bg-[var(--color-bg)] rounded-2xl shadow border border-gray-200 dark:border-neutral-700">
       <div className="flex flex-col items-center">
         <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-blue-500 shadow-md mb-4">
-          {loading ? (
+          {loadingUser ? (
             <div className="animate-pulse bg-gray-200 dark:bg-neutral-800 w-full h-full" />
           ) : user?.avatar_url ? (
             <img src={user.avatar_url} alt={user.username} className="object-cover w-full h-full" />
@@ -44,11 +21,19 @@ export default function ProfilePage() {
         </div>
 
         <h1 className="text-2xl font-bold mb-1">
-          {loading ? <span className="h-6 w-32 bg-gray-200 dark:bg-neutral-800 animate-pulse rounded" /> : user?.username}
+          {loadingUser ? (
+            <span className="inline-block h-6 w-32 bg-gray-200 dark:bg-neutral-800 animate-pulse rounded" />
+          ) : (
+            user?.username
+          )}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          {loading ? <span className="inline-block h-4 w-48 bg-gray-200 dark:bg-neutral-800 animate-pulse rounded" /> : user?.email}
-        </p>
+        <div className="text-gray-500 dark:text-gray-400">
+          {loadingUser ? (
+            <span className="inline-block h-4 w-48 bg-gray-200 dark:bg-neutral-800 animate-pulse rounded" />
+          ) : (
+            user?.email
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 import httpx
 from ninja import Router
@@ -58,9 +58,15 @@ def check_email(request, email: str):
     include_in_schema=False,
 )
 @decorate_view(never_cache)
-def oauth_login(request, provider: Literal["google", "github", "orcid"]):
-    auth_url = OAuthProvider.from_request(request, provider).get_auth_url()
-    return HttpResponseRedirect(auth_url)
+def oauth_login(
+    request,
+    provider: Literal["google", "github", "gitlab"],
+    next: Optional[str] = None,
+):
+    client = OAuthProvider.from_request(
+        request, provider, extra_state={"next": next or ""}
+    )
+    return HttpResponseRedirect(client.get_auth_url())
 
 
 @router.get(
@@ -71,15 +77,16 @@ def oauth_login(request, provider: Literal["google", "github", "orcid"]):
 @decorate_view(never_cache)
 def oauth_callback(
     request,
-    provider: Literal["google", "github", "orcid"],
+    provider: Literal["google", "github", "gitlab"],
     code: str,
     state: str,
 ):
     client = OAuthProvider.from_request(request, provider)
 
     try:
-        client.decode_state(state)
-    except ValueError:
+        state_data = client.decode_state(state)
+        next = state_data.get("next", "")
+    except signing.BadSignature:
         return 400, {"message": "Invalid or expired state"}
 
     try:
@@ -107,13 +114,14 @@ def oauth_callback(
             {
                 "access_token": create_access_token({"sub": str(user.pk)}),
                 "refresh_token": create_refresh_token({"sub": str(user.pk)}),
+                "next": next,
             },
             compress=True,
             salt="oauth-callback",
         )
 
         return HttpResponseRedirect(
-            f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+            f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
         )
 
     except OAuthAccount.DoesNotExist:
@@ -142,7 +150,7 @@ def oauth_callback(
                 salt="oauth-callback",
             )
             return HttpResponseRedirect(
-                f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+                f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
             )
         auth_header = request.headers.get("Authorization")
         user = None
@@ -291,7 +299,7 @@ def refresh_token(request, data: RefreshIn):
 
     return {
         "access_token": create_access_token({"sub": str(user_id)}),
-        "refresh_token": data.refresh_token,
+        "refresh_token": create_refresh_token({"sub": str(user_id)}),
     }
 
 

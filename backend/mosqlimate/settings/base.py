@@ -91,7 +91,6 @@ MIDDLEWARE = [
     "django_plotly_dash.middleware.ExternalRedirectionMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "users.middleware.SessionCacheMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -174,7 +173,7 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
 JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(env("JWT_REFRESH_EXPIRE_DAYS", default=7))
-JWT_ALGORITHM = "HS256"
+JWT_ALGORITHM = env("JWT_ALGORITHM", default="HS256")
 
 # OAuth
 GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
@@ -183,8 +182,8 @@ GITHUB_SECRET = env("GITHUB_SECRET")
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = env("GOOGLE_SECRET")
 
-ORCID_CLIENT_ID = env("ORCID_CLIENT_ID")
-ORCID_SECRET = env("ORCID_SECRET")
+GITLAB_CLIENT_ID = env("GITLAB_CLIENT_ID")
+GITLAB_SECRET = env("GITLAB_SECRET")
 
 
 ##

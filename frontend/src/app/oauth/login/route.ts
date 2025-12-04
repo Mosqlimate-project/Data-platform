@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setTokens } from "@/app/api/_auth/setCookies";
+import { setTokens } from "@/app/api/auth/setCookies";
 import { BACKEND_BASE_URL } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const decoded = await r.json();
-  const { access_token, refresh_token } = decoded;
+  const { access_token, refresh_token, next } = decoded;
 
   if (!access_token || !refresh_token) {
     return NextResponse.json(
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const res = NextResponse.redirect(new URL("/", req.url));
+  const res = NextResponse.redirect(new URL(next || "/", req.url));
 
   setTokens(res, {
     accessToken: access_token,

@@ -568,3 +568,7 @@ class PredictionFilterSchema(FilterSchema):
             description="Prediction for Sprint 2024/25",
         ),
     ]
+
+
+class ModelIncludeInit(Schema):
+    repo_url: str

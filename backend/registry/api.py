@@ -22,7 +22,7 @@ from ninja.security import django_auth
 from pydantic import field_validator
 
 from mosqlimate.api import authorize
-from users.auth import UidKeyAuth
+from users.auth import UidKeyAuth, JWTAuth
 from .models import (
     Author,
     Model,
@@ -42,6 +42,7 @@ from .schema import (
     PredictionOut,
     PredictionIn,
     PredictionDataRowOut,
+    ModelIncludeInit,
 )
 from .utils import calling_via_swagger
 from vis.brasil.models import State, City
@@ -580,3 +581,16 @@ def delete_prediction(request, predict_id: int):
     APILog.from_request(request)
     prediction.delete()
     return 200, {"message": f"Prediction {prediction.id} deleted successfully"}
+
+
+# ---
+
+
+@router.post(
+    "/model/init/",
+    auth=JWTAuth(),
+    tags=["registry", "models"],
+    include_in_schema=False,
+)
+def include_model_init(request, payload: ModelIncludeInit):
+    raise ValueError(payload.repo_url)

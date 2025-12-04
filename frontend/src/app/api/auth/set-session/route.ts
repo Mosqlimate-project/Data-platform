@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setTokens } from "@/app/api/_auth/setCookies";
+import { setTokens } from "@/app/api/auth/setCookies";
 import { BACKEND_BASE_URL } from "@/lib/api";
 
 export async function POST(req: NextRequest) {
