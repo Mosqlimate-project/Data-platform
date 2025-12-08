@@ -110,7 +110,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "chatbot.context_processors.session_key",
             ],
         },
     },
@@ -178,6 +177,9 @@ JWT_ALGORITHM = env("JWT_ALGORITHM", default="HS256")
 # OAuth
 GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
 GITHUB_SECRET = env("GITHUB_SECRET")
+GITHUB_APP = env("GITHUB_APP")  # slug (ex: gh-app-name)
+GITHUB_APP_ID = env("GITHUB_APP_ID")  # integer
+GITHUB_PRIVATE_KEY = env("GITHUB_PRIVATE_KEY").replace("\\n", "\n")
 
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = env("GOOGLE_SECRET")
@@ -216,15 +218,6 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": env("GOOGLE_SECRET"),
             "key": "",
         },
-    },
-    "orcid": {
-        "APP": {
-            "client_id": env("ORCID_CLIENT_ID"),
-            "secret": env("ORCID_SECRET"),
-        },
-        "OAUTH_PKCE_ENABLED": True,
-        "APP_NAME": "mosqlimate",
-        "REDIRECT_URI": "http://0.0.0.0:8042/api/user/social/callback/orcid/",
     },
 }
 

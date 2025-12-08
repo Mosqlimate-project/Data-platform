@@ -41,12 +41,12 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   };
 
   const checkUsernameAvailable = async (username: string) => {
-    const resp = await apiFetch(`/user/check-username/?username=${username}`);
+    const resp = await fetch(`/api/user/check-username/?username=${username}`);
     return resp.ok ? null : 'Username is already taken';
   };
 
   const checkEmailAvailable = async (email: string) => {
-    const resp = await apiFetch(`/user/check-email/?email=${email}`);
+    const resp = await fetch(`/api/user/check-email/?email=${email}`);
     return resp.ok ? null : 'Email is already registered';
   };
 
@@ -130,7 +130,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <FaGitlab size={18} className="text-[#A6CE39]" />
+                  <FaGitlab size={18} className="text-orange-600" />
                 </React.Suspense>
                 <span>GitLab</span>
               </button>

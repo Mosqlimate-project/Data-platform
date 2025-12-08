@@ -15,11 +15,10 @@ export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) 
     return fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
       ...options,
       headers: {
-        Accept: 'application/json',
-        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        ...(options.headers as Record<string, string>),
+        Accept: "application/json",
+        ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...(options.headers || {}),
       },
-      credentials: 'include',
     });
   };
 

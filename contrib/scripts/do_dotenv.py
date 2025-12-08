@@ -159,6 +159,18 @@ github_secret = var_in(
     required=False,
     default="",
 )
+github_app = var_in(
+    "GITHUB_APP",
+    input_text="  Github API App (CONTRIBUTING.md)*: ",
+    required=False,
+    default="",
+)
+github_private_key = var_in(
+    "GITHUB_PRIVATE_KEY",
+    input_text="  Github App Private Key (CONTRIBUTING.md)*: ",
+    required=False,
+    default="",
+)
 google_id = var_in(
     "GOOGLE_CLIENT_ID",
     input_text="  Google Client ID (CONTRIBUTING.md)*: ",
@@ -298,6 +310,8 @@ variables = {
     "SITE_NAME": site_name,
     "GITHUB_CLIENT_ID": github_id,
     "GITHUB_SECRET": github_secret,
+    "GITHUB_APP": github_app,
+    "GITHUB_PRIVATE_KEY": github_private_key,
     "GOOGLE_CLIENT_ID": google_id,
     "GOOGLE_SECRET": google_secret,
     "GITLAB_CLIENT_ID": gitlab_id,

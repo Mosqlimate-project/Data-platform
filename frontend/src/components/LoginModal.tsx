@@ -82,7 +82,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <FaGitlab size={18} className="text-[#A6CE39]" />
+                  <FaGitlab size={18} className="text-orange-600" />
                 </React.Suspense>
                 <span>GitLab</span>
               </button>
