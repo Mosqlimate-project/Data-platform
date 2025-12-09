@@ -100,10 +100,6 @@ def oauth_callback(
     except Exception as e:
         return 400, {"message": str(e)}
 
-    if provider == "github":
-        if not client.has_installations(access_token):
-            next = f"/api/auth/install/github?next={next}"
-
     adapter = OAuthAdapter.from_request(request, provider, raw_info)
     provider_id = adapter.provider_id
 
@@ -254,8 +250,6 @@ def oauth_install_callback(
     state: str = None,
 ):
     user = None
-    access_token = None
-
     token = request.COOKIES.get("access_token")
     if token:
         payload = decode_token(token)
@@ -265,6 +259,7 @@ def oauth_install_callback(
             except User.DoesNotExist:
                 pass
 
+    access_token = None
     if not user and code:
         try:
             client = OAuthProvider.from_request(request, provider)
@@ -281,9 +276,6 @@ def oauth_install_callback(
                     provider=provider, provider_id=adapter.provider_id
                 )
                 user = account.user
-
-                account.access_token = access_token
-                account.save()
         except Exception:
             pass
 
@@ -298,17 +290,22 @@ def oauth_install_callback(
             account.save()
 
         if not installation_id:
-            client = OAuthProvider.from_request(request, provider)
             token_to_use = access_token or account.access_token
+            if not token_to_use:
+                return 400, {
+                    "message": "Missing access token to verify installation."
+                }
 
             headers = {
                 "Authorization": f"Bearer {token_to_use}",
                 "Accept": "application/vnd.github.v3+json",
             }
-            with httpx.Client() as http:
+            transport = httpx.HTTPTransport(retries=3)
+            with httpx.Client(transport=transport) as http:
                 resp = http.get(
                     "https://api.github.com/user/installations",
                     headers=headers,
+                    params={"per_page": 1},
                 )
                 if resp.status_code == 200:
                     installs = resp.json().get("installations", [])
@@ -320,19 +317,21 @@ def oauth_install_callback(
                 "message": "Could not verify GitHub App installation."
             }
 
-        account.installation_id = installation_id
-
         client = OAuthProvider.from_request(request, provider)
         token_data = client.get_installation_token(installation_id)
 
+        account.installation_id = installation_id
         account.installation_access_token = token_data["token"]
         account.installation_token_expires_at = token_data["expires_at"]
         account.save()
 
-        next_url = "/dashboard"
+        next_url = "/"
         if state:
-            state_data = client.decode_state(state)
-            next_url = state_data.get("next", "/")
+            try:
+                decoded = client.decode_state(state)
+                next_url = decoded.get("next", "/")
+            except Exception:
+                pass
 
         data = signing.dumps(
             {

@@ -141,7 +141,7 @@ class GoogleProvider(OAuthProvider):
 class GithubProvider(OAuthProvider):
     provider = "github"
     redirect_url = (
-        f"{settings.BACKEND_URL}/api/user/oauth/install/{provider}/callback"
+        f"{settings.BACKEND_URL}/api/user/oauth/callback/{provider}/"
     )
     client_id = settings.GITHUB_CLIENT_ID
     client_secret = settings.GITHUB_SECRET

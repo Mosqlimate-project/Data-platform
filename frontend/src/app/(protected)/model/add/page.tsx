@@ -5,27 +5,22 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaGithub, FaGitlab, FaLink, FaArrowRight, FaCheckCircle, FaExclamationCircle, FaEnvelope, FaSpinner, FaArrowLeft } from 'react-icons/fa';
 import clsx from 'clsx';
-import { apiFetch } from '@/lib/api'; // Assuming you have a fetch wrapper
 
 export default function AddModelPage() {
-  // --- State Machine ---
   const [step, setStep] = useState<'input' | 'verify'>('input');
 
-  // --- Form Data ---
   const [url, setUrl] = useState('');
   const [otp, setOtp] = useState('');
 
-  // --- UI State ---
   const [provider, setProvider] = useState<'github' | 'gitlab' | null>(null);
   const [isValid, setIsValid] = useState(false);
   const [touched, setTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [emailHint, setEmailHint] = useState<string | null>(null); // e.g., "j***@gmail.com"
+  const [emailHint, setEmailHint] = useState<string | null>(null);
 
   const router = useRouter();
 
-  // --- Step 1 Logic: Validate & Request Code ---
   const validateUrl = (value: string) => {
     const githubRegex = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+(\/)?$/;
     const gitlabRegex = /^https?:\/\/(www\.)?gitlab\.com\/[\w-]+\/[\w.-]+(\/)?$/;
@@ -71,7 +66,6 @@ export default function AddModelPage() {
 
       const data = await res.json();
 
-      // 2. Transition to Step 2
       setEmailHint(data.email_hint || 'the repository owner email');
       setStep('verify');
     } catch (err) {
@@ -81,16 +75,12 @@ export default function AddModelPage() {
     }
   };
 
-  // --- Step 2 Logic: Verify OTP ---
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // 3. Verify Code
-      // POST /api/registry/import/verify
-
       const res = await fetch('/api/registry/import/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,7 +91,6 @@ export default function AddModelPage() {
         throw new Error('Invalid code. Please try again.');
       }
 
-      // 4. Success! Redirect to config or model page
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
@@ -114,7 +103,6 @@ export default function AddModelPage() {
     <div className="max-w-xl mx-auto mt-10">
       <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-200 dark:border-neutral-800 overflow-hidden relative">
 
-        {/* Progress Bar (Optional Visual Cue) */}
         <div className="h-1 w-full bg-gray-100 dark:bg-neutral-800">
           <motion.div
             className="h-full bg-blue-600"
@@ -126,7 +114,6 @@ export default function AddModelPage() {
         <div className="p-8">
           <AnimatePresence mode="wait">
 
-            {/* --- STEP 1: INPUT URL --- */}
             {step === 'input' && (
               <motion.div
                 key="step1"
@@ -221,7 +208,6 @@ export default function AddModelPage() {
               </motion.div>
             )}
 
-            {/* --- STEP 2: VERIFY OTP --- */}
             {step === 'verify' && (
               <motion.div
                 key="step2"
