@@ -6,8 +6,15 @@ export async function GET(req: Request) {
   const start = url.searchParams.get("start");
   const end = url.searchParams.get("end");
 
+  const cookies = req.headers.get("cookie") || "";
+
   const data = await apiFetch(
-    `/datastore/charts/municipality/temperature/?geocode=${geocode}&start=${start}&end=${end}`
+    `/datastore/charts/municipality/temperature/?geocode=${geocode}&start=${start}&end=${end}`,
+    {
+      headers: {
+        cookie: cookies,
+      }
+    }
   );
 
   return Response.json(data);

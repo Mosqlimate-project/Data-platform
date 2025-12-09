@@ -1,40 +1,59 @@
-import Cookies from 'js-cookie';
-import { csrfToken } from './auth';
-
 export const BACKEND_BASE_URL =
   process.env.NODE_ENV === "production"
     ? "https://api.mosqlimate.org"
     : "http://localhost:8042";
+
+export const FRONTEND_BASE_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
 
 interface ApiFetchOptions extends RequestInit {
   auth?: boolean;
 }
 
 export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
-  const csrf = Cookies.get('csrftoken') || (await csrfToken());
-  const token = Cookies.get('access_token');
-
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-    ...(csrf ? { 'X-CSRFToken': csrf } : {}),
-    ...(options.headers as Record<string, string>),
+  const baseFetch = async () => {
+    return fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
+      ...options,
+      headers: {
+        Accept: "application/json",
+        ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...(options.headers || {}),
+      },
+    });
   };
 
-  if (options.auth !== false && token) {
-    headers.Authorization = `Bearer ${token}`;
+  let res = await baseFetch();
+
+  if (res.status === 401 && options.auth) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      res = await baseFetch();
+    }
   }
 
-  const res = await fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
-
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `Request failed: ${res.status}`);
+    let errorMessage;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.detail || errorData.message || `Request failed: ${res.status}`;
+    } catch {
+      errorMessage = await res.text();
+    }
+    throw new Error(errorMessage);
   }
 
   return res.json();
+}
+
+async function refreshToken(): Promise<boolean> {
+  try {
+    const res = await fetch(`${FRONTEND_BASE_URL}/api/auth/refresh`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    return res.ok;
+  } catch (err) {
+    return false;
+  }
 }

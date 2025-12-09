@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "serve": "npm run build && npm run dev",
+    "serve": "npm run build && env-cmd -f ../.env next dev",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -22,7 +22,11 @@
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",
+    "jose": "^6.1.2",
     "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "lodash.debounce": "^4.0.8",
     "next": "^14.2.5",
     "next-i18next": "^15.4.2",
     "next-themes": "^0.4.6",
@@ -43,10 +47,13 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20.14.12",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@types/zxcvbn": "^4.4.5",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "env-cmd": "^11.0.0"
   }
 }

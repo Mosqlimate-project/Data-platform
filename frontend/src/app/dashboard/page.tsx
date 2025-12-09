@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
-import { LineChart } from "./components/LineChart";
 
 interface PredictionPoint {
   date: string;
@@ -20,6 +19,7 @@ interface PredictionData {
 }
 
 export default function DashboardPage() {
+  const LineChart = lazy(() => import("./components/LineChart"));
   const [activeTab, setActiveTab] = useState<"overview" | "predictions_state" | "predictions_municipal" | "howto">("overview");
   const [disease, setDisease] = useState("Dengue");
   const [state, setState] = useState("Acre");
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex">
       <Sidebar onSelect={setActiveTab} />
 
       <main className="flex-1 border-l border-[var(--color-border)] p-6">
@@ -93,7 +93,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="w-full mb-6 border rounded">
-              <LineChart predictions={predictionData} />
+              <Suspense fallback={<div style={{ height: 400 }}>Loading chart…</div>}>
+                <LineChart predictions={predictionData} />
+              </Suspense>
             </div>
 
             <div className="flex gap-6">

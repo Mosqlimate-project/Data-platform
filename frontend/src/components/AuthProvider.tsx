@@ -1,9 +1,7 @@
 'use client';
-import { createContext, useState, useContext, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
-import { apiFetch } from '@/lib/api';
 
 interface User {
   id: string;
@@ -14,70 +12,82 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  logout: () => void;
+  loadingUser: boolean;
+  logout: () => Promise<void>;
   openLogin: () => void;
   openRegister: () => void;
+  fetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
+  const hasFetchedUser = useRef(false);
+
   const fetchUser = async () => {
     try {
-      const data = await apiFetch('/user/me/');
-      setUser(data);
+      const res = await fetch('/api/me/');
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
+      }
     } catch (err) {
-      console.warn('Failed to fetch user', err);
+      console.warn('Failed to fetch user session:', err);
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
   useEffect(() => {
-    const accessToken = Cookies.get('access_token');
-    if (accessToken) fetchUser();
+    if (hasFetchedUser.current) return;
+    hasFetchedUser.current = true;
+    fetchUser();
   }, []);
 
-  useEffect(() => {
-    // OAuth redirect case: tokens come in URL hash
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-
-    if (accessToken && refreshToken) {
-      const secure = window.location.protocol === 'https:';
-      const commonOptions = { path: '/', sameSite: 'lax' as const, secure };
-
-      Cookies.set('access_token', accessToken, { ...commonOptions });
-      Cookies.set('refresh_token', refreshToken, { ...commonOptions });
-      fetchUser();
-
-      window.history.replaceState({}, '', window.location.pathname);
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setUser(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed", error);
     }
-  }, []);
-
-  const logout = () => {
-    setUser(null);
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    Cookies.remove('csrftoken');
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        loadingUser,
         logout,
         openLogin: () => setShowLogin(true),
         openRegister: () => setShowRegister(true),
+        fetchUser,
       }}
     >
       {children}
-      <LoginModal open={showLogin} onClose={() => setShowLogin(false)} />
-      <RegisterModal open={showRegister} onClose={() => setShowRegister(false)} />
+
+      <LoginModal
+        open={showLogin}
+        onClose={() => setShowLogin(false)}
+        onCancel={() => {
+          window.dispatchEvent(new Event("login-cancelled"));
+        }}
+      />
+
+      <RegisterModal
+        open={showRegister}
+        onClose={() => setShowRegister(false)}
+      />
     </AuthContext.Provider>
   );
 }

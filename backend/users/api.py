@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 import httpx
 from ninja import Router
@@ -8,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
+from pydantic.networks import validate_email
+from pydantic_core import PydanticCustomError
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 from .models import OAuthAccount
@@ -16,9 +18,9 @@ from .schema import (
     UserSchema,
     LoginOut,
     UserOut,
-    RefreshOut,
     LoginIn,
     RegisterIn,
+    RefreshIn,
 )
 from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
@@ -37,7 +39,7 @@ User = get_user_model()
 @decorate_view(never_cache)
 def check_username(request, username: str):
     exists = User.objects.filter(username__iexact=username).exists()
-    return {"ok": not exists}
+    return {"available": not exists}
 
 
 @router.get(
@@ -47,7 +49,7 @@ def check_username(request, username: str):
 @decorate_view(never_cache)
 def check_email(request, email: str):
     exists = User.objects.filter(email__iexact=email).exists()
-    return {"ok": not exists}
+    return {"available": not exists}
 
 
 @router.get(
@@ -56,9 +58,15 @@ def check_email(request, email: str):
     include_in_schema=False,
 )
 @decorate_view(never_cache)
-def oauth_login(request, provider: Literal["google", "github", "orcid"]):
-    auth_url = OAuthProvider.from_request(request, provider).get_auth_url()
-    return {"auth_url": auth_url}
+def oauth_login(
+    request,
+    provider: Literal["google", "github", "gitlab"],
+    next: Optional[str] = None,
+):
+    client = OAuthProvider.from_request(
+        request, provider, extra_state={"next": next or ""}
+    )
+    return HttpResponseRedirect(client.get_auth_url())
 
 
 @router.get(
@@ -69,15 +77,16 @@ def oauth_login(request, provider: Literal["google", "github", "orcid"]):
 @decorate_view(never_cache)
 def oauth_callback(
     request,
-    provider: Literal["google", "github", "orcid"],
+    provider: Literal["google", "github", "gitlab"],
     code: str,
     state: str,
 ):
     client = OAuthProvider.from_request(request, provider)
 
     try:
-        client.decode_state(state)
-    except ValueError:
+        state_data = client.decode_state(state)
+        next = state_data.get("next", "")
+    except signing.BadSignature:
         return 400, {"message": "Invalid or expired state"}
 
     try:
@@ -90,6 +99,10 @@ def oauth_callback(
         return 400, {"message": f"HTTP error: {e}"}
     except Exception as e:
         return 400, {"message": str(e)}
+
+    if provider == "github":
+        if not client.has_installations(access_token):
+            next = f"/api/auth/install/github?next={next}"
 
     adapter = OAuthAdapter.from_request(request, provider, raw_info)
     provider_id = adapter.provider_id
@@ -105,13 +118,14 @@ def oauth_callback(
             {
                 "access_token": create_access_token({"sub": str(user.pk)}),
                 "refresh_token": create_refresh_token({"sub": str(user.pk)}),
+                "next": next,
             },
             compress=True,
             salt="oauth-callback",
         )
 
         return HttpResponseRedirect(
-            f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+            f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
         )
 
     except OAuthAccount.DoesNotExist:
@@ -124,7 +138,10 @@ def oauth_callback(
                 user=existing_user,
                 provider=provider,
                 provider_id=provider_id,
-                defaults={"raw_info": raw_info},
+                defaults={
+                    "raw_info": raw_info,
+                    "access_token": access_token,
+                },
             )
 
             data = signing.dumps(
@@ -140,7 +157,7 @@ def oauth_callback(
                 salt="oauth-callback",
             )
             return HttpResponseRedirect(
-                f"{settings.FRONTEND_URL}/oauth/login?data={data}",
+                f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
             )
         auth_header = request.headers.get("Authorization")
         user = None
@@ -161,6 +178,7 @@ def oauth_callback(
                 defaults={
                     "user": user,
                     "raw_info": raw_info,
+                    "access_token": access_token,
                 },
             )
             action = "link" if created else "update"
@@ -168,6 +186,7 @@ def oauth_callback(
                 {
                     "action": action,
                     "message": f"{provider} account {action}",
+                    "next": next,
                 },
                 compress=True,
                 salt="oauth-callback",
@@ -187,6 +206,8 @@ def oauth_callback(
                 "provider": provider,
                 "provider_id": provider_id,
                 "raw_info": raw_info,
+                "access_token": access_token,
+                "next": next,
             },
             compress=True,
             salt="oauth-callback",
@@ -195,6 +216,142 @@ def oauth_callback(
         return HttpResponseRedirect(
             f"{settings.FRONTEND_URL}/oauth/register?data={data}",
         )
+
+
+@router.get(
+    "/oauth/install/{provider}/",
+    response={200: dict, 400: BadRequestSchema},
+    include_in_schema=False,
+    auth=JWTAuth(),
+)
+@decorate_view(never_cache)
+def oauth_install(
+    request,
+    provider: Literal["github"],
+    next: Optional[str] = None,
+):
+    client = OAuthProvider.from_request(
+        request,
+        provider,
+        extra_state={"next": next or ""},
+    )
+    return 200, {"url": f"{client.install_url}?state={client.state}"}
+
+
+@router.get(
+    "/oauth/install/{provider}/callback/",
+    response={200: dict, 400: BadRequestSchema, 401: ForbiddenSchema},
+    auth=None,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def oauth_install_callback(
+    request,
+    provider: Literal["github"],
+    installation_id: str = None,
+    code: str = None,
+    setup_action: str = "install",
+    state: str = None,
+):
+    user = None
+    access_token = None
+
+    token = request.COOKIES.get("access_token")
+    if token:
+        payload = decode_token(token)
+        if payload and payload.get("type") == "access":
+            try:
+                user = User.objects.get(pk=payload.get("sub"))
+            except User.DoesNotExist:
+                pass
+
+    if not user and code:
+        try:
+            client = OAuthProvider.from_request(request, provider)
+            token_data = client.get_token(code)
+            access_token = token_data.get("access_token")
+
+            if access_token:
+                raw_info = client.get_user_info(access_token, token_data)
+                adapter = OAuthAdapter.from_request(
+                    request, provider, raw_info
+                )
+
+                account = OAuthAccount.objects.select_related("user").get(
+                    provider=provider, provider_id=adapter.provider_id
+                )
+                user = account.user
+
+                account.access_token = access_token
+                account.save()
+        except Exception:
+            pass
+
+    if not user:
+        return 401, {"message": "User not logged in during installation."}
+
+    try:
+        account = OAuthAccount.objects.get(user=user, provider=provider)
+
+        if access_token:
+            account.access_token = access_token
+            account.save()
+
+        if not installation_id:
+            client = OAuthProvider.from_request(request, provider)
+            token_to_use = access_token or account.access_token
+
+            headers = {
+                "Authorization": f"Bearer {token_to_use}",
+                "Accept": "application/vnd.github.v3+json",
+            }
+            with httpx.Client() as http:
+                resp = http.get(
+                    "https://api.github.com/user/installations",
+                    headers=headers,
+                )
+                if resp.status_code == 200:
+                    installs = resp.json().get("installations", [])
+                    if installs:
+                        installation_id = str(installs[0]["id"])
+
+        if not installation_id:
+            return 400, {
+                "message": "Could not verify GitHub App installation."
+            }
+
+        account.installation_id = installation_id
+
+        client = OAuthProvider.from_request(request, provider)
+        token_data = client.get_installation_token(installation_id)
+
+        account.installation_access_token = token_data["token"]
+        account.installation_token_expires_at = token_data["expires_at"]
+        account.save()
+
+        next_url = "/dashboard"
+        if state:
+            state_data = client.decode_state(state)
+            next_url = state_data.get("next", "/")
+
+        data = signing.dumps(
+            {
+                "action": "github_app_installed",
+                "installation_id": installation_id,
+                "next": next_url,
+            },
+            compress=True,
+            salt="oauth-callback",
+        )
+
+        return HttpResponseRedirect(
+            f"{settings.FRONTEND_URL}/oauth/install/{provider}/callback?data={data}"
+        )
+
+    except OAuthAccount.DoesNotExist:
+        return 404, {
+            "message": "Link your GitHub account before installing the App."
+        }
 
 
 @router.get(
@@ -222,22 +379,24 @@ def me(request):
     return user
 
 
-@router.post("/login", response={200: LoginOut, 401: ForbiddenSchema})
+@router.post(
+    "/login/",
+    response={200: LoginOut, 403: ForbiddenSchema},
+)
 def login(request, payload: LoginIn):
-    if payload.email:
-        user_obj = User.objects.filter(email__iexact=payload.email).first()
+    identifier = payload.identifier
+    try:
+        validate_email(identifier)
+        user_obj = User.objects.filter(email__iexact=identifier).first()
         if not user_obj:
-            return 401, {"detail": "Email not registered"}
+            return 403, {"message": "Email not registered"}
         username = user_obj.username
-    elif payload.username:
-        username = payload.username
-    else:
-        return 401, {"detail": "Username or email required"}
+    except PydanticCustomError:
+        username = identifier
 
     user = authenticate(username=username, password=payload.password)
-
     if not user:
-        return 401, {"detail": "Unauthorized"}
+        return 403, {"message": "Unauthorized"}
 
     return {
         "access_token": create_access_token({"sub": str(user.pk)}),
@@ -247,7 +406,7 @@ def login(request, payload: LoginIn):
 
 @router.post(
     "/register/",
-    response={201: UserOut, 401: ForbiddenSchema, 400: BadRequestSchema},
+    response={201: LoginOut, 400: BadRequestSchema},
     auth=None,
 )
 def register(request, payload: RegisterIn):
@@ -258,22 +417,26 @@ def register(request, payload: RegisterIn):
         return 400, {"message": "Username already registered"}
 
     user = User.objects.create_user(
-        first_name=payload.name,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         username=payload.username,
         email=payload.email,
         password=payload.password,
         is_staff=False,
     )
 
-    return 201, user
+    return 201, {
+        "access_token": create_access_token({"sub": str(user.pk)}),
+        "refresh_token": create_refresh_token({"sub": str(user.pk)}),
+    }
 
 
 @router.post(
     "/refresh/",
-    response={200: RefreshOut, 401: ForbiddenSchema},
+    response={200: LoginOut, 401: ForbiddenSchema},
 )
-def refresh_token(request, token: str):
-    payload = decode_token(token)
+def refresh_token(request, data: RefreshIn):
+    payload = decode_token(data.refresh_token)
 
     if not payload or payload.get("type") != "refresh":
         return 401, {"detail": "Invalid or expired token"}
@@ -287,7 +450,33 @@ def refresh_token(request, token: str):
 
     return {
         "access_token": create_access_token({"sub": str(user_id)}),
+        "refresh_token": create_refresh_token({"sub": str(user_id)}),
     }
+
+
+@router.get(
+    "/repositories/{provider}/",
+    auth=JWTAuth(),
+    response={200: list[dict], 401: BadRequestSchema, 404: NotFoundSchema},
+)
+def list_repositories(request, provider: Literal["github", "gitlab"]):
+    user = request.auth
+
+    try:
+        account = OAuthAccount.objects.get(user=user, provider=provider)
+    except OAuthAccount.DoesNotExist:
+        return 404, {"message": f"Please link your {provider} account first."}
+
+    token = account.access_token
+    client = OAuthProvider.from_request(request, provider)
+
+    try:
+        repos = client.get_user_repos(token)
+        return 200, repos
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 401:
+            return 401, {"message": f"{e}"}
+        raise e
 
 
 @router.put(

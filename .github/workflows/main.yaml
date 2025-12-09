@@ -5,15 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  
+
 jobs:
   build:
     environment: build
-    env:
-      INFODENGUE_POSTGRES_URI: TODO # ${{ secrets.INFODENGUEDEV_POSTGRES_URI }}
-      GITHUB_CLIENT_ID: TODO # ${{ secrets.PROVISORY_GITHUB_CLIENT_ID }}
-      GITHUB_SECRET: TODO # ${{ secrets.PROVISORY_GITHUB_SECRET }}
-      EMAIL_HOST_PASSWORD: TODO
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
@@ -27,7 +22,7 @@ jobs:
     steps:
     - name: Semantic Release PR Title Check
       uses: osl-incubator/semantic-release-pr-title-check@v1.4.2
-      with:                                   
+      with:
         convention-name: conventionalcommits 
 
     - uses: actions/checkout@v4
@@ -43,9 +38,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # # https://github.com/yaml/pyyaml/issues/724
-        # pip install "cython<3.0.0" 
-        # pip install --no-build-isolation "pyyaml<6.0"
         poetry install --no-root
 
     - name: Linting
@@ -59,13 +51,6 @@ jobs:
         python contrib/scripts/do_psqlconf.py
 
     - name: Start containers
-      env:
-        GITHUB_CLIENT_ID: "-"
-        GITHUB_CLIENT_SECRET: "-"
-        GOOGLE_CLIENT_ID: "-"
-        GOOGLE_CLIENT_SECRET: "-"
-        ORCID_CLIENT_ID: "-"
-        ORCID_CLIENT_SECRET: "-"
       run: |
         docker network create infodengue-dev_infodengue
         sugar compose up --options -d

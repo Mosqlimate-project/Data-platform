@@ -1,25 +1,39 @@
 'use client';
 
+import React from "react";
 import { useAuth } from './AuthProvider';
-import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa';
-import { SiOrcid } from 'react-icons/si';
+import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from "@/lib/api/auth";
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
+  onCancel?: () => void;
 }
 
-export default function LoginModal({ open, onClose }: LoginModalProps) {
-  const { openRegister } = useAuth();
+export default function LoginModal({ open, onClose, onCancel }: LoginModalProps) {
+  const { openRegister, fetchUser } = useAuth();
+  const pathname = usePathname();
 
   if (!open) return null;
 
   const handleRegister = () => {
     onClose();
     openRegister();
+  };
+
+  const handleCancel = () => {
+    Cookies.remove("requires_auth", { path: "/" });
+    onClose();
+    window.location.href = "/";
+  };
+
+  const handleOAuth = (provider: "google" | "github" | "gitlab") => {
+    oauthLogin(provider, pathname);
   };
 
   return (
@@ -38,38 +52,39 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', duration: 0.3 }}
           >
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
-            >
-              ✕
-            </button>
-
             <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-gray-100">
               Login
             </h2>
 
             <div className="flex justify-center gap-3 mb-6">
               <button
-                onClick={() => oauthLogin('google')}
+                onClick={() => handleOAuth("google")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <FcGoogle size={18} />
+                <React.Suspense fallback={null}>
+                  <FcGoogle size={18} />
+                </React.Suspense>
                 <span>Google</span>
               </button>
+
               <button
-                onClick={() => oauthLogin('github')}
+                onClick={() => handleOAuth("github")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <FaGithub size={18} className="text-gray-800 dark:text-white" />
+                <React.Suspense fallback={null}>
+                  <FaGithub size={18} className="text-gray-800 dark:text-white" />
+                </React.Suspense>
                 <span>GitHub</span>
               </button>
+
               <button
-                onClick={() => oauthLogin('orcid')}
+                onClick={() => handleOAuth("gitlab")}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
-                <SiOrcid size={18} className="text-[#A6CE39]" />
-                <span>ORCID</span>
+                <React.Suspense fallback={null}>
+                  <FaGitlab size={18} className="text-orange-600" />
+                </React.Suspense>
+                <span>GitLab</span>
               </button>
             </div>
 
@@ -86,23 +101,47 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
 
             <form
               className="flex flex-col gap-3"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
+
+                const form = e.currentTarget;
+                const dataForm = new FormData(form);
+
+                const username = dataForm.get("username") as string;
+                const password = dataForm.get("password") as string;
+
+                const resp = await fetch("/api/auth/set-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ identifier: username, password }),
+                });
+
+                if (!resp.ok) {
+                  alert("Invalid username or password");
+                  return;
+                }
+
+                await fetchUser();
                 onClose();
+                window.location.reload();
               }}
             >
               <input
+                name="username"
                 type="text"
                 placeholder="Username or Email"
                 className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
+
               <input
+                name="password"
                 type="password"
                 placeholder="Password"
                 className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
+
               <button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
@@ -118,8 +157,9 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
               >
                 Don’t have an account? Register
               </button>
+
               <button
-                onClick={onClose}
+                onClick={handleCancel}
                 className="underline hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 Cancel

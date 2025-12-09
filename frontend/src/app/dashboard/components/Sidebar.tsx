@@ -9,7 +9,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ onSelect }) => {
   return (
-    <aside className="bg-[var(--color-bg)] p-4 h-full min-h-screen">
+    <aside className="bg-[var(--color-bg)] p-4 min-h-screen">
       <h2 className="text-xl font-bold mb-6">Menu</h2>
       <ul className="space-y-3">
         <li

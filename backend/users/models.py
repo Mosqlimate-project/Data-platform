@@ -59,14 +59,24 @@ class OAuthAccount(models.Model):
     class Providers(models.TextChoices):
         GOOGLE = "google", "Google"
         GITHUB = "github", "GitHub"
-        ORCID = "orcid", "Orcid"
+        GITLAB = "gitlab", "GitLab"
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="oauth_accounts"
+    )
     provider = models.CharField(max_length=20, choices=Providers.choices)
     provider_id = models.CharField(max_length=255)
     raw_info = models.JSONField()
+    access_token = models.TextField(null=True, blank=True)
+    installation_id = models.CharField(max_length=255, null=True, blank=True)
+    installation_access_token = models.TextField(null=True, blank=True)
+    installation_token_expires_at = models.DateTimeField(null=True, blank=True)
+    installation_metadata = models.JSONField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.provider
 
     class Meta:
         unique_together = ("provider", "provider_id")

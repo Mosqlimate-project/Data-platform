@@ -105,6 +105,12 @@ frontend_port = var_in(
     "FRONTEND_PORT", input_text="  Frontend port [3000]: ", default=3000
 )
 
+frontend_url = var_in(
+    "FRONTEND_URL",
+    input_text=f"  Frontend url [http://localhost:{frontend_port}]: ",
+    default=f"http://localhost:{frontend_port}",
+)
+
 def_dj_host_data = def_data_dir / "django"
 
 dj_host_data = var_in(
@@ -127,7 +133,7 @@ redis_port = var_in(
 
 print("\nDjango Image:")
 worker_port = var_in(
-    "WORKER_PORT", input_text="  Django Worker port [8044]: ", default=8045
+    "WORKER_PORT", input_text="  Django Worker port [8045]: ", default=8045
 )
 
 print("\nDjango OAuth:")
@@ -145,37 +151,49 @@ github_id = var_in(
     "GITHUB_CLIENT_ID",
     input_text="  GitHub Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 github_secret = var_in(
     "GITHUB_SECRET",
     input_text="  Github API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
+)
+github_app = var_in(
+    "GITHUB_APP",
+    input_text="  Github API App (CONTRIBUTING.md)*: ",
+    required=False,
+    default="",
+)
+github_private_key = var_in(
+    "GITHUB_PRIVATE_KEY",
+    input_text="  Github App Private Key (CONTRIBUTING.md)*: ",
+    required=False,
+    default="",
 )
 google_id = var_in(
     "GOOGLE_CLIENT_ID",
     input_text="  Google Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 google_secret = var_in(
     "GOOGLE_SECRET",
     input_text="  Google API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
-orcid_id = var_in(
-    "ORCID_CLIENT_ID",
-    input_text="  Orcid Client ID (CONTRIBUTING.md)*: ",
+gitlab_id = var_in(
+    "GITLAB_CLIENT_ID",
+    input_text="  Gitlab Client ID (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
-orcid_secret = var_in(
-    "ORCID_SECRET",
-    input_text="  Orcid API Secret (CONTRIBUTING.md)*: ",
+gitlab_secret = var_in(
+    "GITLAB_SECRET",
+    input_text="  Gitlab API Secret (CONTRIBUTING.md)*: ",
     required=False,
-    default=None,
+    default="",
 )
 
 print("\nDjango PostgreSQL config:")
@@ -273,6 +291,7 @@ dotenv_file = project_dir / ".env"
 variables = {
     # [Frontend]
     "FRONTEND_PORT": frontend_port,
+    "FRONTEND_URL": frontend_url,
     # [Django Core]
     "ENV": env,
     "SECRET_KEY": secret_key,
@@ -291,10 +310,12 @@ variables = {
     "SITE_NAME": site_name,
     "GITHUB_CLIENT_ID": github_id,
     "GITHUB_SECRET": github_secret,
+    "GITHUB_APP": github_app,
+    "GITHUB_PRIVATE_KEY": github_private_key,
     "GOOGLE_CLIENT_ID": google_id,
     "GOOGLE_SECRET": google_secret,
-    "ORCID_CLIENT_ID": orcid_id,
-    "ORCID_SECRET": orcid_secret,
+    "GITLAB_CLIENT_ID": gitlab_id,
+    "GITLAB_SECRET": gitlab_secret,
     # [Django PostgreSQL]
     "POSTGRES_HOST": psql_host,
     "POSTGRES_PORT": psql_port,
