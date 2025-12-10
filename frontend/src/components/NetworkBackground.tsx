@@ -22,7 +22,7 @@ export default function NetworkBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const BASE_POINTS = 50;
+    const BASE_POINTS = 250;
     const MAX_DISTANCE = 120;
     const MOUSE_DISTANCE = 140;
     const POINT_SPEED = 0.35;
@@ -30,8 +30,8 @@ export default function NetworkBackground() {
 
     const setSize = () => {
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      const w = canvas.clientWidth || canvas.offsetWidth || 300;
-      const h = canvas.clientHeight || canvas.offsetHeight || 300;
+      const w = window.innerWidth;
+      const h = document.documentElement.scrollHeight;
 
       sizeRef.current = { w, h, dpr };
 
@@ -43,7 +43,7 @@ export default function NetworkBackground() {
 
     setSize();
 
-    // cria pontos
+    //create points
     pointsRef.current = Array.from({ length: BASE_POINTS }).map(() => ({
       x: Math.random() * sizeRef.current.w,
       y: Math.random() * sizeRef.current.h,
@@ -54,15 +54,22 @@ export default function NetworkBackground() {
 
     let running = true;
 
+    //detects the current theme (light or dark)
+    const isDarkMode = () => {
+      return document.documentElement.classList.contains('dark') || 
+             window.matchMedia('(prefers-color-scheme: dark)').matches;
+    };
+
     const animate = () => {
       if (!running) return;
 
       const { w, h } = sizeRef.current;
       const { x: mx, y: my, active } = mouseRef.current;
+      const dark = isDarkMode();
 
       ctx.clearRect(0, 0, w, h);
 
-      // move pontos
+      //move points
       for (const p of pointsRef.current) {
         p.x += p.vx;
         p.y += p.vy;
@@ -71,15 +78,17 @@ export default function NetworkBackground() {
         if (p.y <= 0 || p.y >= h) p.vy *= -1;
       }
 
-      // desenha pontos
+      //draw points
       for (const p of pointsRef.current) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(120,160,180,0.55)";
+        ctx.fillStyle = dark
+                        ? "rgba(120,160,180,0.55)"
+                        : "rgba(112, 95, 136, 0.85)";
         ctx.fill();
       }
 
-      // linhas entre pontos
+      //lines between points
       const pts = pointsRef.current;
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
@@ -91,14 +100,17 @@ export default function NetworkBackground() {
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
             ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(120,160,180,${1 - dist / MAX_DISTANCE})`;
+            const alpha = 1 - dist / MAX_DISTANCE;
+            ctx.strokeStyle = dark
+                              ? `rgba(120,160,180,${alpha})`
+                              : `rgba(34,29,43, ${alpha})`;
             ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         }
       }
 
-      // interação com o mouse
+      //mouse interaction
       if (active) {
         for (const p of pts) {
           const dx = p.x - mx;
@@ -108,15 +120,17 @@ export default function NetworkBackground() {
           if (dist < MOUSE_DISTANCE) {
             const alpha = 1 - dist / MOUSE_DISTANCE;
 
-            // linha até o mouse
+            //line to mouse
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(mx, my);
-            ctx.strokeStyle = `rgba(160,200,220,${alpha})`;
+            ctx.strokeStyle = dark
+                              ? `rgba(160,200,220,${alpha})`
+                              : `rgba(34,29,43, ${alpha})`;
             ctx.lineWidth = 0.6;
             ctx.stroke();
 
-            // leve atração
+            //slight attraction
             p.vx += -dx * 0.0003;
             p.vy += -dy * 0.0003;
           }
@@ -128,7 +142,7 @@ export default function NetworkBackground() {
 
     rafRef.current = requestAnimationFrame(animate);
 
-    // eventos do mouse (relativo ao canvas)
+    //Mouse events (related to the canvas)
     const onMouseMove = (e: MouseEvent) => {
       if (!canvas) return;
 
@@ -146,11 +160,11 @@ export default function NetworkBackground() {
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseleave", onMouseLeave);
 
-    // resize
+    //resize
     const onResize = () => setSize();
     window.addEventListener("resize", onResize);
 
-    // cleanup
+    //cleanup
     return () => {
       running = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -163,7 +177,8 @@ export default function NetworkBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none" //none tira a interatividade mas as coisas funcionam
+      className="absolute inset-0 w-full h-full pointer-events-auto"
+      style={{ zIndex: 0}}
     />
   );
 }
