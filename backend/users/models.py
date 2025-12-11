@@ -68,6 +68,8 @@ class OAuthAccount(models.Model):
     provider_id = models.CharField(max_length=255)
     raw_info = models.JSONField()
     access_token = models.TextField(null=True, blank=True)
+    refresh_token = models.TextField(null=True, blank=True)
+    access_token_expires_at = models.DateTimeField(null=True, blank=True)
     installation_id = models.CharField(max_length=255, null=True, blank=True)
     installation_access_token = models.TextField(null=True, blank=True)
     installation_token_expires_at = models.DateTimeField(null=True, blank=True)

@@ -19,6 +19,7 @@ export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) 
         ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
         ...(options.headers || {}),
       },
+      credentials: "include",
     });
   };
 

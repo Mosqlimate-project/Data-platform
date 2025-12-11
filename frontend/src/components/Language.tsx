@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import clsx from "clsx";
 import i18n from "@/lib/i18n";
+import { IoLanguage } from "react-icons/io5";
 
 const LANGUAGES = [
   { code: "en", label: "EN" },
@@ -55,20 +56,21 @@ export default function LanguageSelector() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-center px-4 h-10 rounded-md border border-border hover:bg-hover transition-colors text-sm font-medium"
+        className="p-2 rounded-full hover:bg-hover transition-colors text-text/80 hover:text-text flex items-center justify-center"
+        aria-label="Change Language"
       >
-        {LANGUAGES.find((l) => l.code === language)?.label.toUpperCase()}
+        <IoLanguage size={20} />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-[5px] w-35 bg-bg border border-border rounded-md shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-16 bg-bg border border-border rounded-md shadow-lg overflow-hidden z-50 py-1">
           {LANGUAGES.map(({ code, label }) => (
             <button
               key={code}
               onClick={() => handleSelect(code)}
               className={clsx(
-                "w-full text-left px-4 py-2 hover:bg-hover transition-colors",
-                language === code ? "font-semibold" : "font-normal"
+                "w-full text-left px-4 py-2 hover:bg-hover transition-colors text-sm",
+                language === code ? "font-semibold text-blue-600 dark:text-blue-400" : "text-text"
               )}
             >
               {label}

@@ -132,9 +132,8 @@ function RegisterPageContent() {
     form.append('first_name', firstName);
     form.append('last_name', lastName);
     form.append('homepage_url', homepage || '');
-
+    if (data) form.append('oauth_data', data);
     if (avatar) form.append('avatar_file', avatar);
-    if (oauthDecoded?.raw) form.append('oauth_data', oauthDecoded.raw);
 
     const res = await fetch('/api/user/register', {
       method: 'POST',

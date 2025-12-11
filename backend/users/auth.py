@@ -10,9 +10,23 @@ User = get_user_model()
 
 
 class JWTAuth(HttpBearer):
-    def authenticate(self, request, token):
+    def __call__(self, request):
+        headers = request.headers
+        auth_value = headers.get(self.header)
+        token = None
+
+        if auth_value and auth_value.startswith("Bearer "):
+            token = auth_value.split(" ")[1]
+
         if not token:
             token = request.COOKIES.get("access_token")
+
+        if not token:
+            return None
+
+        return self.authenticate(request, token)
+
+    def authenticate(self, request, token):
         if not token:
             return None
 

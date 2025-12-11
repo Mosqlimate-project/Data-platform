@@ -1,31 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { apiFetch } from "@/lib/api";
+import { useState } from "react";
 import { Layout } from "./components/Endpoint";
+import { endpoints } from "./data";
 
 export default function DatastorePage() {
   const [selected, setSelected] = useState<number | null>(null);
-  const [endpoints, setEndpoints] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    apiFetch("/datastore/endpoints/")
-      .then((data) => {
-        setEndpoints(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to fetch endpoints");
-        setLoading(false);
-      });
-  }, []);
 
   const renderContent = () => {
-    if (loading) return <p>Loading endpoints...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
+
     if (selected === null) return (
       <>
         <h2 className="text-lg font-semibold mb-4">Endpoint Details</h2>
@@ -57,19 +40,19 @@ export default function DatastorePage() {
             key={i}
             onClick={() => setSelected(i)}
             className={`min-w-[240px] h-40 rounded-md flex flex-col justify-between p-4 cursor-pointer border transition-all shadow-sm ${selected === i
-              ? "bg-[var(--color-accent)] text-white shadow-none"
-              : "bg-[var(--color-bg)] text-[var(--color-text)] hover:shadow-none"
+                ? "bg-[var(--color-accent)] text-white shadow-none"
+                : "bg-[var(--color-bg)] text-[var(--color-text)] hover:shadow-none"
               }`}
           >
             <div>
               <h3 className="font-semibold mb-2">{ep.name}</h3>
               <div className="flex flex-wrap gap-2">
-                {ep.tags.map((tag: string) => (
+                {ep.tags.map((tag) => (
                   <span
                     key={tag}
                     className={`text-xs px-2 py-1 rounded-md border ${selected === i
-                      ? "border-white/40 bg-white/10"
-                      : "border-[var(--color-border)] bg-[var(--color-bg)]"
+                        ? "border-white/40 bg-white/10"
+                        : "border-[var(--color-border)] bg-[var(--color-bg)]"
                       }`}
                   >
                     {tag}
@@ -82,11 +65,12 @@ export default function DatastorePage() {
               target="_blank"
               rel="noopener noreferrer"
               className={`text-sm font-medium self-end ${selected === i
-                ? "text-white/80"
-                : "text-[var(--color-text)] opacity-80"
+                  ? "text-white/80"
+                  : "text-[var(--color-text)] opacity-80"
                 }`}
+              onClick={(e) => e.stopPropagation()}
             >
-              Saiba mais →
+              More info →
             </a>
           </div>
         ))}
