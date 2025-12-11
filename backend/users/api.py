@@ -1,4 +1,5 @@
 from typing import Literal, Optional
+from datetime import timedelta
 
 import httpx
 from ninja import Router
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
@@ -53,6 +55,21 @@ def check_email(request, email: str):
 
 
 @router.get(
+    "/oauth/connections/",
+    auth=JWTAuth(),
+    response=list[str],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def get_connected_providers(request):
+    return list(
+        OAuthAccount.objects.filter(user=request.auth).values_list(
+            "provider", flat=True
+        )
+    )
+
+
+@router.get(
     "/oauth/login/{provider}/",
     response={200: dict, 400: BadRequestSchema},
     include_in_schema=False,
@@ -85,15 +102,23 @@ def oauth_callback(
 
     try:
         state_data = client.decode_state(state)
-        next = state_data.get("next", "")
+        next_url = state_data.get("next", "")
     except signing.BadSignature:
         return 400, {"message": "Invalid or expired state"}
 
     try:
         token_data = client.get_token(code)
         access_token = token_data.get("access_token")
+        refresh_token = token_data.get("refresh_token")
+
+        expires_in = token_data.get("expires_in")
+        expires_at = None
+        if expires_in:
+            expires_at = timezone.now() + timedelta(seconds=int(expires_in))
+
         if not access_token:
             return 400, {"message": "Missing access token"}
+
         raw_info = client.get_user_info(access_token, token_data)
     except httpx.HTTPError as e:
         return 400, {"message": f"HTTP error: {e}"}
@@ -103,6 +128,30 @@ def oauth_callback(
     adapter = OAuthAdapter.from_request(request, provider, raw_info)
     provider_id = adapter.provider_id
 
+    user = None
+    token = request.COOKIES.get("access_token")
+    if token:
+        payload = decode_token(token)
+        if payload and payload.get("type") == "access":
+            try:
+                user = User.objects.get(pk=payload.get("sub"))
+            except User.DoesNotExist:
+                pass
+
+    if user:
+        OAuthAccount.objects.update_or_create(
+            user=user,
+            provider=provider,
+            defaults={
+                "provider_id": provider_id,
+                "raw_info": raw_info,
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "access_token_expires_at": expires_at,
+            },
+        )
+        return HttpResponseRedirect(next_url)
+
     try:
         account = OAuthAccount.objects.select_related("user").get(
             provider=provider,
@@ -110,18 +159,25 @@ def oauth_callback(
         )
         user = account.user
 
+        account.access_token = access_token
+        if refresh_token:
+            account.refresh_token = refresh_token
+        if expires_at:
+            account.access_token_expires_at = expires_at
+
+        account.save()
+
         data = signing.dumps(
             {
                 "access_token": create_access_token({"sub": str(user.pk)}),
                 "refresh_token": create_refresh_token({"sub": str(user.pk)}),
-                "next": next,
+                "next": next_url,
             },
             compress=True,
             salt="oauth-callback",
         )
-
         return HttpResponseRedirect(
-            f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
+            f"{settings.FRONTEND_URL}/oauth/callback?data={data}"
         )
 
     except OAuthAccount.DoesNotExist:
@@ -130,65 +186,31 @@ def oauth_callback(
         ).first()
 
         if existing_user:
-            OAuthAccount.objects.update_or_create(
+            OAuthAccount.objects.create(
                 user=existing_user,
                 provider=provider,
                 provider_id=provider_id,
-                defaults={
-                    "raw_info": raw_info,
-                    "access_token": access_token,
-                },
+                raw_info=raw_info,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                access_token_expires_at=expires_at,
             )
 
             data = signing.dumps(
                 {
                     "access_token": create_access_token(
-                        {"sub": str(existing_user.pk)},
+                        {"sub": str(existing_user.pk)}
                     ),
                     "refresh_token": create_refresh_token(
                         {"sub": str(existing_user.pk)}
                     ),
+                    "next": next_url,
                 },
                 compress=True,
                 salt="oauth-callback",
             )
             return HttpResponseRedirect(
-                f"{settings.FRONTEND_URL}/oauth/callback?data={data}",
-            )
-        auth_header = request.headers.get("Authorization")
-        user = None
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ", 1)[1]
-            payload = decode_token(token)
-            if payload and payload.get("type") == "access":
-                user_id = payload.get("sub")
-                try:
-                    user = User.objects.get(pk=user_id)
-                except User.DoesNotExist:
-                    user = None
-
-        if user:
-            account, created = OAuthAccount.objects.update_or_create(
-                provider=provider,
-                provider_id=provider_id,
-                defaults={
-                    "user": user,
-                    "raw_info": raw_info,
-                    "access_token": access_token,
-                },
-            )
-            action = "link" if created else "update"
-            data = signing.dumps(
-                {
-                    "action": action,
-                    "message": f"{provider} account {action}",
-                    "next": next,
-                },
-                compress=True,
-                salt="oauth-callback",
-            )
-            return HttpResponseRedirect(
-                f"{settings.FRONTEND_URL}/oauth/link?data={data}",
+                f"{settings.FRONTEND_URL}/oauth/callback?data={data}"
             )
 
         data = signing.dumps(
@@ -203,14 +225,18 @@ def oauth_callback(
                 "provider_id": provider_id,
                 "raw_info": raw_info,
                 "access_token": access_token,
-                "next": next,
+                "refresh_token": refresh_token,
+                "access_token_expires_at": (
+                    expires_at.isoformat() if expires_at else None
+                ),
+                "next": next_url,
             },
             compress=True,
             salt="oauth-callback",
         )
 
         return HttpResponseRedirect(
-            f"{settings.FRONTEND_URL}/oauth/register?data={data}",
+            f"{settings.FRONTEND_URL}/oauth/register?data={data}"
         )
 
 
@@ -265,6 +291,7 @@ def oauth_install_callback(
             client = OAuthProvider.from_request(request, provider)
             token_data = client.get_token(code)
             access_token = token_data.get("access_token")
+            refresh_token = token_data.get("refresh_token")
 
             if access_token:
                 raw_info = client.get_user_info(access_token, token_data)
@@ -287,6 +314,7 @@ def oauth_install_callback(
 
         if access_token:
             account.access_token = access_token
+            account.refresh_token = refresh_token
             account.save()
 
         if not installation_id:
@@ -378,6 +406,20 @@ def me(request):
     return user
 
 
+@router.get(
+    "/api-key/",
+    response={200: dict, 400: BadRequestSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def api_key(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    return 200, {"api_key": user.api_key()}
+
+
 @router.post(
     "/login/",
     response={200: LoginOut, 403: ForbiddenSchema},
@@ -424,6 +466,27 @@ def register(request, payload: RegisterIn):
         is_staff=False,
     )
 
+    if payload.oauth_data:
+        data = signing.loads(
+            payload.oauth_data, salt="oauth-callback", max_age=600
+        )
+
+        expires_at = None
+        if data.get("expires_at_iso"):
+            from django.utils.dateparse import parse_datetime
+
+            expires_at = parse_datetime(data["expires_at_iso"])
+
+        OAuthAccount.objects.create(
+            user=user,
+            provider=data["provider"],
+            provider_id=data["provider_id"],
+            raw_info=data["raw_info"],
+            access_token=data["access_token"],
+            refresh_token=data.get("refresh_token"),
+            access_token_expires_at=expires_at,
+        )
+
     return 201, {
         "access_token": create_access_token({"sub": str(user.pk)}),
         "refresh_token": create_refresh_token({"sub": str(user.pk)}),
@@ -438,14 +501,14 @@ def refresh_token(request, data: RefreshIn):
     payload = decode_token(data.refresh_token)
 
     if not payload or payload.get("type") != "refresh":
-        return 401, {"detail": "Invalid or expired token"}
+        return 401, {"message": "Invalid or expired token"}
 
     user_id = payload.get("sub")
 
     try:
         User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return 401, {"detail": "User not found"}
+        return 401, {"message": "User not found"}
 
     return {
         "access_token": create_access_token({"sub": str(user_id)}),
@@ -466,15 +529,35 @@ def list_repositories(request, provider: Literal["github", "gitlab"]):
     except OAuthAccount.DoesNotExist:
         return 404, {"message": f"Please link your {provider} account first."}
 
-    token = account.access_token
     client = OAuthProvider.from_request(request, provider)
 
+    def fetch_repos(access_token):
+        return client.get_user_repos(access_token)
+
     try:
-        repos = client.get_user_repos(token)
+        repos = fetch_repos(account.access_token)
         return 200, repos
+
     except httpx.HTTPStatusError as e:
-        if e.response.status_code == 401:
-            return 401, {"message": f"{e}"}
+        if e.response.status_code == 401 and account.refresh_token:
+            try:
+                new_tokens = client.refresh_access_token(account.refresh_token)
+                account.access_token = new_tokens["access_token"]
+                account.refresh_token = new_tokens.get(
+                    "refresh_token", account.refresh_token
+                )
+                expires_in = new_tokens.get("expires_in")
+                if expires_in:
+                    account.access_token_expires_at = (
+                        timezone.now() + timedelta(seconds=int(expires_in))
+                    )
+                account.save()
+
+                repos = fetch_repos(account.access_token)
+                return 200, repos
+
+            except Exception as refresh_error:
+                print(f"Refresh failed: {refresh_error}")
         raise e
 
 

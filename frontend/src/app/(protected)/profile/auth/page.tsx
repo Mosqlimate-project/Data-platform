@@ -1,58 +1,71 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
-import { FaGithub, FaKey, FaCopy, FaSync, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub, FaGitlab, FaKey, FaCopy, FaSync, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash, FaLink } from 'react-icons/fa';
 import clsx from 'clsx';
+import { oauthLogin } from '@/lib/api/auth';
 
 export default function AuthSettingsPage() {
   const pathname = usePathname();
 
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
-  const [githubStatus, setGithubStatus] = useState<'loading' | 'connected' | 'missing'>('loading');
+  const [githubAppStatus, setGithubAppStatus] = useState<'loading' | 'connected' | 'missing'>('loading');
   const [loadingKey, setLoadingKey] = useState(false);
 
-  const installUrl = `/oauth/install/github?next=${encodeURIComponent(pathname)}`;
+  const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
+
+  const initialized = useRef(false);
+
+  const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
 
   useEffect(() => {
-    checkGithubStatus();
+    if (initialized.current) return;
+    initialized.current = true;
+
+    checkGithubAppStatus();
     fetchApiKey();
+    fetchConnectedProviders();
   }, []);
 
-  const checkGithubStatus = async () => {
+  const checkGithubAppStatus = async () => {
     try {
-      // Reuse the repository listing to check if we have access.
-      // If this returns 401 or empty list, we might prompt to configure.
-      // Ideally, you'd have a specific endpoint like /user/connections/github
-      // For now, we assume if we can list repos, we are connected.
-      await apiFetch('/user/repositories/github');
-      setGithubStatus('connected');
+      await apiFetch('/user/repositories/github/', { auth: true });
+      setGithubAppStatus('connected');
     } catch {
-      setGithubStatus('missing');
+      setGithubAppStatus('missing');
     }
   };
 
   const fetchApiKey = async () => {
     try {
       const data = await apiFetch('/user/api-key/');
-      setApiKey(data.key);
+      setApiKey(data.api_key);
     } catch (err) {
       console.error("Failed to fetch API key");
     }
   };
 
+  const fetchConnectedProviders = async () => {
+    try {
+      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
+      setConnectedProviders(connectedProviders);
+    } catch (err) {
+      console.error("Failed to fetch connections");
+    }
+  };
+
   const rotateKey = async () => {
-    if (!confirm("Are you sure? This will invalidate your existing API key everywhere.")) return;
+    if (!confirm("Are you sure?")) return;
 
     setLoadingKey(true);
     try {
       const data = await apiFetch('/user/api-key/rotate/', { method: 'POST' });
       setApiKey(data.key);
-      alert("New API Key generated.");
     } catch (err) {
-      alert("Failed to rotate key.");
     } finally {
       setLoadingKey(false);
     }
@@ -63,6 +76,43 @@ export default function AuthSettingsPage() {
       navigator.clipboard.writeText(apiKey);
       alert("Copied to clipboard!");
     }
+  };
+
+  const handleOAuth = (provider: "google" | "github" | "gitlab") => {
+    oauthLogin(provider, pathname);
+  };
+
+  const renderProviderRow = (provider: string, icon: React.ReactNode, name: string) => {
+    const isConnected = connectedProviders.includes(provider);
+
+    return (
+      <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-neutral-800 last:border-0">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gray-50 dark:bg-neutral-800 rounded-lg text-gray-700 dark:text-gray-200">
+            {icon}
+          </div>
+          <div>
+            <h4 className="font-medium text-sm text-gray-900 dark:text-white">{name}</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {isConnected ? `Connected to ${name}` : `Link your ${name} account`}
+            </p>
+          </div>
+        </div>
+
+        {isConnected ? (
+          <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full text-xs font-medium">
+            <FaCheckCircle /> Connected
+          </div>
+        ) : (
+          <button
+            onClick={() => handleOAuth(provider as "google" | "github" | "gitlab")}
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-neutral-700 rounded-md text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+          >
+            <FaLink /> Connect
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -77,25 +127,40 @@ export default function AuthSettingsPage() {
       </div>
 
       <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Connected Accounts</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Log in to Mosqlimate using these providers.
+          </p>
+        </div>
+
+        <div className="flex flex-col">
+          {renderProviderRow('google', <FcGoogle />, 'Google')}
+          {renderProviderRow('github', <FaGithub />, 'GitHub')}
+          {renderProviderRow('gitlab', <FaGitlab />, 'GitLab')}
+        </div>
+      </div>
+
+      <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-lg">
               <FaGithub size={24} className="text-gray-900 dark:text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">GitHub App</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">GitHub App Integration</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Required for importing repositories and tracking models.
+                Grant permission to import repositories and track models.
               </p>
             </div>
           </div>
 
           <div>
-            {githubStatus === 'loading' ? (
+            {githubAppStatus === 'loading' ? (
               <span className="text-sm text-gray-500">Checking...</span>
-            ) : githubStatus === 'connected' ? (
+            ) : githubAppStatus === 'connected' ? (
               <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full text-sm font-medium">
-                <FaCheckCircle /> Connected
+                <FaCheckCircle /> Installed
               </div>
             ) : (
               <a
@@ -108,7 +173,7 @@ export default function AuthSettingsPage() {
           </div>
         </div>
 
-        {githubStatus === 'connected' && (
+        {githubAppStatus === 'connected' && (
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
             <a
               href={installUrl}

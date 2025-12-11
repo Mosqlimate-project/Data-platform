@@ -3,15 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { FaUser, FaCog, FaShieldAlt, FaCube, FaChartLine, FaExchangeAlt } from 'react-icons/fa';
+import { FaUser, FaCog, FaShieldAlt } from 'react-icons/fa';
 
 const sidebar = [
   { name: 'Public Profile', href: '/profile', icon: FaUser },
   { name: 'Account', href: '/profile/account', icon: FaCog },
   { name: 'Auth', href: '/profile/auth', icon: FaShieldAlt },
-  { name: 'Requests', href: '/profile/requests', icon: FaExchangeAlt },
-  { name: 'Models', href: '/profile/models', icon: FaCube },
-  { name: 'Predictions', href: '/profile/predictions', icon: FaChartLine },
 ];
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
