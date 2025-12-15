@@ -141,7 +141,7 @@ class GoogleProvider(OAuthProvider):
 class GithubProvider(OAuthProvider):
     provider = "github"
     redirect_url = (
-        f"{settings.BACKEND_URL}/api/user/oauth/install/{provider}/callback"
+        f"{settings.BACKEND_URL}/api/user/oauth/callback/{provider}/"
     )
     client_id = settings.GITHUB_CLIENT_ID
     client_secret = settings.GITHUB_SECRET
@@ -265,6 +265,32 @@ class GithubProvider(OAuthProvider):
 
         return repos
 
+    def refresh_access_token(self, refresh_token: str):
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        }
+
+        headers = {"Accept": "application/json"}
+
+        with httpx.Client() as client:
+            resp = client.post(
+                "https://github.com/login/oauth/access_token",
+                data=payload,
+                headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            if "error" in data:
+                raise ValueError(
+                    f"GitHub Refresh Failed: {data.get('error_description')}"
+                )
+
+            return data
+
 
 class GitlabProvider(OAuthProvider):
     provider = "gitlab"
@@ -297,3 +323,52 @@ class GitlabProvider(OAuthProvider):
             )
             res.raise_for_status()
             return res.json()
+
+    def get_user_repos(self, access_token: str):
+        repos = []
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        params = {
+            "membership": "true",
+            "min_access_level": 40,
+            "per_page": 100,
+            "order_by": "updated_at",
+        }
+
+        transport = httpx.HTTPTransport(retries=3)
+
+        with httpx.Client(transport=transport) as client:
+            res = client.get(
+                "https://gitlab.com/api/v4/projects",
+                headers=headers,
+                params=params,
+            )
+            res.raise_for_status()
+            projects = res.json()
+
+            for p in projects:
+                repos.append(
+                    {
+                        "id": str(p["id"]),
+                        "name": p["path_with_namespace"],
+                        "url": p["web_url"],
+                        "private": p["visibility"] == "private",
+                        "provider": "gitlab",
+                    }
+                )
+
+        return repos
+
+    def refresh_access_token(self, refresh_token: str):
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+            "redirect_uri": self.redirect_url,
+        }
+
+        with httpx.Client() as client:
+            resp = client.post(self.token_url, data=payload)
+            resp.raise_for_status()
+            return resp.json()

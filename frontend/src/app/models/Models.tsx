@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Thumbnail from "./components/Model";
 import SearchBar from "./components/SearchBar";
+import { useAuth } from "@/components/AuthProvider";
+import { FaPlus } from "react-icons/fa";
 
 type Model = {
   repo: string;
@@ -13,7 +16,9 @@ type Model = {
 
 export default function Models({ models }: { models: Model[] }) {
   const [query, setQuery] = useState("");
-  const filteredModels = [{ repo: "", type: "", predictions: 0, lastUpdate: "2020-01-01" }].filter((m) =>
+  const { user } = useAuth();
+
+  const filteredModels = models.filter((m) =>
     m.repo.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -25,7 +30,6 @@ export default function Models({ models }: { models: Model[] }) {
 
   function generatePages(current: number, total: number) {
     const pages: (number | string)[] = [];
-
     if (total <= 7) {
       for (let i = 1; i <= total; i++) pages.push(i);
     } else if (current <= 4) {
@@ -35,7 +39,6 @@ export default function Models({ models }: { models: Model[] }) {
     } else {
       pages.push(1, "...", current - 1, current, current + 1, "...", total);
     }
-
     return pages;
   }
 
@@ -46,13 +49,23 @@ export default function Models({ models }: { models: Model[] }) {
       <div className="flex gap-6 w-full">
         <div className="md:basis-[60%] flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Models</h1>
-            <div className="justify-end">
+            <h1 className="text-2xl font-bold text-[var(--color-text)]">Models</h1>
+
+            <div className="flex items-center gap-3">
+              {user && (
+                <Link
+                  href="/model/add"
+                  className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-2xl text-sm font-medium transition-all shadow-sm hover:shadow-md"
+                >
+                  <FaPlus className="text-xs" />
+                  <span className="hidden sm:inline">Model</span>
+                </Link>
+              )}
               <SearchBar onSearch={setQuery} />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
             {paginatedModels.map((model, idx) => (
               <Thumbnail
                 key={`${model.repo}-${idx}`}
@@ -64,42 +77,44 @@ export default function Models({ models }: { models: Model[] }) {
             ))}
           </div>
 
-          <div className="flex justify-center mt-6 gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-            >
-              Prev
-            </button>
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+              >
+                Prev
+              </button>
 
-            {pages.map((p, i) =>
-              p === "..." ? (
-                <span key={i} className="px-2 py-1 text-gray-500">
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={i}
-                  onClick={() => setPage(p as number)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md border text-sm transition border-[var(--color-border)] ${page === p
-                    ? "border-[var(--color-accent)] text-[var(--color-border)]"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                >
-                  {p}
-                </button>
-              )
-            )}
+              {pages.map((p, i) =>
+                p === "..." ? (
+                  <span key={i} className="px-2 py-1 text-gray-500">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => setPage(p as number)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md border text-sm transition border-[var(--color-border)] ${page === p
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                      }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
 
-            <button
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages}
-              className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+              <button
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                disabled={page === totalPages}
+                className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="hidden md:flex basis-[40%] rounded-md border border-[var(--color-border)] p-6 bg-[var(--color-bg)] h-full">

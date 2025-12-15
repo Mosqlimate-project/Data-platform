@@ -4,10 +4,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const data = searchParams.get("data");
 
+  const target = new URL("/register", request.url);
+
   if (!data) {
-    return NextResponse.redirect(new URL("/register?error=missing_data", request.url));
+    target.searchParams.set("error", "missing_data");
+  } else {
+    target.searchParams.set("data", data);
   }
 
-  const target = new URL(`/register?data=${encodeURIComponent(data)}`, request.url);
   return NextResponse.redirect(target);
 }

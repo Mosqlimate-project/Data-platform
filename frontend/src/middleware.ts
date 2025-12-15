@@ -10,10 +10,12 @@ const publicPaths = [
   "/api/user/register",
   "/api/user/check-username",
   "/api/user/check-email",
+  "/api/registry/models",
   "/api/datastore/charts",
   "/_next",
   "/favicon.ico",
   "/public",
+  "/models",
 ];
 
 export async function middleware(request: NextRequest) {
