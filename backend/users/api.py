@@ -521,6 +521,7 @@ def refresh_token(request, data: RefreshIn):
     auth=JWTAuth(),
     response={200: list[dict], 401: BadRequestSchema, 404: NotFoundSchema},
 )
+@decorate_view(never_cache)
 def list_repositories(request, provider: Literal["github", "gitlab"]):
     user = request.auth
 

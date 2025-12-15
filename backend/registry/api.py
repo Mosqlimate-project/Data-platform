@@ -36,14 +36,14 @@ from .schema import (
     AuthorSchema,
     ModelFilterSchema,
     ModelSchema,
-    ModelThumbs,
     PredictionFilterSchema,
     PredictionSchema,
     PredictionOut,
     PredictionIn,
     PredictionDataRowOut,
-    ModelIncludeInit,
 )
+from . import schema as s
+from . import models as m
 from .utils import calling_via_swagger
 from vis.brasil.models import State, City
 from vis.tasks import calculate_score
@@ -215,18 +215,6 @@ def list_models(
         APILog.from_request(request)
     models = Model.objects.all()
     models = filters.filter(models)
-    return models.order_by("-updated")
-
-
-@router.get(
-    "/models/thumbnails/",
-    response=List[ModelThumbs],
-    auth=uidkey_auth,
-    tags=["registry", "frontend"],
-    include_in_schema=False,
-)
-def models_thumbnails(request):
-    models = Model.objects.all()
     return models.order_by("-updated")
 
 
@@ -589,8 +577,20 @@ def delete_prediction(request, predict_id: int):
 @router.post(
     "/model/init/",
     auth=JWTAuth(),
-    tags=["registry", "models"],
+    tags=["registry", "frontend"],
     include_in_schema=False,
 )
-def include_model_init(request, payload: ModelIncludeInit):
+def include_model_init(request, payload: s.ModelIncludeInit):
     raise ValueError(payload.repo_url)
+
+
+@router.get(
+    "/models/thumbnails/",
+    response=List[s.ModelThumbs],
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+def models_thumbnails(request):
+    models = m.Model.objects.all()
+    return models.order_by("-updated")

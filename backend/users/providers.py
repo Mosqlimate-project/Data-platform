@@ -265,6 +265,32 @@ class GithubProvider(OAuthProvider):
 
         return repos
 
+    def refresh_access_token(self, refresh_token: str):
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        }
+
+        headers = {"Accept": "application/json"}
+
+        with httpx.Client() as client:
+            resp = client.post(
+                "https://github.com/login/oauth/access_token",
+                data=payload,
+                headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            if "error" in data:
+                raise ValueError(
+                    f"GitHub Refresh Failed: {data.get('error_description')}"
+                )
+
+            return data
+
 
 class GitlabProvider(OAuthProvider):
     provider = "gitlab"

@@ -16,6 +16,7 @@ const links = [
   { href: '/models', label: 'Models' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/datastore', label: 'Datastore' },
+  { href: '/papers', label: 'Papers' },
   { href: '/docs', label: 'Docs' },
 ];
 

@@ -33,8 +33,12 @@ export default function AuthSettingsPage() {
 
   const checkGithubAppStatus = async () => {
     try {
-      await apiFetch('/user/repositories/github/', { auth: true });
-      setGithubAppStatus('connected');
+      const repos = await apiFetch('/user/repositories/github/', { auth: true });
+      if (Array.isArray(repos) && repos.length > 0) {
+        setGithubAppStatus('connected');
+      } else {
+        setGithubAppStatus('missing');
+      }
     } catch {
       setGithubAppStatus('missing');
     }
@@ -152,6 +156,11 @@ export default function AuthSettingsPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Grant permission to import repositories and track models.
               </p>
+              {!connectedProviders.includes('github') && (
+                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                  You must link your GitHub account above before installing.
+                </p>
+              )}
             </div>
           </div>
 
@@ -162,13 +171,20 @@ export default function AuthSettingsPage() {
               <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full text-sm font-medium">
                 <FaCheckCircle /> Installed
               </div>
-            ) : (
+            ) : connectedProviders.includes('github') ? (
               <a
                 href={installUrl}
                 className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition text-sm font-medium"
               >
                 <FaGithub /> Install App
               </a>
+            ) : (
+              <button
+                disabled
+                className="flex items-center gap-2 bg-gray-200 dark:bg-neutral-800 text-gray-400 px-4 py-2 rounded-lg cursor-not-allowed text-sm font-medium"
+              >
+                <FaGithub /> Install App
+              </button>
             )}
           </div>
         </div>

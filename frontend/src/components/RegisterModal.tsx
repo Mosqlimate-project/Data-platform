@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
-import { SiGitlab } from 'react-icons/si';
+import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from '@/lib/api/auth';
 
 interface RegisterModalProps {
@@ -136,7 +135,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
-                  <SiGitlab size={18} className="" />
+                  <FaGitlab size={18} className="text-orange-600" />
                 </React.Suspense>
                 <span>GitLab</span>
               </button>
