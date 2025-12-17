@@ -56,7 +56,12 @@ export default function Navbar() {
   if (!mounted) return null;
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
+    <nav
+      className={clsx(
+        "flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors",
+        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-bg"
+      )}
+    >
 
       <div className="flex items-center gap-8">
         <div className="h-8 w-8 relative flex items-center justify-center">

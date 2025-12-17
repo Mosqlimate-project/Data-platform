@@ -21,9 +21,8 @@ function FadeInSection({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out transform opacity-0 translate-y-8 ${
-        visible ? "opacity-100 translate-y-0" : ""
-      }`}
+      className={`transition-all duration-1000 ease-out transform opacity-0 translate-y-8 ${visible ? "opacity-100 translate-y-0" : ""
+        }`}
     >
       {children}
     </div>
@@ -81,11 +80,11 @@ export default function HomePage() {
     );
   }
   return (
-    <div className="relative w-full min-h-screen bg-bg text-text transition-colors duration-300">
-      
+    <div className="relative w-full min-h-screen bg-[var(--color-bg-home)] text-text transition-colors duration-300">
+
       <div className="relative z-10">
         {/*HERO*/}
-        <section className="py-32 px-6 text-center bg-bg">
+        <section className="py-32 px-6 text-center bg-[var(--color-bg-home)]">
           <Image
             src="/mosquito.svg"
             alt="Logo"
@@ -106,7 +105,7 @@ export default function HomePage() {
         </section>
 
         {/* GET TO KNOW THE PROJECT */}
-        <section className="py-32 px-6 bg-bg">
+        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
           <FadeInSection>
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">Conheça o projeto</h2>
@@ -125,11 +124,11 @@ export default function HomePage() {
                       width={180}
                       height={90}
                       className="rounded-2xl"
-                    /> 
+                    />
                   </a>
                   <p className="mt-3 text-lg font-semibold text-text">Dados</p>
                 </div>
-                
+
                 <div className="flex flex-col items-center">
                   <a href="#analise-nossos-modelos" className="transition-transform hover:scale-105">
                     <Image
@@ -138,7 +137,7 @@ export default function HomePage() {
                       width={180}
                       height={90}
                       className="rounded-2xl"
-                    /> 
+                    />
                   </a>
                   <p className="mt-3 text-lg font-semibold text-text">Modelos Preditivos</p>
                 </div>
@@ -148,7 +147,7 @@ export default function HomePage() {
         </section>
 
         {/* EXPLORE OUR DATA */}
-        <section id="explore-nossos-dados" className="py-32 px-6 bg-bg">
+        <section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg-home)]">
           <FadeInSection>
             <div className="max-w-6xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-10 text-text">Explore nossos dados</h2>
@@ -228,7 +227,7 @@ export default function HomePage() {
         </section>
 
         {/*ANALYSE OUR MODELS*/}
-        <section id="analise-nossos-modelos" className="py-32 px-6 bg-bg">
+        <section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg-home)]">
           <FadeInSection>
             <div className="max-w-5xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">Analise nossos modelos</h2>
@@ -245,14 +244,14 @@ export default function HomePage() {
                   width={1600}
                   height={1200}
                   className="mx-auto w-full max-w-6xl h-auto mt-8"
-                /> 
+                />
               </a>
             </div>
           </FadeInSection>
         </section>
 
         {/*DISCOVEY THE DIFFERENCES OF MOSQLIMATE*/}
-        <section className="py-32 px-6 bg-bg">
+        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
           <FadeInSection>
             <div className="max-w-[1400px] mx-auto text-center">
               <h2 className="text-5xl font-bold mb-16 text-text">Descubra os diferenciais do Mosqlimate</h2>
@@ -314,7 +313,7 @@ export default function HomePage() {
         </section>
 
         {/*GET TO KNOW OUR TEAM*/}
-        <section className="py-32 px-6 bg-bg">
+        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
           <FadeInSection>
             <div className="w-full mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">Conheça a nossa equipe</h2>
@@ -326,7 +325,7 @@ export default function HomePage() {
                   width={650}
                   height={100}
                   className="mx-auto"
-                /> 
+                />
               </a>
             </div>
           </FadeInSection>
