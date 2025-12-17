@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaGithub, FaGitlab, FaLink, FaArrowRight, FaEnvelope, FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle } from 'react-icons/fa';
+import {
+  FaGithub, FaGitlab, FaLink, FaArrowRight, FaEnvelope,
+  FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
+  FaClock, FaMapMarkerAlt, FaFlask, FaCheckSquare
+} from 'react-icons/fa';
 import clsx from 'clsx';
 import { apiFetch } from '@/lib/api';
 
@@ -15,45 +19,78 @@ interface Repository {
   provider: 'github' | 'gitlab';
 }
 
+interface Disease {
+  id: number;
+  name: string;
+}
+
 export default function AddModelPage() {
   const router = useRouter();
-  const [step, setStep] = useState<'selection' | 'verify'>('selection');
+
+  const [step, setStep] = useState<'selection' | 'config' | 'verify'>('selection');
 
   const [repos, setRepos] = useState<Repository[]>([]);
+  const [diseases, setDiseases] = useState<Disease[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(true);
 
   const [url, setUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'github' | 'gitlab'>('all');
 
+  const [config, setConfig] = useState({
+    disease: '',
+    timeResolution: 'daily',
+    adminLevel: '0',
+    sprint: false,
+    varType: 'quantitative',
+    spatial: false,
+    temporal: false,
+  });
+
   const [otp, setOtp] = useState('');
   const [emailHint, setEmailHint] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 1. Fetch Repositories & Diseases on Mount
   useEffect(() => {
-    const fetchRepos = async () => {
+    const initData = async () => {
       setLoadingRepos(true);
-      const results: Repository[] = [];
 
+      // Fetch Repos
+      const results: Repository[] = [];
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
           const data = await apiFetch(`/user/repositories/${provider}/`, { auth: true });
           if (Array.isArray(data)) {
             results.push(...data.map((r: any) => ({ ...r, provider })));
           }
+        } catch (err) { /* ignore */ }
+      };
+
+      // Fetch Diseases (Mocking the endpoint structure based on standard django-ninja patterns)
+      const fetchDiseases = async () => {
+        try {
+          // Replace with your actual endpoint
+          const data = await apiFetch('/registry/diseases/');
+          setDiseases(data);
         } catch (err) {
+          // Fallback for dev/demo if endpoint fails
+          setDiseases([{ id: 1, name: "Dengue" }, { id: 2, name: "Malaria" }, { id: 3, name: "Zika" }]);
         }
       };
 
-      await Promise.all([fetchProvider('github'), fetchProvider('gitlab')]);
+      await Promise.all([
+        fetchProvider('github'),
+        fetchProvider('gitlab'),
+        fetchDiseases()
+      ]);
 
       setRepos(results);
       setLoadingRepos(false);
     };
 
-    fetchRepos();
+    initData();
   }, []);
 
   const filteredRepos = repos.filter(repo => {
@@ -62,17 +99,53 @@ export default function AddModelPage() {
     return matchesSearch && matchesTab;
   });
 
-  const initiateImport = async (repoUrl: string) => {
-    setLoading(true);
+  // Transition from Selection -> Config
+  const handleRepoSelect = (repoUrl: string) => {
     setError(null);
     setUrl(repoUrl);
+    setStep('config');
+  };
+
+  const handleManualUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
+
+    // Validate if it matches a known repo (optional, based on your previous logic)
+    const normalize = (u: string) => u.toLowerCase().replace(/\.git$/, '').replace(/\/$/, '');
+    const cleanInput = normalize(url);
+    const exists = repos.some(r => normalize(r.url) === cleanInput);
+
+    if (!exists) {
+      setError("Please select a valid repository from the list or ensure your account is connected.");
+      return;
+    }
+
+    setStep('config');
+  };
+
+  // Transition from Config -> Verify (Calls Backend)
+  const handleConfigSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const payload = {
+      repo_url: url,
+      disease_id: config.disease, // Assuming backend expects ID
+      time_resolution: config.timeResolution,
+      admin_level: parseInt(config.adminLevel),
+      is_sprint: config.sprint,
+      variable_type: config.varType,
+      is_spatial: config.spatial,
+      is_temporal: config.temporal
+    };
 
     try {
       const res = await fetch('/api/registry/model/init', {
         method: 'POST',
         cache: "no-store",
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo_url: repoUrl })
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
@@ -88,23 +161,6 @@ export default function AddModelPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url) return;
-
-    const isValidRepo = repos.some(r =>
-      r.url.toLowerCase() === url.toLowerCase() ||
-      r.url.toLowerCase().replace('.git', '') === url.toLowerCase().replace('.git', '')
-    );
-
-    if (!isValidRepo) {
-      setError("Please select a valid repository from the list below.");
-      return;
-    }
-
-    initiateImport(url);
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
@@ -131,6 +187,28 @@ export default function AddModelPage() {
     }
   };
 
+  // Helper for Toggle Inputs
+  const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)]">
+      <span className="text-sm font-medium text-[var(--color-text)]">{label}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={clsx(
+          "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+          checked ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-700"
+        )}
+      >
+        <span
+          className={clsx(
+            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+            checked ? "translate-x-6" : "translate-x-1"
+          )}
+        />
+      </button>
+    </div>
+  );
+
   return (
     <div className="max-w-2xl mx-auto mt-10 px-4 mb-20">
       <div className="bg-[var(--color-bg)] rounded-2xl shadow-xl border border-[var(--color-border)] overflow-hidden relative">
@@ -140,13 +218,16 @@ export default function AddModelPage() {
           <motion.div
             className="h-full bg-blue-600"
             initial={{ width: "0%" }}
-            animate={{ width: step === 'selection' ? "30%" : "100%" }}
+            animate={{
+              width: step === 'selection' ? "33%" : step === 'config' ? "66%" : "100%"
+            }}
           />
         </div>
 
         <div className="p-6 md:p-8">
           <AnimatePresence mode="wait">
 
+            {/* STEP 1: SELECTION */}
             {step === 'selection' && (
               <motion.div
                 key="selection"
@@ -164,7 +245,7 @@ export default function AddModelPage() {
                 </div>
 
                 {/* Manual Input */}
-                <form onSubmit={handleManualSubmit} className="relative group">
+                <form onSubmit={handleManualUrlSubmit} className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaLink className="text-gray-400" />
                   </div>
@@ -172,16 +253,19 @@ export default function AddModelPage() {
                     type="url"
                     placeholder="https://github.com/username/repository"
                     value={url}
-                    onChange={(e) => setUrl(e.target.value)}
+                    onChange={(e) => {
+                      setUrl(e.target.value);
+                      if (error) setError(null);
+                    }}
                     disabled={loading}
-                    className="block w-full pl-10 pr-24 py-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-50"
+                    className="block w-full pl-10 pr-24 py-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   />
                   <button
                     type="submit"
                     disabled={!url || loading}
                     className="absolute right-1 top-1 bottom-1 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-sm transition-colors disabled:opacity-0 disabled:pointer-events-none"
                   >
-                    Import
+                    Next
                   </button>
                 </form>
 
@@ -193,6 +277,7 @@ export default function AddModelPage() {
                   <div className="h-px bg-[var(--color-border)] flex-1" />
                 </div>
 
+                {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                   <div className="flex bg-[var(--color-hover)] p-1 rounded-lg">
                     {['all', 'github', 'gitlab'].map((tab) => (
@@ -210,7 +295,6 @@ export default function AddModelPage() {
                       </button>
                     ))}
                   </div>
-
                   <div className="relative w-full sm:w-auto">
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                     <input
@@ -223,6 +307,7 @@ export default function AddModelPage() {
                   </div>
                 </div>
 
+                {/* Repo List */}
                 <div className="h-64 overflow-y-auto border border-[var(--color-border)] rounded-lg bg-gray-50 dark:bg-black/20">
                   {loadingRepos ? (
                     <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] opacity-50 gap-2">
@@ -234,7 +319,7 @@ export default function AddModelPage() {
                       {filteredRepos.map((repo) => (
                         <button
                           key={repo.id}
-                          onClick={() => initiateImport(repo.url)}
+                          onClick={() => handleRepoSelect(repo.url)}
                           disabled={loading}
                           className="w-full text-left p-4 hover:bg-[var(--color-hover)] transition-colors flex items-center justify-between group disabled:opacity-50"
                         >
@@ -247,11 +332,7 @@ export default function AddModelPage() {
                               <p className="text-xs text-[var(--color-text)] opacity-50 truncate">{repo.url}</p>
                             </div>
                           </div>
-                          {loading && url === repo.url ? (
-                            <FaSpinner className="animate-spin text-blue-500" />
-                          ) : (
-                            <FaArrowRight className="text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
-                          )}
+                          <FaArrowRight className="text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
                         </button>
                       ))}
                     </div>
@@ -259,7 +340,7 @@ export default function AddModelPage() {
                     <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] opacity-50 p-6 text-center">
                       <FaCodeBranch className="text-2xl mb-2" />
                       <p>No repositories found.</p>
-                      <p className="text-xs mt-1">Make sure your account is connected in Profile/Auth settings.</p>
+                      <p className="text-xs mt-1">Make sure your account is connected in Settings.</p>
                     </div>
                   )}
                 </div>
@@ -273,6 +354,141 @@ export default function AddModelPage() {
               </motion.div>
             )}
 
+            {/* STEP 2: CONFIGURATION */}
+            {step === 'config' && (
+              <motion.div
+                key="config"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">Configuration</h1>
+                  <p className="text-[var(--color-text)] opacity-60">
+                    Provide details about the model in this repository.
+                  </p>
+                </div>
+
+                <form onSubmit={handleConfigSubmit} className="space-y-5">
+
+                  {/* Read Only Repo URL */}
+                  <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-3 border border-[var(--color-border)]">
+                    <FaCodeBranch className="text-gray-500" />
+                    <span className="text-sm font-mono text-[var(--color-text)] truncate flex-1">{url}</span>
+                    <FaCheckSquare className="text-green-500" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Disease */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-gray-500">Disease</label>
+                      <div className="relative">
+                        <FaFlask className="absolute left-3 top-3 text-gray-400" />
+                        <select
+                          className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                          value={config.disease}
+                          onChange={(e) => setConfig({ ...config, disease: e.target.value })}
+                          required
+                        >
+                          <option value="" disabled>Select Disease</option>
+                          {diseases.map(d => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Time Resolution */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-gray-500">Time Resolution</label>
+                      <div className="relative">
+                        <FaClock className="absolute left-3 top-3 text-gray-400" />
+                        <select
+                          className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                          value={config.timeResolution}
+                          onChange={(e) => setConfig({ ...config, timeResolution: e.target.value })}
+                        >
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="yearly">Yearly</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Admin Level */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-gray-500">Admin Level</label>
+                      <div className="relative">
+                        <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+                        <select
+                          className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                          value={config.adminLevel}
+                          onChange={(e) => setConfig({ ...config, adminLevel: e.target.value })}
+                        >
+                          <option value="0">0 (Country)</option>
+                          <option value="1">1 (Region/State)</option>
+                          <option value="2">2 (City/Muni)</option>
+                          <option value="3">3 (Local)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Categorical vs Quantitative */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-gray-500">Variable Type</label>
+                      <div className="flex bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg p-1">
+                        <button
+                          type="button"
+                          onClick={() => setConfig({ ...config, varType: 'quantitative' })}
+                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'quantitative' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 font-medium" : "text-gray-500")}
+                        >
+                          Quantitative
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig({ ...config, varType: 'categorical' })}
+                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'categorical' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 font-medium" : "text-gray-500")}
+                        >
+                          Categorical
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <Toggle label="Sprint" checked={config.sprint} onChange={(v) => setConfig({ ...config, sprint: v })} />
+                    <Toggle label="Spatial" checked={config.spatial} onChange={(v) => setConfig({ ...config, spatial: v })} />
+                    <Toggle label="Temporal" checked={config.temporal} onChange={(v) => setConfig({ ...config, temporal: v })} />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setStep('selection')}
+                      className="flex-1 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-hover)] transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading || !config.disease}
+                      className="flex-[2] flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    >
+                      {loading ? <FaSpinner className="animate-spin" /> : "Initiate Verification"}
+                    </button>
+                  </div>
+
+                  {error && (
+                    <p className="text-sm text-center text-red-500 mt-2">{error}</p>
+                  )}
+                </form>
+              </motion.div>
+            )}
+
+            {/* STEP 3: VERIFY */}
             {step === 'verify' && (
               <motion.div
                 key="verify"
@@ -327,10 +543,10 @@ export default function AddModelPage() {
 
                     <button
                       type="button"
-                      onClick={() => setStep('selection')}
+                      onClick={() => setStep('config')}
                       className="text-sm text-[var(--color-text)] opacity-60 hover:opacity-100 transition-colors flex items-center justify-center gap-2"
                     >
-                      <FaArrowLeft size={12} /> Back to selection
+                      <FaArrowLeft size={12} /> Back to configuration
                     </button>
                   </div>
                 </form>

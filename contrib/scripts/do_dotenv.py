@@ -78,6 +78,12 @@ secret_key = var_in(
     "  Django Secret Key [random]: ",
     default=get_random_secret_key(),
 )
+admin_uidkey = var_in(
+    "ADMIN_UIDKEY",
+    "  Django ADMIN uid key [CONTRIBUTING]: ",
+    required=False,
+    default="",
+)
 allowed_hosts = var_in(
     "ALLOWED_HOSTS", input_text="  Allowed hosts ['*']: ", default="*"
 )

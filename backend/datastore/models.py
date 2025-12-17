@@ -1,4 +1,50 @@
 from django.db import models
+from django.utils.translation import gettext as _
+from django.contrib.postgres.indexes import GinIndex
+
+
+class ICD(models.Model):
+    class ICDSystems(models.TextChoices):
+        ICD10 = "ICD-10", _("ICD-10")
+        ICD11 = "ICD-11", _("ICD-11")
+
+    system = models.CharField(max_length=10, choices=ICDSystems.choices)
+    version = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ("system", "version")
+
+    def __str__(self):
+        return f"{self.system} ({self.version})"
+
+
+class Disease(models.Model):
+    icd = models.ForeignKey(
+        ICD, on_delete=models.CASCADE, related_name="diseases"
+    )
+    code = models.CharField(max_length=20, primary_key=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Disease"
+        verbose_name_plural = "Diseases"
+        unique_together = ("icd", "code")
+        indexes = [
+            GinIndex(
+                fields=["name"],
+                name="idx_disease_name_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["description"],
+                name="idx_disease_desc_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+
+    def __str__(self):
+        return f"[{self.icd}] {self.code} - {self.name}"
 
 
 class Municipio(models.Model):

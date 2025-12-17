@@ -3,11 +3,24 @@ from typing import Optional
 from django.db import models
 from django.http.request import HttpRequest
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 from mosqlimate.api import authorize
 
 
 User = get_user_model()
+
+
+class TimestampModel(models.Model):
+    created = models.DateTimeField(
+        auto_now_add=True, help_text=_("Creation timestamp")
+    )
+    updated = models.DateTimeField(
+        auto_now=True, help_text=_("Last update timestamp")
+    )
+
+    class Meta:
+        abstract = True
 
 
 class APILog(models.Model):
