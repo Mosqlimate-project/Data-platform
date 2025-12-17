@@ -321,7 +321,7 @@ export default function HomePage() {
               {/*TO DO: Replace href with the correct tab name containing the team descriptions*/}
               <a href="/equipe" className="inline-block">
                 <Image
-                  src="/mosquito_team.svg"
+                  src="/team.svg"
                   alt="Team"
                   width={650}
                   height={100}
