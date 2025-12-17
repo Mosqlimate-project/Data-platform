@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaGithub, FaGitlab, FaLink, FaArrowRight, FaEnvelope,
   FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
-  FaClock, FaMapMarkerAlt, FaFlask, FaCheckSquare
+  FaClock, FaMapMarkerAlt, FaFlask, FaCheck
 } from 'react-icons/fa';
 import clsx from 'clsx';
 import { apiFetch } from '@/lib/api';
+import { useTheme } from 'next-themes';
+import { oauthLogin } from '@/lib/api/auth';
 
 interface Repository {
   id: string;
@@ -17,6 +19,7 @@ interface Repository {
   url: string;
   private: boolean;
   provider: 'github' | 'gitlab';
+  available: boolean;
 }
 
 interface Disease {
@@ -26,6 +29,11 @@ interface Disease {
 
 export default function AddModelPage() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const initialized = useRef(false);
+  const theme = useTheme();
+  const isDark = theme.resolvedTheme === "dark";
 
   const [step, setStep] = useState<'selection' | 'config' | 'verify'>('selection');
 
@@ -36,6 +44,8 @@ export default function AddModelPage() {
   const [url, setUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'github' | 'gitlab'>('all');
+  const [githubAppStatus, setGithubAppStatus] = useState<'loading' | 'connected' | 'missing'>('loading');
+  const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
 
   const [config, setConfig] = useState({
     disease: '',
@@ -51,31 +61,61 @@ export default function AddModelPage() {
   const [emailHint, setEmailHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
 
-  // 1. Fetch Repositories & Diseases on Mount
+  function getModelName(url: string) {
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.pathname.substring(1);
+    } catch (error) {
+      return "";
+    }
+  }
+
+  const fetchConnectedProviders = async () => {
+    try {
+      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
+      setConnectedProviders(connectedProviders);
+    } catch (err) {
+      console.error("Failed to fetch connections");
+    }
+  };
+
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
+    fetchConnectedProviders();
+
     const initData = async () => {
       setLoadingRepos(true);
+      setGithubAppStatus('loading');
 
-      // Fetch Repos
       const results: Repository[] = [];
+
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
           const data = await apiFetch(`/user/repositories/${provider}/`, { auth: true });
           if (Array.isArray(data)) {
+            if (provider === 'github') {
+              if (data.length > 0) {
+                setGithubAppStatus('connected');
+              } else {
+                setGithubAppStatus('missing');
+              }
+            }
             results.push(...data.map((r: any) => ({ ...r, provider })));
           }
-        } catch (err) { /* ignore */ }
+        } catch (err) {
+          if (provider === 'github') setGithubAppStatus('missing');
+        }
       };
 
-      // Fetch Diseases (Mocking the endpoint structure based on standard django-ninja patterns)
       const fetchDiseases = async () => {
         try {
-          // Replace with your actual endpoint
           const data = await apiFetch('/registry/diseases/');
-          setDiseases(data);
+          if (Array.isArray(data)) setDiseases(data);
         } catch (err) {
-          // Fallback for dev/demo if endpoint fails
           setDiseases([{ id: 1, name: "Dengue" }, { id: 2, name: "Malaria" }, { id: 3, name: "Zika" }]);
         }
       };
@@ -99,7 +139,6 @@ export default function AddModelPage() {
     return matchesSearch && matchesTab;
   });
 
-  // Transition from Selection -> Config
   const handleRepoSelect = (repoUrl: string) => {
     setError(null);
     setUrl(repoUrl);
@@ -110,9 +149,16 @@ export default function AddModelPage() {
     e.preventDefault();
     if (!url) return;
 
-    // Validate if it matches a known repo (optional, based on your previous logic)
     const normalize = (u: string) => u.toLowerCase().replace(/\.git$/, '').replace(/\/$/, '');
     const cleanInput = normalize(url);
+
+    const matchedRepo = repos.find(r => normalize(r.url) === cleanInput);
+
+    if (matchedRepo && matchedRepo.available === false) {
+      setError("This repository has already been imported.");
+      return;
+    }
+
     const exists = repos.some(r => normalize(r.url) === cleanInput);
 
     if (!exists) {
@@ -123,7 +169,6 @@ export default function AddModelPage() {
     setStep('config');
   };
 
-  // Transition from Config -> Verify (Calls Backend)
   const handleConfigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -131,7 +176,7 @@ export default function AddModelPage() {
 
     const payload = {
       repo_url: url,
-      disease_id: config.disease, // Assuming backend expects ID
+      disease_id: config.disease,
       time_resolution: config.timeResolution,
       admin_level: parseInt(config.adminLevel),
       is_sprint: config.sprint,
@@ -187,7 +232,6 @@ export default function AddModelPage() {
     }
   };
 
-  // Helper for Toggle Inputs
   const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (v: boolean) => void }) => (
     <div className="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)]">
       <span className="text-sm font-medium text-[var(--color-text)]">{label}</span>
@@ -210,10 +254,11 @@ export default function AddModelPage() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 px-4 mb-20">
-      <div className="bg-[var(--color-bg)] rounded-2xl shadow-xl border border-[var(--color-border)] overflow-hidden relative">
+    <div className="max-w-2xl mx-auto mt-10 px-4 mb-20 bg-">
+      <div className={clsx(
+        "rounded-2xl shadow-xl border border-[var(--color-border)] overflow-hidden relative", isDark ? "bg-accent" : "bg-bg"
+      )}>
 
-        {/* Progress Bar */}
         <div className="h-1 w-full bg-gray-100 dark:bg-neutral-800">
           <motion.div
             className="h-full bg-blue-600"
@@ -227,7 +272,6 @@ export default function AddModelPage() {
         <div className="p-6 md:p-8">
           <AnimatePresence mode="wait">
 
-            {/* STEP 1: SELECTION */}
             {step === 'selection' && (
               <motion.div
                 key="selection"
@@ -244,7 +288,6 @@ export default function AddModelPage() {
                   </p>
                 </div>
 
-                {/* Manual Input */}
                 <form onSubmit={handleManualUrlSubmit} className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaLink className="text-gray-400" />
@@ -277,7 +320,6 @@ export default function AddModelPage() {
                   <div className="h-px bg-[var(--color-border)] flex-1" />
                 </div>
 
-                {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                   <div className="flex bg-[var(--color-hover)] p-1 rounded-lg">
                     {['all', 'github', 'gitlab'].map((tab) => (
@@ -307,7 +349,6 @@ export default function AddModelPage() {
                   </div>
                 </div>
 
-                {/* Repo List */}
                 <div className="h-64 overflow-y-auto border border-[var(--color-border)] rounded-lg bg-gray-50 dark:bg-black/20">
                   {loadingRepos ? (
                     <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] opacity-50 gap-2">
@@ -316,31 +357,87 @@ export default function AddModelPage() {
                     </div>
                   ) : filteredRepos.length > 0 ? (
                     <div className="divide-y divide-[var(--color-border)]">
-                      {filteredRepos.map((repo) => (
-                        <button
-                          key={repo.id}
-                          onClick={() => handleRepoSelect(repo.url)}
-                          disabled={loading}
-                          className="w-full text-left p-4 hover:bg-[var(--color-hover)] transition-colors flex items-center justify-between group disabled:opacity-50"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={clsx("p-2 rounded-lg", repo.provider === 'github' ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white" : "bg-orange-50 dark:bg-orange-900/20 text-orange-600")}>
-                              {repo.provider === 'github' ? <FaGithub /> : <FaGitlab />}
+                      {filteredRepos.map((repo) => {
+                        const isAvailable = repo.available !== false;
+
+                        return (
+                          <button
+                            key={repo.id}
+                            onClick={() => isAvailable && handleRepoSelect(repo.url)}
+                            disabled={loading || !isAvailable}
+                            className={clsx(
+                              "w-full text-left p-4 transition-colors flex items-center justify-between group",
+                              isAvailable
+                                ? "hover:bg-[var(--color-hover)]"
+                                : "opacity-60 cursor-not-allowed bg-gray-100 dark:bg-white/5"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={clsx("p-2 rounded-lg", repo.provider === 'github' ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white" : "bg-orange-50 dark:bg-orange-900/20 text-orange-600")}>
+                                {repo.provider === 'github' ? <FaGithub /> : <FaGitlab />}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="text-sm font-medium text-[var(--color-text)] truncate">{repo.name}</h3>
+                                <p className="text-xs text-[var(--color-text)] opacity-50 truncate">{repo.url}</p>
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <h3 className="text-sm font-medium text-[var(--color-text)] truncate">{repo.name}</h3>
-                              <p className="text-xs text-[var(--color-text)] opacity-50 truncate">{repo.url}</p>
-                            </div>
-                          </div>
-                          <FaArrowRight className="text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
-                        </button>
-                      ))}
+
+                            {isAvailable ? (
+                              <FaArrowRight className="text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
+                            ) : (
+                              <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded flex items-center gap-1">
+                                <FaCheck size={10} /> Imported
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] opacity-50 p-6 text-center">
-                      <FaCodeBranch className="text-2xl mb-2" />
-                      <p>No repositories found.</p>
-                      <p className="text-xs mt-1">Make sure your account is connected in Settings.</p>
+                    <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] p-6 text-center">
+
+                      {activeTab === 'github' && !connectedProviders.includes('github') ? (
+                        <>
+                          <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                            <FaGithub className="text-2xl" />
+                          </div>
+                          <h3 className="text-base font-medium mb-1">Link GitHub Account</h3>
+                          <p className="text-xs opacity-60 max-w-[200px] mb-4">
+                            You need to link your GitHub account to access repositories.
+                          </p>
+                          <button
+                            onClick={() => oauthLogin("github", pathname)}
+                            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition"
+                          >
+                            <FaLink /> Connect GitHub
+                          </button>
+                        </>
+                      )
+                        : activeTab === 'github' && githubAppStatus !== 'connected' ? (
+                          <>
+                            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                              <FaGithub className="text-2xl" />
+                            </div>
+                            <h3 className="text-base font-medium mb-1">Install GitHub App</h3>
+                            <p className="text-xs opacity-60 max-w-[250px] mb-4">
+                              Your account is connected, but you need to install the Model Registry App to import repositories.
+                            </p>
+                            <a
+                              href={installUrl}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+                            >
+                              <FaGithub /> Install App
+                            </a>
+                          </>
+                        )
+                          : (
+                            <>
+                              <FaCodeBranch className="icon-sm mb-2 opacity-50" />
+                              <p className="opacity-50">No repositories found.</p>
+                              <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                            </>
+                          )}
+
                     </div>
                   )}
                 </div>
@@ -354,7 +451,6 @@ export default function AddModelPage() {
               </motion.div>
             )}
 
-            {/* STEP 2: CONFIGURATION */}
             {step === 'config' && (
               <motion.div
                 key="config"
@@ -365,7 +461,7 @@ export default function AddModelPage() {
                 className="space-y-6"
               >
                 <div>
-                  <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">Configuration</h1>
+                  <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">{getModelName(url)}</h1>
                   <p className="text-[var(--color-text)] opacity-60">
                     Provide details about the model in this repository.
                   </p>
@@ -373,19 +469,16 @@ export default function AddModelPage() {
 
                 <form onSubmit={handleConfigSubmit} className="space-y-5">
 
-                  {/* Read Only Repo URL */}
                   <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-3 border border-[var(--color-border)]">
-                    <FaCodeBranch className="text-gray-500" />
+                    <FaCodeBranch className="icon-sm text-gray-500" />
                     <span className="text-sm font-mono text-[var(--color-text)] truncate flex-1">{url}</span>
-                    <FaCheckSquare className="text-green-500" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Disease */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase text-gray-500">Disease</label>
                       <div className="relative">
-                        <FaFlask className="absolute left-3 top-3 text-gray-400" />
+                        <FaFlask className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.disease}
@@ -400,11 +493,10 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    {/* Time Resolution */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase text-gray-500">Time Resolution</label>
                       <div className="relative">
-                        <FaClock className="absolute left-3 top-3 text-gray-400" />
+                        <FaClock className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.timeResolution}
@@ -418,11 +510,10 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    {/* Admin Level */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase text-gray-500">Admin Level</label>
                       <div className="relative">
-                        <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+                        <FaMapMarkerAlt className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.adminLevel}
@@ -436,21 +527,20 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    {/* Categorical vs Quantitative */}
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase text-gray-500">Variable Type</label>
                       <div className="flex bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg p-1">
                         <button
                           type="button"
                           onClick={() => setConfig({ ...config, varType: 'quantitative' })}
-                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'quantitative' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 font-medium" : "text-gray-500")}
+                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'quantitative' ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium" : "text-gray-500")}
                         >
                           Quantitative
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfig({ ...config, varType: 'categorical' })}
-                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'categorical' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 font-medium" : "text-gray-500")}
+                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'categorical' ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium" : "text-gray-500")}
                         >
                           Categorical
                         </button>
@@ -488,7 +578,6 @@ export default function AddModelPage() {
               </motion.div>
             )}
 
-            {/* STEP 3: VERIFY */}
             {step === 'verify' && (
               <motion.div
                 key="verify"

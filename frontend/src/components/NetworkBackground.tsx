@@ -56,8 +56,8 @@ export default function NetworkBackground() {
 
     //detects the current theme (light or dark)
     const isDarkMode = () => {
-      return document.documentElement.classList.contains('dark') || 
-             window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return document.documentElement.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
     };
 
     const animate = () => {
@@ -83,8 +83,8 @@ export default function NetworkBackground() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = dark
-                        ? "rgba(120,160,180,0.55)"
-                        : "rgba(112, 95, 136, 0.85)";
+          ? "rgba(89, 102, 175,0.55)"
+          : "rgba(189, 226, 208, 0.85)";
         ctx.fill();
       }
 
@@ -102,8 +102,8 @@ export default function NetworkBackground() {
             ctx.lineTo(pts[j].x, pts[j].y);
             const alpha = 1 - dist / MAX_DISTANCE;
             ctx.strokeStyle = dark
-                              ? `rgba(120,160,180,${alpha})`
-                              : `rgba(34,29,43, ${alpha})`;
+              ? `rgba(89, 102, 175,${alpha})`
+              : `rgba(189, 226, 208, ${alpha})`;
             ctx.lineWidth = 0.4;
             ctx.stroke();
           }
@@ -125,8 +125,8 @@ export default function NetworkBackground() {
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(mx, my);
             ctx.strokeStyle = dark
-                              ? `rgba(160,200,220,${alpha})`
-                              : `rgba(34,29,43, ${alpha})`;
+              ? `rgba(89, 102, 175,${alpha})`
+              : `rgba(189, 226, 208, ${alpha})`;
             ctx.lineWidth = 0.6;
             ctx.stroke();
 
@@ -178,7 +178,7 @@ export default function NetworkBackground() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-auto"
-      style={{ zIndex: 0}}
+      style={{ zIndex: 0 }}
     />
   );
 }

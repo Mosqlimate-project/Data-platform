@@ -462,6 +462,7 @@ class Repository(models.Model):
         GITHUB = "github", "GitHub"
         GITLAB = "gitlab", "GitLab"
 
+    repo_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     provider = models.CharField(max_length=10, choices=Providers.choices)
     owner = models.ForeignKey(
@@ -483,6 +484,12 @@ class Repository(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "repo_id"],
+                name="unique_repo_id_per_provider",
+            )
+        ]
         unique_together = ("provider", "owner", "organization", "name")
 
     def __str__(self):

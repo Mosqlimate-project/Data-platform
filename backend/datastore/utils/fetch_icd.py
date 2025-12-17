@@ -5,8 +5,6 @@ Example of usage:
 ```
 get_diseases(
     root_url="https://id.who.int/icd/release/10/2010/",
-    system="ICD-10",
-    version="2010",
     client_id=...,
     client_secret=...,
     language="pt"
@@ -17,14 +15,12 @@ get_diseases(
 import asyncio
 import httpx
 from pydantic import BaseModel
-from typing import Optional, Literal, AsyncGenerator
+from typing import Optional, AsyncGenerator
 
 MAX_WORKERS = 20
 
 
 class DiseaseSchema(BaseModel):
-    icd_system: Literal["ICD-10", "ICD-11"]
-    icd_version: str
     code: str
     name: str
     description: Optional[str] = None
@@ -44,9 +40,7 @@ async def get_auth_token(client_id: str, client_secret: str) -> str:
         return response.json().get("access_token")
 
 
-def parse_disease(
-    data: dict, system: str, version: str
-) -> Optional[DiseaseSchema]:
+def parse_disease(data: dict) -> Optional[DiseaseSchema]:
     code = data.get("code")
     title = data.get("title")
 
@@ -59,8 +53,6 @@ def parse_disease(
         return None
 
     return DiseaseSchema(
-        icd_system=system,
-        icd_version=version,
         code=code,
         name=name,
         description=data.get("definition", {}).get("@value", None),
@@ -73,8 +65,6 @@ async def worker(
     result_queue: asyncio.Queue,
     token: str,
     client: httpx.AsyncClient,
-    system: str,
-    version: str,
     language: str,
 ):
     headers = {
@@ -93,7 +83,7 @@ async def worker(
 
             if response.status_code == 200:
                 data = response.json()
-                disease = parse_disease(data, system, version)
+                disease = parse_disease(data)
 
                 if disease:
                     await result_queue.put(disease)
@@ -112,8 +102,6 @@ async def worker(
 
 async def get_diseases(
     root_url: str,
-    system: str,
-    version: str,
     client_id: str,
     client_secret: str,
     language: str = "en",
@@ -133,8 +121,6 @@ async def get_diseases(
                     result,
                     token,
                     client,
-                    system,
-                    version,
                     language,
                 )
             )

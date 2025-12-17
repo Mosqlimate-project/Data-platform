@@ -1,6 +1,8 @@
 from django.db import models
+from asgiref.sync import async_to_sync
 from django.utils.translation import gettext as _
 from django.contrib.postgres.indexes import GinIndex
+from .utils.fetch_icd import get_diseases
 
 
 class ICD(models.Model):
@@ -17,12 +19,54 @@ class ICD(models.Model):
     def __str__(self):
         return f"{self.system} ({self.version})"
 
+    def fetch_diseases(
+        self, client_id: str, client_secret: str, language: str = "en"
+    ):
+        if self.system == "ICD-10":
+            base_url = f"https://id.who.int/icd/release/10/{self.version}/"
+        elif self.system == "ICD-11":
+            base_url = f"https://id.who.int/icd/release/11/{self.version}/mms/"
+        else:
+            raise ValueError("Unknown ICD System")
+
+        process = async_to_sync(self._create_diseases)
+        process(base_url, client_id, client_secret, language)
+
+    async def _create_diseases(
+        self, base_url, client_id, client_secret, language
+    ):
+        batch_size = 5000
+        batch = []
+
+        async for d in get_diseases(
+            base_url,
+            client_id,
+            client_secret,
+            language,
+        ):
+            disease = Disease(
+                icd=self,
+                code=d.code,
+                name=d.name,
+                description=d.description or "",
+            )
+            batch.append(disease)
+
+            if len(batch) >= batch_size:
+                await Disease.objects.abulk_create(
+                    batch, ignore_conflicts=True
+                )
+                batch = []
+
+        if batch:
+            await Disease.objects.abulk_create(batch, ignore_conflicts=True)
+
 
 class Disease(models.Model):
     icd = models.ForeignKey(
         ICD, on_delete=models.CASCADE, related_name="diseases"
     )
-    code = models.CharField(max_length=20, primary_key=True)
+    code = models.CharField(max_length=20)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 

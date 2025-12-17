@@ -10,24 +10,18 @@ from django.contrib.auth import get_user_model, authenticate
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
+from django.db import transaction
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
+from registry.models import Repository
 from .models import OAuthAccount
-from .schema import (
-    UserInPost,
-    UserSchema,
-    LoginOut,
-    UserOut,
-    LoginIn,
-    RegisterIn,
-    RefreshIn,
-)
 from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
+from . import schema as s
 
 router = Router(tags=["user"])
 
@@ -396,7 +390,7 @@ def oauth_decode(request, data: str):
 
 @router.get(
     "/me/",
-    response={200: UserOut, 400: BadRequestSchema},
+    response={200: s.UserOut, 400: BadRequestSchema},
     auth=JWTAuth(),
 )
 def me(request):
@@ -422,9 +416,9 @@ def api_key(request):
 
 @router.post(
     "/login/",
-    response={200: LoginOut, 403: ForbiddenSchema},
+    response={200: s.LoginOut, 403: ForbiddenSchema},
 )
-def login(request, payload: LoginIn):
+def login(request, payload: s.LoginIn):
     identifier = payload.identifier
     try:
         validate_email(identifier)
@@ -447,10 +441,10 @@ def login(request, payload: LoginIn):
 
 @router.post(
     "/register/",
-    response={201: LoginOut, 400: BadRequestSchema},
+    response={201: s.LoginOut, 400: BadRequestSchema},
     auth=None,
 )
-def register(request, payload: RegisterIn):
+def register(request, payload: s.RegisterIn):
     if User.objects.filter(email=payload.email).exists():
         return 400, {"message": "Email already registered"}
 
@@ -495,9 +489,9 @@ def register(request, payload: RegisterIn):
 
 @router.post(
     "/refresh/",
-    response={200: LoginOut, 401: ForbiddenSchema},
+    response={200: s.LoginOut, 401: ForbiddenSchema},
 )
-def refresh_token(request, data: RefreshIn):
+def refresh_token(request, data: s.RefreshIn):
     payload = decode_token(data.refresh_token)
 
     if not payload or payload.get("type") != "refresh":
@@ -519,7 +513,11 @@ def refresh_token(request, data: RefreshIn):
 @router.get(
     "/repositories/{provider}/",
     auth=JWTAuth(),
-    response={200: list[dict], 401: BadRequestSchema, 404: NotFoundSchema},
+    response={
+        200: list[s.RepositoryOut],
+        401: BadRequestSchema,
+        404: NotFoundSchema,
+    },
 )
 @decorate_view(never_cache)
 def list_repositories(request, provider: Literal["github", "gitlab"]):
@@ -533,41 +531,94 @@ def list_repositories(request, provider: Literal["github", "gitlab"]):
     client = OAuthProvider.from_request(request, provider)
 
     def fetch_repos(access_token):
-        return client.get_user_repos(access_token)
+        repos = client.get_user_repos(access_token)
+        existing_repos = (
+            Repository.objects.filter(
+                provider=provider,
+            )
+            .select_related("owner", "organization")
+            .only("name", "owner__username", "organization__name")
+        )
+
+        repo_names = set()
+        for repo in existing_repos:
+            owner_name = (
+                repo.organization.name
+                if repo.organization
+                else repo.owner.username
+            )
+            repo_names.add(f"{owner_name}/{repo.name}".lower())
+
+        for repo in repos:
+            name = repo.get("name", "")
+            available = True
+            if name and name.lower() in repo_names:
+                available = False
+            repo["available"] = available
+
+        return repos
 
     try:
         repos = fetch_repos(account.access_token)
         return 200, repos
 
     except httpx.HTTPStatusError as e:
-        if e.response.status_code == 401 and account.refresh_token:
+        if e.response.status_code == 401:
             try:
-                new_tokens = client.refresh_access_token(account.refresh_token)
-                account.access_token = new_tokens["access_token"]
-                account.refresh_token = new_tokens.get(
-                    "refresh_token", account.refresh_token
-                )
-                expires_in = new_tokens.get("expires_in")
-                if expires_in:
-                    account.access_token_expires_at = (
-                        timezone.now() + timedelta(seconds=int(expires_in))
+                with transaction.atomic():
+                    account = OAuthAccount.objects.select_for_update().get(
+                        pk=account.pk
                     )
-                account.save()
+
+                    if not account.refresh_token:
+                        return 401, {
+                            "message": (
+                                "No refresh token available. Please reconnect."
+                            )
+                        }
+
+                    try:
+                        repos = fetch_repos(account.access_token)
+                        return 200, repos
+                    except httpx.HTTPStatusError:
+                        pass
+
+                    new_tokens = client.refresh_access_token(
+                        account.refresh_token
+                    )
+
+                    account.access_token = new_tokens["access_token"]
+                    account.refresh_token = new_tokens.get(
+                        "refresh_token", account.refresh_token
+                    )
+
+                    expires_in = new_tokens.get("expires_in")
+                    if expires_in:
+                        account.access_token_expires_at = (
+                            timezone.now() + timedelta(seconds=int(expires_in))
+                        )
+                    account.save()
 
                 repos = fetch_repos(account.access_token)
                 return 200, repos
 
-            except Exception as refresh_error:
-                print(f"Refresh failed: {refresh_error}")
+            except Exception:
+                return 401, {
+                    "message": (
+                        "Session expired or invalid. "
+                        "Please reconnect your account."
+                    )
+                }
+
         raise e
 
 
 @router.put(
     "/{username}",
-    response={201: UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={201: s.UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     include_in_schema=False,
 )
-def update_user(request, username: str, payload: UserInPost):
+def update_user(request, username: str, payload: s.UserInPost):
     """
     Updates User. It is not possible to change User's username nor email.
     To change a User's name, updates its first_name and last_name, which

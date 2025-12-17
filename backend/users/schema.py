@@ -68,3 +68,12 @@ class UserOut(Schema):
 
 class RefreshIn(Schema):
     refresh_token: str
+
+
+class RepositoryOut(Schema):
+    id: str
+    name: str
+    url: str
+    private: bool
+    provider: Literal["gitlab", "github"]
+    available: bool
