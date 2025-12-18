@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaGithub, FaGitlab, FaLink, FaArrowRight, FaEnvelope,
   FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
-  FaClock, FaMapMarkerAlt, FaFlask, FaCheck
+  FaClock, FaCheck, FaChevronDown, FaTimes, FaGlobeAmericas, FaVirus
 } from 'react-icons/fa';
 import clsx from 'clsx';
 import { apiFetch } from '@/lib/api';
@@ -24,6 +24,7 @@ interface Repository {
 
 interface Disease {
   id: number;
+  code: string;
   name: string;
 }
 
@@ -40,28 +41,87 @@ export default function AddModelPage() {
   const [repos, setRepos] = useState<Repository[]>([]);
   const [diseases, setDiseases] = useState<Disease[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(true);
+  const [searchingDiseases, setSearchingDiseases] = useState(false);
 
   const [url, setUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'github' | 'gitlab'>('all');
   const [githubAppStatus, setGithubAppStatus] = useState<'loading' | 'connected' | 'missing'>('loading');
   const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
-
-  const [config, setConfig] = useState({
-    disease: '',
-    timeResolution: 'daily',
-    adminLevel: '0',
-    sprint: false,
-    varType: 'quantitative',
-    spatial: false,
-    temporal: false,
-  });
-
+  const [isDiseaseOpen, setIsDiseaseOpen] = useState(false);
+  const [diseaseSearch, setDiseaseSearch] = useState("");
   const [otp, setOtp] = useState('');
   const [emailHint, setEmailHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
+
+  const performDiseaseSearch = async () => {
+    if (config.disease) return;
+
+    if (!diseaseSearch.trim()) {
+      setIsDiseaseOpen(false);
+      return;
+    }
+
+    setSearchingDiseases(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({
+        icd: "ICD-10",
+        version: "2010",
+        name: diseaseSearch
+      });
+
+      const res = await fetch(`/api/datastore/diseases?${params}`);
+
+      if (!res.ok) throw new Error("Search failed");
+
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setDiseases(data);
+        setIsDiseaseOpen(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setDiseases([]);
+      setIsDiseaseOpen(false);
+    } finally {
+      setSearchingDiseases(false);
+    }
+  };
+
+  const handleDiseaseKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      performDiseaseSearch();
+    }
+  };
+
+  const handleSelectDisease = (d: Disease) => {
+    setConfig({ ...config, disease: String(d.id) });
+    setDiseaseSearch(d.name);
+    setIsDiseaseOpen(false);
+  };
+
+  const clearSelection = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDiseaseSearch("");
+    setConfig({ ...config, disease: "" });
+    setDiseases([]);
+    setIsDiseaseOpen(false);
+  };
+
+  const [config, setConfig] = useState({
+    disease: "",
+    timeResolution: "",
+    adminLevel: "",
+    varType: "quantitative",
+    sprint: false,
+    spatial: false,
+    temporal: false
+  })
 
   function getModelName(url: string) {
     try {
@@ -111,19 +171,9 @@ export default function AddModelPage() {
         }
       };
 
-      const fetchDiseases = async () => {
-        try {
-          const data = await apiFetch('/registry/diseases/');
-          if (Array.isArray(data)) setDiseases(data);
-        } catch (err) {
-          setDiseases([{ id: 1, name: "Dengue" }, { id: 2, name: "Malaria" }, { id: 3, name: "Zika" }]);
-        }
-      };
-
       await Promise.all([
         fetchProvider('github'),
         fetchProvider('gitlab'),
-        fetchDiseases()
       ]);
 
       setRepos(results);
@@ -466,42 +516,98 @@ export default function AddModelPage() {
                     Provide details about the model in this repository.
                   </p>
                 </div>
-
                 <form onSubmit={handleConfigSubmit} className="space-y-5">
-
                   <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-3 border border-[var(--color-border)]">
                     <FaCodeBranch className="icon-sm text-gray-500" />
-                    <span className="text-sm font-mono text-[var(--color-text)] truncate flex-1">{url}</span>
+                    <span className="text-sm font-mono text-[var(--color-text)] truncate flex-1">
+                      {url}
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold uppercase text-gray-500">Disease</label>
-                      <div className="relative">
-                        <FaFlask className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <select
-                          className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
-                          value={config.disease}
-                          onChange={(e) => setConfig({ ...config, disease: e.target.value })}
-                          required
-                        >
-                          <option value="" disabled>Select Disease</option>
-                          {diseases.map(d => (
-                            <option key={d.id} value={d.id}>{d.name}</option>
-                          ))}
-                        </select>
+
+                    <div className="space-y-1 relative group">
+                      <label className="text-xs font-semibold uppercase text-gray-500">
+                        Disease
+                      </label>
+
+                      {isDiseaseOpen && (
+                        <div
+                          className="fixed inset-0 z-10"
+                        />
+                      )}
+                      <div className="relative z-20">
+                        <FaVirus className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none"
+                          placeholder="Enter to search"
+                          value={diseaseSearch}
+                          onKeyDown={handleDiseaseKeyDown}
+                          onBlur={performDiseaseSearch}
+                          onChange={(e) => {
+                            setDiseaseSearch(e.target.value);
+                            if (config.disease) setConfig({ ...config, disease: "" });
+                          }}
+                        />
+
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          {searchingDiseases ? (
+                            <FaSpinner className="animate-spin text-blue-500" />
+                          ) : diseaseSearch && (
+                            <button
+                              type="button"
+                              onClick={clearSelection}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                            >
+                              <FaTimes className="text-xs" />
+                            </button>
+                          )}
+                          <FaChevronDown className={`text-gray-400 text-xs transition-transform pointer-events-none ${isDiseaseOpen ? 'rotate-180' : ''}`} />
+                        </div>
+
+                        {isDiseaseOpen && (
+                          <div className="absolute left-0 right-0 top-full mt-1 max-h-60 overflow-y-auto bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg shadow-lg z-30">
+                            {diseases.length > 0 ? (
+                              diseases.map(d => (
+                                <button
+                                  key={d.id}
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    handleSelectDisease(d);
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[var(--color-text)] flex justify-between"
+                                >
+                                  <span>{d.name}</span>
+                                  <span className="text-xs text-gray-400 font-mono self-center">{d.code}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-sm text-gray-500">No diseases found</div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold uppercase text-gray-500">Time Resolution</label>
+                      <label className="text-xs font-semibold uppercase text-gray-500">
+                        Time Resolution
+                      </label>
                       <div className="relative">
                         <FaClock className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.timeResolution}
-                          onChange={(e) => setConfig({ ...config, timeResolution: e.target.value })}
+                          onChange={(e) =>
+                            setConfig({ ...config, timeResolution: e.target.value })
+                          }
+                          required
                         >
+                          <option value="" disabled>
+                            Select
+                          </option>
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
                           <option value="monthly">Monthly</option>
@@ -511,36 +617,54 @@ export default function AddModelPage() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold uppercase text-gray-500">Admin Level</label>
+                      <label className="text-xs font-semibold uppercase text-gray-500">
+                        Admin Level
+                      </label>
                       <div className="relative">
-                        <FaMapMarkerAlt className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <FaGlobeAmericas className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.adminLevel}
                           onChange={(e) => setConfig({ ...config, adminLevel: e.target.value })}
+                          required
                         >
-                          <option value="0">0 (Country)</option>
-                          <option value="1">1 (Region/State)</option>
-                          <option value="2">2 (City/Muni)</option>
-                          <option value="3">3 (Local)</option>
+                          <option value="" disabled>
+                            Select
+                          </option>
+                          <option value="0">Country</option>
+                          <option value="1">State</option>
+                          <option value="2">Municipality</option>
+                          <option value="3">Sub-Municipal</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold uppercase text-gray-500">Variable Type</label>
+                      <label className="text-xs font-semibold uppercase text-gray-500">
+                        Variable Type
+                      </label>
                       <div className="flex bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg p-1">
                         <button
                           type="button"
-                          onClick={() => setConfig({ ...config, varType: 'quantitative' })}
-                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'quantitative' ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium" : "text-gray-500")}
+                          onClick={() => setConfig({ ...config, varType: "quantitative" })}
+                          className={clsx(
+                            "flex-1 py-1.5 text-sm rounded-md transition-all",
+                            config.varType === "quantitative"
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium"
+                              : "text-gray-500"
+                          )}
                         >
                           Quantitative
                         </button>
                         <button
                           type="button"
-                          onClick={() => setConfig({ ...config, varType: 'categorical' })}
-                          className={clsx("flex-1 py-1.5 text-sm rounded-md transition-all", config.varType === 'categorical' ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium" : "text-gray-500")}
+                          onClick={() => setConfig({ ...config, varType: "categorical" })}
+                          className={clsx(
+                            "flex-1 py-1.5 text-sm rounded-md transition-all",
+                            config.varType === "categorical"
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium"
+                              : "text-gray-500"
+                          )}
                         >
                           Categorical
                         </button>
@@ -549,31 +673,45 @@ export default function AddModelPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <Toggle label="Sprint" checked={config.sprint} onChange={(v) => setConfig({ ...config, sprint: v })} />
-                    <Toggle label="Spatial" checked={config.spatial} onChange={(v) => setConfig({ ...config, spatial: v })} />
-                    <Toggle label="Temporal" checked={config.temporal} onChange={(v) => setConfig({ ...config, temporal: v })} />
+                    <Toggle
+                      label="Sprint"
+                      checked={config.sprint}
+                      onChange={(v) => setConfig({ ...config, sprint: v })}
+                    />
+                    <Toggle
+                      label="Spatial"
+                      checked={config.spatial}
+                      onChange={(v) => setConfig({ ...config, spatial: v })}
+                    />
+                    <Toggle
+                      label="Temporal"
+                      checked={config.temporal}
+                      onChange={(v) => setConfig({ ...config, temporal: v })}
+                    />
                   </div>
 
                   <div className="flex gap-3 pt-4">
                     <button
                       type="button"
-                      onClick={() => setStep('selection')}
+                      onClick={() => setStep("selection")}
                       className="flex-1 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-hover)] transition-colors"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      disabled={loading || !config.disease}
+                      disabled={loading || !config.disease || !config.timeResolution || !config.adminLevel}
                       className="flex-[2] flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                     >
-                      {loading ? <FaSpinner className="animate-spin" /> : "Initiate Verification"}
+                      {loading ? (
+                        <FaSpinner className="animate-spin" />
+                      ) : (
+                        "Initiate Verification"
+                      )}
                     </button>
                   </div>
 
-                  {error && (
-                    <p className="text-sm text-center text-red-500 mt-2">{error}</p>
-                  )}
+                  {error && <p className="text-sm text-center text-red-500 mt-2">{error}</p>}
                 </form>
               </motion.div>
             )}

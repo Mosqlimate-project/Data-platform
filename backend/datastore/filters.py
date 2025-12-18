@@ -3,6 +3,7 @@ from datetime import date
 
 from ninja import Field, FilterSchema
 from pydantic import field_validator
+from django.db.models import Q
 
 
 class HistoricoAlertaFilterSchema(FilterSchema):
@@ -33,3 +34,12 @@ class CopernicusBrasilWeeklyFilterSchema(FilterSchema):
         if len(str(value)) != 6:
             raise ValueError("Epiweek must be a 6-digit integer")
         return value
+
+
+class DiseaseFilterSchema(FilterSchema):
+    name: Optional[str] = Field(None)
+
+    def filter_name(self, value: str) -> Q:
+        if not value:
+            return Q()
+        return Q(name__icontains=value) | Q(code__icontains=value)

@@ -266,7 +266,6 @@ def oauth_install_callback(
     provider: Literal["github"],
     installation_id: str = None,
     code: str = None,
-    setup_action: str = "install",
     state: str = None,
 ):
     user = None

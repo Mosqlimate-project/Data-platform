@@ -21,7 +21,6 @@ from ninja.pagination import paginate
 from ninja.security import django_auth
 from pydantic import field_validator
 
-from mosqlimate.api import authorize
 from users.auth import UidKeyAuth, JWTAuth
 from .models import (
     Author,
@@ -248,7 +247,7 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    user = authorize(request)
+    user = request.auth
     author = Author.objects.get(user=user)
 
     if Model.objects.filter(name__iexact=payload.name).exists():
@@ -290,7 +289,7 @@ class UpdateModelForm(Schema):
 )
 @csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
-    user = authorize(request)
+    user = request.auth
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -339,7 +338,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    user = authorize(request)
+    user = request.auth
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -424,7 +423,7 @@ def get_prediction(request, predict_id: int):
 def create_prediction(request, payload: PredictionIn):
     model = Model.objects.get(pk=payload.model)
 
-    user = authorize(request)
+    user = request.auth
     author = Author.objects.get(user__username=user.username)
 
     if author.user != model.author.user:
@@ -548,7 +547,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    user = authorize(request)
+    user = request.auth
 
     try:
         prediction = Prediction.objects.get(pk=predict_id)

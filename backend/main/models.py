@@ -2,13 +2,7 @@ from typing import Optional
 
 from django.db import models
 from django.http.request import HttpRequest
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-
-from mosqlimate.api import authorize
-
-
-User = get_user_model()
 
 
 class TimestampModel(models.Model):
@@ -33,7 +27,10 @@ class APILog(models.Model):
 
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, related_name="logs", null=False
+        to="users.CustomUser",
+        on_delete=models.CASCADE,
+        related_name="logs",
+        null=False,
     )
     method = models.CharField(
         max_length=10, choices=METHODS, blank=False, null=False
@@ -45,14 +42,14 @@ class APILog(models.Model):
         return f"[{self.method}] {self.endpoint} {self.user.username}"
 
     @staticmethod
-    def from_request(request: HttpRequest, user: Optional[User] = None):
+    def from_request(request: HttpRequest, user: Optional = None):
         if not request.path.startswith("/api/"):
             return
 
         method = request.method
 
         if not user:
-            user = authorize(request)
+            user = request.auth
 
         match method:
             case "GET":

@@ -12,12 +12,22 @@ class ICD(models.Model):
 
     system = models.CharField(max_length=10, choices=ICDSystems.choices)
     version = models.CharField(max_length=50)
+    release_date = models.DateField(null=True)
 
     class Meta:
         unique_together = ("system", "version")
 
     def __str__(self):
         return f"{self.system} ({self.version})"
+
+    @property
+    def year(self) -> int:
+        if self.system == "ICD-10":
+            return int(self.version)
+        elif self.system == "ICD-11":
+            return int(self.version[:4])
+        else:
+            raise ValueError("Unknown ICD System")
 
     def fetch_diseases(
         self, client_id: str, client_secret: str, language: str = "en"

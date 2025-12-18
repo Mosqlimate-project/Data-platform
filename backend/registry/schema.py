@@ -572,3 +572,10 @@ class PredictionFilterSchema(FilterSchema):
 
 class ModelIncludeInit(Schema):
     repo_url: str
+    disease: int
+    time_resolution: Literal["day", "week", "month", "year"]
+    adm_level: Literal[0, 1, 2, 3]
+    categorical: bool
+    spatial: bool
+    temporal: bool
+    sprint: bool

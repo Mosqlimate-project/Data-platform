@@ -11,8 +11,10 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 from main.utils import UF_CODES
+from main.models import TimestampModel
 from vis.dash import errors
 from vis.brasil.models import State, City
+from datastore.models import Disease
 
 
 def get_plangs_path() -> str:
@@ -187,7 +189,9 @@ class Model(models.Model):
     )
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(max_length=500, null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name="model_tags", default=[])
+    tags = models.ManyToManyField(
+        Tag, related_name="model_tags", default=[]
+    )  # TODO: remove it
     repository = models.CharField(max_length=100, null=False, blank=False)
     implementation_language = models.ForeignKey(
         ImplementationLanguage,
@@ -410,7 +414,7 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 # ---- Frontend new models:
 
 
-class Organization(models.Model):
+class Organization(TimestampModel):
     name = models.CharField(max_length=100, unique=True)
     members = models.ManyToManyField(
         "users.CustomUser",
@@ -422,7 +426,7 @@ class Organization(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
 
-class OrganizationMembership(models.Model):
+class OrganizationMembership(TimestampModel):
     class Roles(models.TextChoices):
         OWNER = "owner", _("Owner")
         MAINTAINER = "maintainer", _("Maintainer")
@@ -439,7 +443,7 @@ class OrganizationMembership(models.Model):
         unique_together = ("user", "organization")
 
 
-class RepositoryContributor(models.Model):
+class RepositoryContributor(TimestampModel):
     class Permissions(models.TextChoices):
         ADMIN = "admin", "Admin"
         WRITE = "write", _("Write")
@@ -457,7 +461,7 @@ class RepositoryContributor(models.Model):
         unique_together = ("user", "repository")
 
 
-class Repository(models.Model):
+class Repository(TimestampModel):
     class Providers(models.TextChoices):
         GITHUB = "github", "GitHub"
         GITLAB = "gitlab", "GitLab"
@@ -480,18 +484,67 @@ class Repository(models.Model):
         related_name="repos",
     )
     active = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["provider", "repo_id"],
                 name="unique_repo_id_per_provider",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["provider", "owner", "organization", "name"],
+                name="unique_repo_name_context",
+            ),
+            models.CheckConstraint(
+                check=(
+                    (
+                        models.Q(owner__isnull=False)
+                        & models.Q(organization__isnull=True)
+                    )
+                    | (
+                        models.Q(owner__isnull=True)
+                        & models.Q(organization__isnull=False)
+                    )
+                ),
+                name="repo_owner_or_org_xor",
+            ),
         ]
-        unique_together = ("provider", "owner", "organization", "name")
 
     def __str__(self):
         owner = self.owner.username if self.owner else self.organization.name
         return f"{owner}/{self.name} ({self.provider})"
+
+
+class RepositoryModel(TimestampModel):
+    class Periodicity(models.TextChoices):
+        DAY = "day", _("Day")
+        WEEK = "week", _("Week")
+        MONTH = "month", _("Month")
+        YEAR = "year", _("Year")
+
+    class AdministrativeLevel(models.IntegerChoices):
+        NATIONAL = 0, _("National")
+        STATE = 1, _("State")
+        MUNICIPALITY = 2, _("Municipality")
+        SUB_MUNICIPALITY = 3, _("Sub Municipality")
+
+    repository = models.OneToOneField(Repository, on_delete=models.CASCADE)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    categorical = models.BooleanField()
+    spatial = models.BooleanField()
+    temporal = models.BooleanField()
+    disease = models.ForeignKey(
+        Disease, related_name="models", on_delete=models.PROTECT
+    )
+    adm_level = models.IntegerField(choices=AdministrativeLevel.choices)
+    time_resolution = models.CharField(
+        max_length=10, choices=Periodicity.choices
+    )
+    sprint = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.repository.name}"
+
+    class Meta:
+        verbose_name = _("Model")
+        verbose_name_plural = _("Models")
