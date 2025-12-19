@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FaGithub, FaGitlab, FaLink, FaArrowRight, FaEnvelope,
+  FaGithub, FaGitlab, FaLink, FaArrowRight,
   FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
-  FaClock, FaCheck, FaChevronDown, FaTimes, FaGlobeAmericas, FaVirus
+  FaClock, FaMapMarkerAlt, FaCheck, FaChevronDown, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup
 } from 'react-icons/fa';
 import clsx from 'clsx';
 import { apiFetch } from '@/lib/api';
@@ -28,6 +28,15 @@ interface Disease {
   name: string;
 }
 
+const MODEL_CATEGORIES = [
+  { value: "quantitative", label: "Quantitative" },
+  { value: "categorical", label: "Categorical" },
+  { value: "spatial_quantitative", label: "Spatial Quantitative" },
+  { value: "spatial_categorical", label: "Spatial Categorical" },
+  { value: "spatio_temporal_quantitative", label: "Spatio-temporal Quantitative" },
+  { value: "spatio_temporal_categorical", label: "Spatio-temporal Categorical" },
+];
+
 export default function AddModelPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +52,7 @@ export default function AddModelPage() {
   const [loadingRepos, setLoadingRepos] = useState(true);
   const [searchingDiseases, setSearchingDiseases] = useState(false);
 
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   const [url, setUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'github' | 'gitlab'>('all');
@@ -50,8 +60,6 @@ export default function AddModelPage() {
   const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
   const [isDiseaseOpen, setIsDiseaseOpen] = useState(false);
   const [diseaseSearch, setDiseaseSearch] = useState("");
-  const [otp, setOtp] = useState('');
-  const [emailHint, setEmailHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
@@ -81,7 +89,11 @@ export default function AddModelPage() {
       const data = await res.json();
       if (Array.isArray(data)) {
         setDiseases(data);
-        setIsDiseaseOpen(true);
+        if (data.length > 0) {
+          setIsDiseaseOpen(true);
+        } else {
+          setIsDiseaseOpen(false);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -117,10 +129,8 @@ export default function AddModelPage() {
     disease: "",
     timeResolution: "",
     adminLevel: "",
-    varType: "quantitative",
+    category: "",
     sprint: false,
-    spatial: false,
-    temporal: false
   })
 
   function getModelName(url: string) {
@@ -189,9 +199,10 @@ export default function AddModelPage() {
     return matchesSearch && matchesTab;
   });
 
-  const handleRepoSelect = (repoUrl: string) => {
+  const handleRepoSelect = (repo: Repository) => {
     setError(null);
-    setUrl(repoUrl);
+    setUrl(repo.url);
+    setSelectedRepo(repo);
     setStep('config');
   };
 
@@ -209,6 +220,12 @@ export default function AddModelPage() {
       return;
     }
 
+    if (matchedRepo) {
+      setSelectedRepo(matchedRepo);
+    } else {
+      setSelectedRepo(null);
+    }
+
     const exists = repos.some(r => normalize(r.url) === cleanInput);
 
     if (!exists) {
@@ -219,24 +236,31 @@ export default function AddModelPage() {
     setStep('config');
   };
 
-  const handleConfigSubmit = async (e: React.FormEvent) => {
+  const handleConfigSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setStep('verify');
+  };
+
+  const handleImportConfirm = async () => {
     setLoading(true);
     setError(null);
 
     const payload = {
       repo_url: url,
-      disease_id: config.disease,
+      repo_name: selectedRepo?.name,
+      repo_id: selectedRepo?.id,
+      repo_provider: selectedRepo?.provider.toLowerCase(),
+      repo_private: selectedRepo?.private ?? false,
+      disease_id: parseInt(config.disease),
       time_resolution: config.timeResolution,
-      admin_level: parseInt(config.adminLevel),
-      is_sprint: config.sprint,
-      variable_type: config.varType,
-      is_spatial: config.spatial,
-      is_temporal: config.temporal
+      adm_level: parseInt(config.adminLevel),
+      category: config.category,
+      sprint: config.sprint,
     };
 
     try {
-      const res = await fetch('/api/registry/model/init', {
+      const res = await fetch('/api/registry/model/add', {
         method: 'POST',
         cache: "no-store",
         headers: { 'Content-Type': 'application/json' },
@@ -245,38 +269,12 @@ export default function AddModelPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Could not validate repository.');
-      }
-
-      const data = await res.json();
-      setEmailHint(data.email_hint || 'the repository owner email');
-      setStep('verify');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/registry/import/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo_url: url, code: otp })
-      });
-
-      if (!res.ok) {
-        throw new Error('Invalid verification code.');
+        throw new Error(data.message || 'Could not import repository.');
       }
 
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -413,7 +411,7 @@ export default function AddModelPage() {
                         return (
                           <button
                             key={repo.id}
-                            onClick={() => isAvailable && handleRepoSelect(repo.url)}
+                            onClick={() => isAvailable && handleRepoSelect(repo)}
                             disabled={loading || !isAvailable}
                             className={clsx(
                               "w-full text-left p-4 transition-colors flex items-center justify-between group",
@@ -563,7 +561,6 @@ export default function AddModelPage() {
                               <FaTimes className="text-xs" />
                             </button>
                           )}
-                          <FaChevronDown className={`text-gray-400 text-xs transition-transform pointer-events-none ${isDiseaseOpen ? 'rotate-180' : ''}`} />
                         </div>
 
                         {isDiseaseOpen && (
@@ -608,10 +605,10 @@ export default function AddModelPage() {
                           <option value="" disabled>
                             Select
                           </option>
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                          <option value="yearly">Yearly</option>
+                          <option value="day">Daily</option>
+                          <option value="week">Weekly</option>
+                          <option value="month">Monthly</option>
+                          <option value="year">Yearly</option>
                         </select>
                       </div>
                     </div>
@@ -621,7 +618,7 @@ export default function AddModelPage() {
                         Admin Level
                       </label>
                       <div className="relative">
-                        <FaGlobeAmericas className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <FaMapMarkerAlt className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <select
                           className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                           value={config.adminLevel}
@@ -641,33 +638,25 @@ export default function AddModelPage() {
 
                     <div className="space-y-1">
                       <label className="text-xs font-semibold uppercase text-gray-500">
-                        Variable Type
+                        Model Category
                       </label>
-                      <div className="flex bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg p-1">
-                        <button
-                          type="button"
-                          onClick={() => setConfig({ ...config, varType: "quantitative" })}
-                          className={clsx(
-                            "flex-1 py-1.5 text-sm rounded-md transition-all",
-                            config.varType === "quantitative"
-                              ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium"
-                              : "text-gray-500"
-                          )}
+                      <div className="relative">
+                        <FaLayerGroup className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <select
+                          className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                          value={config.category}
+                          onChange={(e) => setConfig({ ...config, category: e.target.value })}
+                          required
                         >
-                          Quantitative
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfig({ ...config, varType: "categorical" })}
-                          className={clsx(
-                            "flex-1 py-1.5 text-sm rounded-md transition-all",
-                            config.varType === "categorical"
-                              ? "bg-blue-100 dark:bg-blue-900/30 text-text font-medium"
-                              : "text-gray-500"
-                          )}
-                        >
-                          Categorical
-                        </button>
+                          <option value="" disabled>
+                            Select
+                          </option>
+                          {MODEL_CATEGORIES.map((cat) => (
+                            <option key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -677,16 +666,6 @@ export default function AddModelPage() {
                       label="Sprint"
                       checked={config.sprint}
                       onChange={(v) => setConfig({ ...config, sprint: v })}
-                    />
-                    <Toggle
-                      label="Spatial"
-                      checked={config.spatial}
-                      onChange={(v) => setConfig({ ...config, spatial: v })}
-                    />
-                    <Toggle
-                      label="Temporal"
-                      checked={config.temporal}
-                      onChange={(v) => setConfig({ ...config, temporal: v })}
                     />
                   </div>
 
@@ -700,13 +679,13 @@ export default function AddModelPage() {
                     </button>
                     <button
                       type="submit"
-                      disabled={loading || !config.disease || !config.timeResolution || !config.adminLevel}
+                      disabled={loading || !config.disease || !config.timeResolution || !config.adminLevel || !config.category}
                       className="flex-[2] flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                     >
                       {loading ? (
                         <FaSpinner className="animate-spin" />
                       ) : (
-                        "Initiate Verification"
+                        "Continue"
                       )}
                     </button>
                   </div>
@@ -723,60 +702,118 @@ export default function AddModelPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.2 }}
+                className="space-y-6"
               >
-                <div className="mb-8 text-center">
-                  <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
-                    <FaEnvelope className="text-blue-600 dark:text-blue-400 text-xl" />
-                  </div>
+                <div>
                   <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">
-                    Check your email
+                    Final Review
                   </h1>
-                  <p className="text-[var(--color-text)] opacity-60 max-w-sm mx-auto">
-                    We sent a verification code to <strong>{emailHint}</strong>.
+                  <p className="text-[var(--color-text)] opacity-60">
+                    Please review the model configuration before confirming the import.
                   </p>
                 </div>
 
-                <form onSubmit={handleOtpSubmit} className="flex flex-col gap-6">
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Enter 6-digit code"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="block w-full text-center tracking-[0.5em] text-2xl py-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:border-blue-500 outline-none transition-all"
-                      autoComplete="one-time-code"
-                      autoFocus
-                    />
-                    {error && (
-                      <p className="text-sm text-center text-red-500">
-                        {error}
+                <div className="bg-gray-50 dark:bg-white/5 border border-[var(--color-border)] rounded-xl overflow-hidden">
+
+                  <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-3 bg-white dark:bg-white/5">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                      <FaCodeBranch />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-semibold text-[var(--color-text)] truncate">
+                        {getModelName(url)}
+                      </h3>
+                      <p className="text-xs text-[var(--color-text)] opacity-50 truncate font-mono">
+                        {url}
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-6">
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Target Disease</label>
+                      <div className="flex items-center gap-2 text-lg font-medium text-[var(--color-text)]">
+                        <FaVirus className="text-gray-400 text-sm" />
+                        {diseases.find(d => String(d.id) === config.disease)?.name || "Unknown Disease"}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+                      <div>
+                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Time Resolution</label>
+                        <div className="flex items-center gap-2 mt-1 text-[var(--color-text)] capitalize">
+                          <FaClock className="text-gray-400 text-xs" />
+                          {config.timeResolution}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Admin Level</label>
+                        <div className="flex items-center gap-2 mt-1 text-[var(--color-text)]">
+                          <FaGlobeAmericas className="text-gray-400 text-xs" />
+                          {(() => {
+                            switch (config.adminLevel) {
+                              case "0": return "Country";
+                              case "1": return "State";
+                              case "2": return "Municipality";
+                              case "3": return "Sub-Municipal";
+                              default: return config.adminLevel;
+                            }
+                          })()}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Model Category</label>
+                        <div className="mt-1 text-[var(--color-text)]">
+                          {MODEL_CATEGORIES.find(c => c.value === config.category)?.label || config.category}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {config.sprint ? (
+                          <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800">
+                            Sprint
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No additional features selected</span>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep("config")}
+                    className="flex-1 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-hover)] transition-colors flex justify-center items-center gap-2"
+                  >
+                    <FaArrowLeft size={12} /> Back
+                  </button>
+                  <button
+                    onClick={handleImportConfirm}
+                    disabled={loading}
+                    className="flex-[2] flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <FaSpinner className="animate-spin" />
+                    ) : (
+                      "Confirm"
                     )}
-                  </div>
+                  </button>
+                </div>
 
-                  <div className="flex flex-col gap-3">
-                    <button
-                      type="submit"
-                      disabled={otp.length !== 6 || loading}
-                      className={clsx(
-                        "w-full flex justify-center items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200",
-                        otp.length === 6 && !loading
-                          ? "bg-green-600 hover:bg-green-700 text-white shadow-md"
-                          : "bg-gray-200 dark:bg-neutral-800 text-gray-400 cursor-not-allowed"
-                      )}
-                    >
-                      {loading ? <FaSpinner className="animate-spin" /> : "Verify & Import"}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setStep('config')}
-                      className="text-sm text-[var(--color-text)] opacity-60 hover:opacity-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <FaArrowLeft size={12} /> Back to configuration
-                    </button>
-                  </div>
-                </form>
+                {error && (
+                  <p className="text-sm text-center text-red-500 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">
+                    {error}
+                  </p>
+                )}
               </motion.div>
             )}
 

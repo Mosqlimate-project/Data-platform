@@ -571,11 +571,20 @@ class PredictionFilterSchema(FilterSchema):
 
 
 class ModelIncludeInit(Schema):
+    repo_id: int
     repo_url: str
-    disease: int
+    repo_name: str
+    repo_private: bool
+    repo_provider: Literal["github", "gitlab"]
+    disease_id: int
     time_resolution: Literal["day", "week", "month", "year"]
     adm_level: Literal[0, 1, 2, 3]
-    categorical: bool
-    spatial: bool
-    temporal: bool
+    category: Literal[
+        "quantitative",
+        "categorical",
+        "spatial_quantitative",
+        "spatial_categorical",
+        "spatio_temporal_quantitative",
+        "spatio_temporal_categorical",
+    ]
     sprint: bool

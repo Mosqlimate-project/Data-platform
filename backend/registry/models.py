@@ -528,13 +528,89 @@ class RepositoryModel(TimestampModel):
         MUNICIPALITY = 2, _("Municipality")
         SUB_MUNICIPALITY = 3, _("Sub Municipality")
 
-    repository = models.OneToOneField(Repository, on_delete=models.CASCADE)
-    description = models.TextField(max_length=500, null=True, blank=True)
-    categorical = models.BooleanField()
-    spatial = models.BooleanField()
-    temporal = models.BooleanField()
+    class Category(models.TextChoices):
+        QUANTITATIVE = "quantitative", _("Quantitative")
+        CATEGORICAL = "categorical", _("Categorical")
+        SPATIAL_QUANTITATIVE = "spatial_quantitative", _(
+            "Spatial Quantitative"
+        )
+        SPATIAL_CATEGORICAL = "spatial_categorical", _("Spatial Categorical")
+        SPATIO_TEMPORAL_QUANTITATIVE = (
+            "spatio_temporal_quantitative",
+            _("Spatio-temporal Quantitative"),
+        )
+        SPATIO_TEMPORAL_CATEGORICAL = (
+            "spatio_temporal_categorical",
+            _("Spatio-temporal Categorical"),
+        )
+
+        @property
+        def meta(self):
+            return self.CategoryMeta[self.value]
+
+        @property
+        def help_text(self):
+            m = self.meta
+            return f"Domain: {m['domain']} | Output: {m['output']} | Ex: {
+                m['example']
+            }"
+
+    Category.CategoryMeta = {
+        Category.QUANTITATIVE: {
+            "domain": _("Time"),
+            "output": _("Numeric (vectorial or scalar)"),
+            "example": _("Time series"),
+            "description": _("Models that output numeric values over time."),
+        },
+        Category.CATEGORICAL: {
+            "domain": _("Time"),
+            "output": _("Single or Multiple Categories"),
+            "example": _("Alert levels"),
+            "description": _("Models that classify status over time."),
+        },
+        Category.SPATIAL_QUANTITATIVE: {
+            "domain": _("Space"),
+            "output": _("Numerical values"),
+            "example": _("Choropleth maps"),
+            "description": _(
+                "Models that output numeric values across a geographical area."
+            ),
+        },
+        Category.SPATIAL_CATEGORICAL: {
+            "domain": _("Space"),
+            "output": _("Single or Multiple Categories"),
+            "example": _("Choropleth maps (Categorical)"),
+            "description": _("Models that classify regions into categories."),
+        },
+        Category.SPATIO_TEMPORAL_QUANTITATIVE: {
+            "domain": _("Time and Space"),
+            "output": _("Numeric"),
+            "example": _("Animated maps"),
+            "description": _(
+                "Models that predict numeric values across both time and space."
+            ),
+        },
+        Category.SPATIO_TEMPORAL_CATEGORICAL: {
+            "domain": _("Time and Space"),
+            "output": _("Maps and Categories"),
+            "example": _("Animated maps (Categorical)"),
+            "description": _("Models that classify regions over time."),
+        },
+    }
+
+    repository = models.OneToOneField(
+        Repository, on_delete=models.CASCADE, related_name="model"
+    )
     disease = models.ForeignKey(
         Disease, related_name="models", on_delete=models.PROTECT
+    )
+    description = models.TextField(max_length=500, null=True, blank=True)
+    category = models.CharField(
+        max_length=50,
+        choices=Category.choices,
+        help_text=_(
+            "The forecasting model category based on domain and output type."
+        ),
     )
     adm_level = models.IntegerField(choices=AdministrativeLevel.choices)
     time_resolution = models.CharField(
@@ -543,7 +619,7 @@ class RepositoryModel(TimestampModel):
     sprint = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.repository.name}"
+        return f"{self.repository.name} ({self.get_category_display()})"
 
     class Meta:
         verbose_name = _("Model")
