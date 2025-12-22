@@ -2,13 +2,14 @@ from typing import List, Literal
 from typing_extensions import Annotated
 from urllib.parse import urlparse
 
+import httpx
 import pandas as pd
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
-from django.db.models import Count
 from django.forms import Form
 from django.views.decorators.csrf import csrf_exempt
-from django.db import transaction, models
+from django.views.decorators.cache import never_cache
+from django.db import transaction, models, IntegrityError
+from django.core.files.base import ContentFile
 from main.schema import (
     BadRequestSchema,
     ForbiddenSchema,
@@ -22,6 +23,7 @@ from ninja import Query, Router, Field
 from ninja.errors import HttpError
 from ninja.pagination import paginate
 from ninja.security import django_auth
+from ninja.decorators import decorate_view
 from pydantic import field_validator
 
 from main.models import APILog
@@ -71,7 +73,7 @@ def list_authors(
     """
     if not calling_via_swagger(request):
         APILog.from_request(request)
-    models_count = m.Author.objects.annotate(num_models=Count("model"))
+    models_count = m.Author.objects.annotate(num_models=models.Count("model"))
     authors = models_count.filter(num_models__gt=0)
     return filters.filter(authors).order_by("-updated")
 
@@ -566,6 +568,13 @@ def delete_prediction(request, predict_id: int):
     tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
+@router.post(
+    "/model/add/",
+    auth=JWTAuth(),
+    response={201: dict, 400: BadRequestSchema},
+    tags=["registry", "model-add", "frontend"],
+    include_in_schema=False,
+)
 def model_add(request, payload: s.ModelIncludeInit):
     try:
         url = urlparse(payload.repo_url)
@@ -612,6 +621,7 @@ def model_add(request, payload: s.ModelIncludeInit):
                 provider=payload.repo_provider,
                 owner=owner,
                 organization=org,
+                avatar_url=payload.repo_avatar_url,
                 active=True,
             )
 
@@ -637,6 +647,25 @@ def model_add(request, payload: s.ModelIncludeInit):
             },
         )
 
+        if payload.repo_avatar_url:
+            try:
+                with httpx.Client() as client:
+                    response = client.get(payload.repo_avatar_url, timeout=5)
+                    if response.status_code == 200:
+                        ext = "png"
+                        if "jpeg" in response.headers.get("content-type", ""):
+                            ext = "jpg"
+
+                        img = (
+                            f"{repository.provider}_{repository.repo_id}.{ext}"
+                        )
+
+                        model.avatar.save(
+                            img, ContentFile(response.content), save=True
+                        )
+            except (httpx.RequestError, httpx.TimeoutException):
+                pass
+
     return 201, {
         "success": True,
         "model_id": model.id,
@@ -651,6 +680,12 @@ def model_add(request, payload: s.ModelIncludeInit):
     tags=["registry", "frontend"],
     include_in_schema=False,
 )
+@decorate_view(never_cache)
 def models_thumbnails(request):
-    models = m.Model.objects.all()
+    models = m.RepositoryModel.objects.select_related(
+        "repository",
+        "repository__organization",
+        "repository__owner",
+        "disease",
+    ).all()
     return models.order_by("-updated")

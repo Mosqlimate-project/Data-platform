@@ -469,6 +469,7 @@ class Repository(TimestampModel):
     repo_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     provider = models.CharField(max_length=10, choices=Providers.choices)
+    avatar_url = models.URLField(max_length=500, null=True, blank=True)
     owner = models.ForeignKey(
         "users.CustomUser",
         null=True,
@@ -600,6 +601,9 @@ class RepositoryModel(TimestampModel):
 
     repository = models.OneToOneField(
         Repository, on_delete=models.CASCADE, related_name="model"
+    )
+    avatar = models.ImageField(
+        upload_to="model_avatars/", null=True, blank=True
     )
     disease = models.ForeignKey(
         Disease, related_name="models", on_delete=models.PROTECT
