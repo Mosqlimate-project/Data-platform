@@ -689,3 +689,14 @@ def models_thumbnails(request):
         "disease",
     ).all()
     return models.order_by("-updated")
+
+
+@router.get(
+    "/model/{owner}/{repository}/",
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_model(request, owner: str, repository: str):
+    raise ValueError(f"{owner}, {repository}")

@@ -10,10 +10,10 @@ import { FaPlus } from "react-icons/fa";
 type Model = {
   owner: string;
   repository: string;
-  avatarUrl: string | null;
+  avatar_url: string | null;
   disease: string;
   predictions: number;
-  lastUpdate: string | Date;
+  last_update: number;
 };
 
 export default function Models({ models }: { models: Model[] }) {
@@ -74,10 +74,10 @@ export default function Models({ models }: { models: Model[] }) {
                 key={`${model.owner}-${model.repository}-${idx}`}
                 owner={model.owner}
                 repo={model.repository}
-                avatarUrl={model.avatarUrl}
+                avatar_url={model.avatar_url}
                 disease={model.disease}
                 predictions={model.predictions}
-                lastUpdate={new Date(model.lastUpdate)}
+                last_update={model.last_update}
               />
             ))}
           </div>

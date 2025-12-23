@@ -17,7 +17,7 @@ export default function Footer() {
   return (
     <footer
       className={clsx(
-        "border-t w-full p-6 text-center border-[var(--color-border)] text-[var(--color-text)] flex justify-center items-center gap-4 transition-colors",
+        "z-20 border-t w-full p-6 text-center border-[var(--color-border)] text-[var(--color-text)] flex justify-center items-center gap-4 transition-colors",
         pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-[var(--color-bg)]"
       )}
     >

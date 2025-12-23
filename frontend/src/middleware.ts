@@ -11,6 +11,7 @@ const publicPaths = [
   "/api/user/check-username",
   "/api/user/check-email",
   "/api/registry/models",
+  "/api/registry/model",
   "/api/datastore/charts",
   "/_next",
   "/favicon.ico",

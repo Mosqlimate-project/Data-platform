@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const upstream = await fetch(`${BACKEND_BASE_URL}/api/registry/models/thumbnails/`, {
+    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/models/thumbnails/`, {
       headers: {
         "Content-Type": "application/json",
         "X-UID-Key": ADMIN_UIDKEY,
@@ -16,14 +16,14 @@ export async function GET() {
       cache: "no-store",
     });
 
-    if (!upstream.ok) {
+    if (!res.ok) {
       return NextResponse.json(
         { message: "Upstream error" },
-        { status: upstream.status }
+        { status: res.status }
       );
     }
 
-    const data = await upstream.json();
+    const data = await res.json();
     return NextResponse.json(data);
 
   } catch (err) {

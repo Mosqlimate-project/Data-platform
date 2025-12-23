@@ -1,7 +1,6 @@
 import requests
 from typing_extensions import Annotated
 from datetime import date as dt
-from datetime import datetime
 from typing import Optional, Literal, List
 from pydantic import validator, model_validator, field_validator
 
@@ -569,7 +568,7 @@ class ModelThumbs(Schema):
     avatar_url: Optional[str] = None
     disease: str
     predictions: int
-    last_update: datetime
+    last_update: float
 
     @staticmethod
     def resolve_model_id(obj):
@@ -595,7 +594,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_disease(obj):
-        return obj.disease.name if obj.disease else ""
+        return obj.disease.code
 
     @staticmethod
     def resolve_predictions(obj):
@@ -603,7 +602,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_last_update(obj):
-        return obj.updated
+        return obj.updated.timestamp()
 
 
 class ModelIncludeInit(Schema):

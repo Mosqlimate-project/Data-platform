@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import NetworkBackground from "@/components/NetworkBackground";
 
-//Smooth animation component for when each section of the homepage appears
 function FadeInSection({ children }: { children: React.ReactNode }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -39,7 +38,6 @@ export default function HomePage() {
         const windowHeight = window.innerHeight;
         const docHeight = document.documentElement.scrollHeight;
 
-        //If it has come to an end, then it disappears
         if (scrollTop + windowHeight >= docHeight - 10) {
           setIsVisible(false);
         } else {
@@ -69,7 +67,6 @@ export default function HomePage() {
           animate-bounce
           hover:scale-110
           transition
-          z-50
         "
       >
         <span className="text-[10px] font-semibold leading-none -mb-1">
@@ -82,7 +79,7 @@ export default function HomePage() {
   return (
     <div className="relative w-full min-h-screen bg-[var(--color-bg-home)] text-text transition-colors duration-300">
 
-      <div className="relative z-10">
+      <div className="relative">
         {/*HERO*/}
         <section className="py-32 px-6 text-center bg-[var(--color-bg-home)]">
           <Image

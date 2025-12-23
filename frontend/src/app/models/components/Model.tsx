@@ -5,15 +5,20 @@ import { useRouter } from "next/navigation";
 interface ThumbnailProps {
   owner: string;
   repo: string;
-  avatarUrl: string | null;
+  avatar_url: string | null;
   disease: string;
   predictions: number;
-  lastUpdate: Date;
+  last_update: number;
 }
 
-function timeAgo(date: Date): string {
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+function timeAgo(timestamp: number): string | null {
+  console.log(timestamp)
+  if (!timestamp) return null;
+
+  const dateValue = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+
+  const now = Date.now();
+  const diff = Math.floor((now - dateValue) / 1000);
 
   const minutes = Math.floor(diff / 60);
   const hours = Math.floor(diff / 3600);
@@ -32,18 +37,18 @@ function timeAgo(date: Date): string {
 export default function Thumbnail({
   owner,
   repo,
-  avatarUrl,
+  avatar_url,
   disease,
   predictions,
-  lastUpdate
+  last_update,
 }: ThumbnailProps) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/model/${owner}/${repo}`);
+    router.push(`/${owner}/${repo}`);
   };
 
-  const imageSrc = avatarUrl || "/mosquito.svg";
+  const imageSrc = avatar_url || "/mosquito.svg";
 
   return (
     <div
@@ -91,7 +96,7 @@ export default function Thumbnail({
 
         <span>•</span>
 
-        <span className="truncate">{timeAgo(lastUpdate)}</span>
+        <span className="truncate">{timeAgo(last_update)}</span>
       </div>
     </div>
   );
