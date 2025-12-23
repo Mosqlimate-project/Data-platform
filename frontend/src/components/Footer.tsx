@@ -2,17 +2,25 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
 
 export default function Footer() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return null;
 
   return (
-    <footer className="border-t w-full p-6 bg-[var(--color-bg)] text-center border-[var(--color-border)] text-[var(--color-text)] flex justify-center items-center gap-4">
+    <footer
+      className={clsx(
+        "z-20 border-t w-full p-6 text-center border-[var(--color-border)] text-[var(--color-text)] flex justify-center items-center gap-4 transition-colors",
+        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-[var(--color-bg)]"
+      )}
+    >
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-[var(--color-hover)] transition-colors text-sm font-medium"

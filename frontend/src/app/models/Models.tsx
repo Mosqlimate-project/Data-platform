@@ -8,10 +8,12 @@ import { useAuth } from "@/components/AuthProvider";
 import { FaPlus } from "react-icons/fa";
 
 type Model = {
-  repo: string;
-  type: string;
+  owner: string;
+  repository: string;
+  avatar_url: string | null;
+  disease: string;
   predictions: number;
-  lastUpdate: string | Date;
+  last_update: number;
 };
 
 export default function Models({ models }: { models: Model[] }) {
@@ -19,7 +21,8 @@ export default function Models({ models }: { models: Model[] }) {
   const { user } = useAuth();
 
   const filteredModels = models.filter((m) =>
-    m.repo.toLowerCase().includes(query.toLowerCase())
+    m.repository.toLowerCase().includes(query.toLowerCase()) ||
+    m.owner.toLowerCase().includes(query.toLowerCase())
   );
 
   const [page, setPage] = useState(1);
@@ -68,11 +71,13 @@ export default function Models({ models }: { models: Model[] }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
             {paginatedModels.map((model, idx) => (
               <Thumbnail
-                key={`${model.repo}-${idx}`}
-                repo={model.repo}
-                type={model.type}
+                key={`${model.owner}-${model.repository}-${idx}`}
+                owner={model.owner}
+                repo={model.repository}
+                avatar_url={model.avatar_url}
+                disease={model.disease}
                 predictions={model.predictions}
-                lastUpdate={new Date(model.lastUpdate)}
+                last_update={model.last_update}
               />
             ))}
           </div>

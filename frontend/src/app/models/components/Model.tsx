@@ -1,18 +1,24 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 interface ThumbnailProps {
+  owner: string;
   repo: string;
-  type: string;
+  avatar_url: string | null;
+  disease: string;
   predictions: number;
-  lastUpdate: Date;
+  last_update: number;
 }
 
-function timeAgo(date: Date): string {
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+function timeAgo(timestamp: number): string | null {
+  console.log(timestamp)
+  if (!timestamp) return null;
+
+  const dateValue = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+
+  const now = Date.now();
+  const diff = Math.floor((now - dateValue) / 1000);
 
   const minutes = Math.floor(diff / 60);
   const hours = Math.floor(diff / 3600);
@@ -28,54 +34,69 @@ function timeAgo(date: Date): string {
   return `${years} year${years !== 1 ? "s" : ""} ago`;
 }
 
-export default function Thumbnail({ repo, type, predictions, lastUpdate }: ThumbnailProps) {
+export default function Thumbnail({
+  owner,
+  repo,
+  avatar_url,
+  disease,
+  predictions,
+  last_update,
+}: ThumbnailProps) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/model/${repo}`);
+    router.push(`/${owner}/${repo}`);
   };
+
+  const imageSrc = avatar_url || "/mosquito.svg";
 
   return (
     <div
       onClick={handleClick}
       className="
         flex flex-col
-        p-3 rounded-xl border border-[var(--color-border)]
+        p-4 rounded-xl border border-[var(--color-border)]
         transition cursor-pointer w-full
         bg-[var(--color-bg)] hover:bg-[var(--color-accent)]
-        hover:text-white
+        group
       "
     >
-      <div className="flex items-center gap-2 mb-2 w-full">
-        <div className="w-6 h-6 overflow-hidden rounded bg-gray-200 flex-shrink-0">
-          <Image
-            src="/mosquito.svg"
+      <div className="flex items-start gap-3 mb-3 w-full">
+        <div className="relative w-10 h-10 overflow-hidden rounded-md bg-gray-200 flex-shrink-0 border border-gray-200 dark:border-gray-700">
+          <img
+            src={imageSrc}
             alt={repo}
-            width={24}
-            height={24}
             className="object-cover w-full h-full"
+            onError={(e) => {
+              e.currentTarget.src = "/mosquito.svg";
+            }}
           />
         </div>
 
-        <span className="font-medium truncate">{repo}</span>
+        <div className="flex flex-col overflow-hidden min-w-0">
+          <span className="font-semibold truncate text-[var(--color-text)] group-hover:text-white">
+            {repo}
+          </span>
+          <span className="text-xs text-gray-500 truncate group-hover:text-gray-200">
+            {owner}
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-2 text-[12px] w-full truncate">
-        <div className="flex items-center gap-1 truncate">
-          <span className="truncate">{type}</span>
+      <div className="flex items-center gap-2 mt-auto text-[11px] text-gray-500 group-hover:text-gray-200 w-full truncate">
+        <div className="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-white/20">
+          <span className="font-medium">{disease}</span>
         </div>
 
         <span>•</span>
 
-        <div className="flex items-center gap-1 truncate">
-          <span>{predictions} prediction{predictions !== 1 ? "s" : ""}</span>
-        </div>
+        <span className="truncate">
+          {predictions > 0 ? predictions.toLocaleString() : 0} preds
+        </span>
 
         <span>•</span>
 
-        <div className="flex items-center gap-1 truncate">
-          <span>{timeAgo(lastUpdate)}</span>
-        </div>
+        <span className="truncate">{timeAgo(last_update)}</span>
       </div>
     </div>
   );

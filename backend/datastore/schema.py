@@ -233,3 +233,10 @@ class MunUmidPressMedOut(Schema):
     epiweek: int
     umid_med: float
     pressao_med: float
+
+
+class DiseaseOut(Schema):
+    id: int
+    code: str
+    name: str
+    description: Optional[str] = None

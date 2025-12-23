@@ -16,6 +16,7 @@ const links = [
   { href: '/models', label: 'Models' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/datastore', label: 'Datastore' },
+  { href: '/about', label: 'About Us' },
   { href: '/papers', label: 'Papers' },
   { href: '/docs', label: 'Docs' },
 ];
@@ -55,7 +56,12 @@ export default function Navbar() {
   if (!mounted) return null;
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg text-text transition-colors">
+    <nav
+      className={clsx(
+        "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors",
+        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-bg"
+      )}
+    >
 
       <div className="flex items-center gap-8">
         <div className="h-8 w-8 relative flex items-center justify-center">
@@ -304,14 +310,11 @@ export default function Navbar() {
 
                 <li>
                   <Link
-                    href="/github"
-                    className={clsx(
-                      "flex items-center px-4 py-2 transition-colors",
-                      isActive('/github')
-                        ? "bg-hover text-text font-bold"
-                        : "text-text/70 hover:bg-hover hover:text-text font-medium"
-                    )}
+                    href="https://github.com/Mosqlimate-project"
+                    className="flex items-center px-4 py-2 transition-colors"
                     onClick={() => setDropdownOpen(false)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/github') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.303 3.438 9.8 8.205 11.387.6.111.82-.261.82-.577v-2.234c-3.338.724-4.033-1.415-4.033-1.415-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.775.419-1.305.762-1.605-2.665-.305-5.467-1.333-5.467-5.933 0-1.31.469-2.381 1.235-3.221-.123-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23a11.46 11.46 0 013.003-.403c1.02.005 2.046.138 3.003.403 2.291-1.552 3.297-1.23 3.297-1.23.654 1.653.242 2.873.119 3.176.77.84 1.233 1.911 1.233 3.221 0 4.61-2.807 5.625-5.479 5.921.43.371.813 1.103.813 2.222v3.293c0 .319.218.694.825.576C20.565 21.796 24 17.299 24 12c0-6.63-5.373-12-12-12z" />

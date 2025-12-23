@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/model/init/`, {
+    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/model/add/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

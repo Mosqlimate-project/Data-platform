@@ -257,9 +257,10 @@ class GithubProvider(OAuthProvider):
                                 {
                                     "id": str(r["id"]),
                                     "name": r["full_name"],
-                                    "url": r["html_url"],
+                                    "url": r["html_url"].strip("/"),
                                     "private": r["private"],
                                     "provider": "github",
+                                    "avatar_url": r["owner"]["avatar_url"],
                                 }
                             )
 
@@ -351,9 +352,13 @@ class GitlabProvider(OAuthProvider):
                     {
                         "id": str(p["id"]),
                         "name": p["path_with_namespace"],
-                        "url": p["web_url"],
+                        "url": p["web_url"].strip("/"),
                         "private": p["visibility"] == "private",
                         "provider": "gitlab",
+                        "avatar_url": (
+                            p.get("avatar_url")
+                            or p.get("namespace", {}).get("avatar_url")
+                        ),
                     }
                 )
 

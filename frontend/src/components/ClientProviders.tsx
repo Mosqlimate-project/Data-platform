@@ -17,7 +17,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 md:items-center">{children}</main>
+            <main className="flex-1 md:items-center bg-bg">{children}</main>
             <Footer />
             <Chatbot />
           </div>

@@ -29,7 +29,7 @@ from .models import (
     HistoricoAlertaChik,
     CopernicusBrasil,
 )
-from datastore import schema, filters
+from datastore import schema, filters, models
 
 
 router = Router(tags=["datastore"])
@@ -681,8 +681,9 @@ def get_episcanner(
     if df.empty:
         return 404, {
             "message": (
-                f"No data for specific query (disease={disease}, uf={
-                    uf}, year={year})"
+                f"No data for specific query (disease={disease}, uf={uf}, year={
+                    year
+                })"
             )
         }
 
@@ -772,3 +773,19 @@ def municipality_daily_umid_press_med(
             "pressao_med",
         )
     )
+
+
+@router.get(
+    "/diseases/",
+    response=List[schema.DiseaseOut],
+    auth=uidkey_auth,
+    tags=["datastore"],
+)
+def list_diseases(
+    request,
+    icd: Literal["ICD-10", "ICD-11"],
+    version: str,
+    filters: filters.DiseaseFilterSchema = Query(...),
+):
+    qs = models.Disease.objects.filter(icd__system=icd, icd__version=version)
+    return filters.filter(qs)

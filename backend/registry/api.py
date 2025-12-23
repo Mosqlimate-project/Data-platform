@@ -1,13 +1,17 @@
 from typing import List, Literal
 from typing_extensions import Annotated
+from urllib.parse import urlparse
 
+import httpx
 import pandas as pd
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
-from django.db.models import Count
 from django.forms import Form
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
+from django.db import transaction, models, IntegrityError
+from django.core.files.base import ContentFile
 from main.schema import (
+    BadRequestSchema,
     ForbiddenSchema,
     InternalErrorSchema,
     NotFoundSchema,
@@ -19,35 +23,18 @@ from ninja import Query, Router, Field
 from ninja.errors import HttpError
 from ninja.pagination import paginate
 from ninja.security import django_auth
+from ninja.decorators import decorate_view
 from pydantic import field_validator
 
-from mosqlimate.api import authorize
+from main.models import APILog
 from users.auth import UidKeyAuth, JWTAuth
-from .models import (
-    Author,
-    Model,
-    ImplementationLanguage,
-    Prediction,
-    PredictionDataRow,
-)
+from .models import Model, Prediction
 from .pagination import PagesPagination
-from .schema import (
-    AuthorFilterSchema,
-    AuthorSchema,
-    ModelFilterSchema,
-    ModelSchema,
-    PredictionFilterSchema,
-    PredictionSchema,
-    PredictionOut,
-    PredictionIn,
-    PredictionDataRowOut,
-)
 from . import schema as s
 from . import models as m
 from .utils import calling_via_swagger
 from vis.brasil.models import State, City
 from vis.tasks import calculate_score
-from main.models import APILog
 
 router = Router()
 uidkey_auth = UidKeyAuth()
@@ -70,7 +57,7 @@ class AuthorInPost(Schema):
 
 @router.get(
     "/authors/",
-    response=List[AuthorSchema],
+    response=List[s.AuthorSchema],
     auth=uidkey_auth,
     tags=["registry", "authors"],
 )
@@ -78,7 +65,7 @@ class AuthorInPost(Schema):
 @paginate(PagesPagination)
 def list_authors(
     request,
-    filters: AuthorFilterSchema = Query(...),
+    filters: s.AuthorFilterSchema = Query(...),
 ):
     """
     Lists all authors, can be filtered by name.
@@ -86,14 +73,14 @@ def list_authors(
     """
     if not calling_via_swagger(request):
         APILog.from_request(request)
-    models_count = Author.objects.annotate(num_models=Count("model"))
+    models_count = m.Author.objects.annotate(num_models=models.Count("model"))
     authors = models_count.filter(num_models__gt=0)
     return filters.filter(authors).order_by("-updated")
 
 
 @router.get(
     "/authors/{username}",
-    response={200: AuthorSchema, 404: NotFoundSchema},
+    response={200: s.AuthorSchema, 404: NotFoundSchema},
     auth=uidkey_auth,
     tags=["registry", "authors"],
 )
@@ -103,15 +90,15 @@ def get_author(request, username: str):
     if not calling_via_swagger(request):
         APILog.from_request(request)
     try:
-        author = Author.objects.get(user__username=username)
+        author = m.Author.objects.get(user__username=username)
         return 200, author
-    except Author.DoesNotExist:
+    except m.Author.DoesNotExist:
         return 404, {"message": "Author not found"}
 
 
 @router.put(
     "/authors/{username}",
-    response={201: AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={201: s.AuthorSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=django_auth,
     tags=["registry", "authors"],
     include_in_schema=False,
@@ -122,7 +109,7 @@ def update_author(request, username: str, payload: AuthorInPost):
     user and this post method can only be called by the user
     """
     try:
-        author = Author.objects.get(user__username=username)
+        author = m.Author.objects.get(user__username=username)
 
         if request.user != author.user:  # TODO: Enable admins here
             return 403, {
@@ -137,7 +124,7 @@ def update_author(request, username: str, payload: AuthorInPost):
             author.save()
 
         return 201, author
-    except Author.DoesNotExist:
+    except m.Author.DoesNotExist:
         return 404, {"message": "Author not found"}
 
 
@@ -200,7 +187,7 @@ class ModelIn(Schema):
 
 @router.get(
     "/models/",
-    response=List[ModelSchema],
+    response=List[s.ModelSchema],
     auth=uidkey_auth,
     tags=["registry", "models"],
 )
@@ -208,7 +195,7 @@ class ModelIn(Schema):
 @csrf_exempt
 def list_models(
     request,
-    filters: ModelFilterSchema = Query(...),
+    filters: s.ModelFilterSchema = Query(...),
     **kwargs,
 ):
     if not calling_via_swagger(request):
@@ -220,7 +207,7 @@ def list_models(
 
 @router.get(
     "/models/{model_id}",
-    response={200: ModelSchema, 404: NotFoundSchema},
+    response={200: s.ModelSchema, 404: NotFoundSchema},
     auth=uidkey_auth,
     tags=["registry", "models"],
 )
@@ -238,7 +225,7 @@ def get_model(request, model_id: int):
 @router.post(
     "/models/",
     response={
-        201: ModelSchema,
+        201: s.ModelSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
         422: UnprocessableContentSchema,
@@ -248,14 +235,14 @@ def get_model(request, model_id: int):
 )
 @csrf_exempt
 def create_model(request, payload: ModelIn):
-    user = authorize(request)
-    author = Author.objects.get(user=user)
+    user = request.auth
+    author = m.Author.objects.get(user=user)
 
     if Model.objects.filter(name__iexact=payload.name).exists():
         return 403, {"message": f"Model '{payload.name}' already exists"}
 
     data = payload.dict()
-    data["implementation_language"] = ImplementationLanguage.objects.get(
+    data["implementation_language"] = m.ImplementationLanguage.objects.get(
         language__iexact=payload.implementation_language
     )
 
@@ -284,13 +271,13 @@ class UpdateModelForm(Schema):
 
 @router.put(
     "/models/{model_id}",
-    response={201: ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+    response={201: s.ModelSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
     auth=uidkey_auth,
     include_in_schema=False,
 )
 @csrf_exempt
 def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
-    user = authorize(request)
+    user = request.auth
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -306,12 +293,12 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
     for attr, value in payload.items():
         if attr == "implementation_language":
             try:
-                lang = ImplementationLanguage.objects.get(
+                lang = m.ImplementationLanguage.objects.get(
                     language__iexact=value
                 )
                 value = lang
-            except ImplementationLanguage.DoesNotExist:
-                similar_lang = ImplementationLanguage.objects.filter(
+            except m.ImplementationLanguage.DoesNotExist:
+                similar_lang = m.ImplementationLanguage.objects.filter(
                     language__icontains=value
                 )[0]
                 if similar_lang:
@@ -339,7 +326,7 @@ def update_model(request, model_id: int, payload: UpdateModelForm = Form(...)):
 )
 @csrf_exempt
 def delete_model(request, model_id: int):
-    user = authorize(request)
+    user = request.auth
 
     try:
         model = Model.objects.get(pk=model_id)
@@ -373,7 +360,7 @@ class PagesPaginationLimited(PagesPagination):
 
 @router.get(
     "/predictions/",
-    response=List[PredictionOut],
+    response=List[s.PredictionOut],
     auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
@@ -381,7 +368,7 @@ class PagesPaginationLimited(PagesPagination):
 @csrf_exempt
 def list_predictions(
     request,
-    filters: PredictionFilterSchema = Query(...),
+    filters: s.PredictionFilterSchema = Query(...),
     **kwargs,
 ):
     if not calling_via_swagger(request):
@@ -393,7 +380,7 @@ def list_predictions(
 
 @router.get(
     "/predictions/{predict_id}",
-    response={200: PredictionOut, 404: NotFoundSchema},
+    response={200: s.PredictionOut, 404: NotFoundSchema},
     auth=uidkey_auth,
     tags=["registry", "predictions"],
 )
@@ -411,7 +398,7 @@ def get_prediction(request, predict_id: int):
 @router.post(
     "/predictions/",
     response={
-        201: PredictionOut,
+        201: s.PredictionOut,
         403: ForbiddenSchema,
         404: NotFoundSchema,
         422: UnprocessableContentSchema,
@@ -421,11 +408,11 @@ def get_prediction(request, predict_id: int):
     tags=["registry", "predictions"],
 )
 @csrf_exempt
-def create_prediction(request, payload: PredictionIn):
+def create_prediction(request, payload: s.PredictionIn):
     model = Model.objects.get(pk=payload.model)
 
-    user = authorize(request)
-    author = Author.objects.get(user__username=user.username)
+    user = request.auth
+    author = m.Author.objects.get(user__username=user.username)
 
     if author.user != model.author.user:
         return 403, {"message": "You are not authorized to update this Model"}
@@ -433,7 +420,7 @@ def create_prediction(request, payload: PredictionIn):
     def parse_data(predict: Prediction, data: List[dict]):
         if not calling_via_swagger(request):
             for row in data:
-                PredictionDataRow.objects.get_or_create(
+                m.PredictionDataRow.objects.get_or_create(
                     predict=predict,
                     date=pd.to_datetime(row["date"]).date(),
                     pred=row["pred"],
@@ -472,8 +459,8 @@ def create_prediction(request, payload: PredictionIn):
     )
 
     if calling_via_swagger(request):
-        data = [PredictionDataRowOut(**r.dict()) for r in payload.prediction]
-        return 201, PredictionOut(
+        data = [s.PredictionDataRowOut(**r.dict()) for r in payload.prediction]
+        return 201, s.PredictionOut(
             message="Calling via swagger. This Prediction has not been saved",
             id=None,
             model=model.id,
@@ -510,7 +497,7 @@ def create_prediction(request, payload: PredictionIn):
 @router.put(
     "/predictions/{predict_id}",
     response={
-        201: PredictionSchema,
+        201: s.PredictionSchema,
         403: ForbiddenSchema,
         404: NotFoundSchema,
     },
@@ -518,7 +505,7 @@ def create_prediction(request, payload: PredictionIn):
     tags=["registry", "predictions"],
     include_in_schema=False,
 )
-def update_prediction(request, predict_id: int, payload: PredictionIn):
+def update_prediction(request, predict_id: int, payload: s.PredictionIn):
     try:
         prediction = Prediction.objects.get(pk=predict_id)
 
@@ -548,7 +535,7 @@ def update_prediction(request, predict_id: int, payload: PredictionIn):
 )
 @csrf_exempt
 def delete_prediction(request, predict_id: int):
-    user = authorize(request)
+    user = request.auth
 
     try:
         prediction = Prediction.objects.get(pk=predict_id)
@@ -575,13 +562,115 @@ def delete_prediction(request, predict_id: int):
 
 
 @router.post(
-    "/model/init/",
+    "/model/add/",
     auth=JWTAuth(),
-    tags=["registry", "frontend"],
+    response={201: dict, 400: BadRequestSchema},
+    tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
-def include_model_init(request, payload: s.ModelIncludeInit):
-    raise ValueError(payload.repo_url)
+@router.post(
+    "/model/add/",
+    auth=JWTAuth(),
+    response={201: dict, 400: BadRequestSchema},
+    tags=["registry", "model-add", "frontend"],
+    include_in_schema=False,
+)
+def model_add(request, payload: s.ModelIncludeInit):
+    try:
+        url = urlparse(payload.repo_url)
+        path = url.path.strip("/").split("/")
+        if len(path) < 2:
+            raise ValueError
+        repo_name = path[-1]
+        owner_name = path[-2]
+    except (IndexError, AttributeError, ValueError):
+        return 400, {"message": "Invalid repository URL format."}
+
+    with transaction.atomic():
+        owner = None
+        org = None
+
+        if owner_name.lower() == request.auth.username.lower():
+            owner = request.auth
+        else:
+            org, _ = m.Organization.objects.get_or_create(name=owner_name)
+            m.OrganizationMembership.objects.get_or_create(
+                user=request.user,
+                organization=org,
+                defaults={"role": m.OrganizationMembership.Roles.CONTRIBUTOR},
+            )
+
+        query_filter = models.Q(
+            provider=payload.repo_provider, name__iexact=repo_name
+        )
+        if owner:
+            query_filter &= models.Q(owner=owner)
+        else:
+            query_filter &= models.Q(organization=org)
+
+        repository = m.Repository.objects.filter(query_filter).first()
+
+        if repository:
+            repository.repo_id = payload.repo_id
+            repository.active = True
+            repository.save()
+        else:
+            repository = m.Repository.objects.create(
+                repo_id=payload.repo_id,
+                name=repo_name,
+                provider=payload.repo_provider,
+                owner=owner,
+                organization=org,
+                avatar_url=payload.repo_avatar_url,
+                active=True,
+            )
+
+        m.RepositoryContributor.objects.get_or_create(
+            user=request.auth,
+            repository=repository,
+            defaults={"permission": m.RepositoryContributor.Permissions.ADMIN},
+        )
+
+        try:
+            disease = m.Disease.objects.get(id=payload.disease_id)
+        except m.Disease.DoesNotExist:
+            return 400, {"message": "Unknown Disease."}
+
+        model, created = m.RepositoryModel.objects.update_or_create(
+            repository=repository,
+            defaults={
+                "disease": disease,
+                "time_resolution": payload.time_resolution,
+                "adm_level": payload.adm_level,
+                "category": payload.category,
+                "sprint": payload.sprint,
+            },
+        )
+
+        if payload.repo_avatar_url:
+            try:
+                with httpx.Client() as client:
+                    response = client.get(payload.repo_avatar_url, timeout=5)
+                    if response.status_code == 200:
+                        ext = "png"
+                        if "jpeg" in response.headers.get("content-type", ""):
+                            ext = "jpg"
+
+                        img = (
+                            f"{repository.provider}_{repository.repo_id}.{ext}"
+                        )
+
+                        model.avatar.save(
+                            img, ContentFile(response.content), save=True
+                        )
+            except (httpx.RequestError, httpx.TimeoutException):
+                pass
+
+    return 201, {
+        "success": True,
+        "model_id": model.id,
+        "action": "created" if created else "updated",
+    }
 
 
 @router.get(
@@ -591,6 +680,23 @@ def include_model_init(request, payload: s.ModelIncludeInit):
     tags=["registry", "frontend"],
     include_in_schema=False,
 )
+@decorate_view(never_cache)
 def models_thumbnails(request):
-    models = m.Model.objects.all()
+    models = m.RepositoryModel.objects.select_related(
+        "repository",
+        "repository__organization",
+        "repository__owner",
+        "disease",
+    ).all()
     return models.order_by("-updated")
+
+
+@router.get(
+    "/model/{owner}/{repository}/",
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_model(request, owner: str, repository: str):
+    raise ValueError(f"{owner}, {repository}")
