@@ -414,6 +414,18 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 # ---- Frontend new models:
 
 
+class Sprint(models.Model):
+    year = models.IntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    class Meta:
+        ordering = ["-start_date"]
+
+    def __str__(self):
+        return f"Sprint {self.year}"
+
+
 class Organization(TimestampModel):
     name = models.CharField(max_length=100, unique=True)
     members = models.ManyToManyField(
@@ -621,7 +633,9 @@ class RepositoryModel(TimestampModel):
     time_resolution = models.CharField(
         max_length=10, choices=Periodicity.choices
     )
-    sprint = models.BooleanField(default=False)
+    sprint = models.ForeignKey(
+        Sprint, null=True, on_delete=models.PROTECT, default=None
+    )
 
     def __str__(self):
         return f"{self.repository.name} ({self.get_category_display()})"

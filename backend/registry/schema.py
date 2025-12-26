@@ -598,7 +598,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_predictions(obj):
-        return 0
+        return 0  # FIX: it
 
     @staticmethod
     def resolve_last_update(obj):
@@ -623,4 +623,4 @@ class ModelIncludeInit(Schema):
         "spatio_temporal_quantitative",
         "spatio_temporal_categorical",
     ]
-    sprint: bool
+    sprint: int
