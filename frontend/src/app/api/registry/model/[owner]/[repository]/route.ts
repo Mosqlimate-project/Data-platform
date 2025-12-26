@@ -6,10 +6,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ owner: string; repository: string }> }
 ) {
-  const { owner, repository: repository } = await params;
+  const { owner, repository } = await params;
 
   const res = await fetch(
-    `${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}`,
+    `${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}/`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -20,7 +20,7 @@ export async function GET(
 
   if (!res.ok) {
     return NextResponse.json(
-      { error: "Failed to fetch model from backend" },
+      { error: "Failed to fetch model repository" },
       { status: res.status }
     );
   }

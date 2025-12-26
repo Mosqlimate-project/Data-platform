@@ -692,6 +692,17 @@ def models_thumbnails(request):
 
 
 @router.get(
+    "/model/{owner}/",
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_owner(request, owner: str):
+    raise ValueError(f"{owner}")
+
+
+@router.get(
     "/model/{owner}/{repository}/",
     auth=UidKeyAuth(),
     tags=["registry", "frontend"],

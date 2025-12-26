@@ -53,6 +53,7 @@
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@types/zxcvbn": "^4.4.5",
+    "baseline-browser-mapping": "^2.9.11",
     "dotenv": "^17.2.3",
     "env-cmd": "^11.0.0"
   }
