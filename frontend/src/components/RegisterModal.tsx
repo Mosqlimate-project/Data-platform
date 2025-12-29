@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab } from "react-icons/fa";
-
 import { oauthLogin } from '@/lib/api/auth';
-import { apiFetch } from '@/lib/api';
 
 interface RegisterModalProps {
   open: boolean;
@@ -18,6 +17,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const [email, setEmail] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');
+
+  const pathname = usePathname();
 
   if (!open) return null;
 
@@ -48,6 +49,10 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const checkEmailAvailable = async (email: string) => {
     const resp = await fetch(`/api/user/check-email/?email=${email}`);
     return resp.ok ? null : 'Email is already registered';
+  };
+
+  const handleOAuth = (provider: "google" | "github" | "gitlab") => {
+    oauthLogin(provider, pathname);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,7 +113,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
             <div className="flex justify-center gap-3 mb-6">
               <button
-                onClick={() => oauthLogin('google')}
+                onClick={() => handleOAuth('google')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
@@ -117,7 +122,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <span>Google</span>
               </button>
               <button
-                onClick={() => oauthLogin('github')}
+                onClick={() => handleOAuth('github')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>
@@ -126,7 +131,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 <span>GitHub</span>
               </button>
               <button
-                onClick={() => oauthLogin('gitlab')}
+                onClick={() => handleOAuth('gitlab')}
                 className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
               >
                 <React.Suspense fallback={null}>

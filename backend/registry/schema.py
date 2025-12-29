@@ -144,15 +144,6 @@ class ModelSchema(Schema):
     ]
 
 
-class ModelThumbs(Schema):
-    organization: str
-    repository: str
-    avatar_url: Optional[str] = None
-    disease: str
-    predictions: int
-    last_update: dt
-
-
 class ModelFilterSchema(FilterSchema):
     """url/?paremeters to search for Models"""
 
@@ -570,5 +561,66 @@ class PredictionFilterSchema(FilterSchema):
     ]
 
 
+class ModelThumbs(Schema):
+    model_id: int
+    owner: str
+    repository: str
+    avatar_url: Optional[str] = None
+    disease: str
+    predictions: int
+    last_update: float
+
+    @staticmethod
+    def resolve_model_id(obj):
+        return obj.id
+
+    @staticmethod
+    def resolve_owner(obj):
+        if obj.repository.organization:
+            return obj.repository.organization.name
+        if obj.repository.owner:
+            return obj.repository.owner.username
+        raise ValueError("Repo owner not found")
+
+    @staticmethod
+    def resolve_repository(obj):
+        return obj.repository.name
+
+    @staticmethod
+    def resolve_avatar_url(obj):
+        if obj.avatar:
+            return obj.avatar.url
+        return None
+
+    @staticmethod
+    def resolve_disease(obj):
+        return obj.disease.code
+
+    @staticmethod
+    def resolve_predictions(obj):
+        return 0
+
+    @staticmethod
+    def resolve_last_update(obj):
+        return obj.updated.timestamp()
+
+
 class ModelIncludeInit(Schema):
+    repo_id: int
     repo_url: str
+    repo_name: str
+    repo_private: bool
+    repo_provider: Literal["github", "gitlab"]
+    repo_avatar_url: str | None = None
+    disease_id: int
+    time_resolution: Literal["day", "week", "month", "year"]
+    adm_level: Literal[0, 1, 2, 3]
+    category: Literal[
+        "quantitative",
+        "categorical",
+        "spatial_quantitative",
+        "spatial_categorical",
+        "spatio_temporal_quantitative",
+        "spatio_temporal_categorical",
+    ]
+    sprint: bool

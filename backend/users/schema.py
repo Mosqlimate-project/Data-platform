@@ -50,6 +50,7 @@ class LoginOut(Schema):
 class RegisterIn(Schema):
     provider: Optional[Literal["google", "github", "gitlab"]] = None
     provider_id: Optional[str] = None
+    oauth_data: Optional[str] = None
     raw_info: Optional[dict] = None
     avatar_url: Optional[str] = None
     homepage_url: Optional[str] = None
@@ -67,3 +68,12 @@ class UserOut(Schema):
 
 class RefreshIn(Schema):
     refresh_token: str
+
+
+class RepositoryOut(Schema):
+    id: str
+    name: str
+    url: str
+    private: bool
+    provider: Literal["gitlab", "github"]
+    available: bool

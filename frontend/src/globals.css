@@ -2,16 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    @apply text-[16px] leading-[1.5];
+  }
+
+  svg {
+    @apply w-5 h-5;
+  }
+
+  @layer components {
+  .icon {
+    @apply w-5 h-5 text-current;
+  }
+
+  .icon-xs {
+    @apply w-3.5 h-3.5; /* 14px */
+  }
+
+  .icon-sm {
+    @apply w-4 h-4; /* 16px */
+  }
+
+  .icon-md {
+    @apply w-5 h-5; /* 20px */
+  }
+
+  .icon-lg {
+    @apply w-6 h-6; /* 24px */
+  }
+
+  .icon-xl {
+    @apply w-8 h-8; /* 32px */
+  }
+}
+}
+
 :root {
   --color-bg: #ffffff;
+  --color-bg-home: #BCC5E2;
   --color-text: #212538;
-  --color-border: #D3D3D7;
+  --color-border: #E6E6E9;
   --color-accent: #212538;
 }
 
 .dark {
   --color-bg: #212538;
+  --color-bg-home: #2A3552;
   --color-text: #ffffff;
-  --color-border: #4D5160;
+  --color-border: #445680;
   --color-accent: #171A27;
 }

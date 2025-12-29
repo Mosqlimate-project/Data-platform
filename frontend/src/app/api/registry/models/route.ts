@@ -8,19 +8,26 @@ export async function GET() {
   }
 
   try {
-    const upstream = await fetch(`${BACKEND_BASE_URL}/api/registry/models/`, {
+    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/models/thumbnails/`, {
       headers: {
+        "Content-Type": "application/json",
         "X-UID-Key": ADMIN_UIDKEY,
       },
       cache: "no-store",
     });
 
-    const data = await upstream.json();
-    console.log(data)
+    if (!res.ok) {
+      return NextResponse.json(
+        { message: "Upstream error" },
+        { status: res.status }
+      );
+    }
 
-    return NextResponse.json(data, { status: upstream.status });
+    const data = await res.json();
+    return NextResponse.json(data);
+
   } catch (err) {
-    console.error("proxy error", err);
+    console.error("Models proxy error:", err);
     return NextResponse.json({ message: "Upstream request failed" }, { status: 502 });
   }
 }
