@@ -9,9 +9,11 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from polymorphic.models import PolymorphicModel
 
 from main.utils import UF_CODES
 from main.models import TimestampModel
+from datastore.models import Adm0, Adm1, Adm2, Adm3
 from vis.dash import errors
 from vis.brasil.models import State, City
 from datastore.models import Disease
@@ -643,3 +645,43 @@ class RepositoryModel(TimestampModel):
     class Meta:
         verbose_name = _("Model")
         verbose_name_plural = _("Models")
+
+
+class ModelPrediction(PolymorphicModel):
+    model = models.ForeignKey(
+        Model,
+        on_delete=models.CASCADE,
+        # related_name="predictions",
+    )
+    adm0 = models.ForeignKey(
+        Adm0, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm1 = models.ForeignKey(
+        Adm1, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm2 = models.ForeignKey(
+        Adm2, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm3 = models.ForeignKey(
+        Adm3, null=True, blank=True, on_delete=models.PROTECT
+    )
+    commit = models.CharField(max_length=100)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    predict_date = models.DateField()
+    published = models.BooleanField(null=False, default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class QuantitativePrediction(ModelPrediction):
+    mae_score = models.FloatField(null=True, default=None)
+    mse_score = models.FloatField(null=True, default=None)
+    crps_score = models.FloatField(null=True, default=None)
+    log_score = models.FloatField(null=True, default=None)
+    interval_score = models.FloatField(null=True, default=None)
+    wis_score = models.FloatField(null=True, default=None)
+
+
+#
+#
+# class CategoricalPrediction(ModelPrediction):
+#     accuracy = models.FloatField()

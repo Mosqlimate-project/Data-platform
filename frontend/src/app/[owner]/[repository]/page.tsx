@@ -1,6 +1,3 @@
-import { FRONTEND_URL } from "@/lib/env";
-import { notFound } from "next/navigation";
-
 interface PageProps {
   params: Promise<{
     owner: string;
@@ -8,25 +5,13 @@ interface PageProps {
   }>;
 }
 
-export default async function ModelPage({ params }: PageProps) {
-  const { owner, repository } = await params;
-
-  const res = await fetch(
-    `${FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
-    {
-      cache: "no-store",
-    }
-  );
-
-  if (res.status !== 200) {
-    notFound();
-  }
-
-  const data = await res.json();
-
+export default async function ReadmePage({ params }: PageProps) {
   return (
-    <div>
-      <h1>{owner}/{repository}</h1>
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="lg:col-span-3 border p-8 rounded">
+        <h1>Readme Content</h1>
+      </div>
+      <aside className="lg:col-span-2">Sidebar</aside>
     </div>
   );
 }

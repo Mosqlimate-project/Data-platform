@@ -704,10 +704,54 @@ def repository_owner(request, owner: str):
 
 @router.get(
     "/model/{owner}/{repository}/",
+    response={200: s.ModelOut, 404: NotFoundSchema},
     auth=UidKeyAuth(),
     tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def repository_model(request, owner: str, repository: str):
-    raise ValueError(f"{owner}, {repository}")
+    query = models.Q(repository__name=repository) & (
+        models.Q(repository__organization__name=owner)
+        | models.Q(repository__owner__username=owner)
+    )
+
+    try:
+        model = m.RepositoryModel.objects.select_related(
+            "repository",
+            "repository__organization",
+            "repository__owner",
+            "disease",
+        ).get(query)
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+
+    return model
+
+
+#
+# @router.get(
+#     "/model/{owner}/{repository}/predictions",
+#     response={200: s.ModelPredictionsOut, 404: NotFoundSchema},
+#     auth=UidKeyAuth(),
+#     tags=["registry", "frontend"],
+#     include_in_schema=False,
+# )
+# @decorate_view(never_cache)
+# def repository_predictions(request, owner: str, repository: str):
+#     query = models.Q(repository__name=repository) & (
+#         models.Q(repository__organization__name=owner)
+#         | models.Q(repository__owner__username=owner)
+#     )
+#
+#     try:
+#         model = m.RepositoryModel.objects.select_related(
+#             "repository",
+#             "repository__organization",
+#             "repository__owner",
+#             "disease",
+#         ).get(query)
+#     except m.RepositoryModel.DoesNotExist:
+#         return 404, {"message": f"Model '{owner}/{repository}' not found"}
+#
+#     return model

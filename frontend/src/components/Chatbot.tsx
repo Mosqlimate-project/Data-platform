@@ -144,7 +144,7 @@ export default function Chatbot() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-4 right-4 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg hover:bg-blue-700 transition"
+        className="z-50 fixed bottom-4 right-4 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg hover:bg-blue-700 transition"
       >
         <Image
           src="/mosquito.svg"

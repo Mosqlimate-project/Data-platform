@@ -12,16 +12,24 @@ from datastore.models import (
     HistoricoAlertaChik,
     HistoricoAlerta,
 )
-from registry.models import Prediction, PredictionDataRow, Model, Tag
+from registry.models import (
+    Prediction,
+    PredictionDataRow,
+    Model,
+    Tag,
+    RepositoryModel,
+)
 from vis.dash.line_chart import hist_alerta_data
 from vis import models, schema, filters
 from vis.brasil.models import City
 
 import pandas as pd
 from ninja import Router, Query
+from ninja.decorators import decorate_view
 from ninja.security import django_auth
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.db.models import Sum, IntegerField, Min, Max
 from django.db.models.functions import Cast, Round
 
@@ -437,3 +445,61 @@ def post_results_prob_forecast(
     data["geocode"] = data["geocode"].geocode
 
     return 201, data
+
+
+# -- frontend
+
+
+@router.get(
+    "/dashboard/categories/",
+    response=List[schema.CategoryOut],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def dashboard_categories(request):
+    categories = RepositoryModel.objects.values_list(
+        "category", "adm_level"
+    ).distinct()
+
+    labels = dict(RepositoryModel.Category.choices)
+
+    adm_levels = {
+        RepositoryModel.AdministrativeLevel.NATIONAL: ("national", "National"),
+        RepositoryModel.AdministrativeLevel.STATE: ("state", "State"),
+        RepositoryModel.AdministrativeLevel.MUNICIPALITY: (
+            "municipal",
+            "Municipal",
+        ),
+        RepositoryModel.AdministrativeLevel.SUB_MUNICIPALITY: (
+            "sub_municipal",
+            "Sub-Municipal",
+        ),
+    }
+
+    grouped = {}
+    for category, adm in categories:
+        if category not in labels:
+            continue
+
+        if category not in grouped:
+            grouped[category] = {
+                "id": category,
+                "label": str(labels[category]),
+                "levels": [],
+            }
+
+        if adm in adm_levels:
+            slug, label = adm_levels[adm]
+            grouped[category]["levels"].append(
+                {"id": slug, "label": label, "url_slug": slug}
+            )
+
+    results = list(grouped.values())
+    results.sort(key=lambda x: x["label"])
+    level_order = ["national", "state", "municipal", "sub_municipal"]
+
+    for res in results:
+        res["levels"].sort(key=lambda x: level_order.index(x["id"]))
+
+    return results

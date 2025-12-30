@@ -9,6 +9,7 @@ module.exports = {
         border: 'var(--color-border)',
         accent: 'var(--color-accent)',
         hover: 'var(--color-hover)',
+        secondary: 'var(--color-secondary)',
       },
 
       fontSize: {
