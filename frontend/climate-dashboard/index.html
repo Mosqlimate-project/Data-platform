@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Mosqlimate</title>
+
+  <!-- CDN do ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <!-- D3 para ler CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+  <style>
+    /*style do botão de escolher município*/
+    .dashboard-header 
+    {
+      width: 85%;
+      display: flex;
+      justify-content: flex-end; /*Alinha à direita*/
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .main {
+      width: 100%;
+    }
+
+    /*Dá um tamanho fixo ao container do gráfico*/
+    .chart {
+      height: 400px;
+      margin-bottom: 60px;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Dashboard</h2>
+
+  <div class="dashboard-header">
+    <label for="municipalitySelect">Selecione o município:</label>
+    <select id="municipalitySelect"></select>
+  </div>
+  <div class="main">
+    <div id="chartTemperature" class="chart"></div>
+    <div id="chartPrecipitation" class="chart"></div>
+    <div id="chartPressureAndHumity" class="chart"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
