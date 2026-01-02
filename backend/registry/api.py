@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 from django.db import transaction, models, IntegrityError
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     ForbiddenSchema,
@@ -561,13 +562,20 @@ def delete_prediction(request, predict_id: int):
 # ---
 
 
-@router.post(
-    "/model/add/",
+@router.get(
+    "/model/add/sprint/active/",
     auth=JWTAuth(),
-    response={201: dict, 400: BadRequestSchema},
+    response={200: bool},
     tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
+def is_sprint_active(request):
+    today = timezone.now().date()
+    return m.Sprint.objects.filter(
+        start_date__lte=today, end_date__gte=today
+    ).exists()
+
+
 @router.post(
     "/model/add/",
     auth=JWTAuth(),

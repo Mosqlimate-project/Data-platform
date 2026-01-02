@@ -65,6 +65,7 @@ export default function AddModelPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
+  const [isSprintActive, setIsSprintActive] = useState(false);
 
   const performDiseaseSearch = async () => {
     if (config.disease) return;
@@ -165,6 +166,18 @@ export default function AddModelPage() {
 
       const results: Repository[] = [];
 
+      const checkSprintStatus = async () => {
+        try {
+          const res = await fetch("/api/registry/model/add/sprint/active");
+          if (res.ok) {
+            const active = await res.json();
+            setIsSprintActive(active);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
           const data = await apiFetch(`/user/repositories/${provider}/`, { auth: true });
@@ -186,6 +199,7 @@ export default function AddModelPage() {
       await Promise.all([
         fetchProvider('github'),
         fetchProvider('gitlab'),
+        checkSprintStatus(),
       ]);
 
       setRepos(results);
@@ -665,13 +679,15 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                      <Toggle
-                        label="Sprint"
-                        checked={config.sprint}
-                        onChange={(v) => setConfig({ ...config, sprint: v })}
-                      />
-                    </div>
+                    {isSprintActive && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                        <Toggle
+                          label="Sprint"
+                          checked={config.sprint}
+                          onChange={(v) => setConfig({ ...config, sprint: v })}
+                        />
+                      </div>
+                    )}
 
                     <div className="flex gap-3 pt-4">
                       <button
@@ -776,18 +792,16 @@ export default function AddModelPage() {
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {config.sprint ? (
+                      {config.sprint && (
+                        <div>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
+                          <div className="flex flex-wrap gap-2 mt-2">
                             <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800">
                               Sprint
                             </span>
-                          ) : (
-                            <span className="text-xs text-gray-400 italic">No additional features selected</span>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                     </div>
                   </div>

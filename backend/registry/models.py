@@ -418,8 +418,8 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 
 class Sprint(models.Model):
     year = models.IntegerField()
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(help_text="Start submission date")
+    end_date = models.DateField(help_text="End submission date")
 
     class Meta:
         ordering = ["-start_date"]
