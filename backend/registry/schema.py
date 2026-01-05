@@ -598,7 +598,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_predictions(obj):
-        return 0  # FIX: it
+        return getattr(obj, "predictions_count", 0)
 
     @staticmethod
     def resolve_last_update(obj):

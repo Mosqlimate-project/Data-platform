@@ -690,13 +690,18 @@ def model_add(request, payload: s.ModelIncludeInit):
 )
 @decorate_view(never_cache)
 def models_thumbnails(request):
-    models = m.RepositoryModel.objects.select_related(
-        "repository",
-        "repository__organization",
-        "repository__owner",
-        "disease",
-    ).all()
-    return models.order_by("-updated")
+    repo_models = (
+        m.RepositoryModel.objects.select_related(
+            "repository",
+            "repository__organization",
+            "repository__owner",
+            "disease",
+        )
+        .annotate(predictions_count=models.Count("predicts"))
+        .filter(predictions_count__gt=0)
+        .all()
+    )
+    return repo_models.order_by("-updated")
 
 
 @router.get(

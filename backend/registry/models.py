@@ -649,9 +649,9 @@ class RepositoryModel(TimestampModel):
 
 class ModelPrediction(PolymorphicModel):
     model = models.ForeignKey(
-        Model,
+        RepositoryModel,
         on_delete=models.CASCADE,
-        # related_name="predictions",
+        related_name="predicts",
     )
     adm0 = models.ForeignKey(
         Adm0, null=True, blank=True, on_delete=models.PROTECT
@@ -679,6 +679,28 @@ class QuantitativePrediction(ModelPrediction):
     log_score = models.FloatField(null=True, default=None)
     interval_score = models.FloatField(null=True, default=None)
     wis_score = models.FloatField(null=True, default=None)
+
+
+class QuantitativePredictionRow(models.Model):
+    prediction = models.ForeignKey(
+        QuantitativePrediction, on_delete=models.CASCADE, related_name="data"
+    )
+    date = models.DateField(null=False)
+    pred = models.FloatField(null=False)
+    lower_95 = models.FloatField(null=True)
+    lower_90 = models.FloatField(null=False)
+    lower_80 = models.FloatField(null=True)
+    lower_50 = models.FloatField(null=True)
+    upper_50 = models.FloatField(null=True)
+    upper_80 = models.FloatField(null=True)
+    upper_90 = models.FloatField(null=False)
+    upper_95 = models.FloatField(null=True)
+
+    class Meta:
+        ordering = ["date"]
+        indexes = [
+            models.Index(fields=["prediction", "date"]),
+        ]
 
 
 #

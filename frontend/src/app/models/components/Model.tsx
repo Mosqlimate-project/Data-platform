@@ -91,7 +91,7 @@ export default function Thumbnail({
         <span>•</span>
 
         <span className="truncate">
-          {predictions > 0 ? predictions.toLocaleString() : 0} preds
+          {predictions > 0 ? predictions.toLocaleString() : 0} predictions
         </span>
 
         <span>•</span>
