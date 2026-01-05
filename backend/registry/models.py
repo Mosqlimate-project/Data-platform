@@ -9,9 +9,11 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from polymorphic.models import PolymorphicModel
 
 from main.utils import UF_CODES
 from main.models import TimestampModel
+from datastore.models import Adm0, Adm1, Adm2, Adm3
 from vis.dash import errors
 from vis.brasil.models import State, City
 from datastore.models import Disease
@@ -414,6 +416,18 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 # ---- Frontend new models:
 
 
+class Sprint(models.Model):
+    year = models.IntegerField()
+    start_date = models.DateField(help_text="Start submission date")
+    end_date = models.DateField(help_text="End submission date")
+
+    class Meta:
+        ordering = ["-start_date"]
+
+    def __str__(self):
+        return f"Sprint {self.year}"
+
+
 class Organization(TimestampModel):
     name = models.CharField(max_length=100, unique=True)
     members = models.ManyToManyField(
@@ -621,7 +635,9 @@ class RepositoryModel(TimestampModel):
     time_resolution = models.CharField(
         max_length=10, choices=Periodicity.choices
     )
-    sprint = models.BooleanField(default=False)
+    sprint = models.ForeignKey(
+        Sprint, null=True, on_delete=models.PROTECT, default=None
+    )
 
     def __str__(self):
         return f"{self.repository.name} ({self.get_category_display()})"
@@ -629,3 +645,65 @@ class RepositoryModel(TimestampModel):
     class Meta:
         verbose_name = _("Model")
         verbose_name_plural = _("Models")
+
+
+class ModelPrediction(PolymorphicModel):
+    model = models.ForeignKey(
+        RepositoryModel,
+        on_delete=models.CASCADE,
+        related_name="predicts",
+    )
+    adm0 = models.ForeignKey(
+        Adm0, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm1 = models.ForeignKey(
+        Adm1, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm2 = models.ForeignKey(
+        Adm2, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm3 = models.ForeignKey(
+        Adm3, null=True, blank=True, on_delete=models.PROTECT
+    )
+    commit = models.CharField(max_length=100)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    predict_date = models.DateField()
+    published = models.BooleanField(null=False, default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class QuantitativePrediction(ModelPrediction):
+    mae_score = models.FloatField(null=True, default=None)
+    mse_score = models.FloatField(null=True, default=None)
+    crps_score = models.FloatField(null=True, default=None)
+    log_score = models.FloatField(null=True, default=None)
+    interval_score = models.FloatField(null=True, default=None)
+    wis_score = models.FloatField(null=True, default=None)
+
+
+class QuantitativePredictionRow(models.Model):
+    prediction = models.ForeignKey(
+        QuantitativePrediction, on_delete=models.CASCADE, related_name="data"
+    )
+    date = models.DateField(null=False)
+    pred = models.FloatField(null=False)
+    lower_95 = models.FloatField(null=True)
+    lower_90 = models.FloatField(null=False)
+    lower_80 = models.FloatField(null=True)
+    lower_50 = models.FloatField(null=True)
+    upper_50 = models.FloatField(null=True)
+    upper_80 = models.FloatField(null=True)
+    upper_90 = models.FloatField(null=False)
+    upper_95 = models.FloatField(null=True)
+
+    class Meta:
+        ordering = ["date"]
+        indexes = [
+            models.Index(fields=["prediction", "date"]),
+        ]
+
+
+#
+#
+# class CategoricalPrediction(ModelPrediction):
+#     accuracy = models.FloatField()

@@ -44,6 +44,7 @@
   --color-text: #212538;
   --color-border: #E6E6E9;
   --color-accent: #212538;
+  --color-secondary: #6A7280;
 }
 
 .dark {
@@ -52,4 +53,5 @@
   --color-text: #ffffff;
   --color-border: #445680;
   --color-accent: #171A27;
+  --color-secondary: #6A7280;
 }

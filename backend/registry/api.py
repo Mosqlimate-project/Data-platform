@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 from django.db import transaction, models, IntegrityError
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     ForbiddenSchema,
@@ -561,13 +562,20 @@ def delete_prediction(request, predict_id: int):
 # ---
 
 
-@router.post(
-    "/model/add/",
+@router.get(
+    "/model/add/sprint/active/",
     auth=JWTAuth(),
-    response={201: dict, 400: BadRequestSchema},
+    response={200: bool},
     tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
+def is_sprint_active(request):
+    today = timezone.now().date()
+    return m.Sprint.objects.filter(
+        start_date__lte=today, end_date__gte=today
+    ).exists()
+
+
 @router.post(
     "/model/add/",
     auth=JWTAuth(),
@@ -682,21 +690,81 @@ def model_add(request, payload: s.ModelIncludeInit):
 )
 @decorate_view(never_cache)
 def models_thumbnails(request):
-    models = m.RepositoryModel.objects.select_related(
-        "repository",
-        "repository__organization",
-        "repository__owner",
-        "disease",
-    ).all()
-    return models.order_by("-updated")
+    repo_models = (
+        m.RepositoryModel.objects.select_related(
+            "repository",
+            "repository__organization",
+            "repository__owner",
+            "disease",
+        )
+        .annotate(predictions_count=models.Count("predicts"))
+        .filter(predictions_count__gt=0)
+        .all()
+    )
+    return repo_models.order_by("-updated")
+
+
+@router.get(
+    "/model/{owner}/",
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_owner(request, owner: str):
+    raise ValueError(f"{owner}")
 
 
 @router.get(
     "/model/{owner}/{repository}/",
+    response={200: s.ModelOut, 404: NotFoundSchema},
     auth=UidKeyAuth(),
     tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def repository_model(request, owner: str, repository: str):
-    raise ValueError(f"{owner}, {repository}")
+    query = models.Q(repository__name=repository) & (
+        models.Q(repository__organization__name=owner)
+        | models.Q(repository__owner__username=owner)
+    )
+
+    try:
+        model = m.RepositoryModel.objects.select_related(
+            "repository",
+            "repository__organization",
+            "repository__owner",
+            "disease",
+        ).get(query)
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+
+    return model
+
+
+#
+# @router.get(
+#     "/model/{owner}/{repository}/predictions",
+#     response={200: s.ModelPredictionsOut, 404: NotFoundSchema},
+#     auth=UidKeyAuth(),
+#     tags=["registry", "frontend"],
+#     include_in_schema=False,
+# )
+# @decorate_view(never_cache)
+# def repository_predictions(request, owner: str, repository: str):
+#     query = models.Q(repository__name=repository) & (
+#         models.Q(repository__organization__name=owner)
+#         | models.Q(repository__owner__username=owner)
+#     )
+#
+#     try:
+#         model = m.RepositoryModel.objects.select_related(
+#             "repository",
+#             "repository__organization",
+#             "repository__owner",
+#             "disease",
+#         ).get(query)
+#     except m.RepositoryModel.DoesNotExist:
+#         return 404, {"message": f"Model '{owner}/{repository}' not found"}
+#
+#     return model

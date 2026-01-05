@@ -1,4 +1,4 @@
-from typing import Optional, Literal, Annotated
+from typing import Optional, Literal, Annotated, List
 from datetime import date as dt
 
 from ninja import FilterSchema, Field
@@ -112,3 +112,15 @@ class ResultsProbForecastSchema(Schema):
 class ResultsProbForecastFilterSchema(FilterSchema):
     dt: Optional[str] = Field("2024-01-01", q="date__str")
     geocode: Optional[int] = Field(q="geocode")
+
+
+class LevelOut(Schema):
+    id: str
+    label: str
+    url_slug: str
+
+
+class CategoryOut(Schema):
+    id: str
+    label: str
+    levels: List[LevelOut]

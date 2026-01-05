@@ -27,6 +27,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",
+    "lucide-react": "^0.562.0",
     "next": "^14.2.5",
     "next-i18next": "^15.4.2",
     "next-themes": "^0.4.6",
@@ -53,6 +54,7 @@
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@types/zxcvbn": "^4.4.5",
+    "baseline-browser-mapping": "^2.9.11",
     "dotenv": "^17.2.3",
     "env-cmd": "^11.0.0"
   }

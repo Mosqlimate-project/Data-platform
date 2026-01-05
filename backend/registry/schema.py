@@ -598,7 +598,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_predictions(obj):
-        return 0
+        return getattr(obj, "predictions_count", 0)
 
     @staticmethod
     def resolve_last_update(obj):
@@ -623,4 +623,30 @@ class ModelIncludeInit(Schema):
         "spatio_temporal_quantitative",
         "spatio_temporal_categorical",
     ]
-    sprint: bool
+    sprint: int
+
+
+class ModelOut(Schema):
+    owner: str
+    repository: str
+    description: str | None
+    disease: str
+    category: str
+    adm_level: int
+    time_resolution: str
+
+    @staticmethod
+    def resolve_owner(obj):
+        if obj.repository.organization:
+            return obj.repository.organization.name
+        if obj.repository.owner:
+            return obj.repository.owner.username
+        raise ValueError("Owner not found")
+
+    @staticmethod
+    def resolve_repository(obj):
+        return obj.repository.name
+
+    @staticmethod
+    def resolve_disease(obj):
+        return obj.disease.name
