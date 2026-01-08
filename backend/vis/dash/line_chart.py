@@ -10,9 +10,9 @@ from django.contrib.auth import get_user_model
 from mosqlient.scoring.score import Scorer
 
 from .charts import watermark
-from main.utils import UFs, CODES_UF
+from main.utils import UF_CODES
 from vis.plots.home.vis_charts import historico_alerta_data_for
-from datastore.models import Municipio
+from datastore.models import Adm2
 from registry.models import Prediction, PredictionDataRow
 
 
@@ -85,13 +85,11 @@ def hist_alerta_data(
     hist_alerta = historico_alerta_data_for(disease)
 
     if str(adm_level) == "1":
-        if str(adm_1).isdigit():
-            adm_1 = CODES_UF[int(adm_1)]
+        if not str(adm_1).isdigit():
+            adm_1 = UF_CODES[adm_1]
 
-        geocodes = (
-            Municipio.objects.using("infodengue")
-            .filter(uf=UFs[adm_1])
-            .values_list("geocodigo", flat=True)
+        geocodes = list(
+            Adm2.objects.filter(adm1=adm_1).values_list("geocode", flat=True)
         )
     elif str(adm_level) == "2":
         geocodes = [int(adm_2)]

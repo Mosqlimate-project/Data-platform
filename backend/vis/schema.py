@@ -70,6 +70,21 @@ class DashboardTagsOut(Schema):
     preds: list[DashboardTag]
 
 
+class DashboardSprintsOut(Schema):
+    id: int
+    year: int
+
+
+class DashboardDiseasesOut(Schema):
+    code: str
+    name: str
+
+
+class DashboardCountriesOut(Schema):
+    geocode: str
+    name: str
+
+
 class HistoricoAlertaCases(Schema):
     date: dt
     cases: int
@@ -77,12 +92,10 @@ class HistoricoAlertaCases(Schema):
 
 class HistoricoAlertaCasesIn(Schema):
     sprint: Annotated[bool, Field(False)]
-    disease: Annotated[
-        Literal["dengue", "zika", "chikungunya"], Field("dengue")
-    ]
+    disease: str = "A90"
     start: dt
     end: dt
-    adm_level: Literal[1, 2]
+    adm_level: Annotated[int, Field(ge=0, le=3)]
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
 

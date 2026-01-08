@@ -8,11 +8,13 @@ from main.schema import (
 )
 from users.auth import UidKeyAuth
 from datastore.models import (
+    Adm0,
     HistoricoAlertaZika,
     HistoricoAlertaChik,
     HistoricoAlerta,
 )
 from registry.models import (
+    Disease,
     Prediction,
     PredictionDataRow,
     Model,
@@ -30,7 +32,13 @@ from ninja.security import django_auth
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
-from django.db.models import Sum, IntegerField, Min, Max
+from django.db.models import (
+    Sum,
+    IntegerField,
+    Min,
+    Max,
+    Count,
+)
 from django.db.models.functions import Cast, Round
 
 
@@ -451,6 +459,164 @@ def post_results_prob_forecast(
 
 
 @router.get(
+    "/dashboard/diseases/",
+    response=List[schema.DashboardDiseasesOut],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+def dashboard_diseases(
+    request, category: Literal["quantitative", "categorical"], adm_level: int
+):
+    category_map = {
+        "quantitative": [
+            RepositoryModel.Category.QUANTITATIVE,
+            RepositoryModel.Category.SPATIAL_QUANTITATIVE,
+            RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE,
+        ],
+        "categorical": [
+            RepositoryModel.Category.CATEGORICAL,
+            RepositoryModel.Category.SPATIAL_CATEGORICAL,
+            RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL,
+        ],
+    }
+
+    categories = category_map.get(category)
+    if not categories and category == "categorical":
+        categories = category_map["categorical"]
+
+    diseases = Disease.objects.filter(
+        models__adm_level=adm_level,
+        models__category__in=categories,
+        models__predicts__isnull=False,
+    ).distinct()
+
+    return diseases
+
+
+@router.get(
+    "/dashboard/countries/",
+    response=List[schema.DashboardCountriesOut],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+def dashboard_countries(
+    request,
+    category: Literal["quantitative", "categorical"],
+    adm_level: int,
+    disease: str = "A90",
+):
+    category_map = {
+        "quantitative": [
+            RepositoryModel.Category.QUANTITATIVE,
+            RepositoryModel.Category.SPATIAL_QUANTITATIVE,
+            RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE,
+        ],
+        "categorical": [
+            RepositoryModel.Category.CATEGORICAL,
+            RepositoryModel.Category.SPATIAL_CATEGORICAL,
+            RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL,
+        ],
+    }
+
+    target_categories = category_map.get(category)
+    if not target_categories and category == "categorical":
+        target_categories = category_map["categorical"]
+
+    if adm_level == 0:
+        lookup_field = "predicts__adm0__geocode"
+    elif adm_level == 1:
+        lookup_field = "predicts__adm1__geocode"
+    elif adm_level == 2:
+        lookup_field = "predicts__adm2__geocode"
+    elif adm_level == 3:
+        lookup_field = "predicts__adm3__geocode"
+    else:
+        return []
+
+    prediction_geocodes = (
+        RepositoryModel.objects.filter(
+            disease__code=disease,
+            adm_level=adm_level,
+            category__in=target_categories,
+            predicts__isnull=False,
+        )
+        .values_list(lookup_field, flat=True)
+        .distinct()
+    )
+
+    if adm_level == 0:
+        countries = Adm0.objects.filter(geocode__in=prediction_geocodes)
+    elif adm_level == 1:
+        countries = Adm0.objects.filter(
+            states__geocode__in=prediction_geocodes
+        )
+    elif adm_level == 2:
+        countries = Adm0.objects.filter(
+            states__cities__geocode__in=prediction_geocodes
+        )
+    elif adm_level == 3:
+        countries = Adm0.objects.none()
+    else:
+        countries = Adm0.objects.none()
+
+    return countries.distinct()
+
+
+@router.get(
+    "/dashboard/cases/",
+    response=List[schema.HistoricoAlertaCases],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+def dashboard_cases(
+    request, payload: schema.HistoricoAlertaCasesIn = Query(...)
+):
+    match payload.disease:
+        case "A90":
+            disease = "dengue"
+        case "A92.5":
+            disease = "zika"
+        case "A92.0":
+            disease = "chik"
+        case _:
+            disease = None
+
+    if not disease:
+        return list()
+
+    df = hist_alerta_data(
+        sprint=payload.sprint,
+        disease=disease,
+        start_window_date=payload.start,
+        end_window_date=payload.end,
+        adm_level=payload.adm_level,
+        adm_1=payload.adm_1,
+        adm_2=payload.adm_2,
+    )
+
+    if df.empty:
+        return list()
+
+    df = df.sort_values(by="date")
+
+    res = []
+    for _, row in df.iterrows():
+        res.append(
+            schema.HistoricoAlertaCases(date=row["date"], cases=row["target"])
+        )
+    return res
+
+
+@router.get(
+    "/dashboard/sprints/",
+    response=List[schema.DashboardSprintsOut],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+def dashboard_sprints(request, adm_level: int): ...
+
+
+@router.get(
     "/dashboard/categories/",
     response=List[schema.CategoryOut],
     auth=uidkey_auth,
@@ -458,11 +624,12 @@ def post_results_prob_forecast(
 )
 @decorate_view(never_cache)
 def dashboard_categories(request):
-    categories = RepositoryModel.objects.values_list(
-        "category", "adm_level"
-    ).distinct()
-
-    labels = dict(RepositoryModel.Category.choices)
+    categories = (
+        RepositoryModel.objects.annotate(predictions_count=Count("predicts"))
+        .filter(predictions_count__gt=0)
+        .values_list("category", "adm_level")
+        .distinct()
+    )
 
     adm_levels = {
         RepositoryModel.AdministrativeLevel.NATIONAL: ("national", "National"),
@@ -477,29 +644,56 @@ def dashboard_categories(request):
         ),
     }
 
-    grouped = {}
+    groups_map = {
+        "quantitative": {
+            "id": "quantitative",
+            "label": "Quantitative Predictions",
+            "levels": set(),
+        },
+        "categorical": {
+            "id": "categorical",
+            "label": "Categorical Predictions",
+            "levels": set(),
+        },
+    }
+
     for category, adm in categories:
-        if category not in labels:
-            continue
+        target_group = None
 
-        if category not in grouped:
-            grouped[category] = {
-                "id": category,
-                "label": str(labels[category]),
-                "levels": [],
-            }
+        if "quantitative" in category:
+            target_group = groups_map["quantitative"]
+        elif "categorical" in category:
+            target_group = groups_map["categorical"]
 
-        if adm in adm_levels:
-            slug, label = adm_levels[adm]
-            grouped[category]["levels"].append(
-                {"id": slug, "label": label, "url_slug": slug}
-            )
+        if target_group and adm in adm_levels:
+            target_group["levels"].add(adm_levels[adm])
 
-    results = list(grouped.values())
-    results.sort(key=lambda x: x["label"])
+    results = []
     level_order = ["national", "state", "municipal", "sub_municipal"]
 
-    for res in results:
-        res["levels"].sort(key=lambda x: level_order.index(x["id"]))
+    for key, data in groups_map.items():
+        if not data["levels"]:
+            continue
+
+        formatted_levels = [
+            {"id": slug, "label": label, "url_slug": slug}
+            for slug, label in data["levels"]
+        ]
+
+        formatted_levels.sort(
+            key=lambda x: (
+                level_order.index(x["id"]) if x["id"] in level_order else 99
+            )
+        )
+
+        results.append(
+            {
+                "id": data["id"],
+                "label": data["label"],
+                "levels": formatted_levels,
+            }
+        )
+
+    results.sort(key=lambda x: x["label"])
 
     return results
