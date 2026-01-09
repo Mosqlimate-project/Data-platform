@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
-  console.log(accessToken);
 
   if (!accessToken) {
     return NextResponse.json(false, { status: 401 });
