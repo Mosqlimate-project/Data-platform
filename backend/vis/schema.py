@@ -37,20 +37,60 @@ class DashboardLineChartCases(Schema):
 
 
 class PredictionScore(Schema):
-    name: Literal["mae", "mse", "crps", "log_score", "interval_score", "wis"]
-    score: Optional[float]
+    name: Literal[
+        "mae_score",
+        "mse_score",
+        "crps_score",
+        "log_score",
+        "interval_score",
+        "wis_score",
+    ]
+    score: Optional[float] = None
 
 
 class DashboardPredictionOut(Schema):
     id: int
-    model: int
-    author: str
-    year: int
-    start: dt
-    end: dt
-    color: str
+    owner: str
+    repository: str
+    start: Optional[dt] = None
+    end: Optional[dt] = None
+    sprint: Optional[int] = None
     scores: list[PredictionScore]
-    adm_level: int
+
+    @staticmethod
+    def resolve_owner(obj):
+        repo = obj.model.repository
+        if hasattr(repo, "organization") and repo.organization:
+            return repo.organization.name
+        if hasattr(repo, "owner") and repo.owner:
+            return repo.owner.username
+        return "Unknown"
+
+    @staticmethod
+    def resolve_repository(obj):
+        return obj.model.repository.name
+
+    @staticmethod
+    def resolve_sprint(obj):
+        if obj.model.sprint:
+            return obj.model.sprint.year
+        return None
+
+    @staticmethod
+    def resolve_scores(obj):
+        score_fields = [
+            "mae_score",
+            "mse_score",
+            "crps_score",
+            "log_score",
+            "interval_score",
+            "wis_score",
+        ]
+        return [
+            {"name": field, "score": getattr(obj, field)}
+            for field in score_fields
+            if getattr(obj, field) is not None
+        ]
 
 
 class DashboardModelOut(Schema):
@@ -70,7 +110,7 @@ class DashboardTagsOut(Schema):
     preds: list[DashboardTag]
 
 
-class DashboardSprintsOut(Schema):
+class DashboardSprintOut(Schema):
     id: int
     year: int
 
@@ -80,7 +120,7 @@ class DashboardDiseasesOut(Schema):
     name: str
 
 
-class DashboardCountriesOut(Schema):
+class DashboardADMOut(Schema):
     geocode: str
     name: str
 

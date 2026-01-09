@@ -14,7 +14,6 @@ from polymorphic.models import PolymorphicModel
 from main.utils import UF_CODES
 from main.models import TimestampModel
 from datastore.models import Adm0, Adm1, Adm2, Adm3
-from vis.dash import errors
 from vis.brasil.models import State, City
 from datastore.models import Disease
 
@@ -347,21 +346,19 @@ class Prediction(models.Model):
             end_date = max(self.to_dataframe()["date"])
         except KeyError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError("date column not found")
+            raise ValueError("date column not found")
 
         try:
             self.date_ini_prediction = datetime.fromisoformat(str(ini_date))
             self.date_end_prediction = datetime.fromisoformat(str(end_date))
         except ValueError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError(
-                "Incorrect date format on column date"
-            )
+            raise ValueError("Incorrect date format on column date")
 
     def _parse_uf_geocode(self, uf: str):
         uf = uf.upper()
         if uf not in UF_CODES:
-            raise errors.VisualizationError(f"Unkown UF '{uf}'")
+            raise ValueError(f"Unkown UF '{uf}'")
         return UF_CODES[uf]
 
     class Meta:
@@ -701,9 +698,3 @@ class QuantitativePredictionRow(models.Model):
         indexes = [
             models.Index(fields=["prediction", "date"]),
         ]
-
-
-#
-#
-# class CategoricalPrediction(ModelPrediction):
-#     accuracy = models.FloatField()
