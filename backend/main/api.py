@@ -61,6 +61,12 @@ api.add_router("/log/", router=log_router)
 api.add_router("/maps/", router=maps_router)
 
 
+@router.get("/status/", include_in_schema=False)
+@csrf_exempt
+def status(request):
+    return 200, {"status": "ok"}
+
+
 @router.get("/session_key/", include_in_schema=False)
 @csrf_exempt
 def get_session_key(request):

@@ -11,6 +11,7 @@ from registry.models import (
     RepositoryModel,
     Sprint,
     QuantitativePrediction,
+    QuantitativePredictionRow,
 )
 from vis.utils import hist_alerta_data
 from vis import schema
@@ -415,6 +416,18 @@ def dashboard_predictions(
     qs = qs.filter(start__isnull=False)
 
     return qs
+
+
+@router.get(
+    "/dashboard/prediction/{prediction_id}/",
+    response=List[schema.DashboardQuantitativePredictionOut],
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+def dashboard_prediction(request, prediction_id: int):
+    return QuantitativePredictionRow.objects.filter(
+        prediction_id=prediction_id
+    ).order_by("date")
 
 
 @router.get(

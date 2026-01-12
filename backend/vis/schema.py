@@ -5,35 +5,17 @@ from ninja import FilterSchema, Field
 from main.schema import Schema
 
 
-class MinMaxDatesOut(Schema):
-    min: dt
-    max: dt
-
-
-class DashboardPredictionData(Schema):
+class DashboardQuantitativePredictionOut(Schema):
     date: dt
-    upper_95: Optional[float]
-    upper_90: Optional[float]
-    upper_80: Optional[float]
-    upper_50: Optional[float]
     pred: float
-    lower_50: Optional[float]
-    lower_80: Optional[float]
-    lower_90: Optional[float]
-    lower_95: Optional[float]
-
-
-class DashboardLineChartPrediction(Schema):
-    id: Optional[int] = None
-    color: Optional[str] = None
-    data: list[DashboardPredictionData]
-    start: Optional[dt] = None
-    end: Optional[dt] = None
-
-
-class DashboardLineChartCases(Schema):
-    labels: list[dt]
-    cases: list[Optional[int]]
+    lower_95: Optional[float] = None
+    lower_90: Optional[float] = None
+    lower_80: Optional[float] = None
+    lower_50: Optional[float] = None
+    upper_50: Optional[float] = None
+    upper_80: Optional[float] = None
+    upper_90: Optional[float] = None
+    upper_95: Optional[float] = None
 
 
 class PredictionScore(Schema):

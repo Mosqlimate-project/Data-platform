@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { LineChart, Series } from "@/components/dashboard/QuantitativeLineChart";
+import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
 import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 interface CaseData {
   date: string;
@@ -51,7 +53,20 @@ interface Prediction {
 }
 
 interface DashboardClientProps {
-  category: "quantitative" | "qualitative";
+  category: "quantitative" | "categorical";
+}
+
+interface PredictionRowData {
+  date: string;
+  pred: number;
+  lower_95?: number;
+  lower_90?: number;
+  lower_80?: number;
+  lower_50?: number;
+  upper_50?: number;
+  upper_80?: number;
+  upper_90?: number;
+  upper_95?: number;
 }
 
 const SCORE_COLUMNS = [
@@ -63,6 +78,17 @@ const SCORE_COLUMNS = [
 ];
 
 const ITEMS_PER_PAGE = 15;
+
+const CHART_COLORS = [
+  "#44aa99", "#999933", "#88ccee", "#ddcc77", "#cc6677",
+  "#2563eb", "#dc2626", "#16a34a", "#d97706", "#9333ea",
+  "#0891b2", "#be123c", "#4d7c0f", "#b45309", "#7c3aed",
+  "#2f4b7c", "#665191", "#a05195", "#d45087", "#f95d6a",
+  "#ff7c43", "#ffa600", "#003f5c", "#58508d", "#bc5090",
+  "#ff6361", "#00876c", "#4c9c85", "#78b19f", "#a0c6b9",
+  "#d43d51", "#ec8f5e", "#f3b98c", "#87bc45", "#27aeef",
+  "#b33dc6", "#882255", "#117733", "#332288", "#aa4499",
+];
 
 export default function DashboardClient({ category }: DashboardClientProps) {
   const router = useRouter();
@@ -85,6 +111,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState<Series>({ labels: [], data: [] });
+  const [chartPredictions, setChartPredictions] = useState<QuantitativePrediction[]>([]);
+  const [loadingPredictions, setLoadingPredictions] = useState<number[]>([]);
 
   const [diseaseOptions, setDiseaseOptions] = useState<DiseaseOption[]>([]);
   const [diseasesLoading, setDiseasesLoading] = useState(true);
@@ -324,6 +352,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       const data: Prediction[] = await res.json();
       setPredictions(data);
+      setChartPredictions([]);
+      setLoadingPredictions([]);
       setSelectedModels([]);
       setCurrentPage(1);
     } catch (error) {
@@ -337,6 +367,24 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   const fetchData = useCallback(async () => {
     if (!inputs.disease) return;
+    if (!inputs.adm_0) return;
+    if (inputs.adm_level >= 1 && !inputs.adm_1) return;
+    if (inputs.adm_level >= 2 && !inputs.adm_2) return;
+
+    let startStr = "";
+    let endStr = "";
+
+    if (predictions.length > 0) {
+      const starts = predictions.map(p => p.start).filter(Boolean);
+      const ends = predictions.map(p => p.end).filter(Boolean);
+
+      if (starts.length > 0 && ends.length > 0) {
+        startStr = starts.reduce((a, b) => (a < b ? a : b));
+        endStr = ends.reduce((a, b) => (a > b ? a : b));
+      }
+    }
+
+    if (!startStr || !endStr) return;
 
     setLoading(true);
     try {
@@ -344,26 +392,13 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         disease: inputs.disease,
         adm_level: inputs.adm_level.toString(),
         sprint: inputs.sprint.toString(),
+        adm_0: inputs.adm_0,
+        start: startStr,
+        end: endStr
       });
 
-      if (inputs.adm_0) params.append("adm_0", inputs.adm_0);
       if (inputs.adm_1) params.append("adm_1", inputs.adm_1);
       if (inputs.adm_2) params.append("adm_2", inputs.adm_2.toString());
-
-      if (predictions.length > 0) {
-        const starts = predictions.map(p => p.start).filter(Boolean);
-        const ends = predictions.map(p => p.end).filter(Boolean);
-
-        if (starts.length > 0) {
-          const minDate = starts.reduce((a, b) => (a < b ? a : b));
-          params.append("start", minDate);
-        }
-
-        if (ends.length > 0) {
-          const maxDate = ends.reduce((a, b) => (a > b ? a : b));
-          params.append("end", maxDate);
-        }
-      }
 
       const res = await fetch(`/api/vis/dashboard/cases?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch cases");
@@ -426,9 +461,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   }, [fetchPredictions, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2]);
 
   useEffect(() => {
-    if (inputs.disease) {
-      fetchData();
-    }
+    fetchData();
   }, [fetchData]);
 
   useEffect(() => {
@@ -443,6 +476,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
     if (name === 'disease' || name === 'adm_0' || name === 'adm_1' || name === 'adm_2') {
       setPredictions([]);
+      setChartPredictions([]);
+      setChartData({ labels: [], data: [] });
     }
 
     updateURL({ [name]: newValue });
@@ -462,6 +497,44 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         ? prev.filter((name) => name !== modelName)
         : [...prev, modelName]
     );
+  };
+
+  const togglePrediction = async (prediction: Prediction) => {
+    const isSelected = chartPredictions.some((p) => p.id === prediction.id);
+
+    if (isSelected) {
+      setChartPredictions((prev) => prev.filter((p) => p.id !== prediction.id));
+    } else {
+      setLoadingPredictions((prev) => [...prev, prediction.id]);
+      try {
+        const res = await fetch(`/api/vis/dashboard/prediction/${prediction.id}`);
+        if (!res.ok) throw new Error("Failed to fetch prediction data");
+        const data: PredictionRowData[] = await res.json();
+
+        const newPrediction: QuantitativePrediction = {
+          id: prediction.id,
+          color: CHART_COLORS[prediction.id % CHART_COLORS.length],
+          data: {
+            labels: data.map((d) => new Date(d.date)),
+            data: data.map((d) => d.pred),
+            lower_50: data.map((d) => d.lower_50 ?? null),
+            lower_80: data.map((d) => d.lower_80 ?? null),
+            lower_90: data.map((d) => d.lower_90 ?? null),
+            lower_95: data.map((d) => d.lower_95 ?? null),
+            upper_50: data.map((d) => d.upper_50 ?? null),
+            upper_80: data.map((d) => d.upper_80 ?? null),
+            upper_90: data.map((d) => d.upper_90 ?? null),
+            upper_95: data.map((d) => d.upper_95 ?? null),
+          },
+        };
+
+        setChartPredictions((prev) => [...prev, newPrediction]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingPredictions((prev) => prev.filter((id) => id !== prediction.id));
+      }
+    }
   };
 
   const handleSort = (key: string) => {
@@ -495,8 +568,16 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       result = result.filter((p) => selectedModels.includes(p.repository));
     }
 
-    if (sortConfig.key) {
-      result = [...result].sort((a, b) => {
+    const selectedIds = new Set(chartPredictions.map((p) => p.id));
+
+    result = [...result].sort((a, b) => {
+      const isSelectedA = selectedIds.has(a.id);
+      const isSelectedB = selectedIds.has(b.id);
+
+      if (isSelectedA && !isSelectedB) return -1;
+      if (!isSelectedA && isSelectedB) return 1;
+
+      if (sortConfig.key) {
         const scoreA = a.scores.find((s) => s.name === sortConfig.key)?.score;
         const scoreB = b.scores.find((s) => s.name === sortConfig.key)?.score;
 
@@ -506,12 +587,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
         if (scoreA < scoreB) return sortConfig.direction === "asc" ? -1 : 1;
         if (scoreA > scoreB) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+      }
+      return 0;
+    });
 
     return result;
-  }, [predictions, selectedSprints, selectedModels, sortConfig]);
+  }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions]);
 
   const paginatedPredictions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -521,17 +602,17 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const totalPages = Math.ceil(filteredAndSortedPredictions.length / ITEMS_PER_PAGE);
 
   return (
-    <div className="relative p-6 space-y-6 min-h-[500px]">
+    <div className="relative space-y-6 min-h-[500px] max-w-full">
       {isConfigLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-lg">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         </div>
       )}
 
-      <div className="bg-white p-4 rounded shadow space-y-4">
-        <div className="flex gap-4 p-4">
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col">
+      <div className="bg-white rounded shadow">
+        <div className="flex flex-wrap gap-4 p-4">
+          <div className="flex-1 flex flex-wrap gap-4 min-w-[300px]">
+            <div className="flex flex-col flex-1 min-w-[150px]">
               <label className="text-sm font-semibold mb-1">Disease</label>
               <select
                 name="disease"
@@ -548,7 +629,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
               </select>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1 min-w-[150px]">
               <label className="text-sm font-semibold mb-1">Country</label>
               <select
                 name="adm_0"
@@ -566,7 +647,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             </div>
 
             {inputs.adm_level >= 1 && (
-              <div className="flex flex-col">
+              <div className="flex flex-col flex-1 min-w-[150px]">
                 <label className="text-sm font-semibold mb-1">State</label>
                 <select
                   name="adm_1"
@@ -585,7 +666,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             )}
 
             {inputs.adm_level >= 2 && (
-              <div className="flex flex-col">
+              <div className="flex flex-col flex-1 min-w-[150px]">
                 <label className="text-sm font-semibold mb-1">City</label>
                 <select
                   name="adm_2"
@@ -605,7 +686,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           </div>
 
           {sprintOptions.length > 0 && (
-            <div className="w-72 border-l pl-4 flex flex-col gap-2">
+            <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
               <h3 className="text-sm font-semibold mb-1">Sprints</h3>
               <div className="flex flex-wrap gap-2">
                 {sprintOptions.map((sprint) => {
@@ -633,7 +714,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         {inputs.disease ? (
           <LineChart
             data={chartData}
-            predictions={[]}
+            predictions={chartPredictions}
             height="100%"
           />
         ) : (
@@ -672,7 +753,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             )}
           </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
             {predictionsLoading ? (
               <div className="text-sm text-gray-500">Loading predictions...</div>
             ) : filteredAndSortedPredictions.length === 0 ? (
@@ -703,38 +784,59 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedPredictions.map((p) => (
-                        <tr key={p.id} className="border-b hover:bg-gray-50">
-                          <td className="px-3 py-2">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex gap-2 items-center">
-                                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded border border-blue-200 font-mono">
-                                  {p.owner}
-                                </span>
-                                <span className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-mono">
-                                  {p.repository}
-                                </span>
+                      {paginatedPredictions.map((p) => {
+                        const selectedPred = chartPredictions.find(cp => cp.id === p.id);
+                        const isSelected = !!selectedPred;
+                        const isLoading = loadingPredictions.includes(p.id);
+                        const rowStyle = isSelected ? { backgroundColor: `${selectedPred.color}20` } : undefined;
+
+                        return (
+                          <tr
+                            key={p.id}
+                            className={`border-b cursor-pointer transition-colors ${!isSelected && 'hover:bg-gray-50'}`}
+                            onClick={() => togglePrediction(p)}
+                            style={rowStyle}
+                          >
+                            <td className="px-3 py-2">
+                              <div className="flex items-start gap-3">
+                                <div className="text-xs font-mono text-gray-500 mt-1 min-w-[30px]">
+                                  {isLoading ? (
+                                    <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+                                  ) : (
+                                    `#${p.id}`
+                                  )}
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex gap-2 items-center">
+                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded border border-blue-200 font-mono">
+                                      {p.owner}
+                                    </span>
+                                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-mono">
+                                      {p.repository}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 flex gap-2 items-center">
+                                    <span>{p.start} - {p.end}</span>
+                                    {p.sprint && (
+                                      <span className="px-2 py-0.5 bg-gray-200 rounded-full text-[10px]">
+                                        Sprint {p.sprint}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-500 flex gap-2 items-center">
-                                <span>{p.start} - {p.end}</span>
-                                {p.sprint && (
-                                  <span className="px-2 py-0.5 bg-gray-200 rounded-full text-[10px]">
-                                    Sprint {p.sprint}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          {SCORE_COLUMNS.map((col) => {
-                            const score = p.scores.find((s) => s.name === col.key);
-                            return (
-                              <td key={col.key} className="px-3 py-2 text-right font-mono text-gray-700">
-                                {score ? score.score.toFixed(2) : "-"}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
+                            </td>
+                            {SCORE_COLUMNS.map((col) => {
+                              const score = p.scores.find((s) => s.name === col.key);
+                              return (
+                                <td key={col.key} className="px-3 py-2 text-right font-mono text-gray-700">
+                                  {score ? score.score.toFixed(2) : "-"}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

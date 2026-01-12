@@ -1,4 +1,5 @@
 'use client';
+
 import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';

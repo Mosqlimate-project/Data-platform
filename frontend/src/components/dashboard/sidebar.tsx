@@ -61,8 +61,8 @@ export function DashboardSidebar({ categories }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${pathname === "/dashboard"
-                ? "bg-accent/10 text-accent"
-                : "hover:bg-primary/5 hover:text-text"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             Overview
@@ -84,8 +84,8 @@ export function DashboardSidebar({ categories }: SidebarProps) {
                       adm_level: LEVEL_TO_INT[level.id] || "1",
                     })}
                     className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${isLevelActive(cat.id, level.id)
-                        ? "bg-accent/10 text-accent font-medium"
-                        : "hover:bg-primary/5 hover:text-text"
+                      ? "bg-accent/10 text-accent font-medium"
+                      : "hover:bg-primary/5 hover:text-text"
                       }`}
                   >
                     {level.label}

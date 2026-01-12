@@ -35,7 +35,7 @@ services:
     volumes:
       - ${EPISCANNER_HOST_DATA_DIR}:${BACKEND_CONTAINER_DATA_PATH}/episcanner
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/status"]
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/api/status/"]
       interval: 60s
       timeout: 10s
       retries: 5

@@ -3,8 +3,12 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getCategories() {
   try {
+    if (!FRONTEND_URL) return [];
+
     const res = await fetch(`${FRONTEND_URL}/api/vis/dashboard/categories/`, {
       cache: "no-store",
     });
@@ -31,8 +35,8 @@ export default async function DashboardLayout({
 
         <Suspense
           fallback={
-            <div className="flex h-full items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-secondary" />
+            <div className="flex-1 h-full items-center justify-center">
+              <Loader2 className="animate-spin text-secondary" />
             </div>
           }
         >
@@ -41,7 +45,7 @@ export default async function DashboardLayout({
 
       </div>
 
-      <main className="flex-1 overflow-y-auto h-screen p-3">
+      <main className="flex-1 overflow-y-auto h-full">
         {children}
       </main>
     </div>
