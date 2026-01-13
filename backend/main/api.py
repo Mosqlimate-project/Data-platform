@@ -1,7 +1,6 @@
 import os
 import json
 
-from django.urls import reverse
 from ninja import Router, Swagger
 from ninja import NinjaAPI as API
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +14,6 @@ from datastore.api import router as datastore_router
 from vis.api import router as vis_router
 from users.api import router as users_router
 from main.APILog.api import router as log_router
-from maps.api import router as maps_router
 from users.auth import InvalidUIDKey
 from main.schema import NotFoundSchema, MunicipalityInfoSchema, StateInfoSchema
 from main.utils import UF_CODES, UFs
@@ -58,7 +56,12 @@ api.add_router("/user/", router=users_router)
 api.add_router("/datastore/", router=datastore_router)
 api.add_router("/vis/", router=vis_router)
 api.add_router("/log/", router=log_router)
-api.add_router("/maps/", router=maps_router)
+
+
+@router.get("/status/", include_in_schema=False)
+@csrf_exempt
+def status(request):
+    return 200, {"status": "ok"}
 
 
 @router.get("/session_key/", include_in_schema=False)
@@ -89,10 +92,9 @@ def get_csrf_token(request):
 
 @api.exception_handler(InvalidUIDKey)
 def on_invalid_token(request, exc):
-    docs_url = request.build_absolute_uri(reverse("docs"))
     return api.create_response(
         request,
-        {"detail": f"Unauthorized. See {docs_url}"},
+        {"detail": "Unauthorized. See documentation"},
         status=401,
     )
 

@@ -2,33 +2,24 @@
 
 import { useState } from "react";
 import { EndpointLayout } from "../EndpointLayout";
-
+import { endpoints } from "@/app/datastore/data";
+import CitySearch from "@/app/datastore/components/CitySearch";
 import TemperatureChart from "../charts/Temperature";
 import AccumulatedWaterfallChart from "../charts/AccumulatedWaterfall";
 import UmidPressaoMedChart from "../charts/UmidPressaoMed";
 
 export function Climate() {
-  const dataVariables = [
-    { variable: "date", type: "date (YYYY-mm-dd)", description: "Day of the year" },
-    { variable: "geocodigo", type: "int", description: "IBGE municipality code" },
-    { variable: "temp_min", type: "float (°C)", description: "Minimum daily temperature" },
-    { variable: "temp_med", type: "float (°C)", description: "Average daily temperature" },
-    { variable: "temp_max", type: "float (°C)", description: "Maximum daily temperature" },
-    { variable: "precip_tot", type: "float (mm)", description: "Total daily precipitation" },
-    { variable: "pressao_med", type: "float (atm)", description: "Average sea level pressure" },
-    { variable: "umid_med", type: "float (%)", description: "Average relative humidity" },
-  ];
+  const config = endpoints.find((e) => e.endpoint === "/climate/");
 
-  const chartOptions = [
-    { option: "geocode", type: "int" },
-    { option: "start", type: "date" },
-    { option: "end", type: "date" },
-  ];
+  const now = new Date();
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(now.getFullYear() - 1);
 
-  // Local state for chart inputs
-  const [geocode, setGeocode] = useState<number>(3304557);
-  const [startDate, setStartDate] = useState("2023-01-01");
-  const [endDate, setEndDate] = useState("2023-03-03");
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  const [geocode, setGeocode] = useState<number | undefined>(3304557);
+  const [startDate, setStartDate] = useState<string>(formatDate(oneYearAgo));
+  const [endDate, setEndDate] = useState<string>(formatDate(now));
 
   const handleStartDateChange = (v: string) => {
     if (endDate && v > endDate) return;
@@ -39,13 +30,43 @@ export function Climate() {
     setEndDate(v);
   };
 
+  if (!config) return <div>Endpoint configuration not found</div>;
+
   return (
-    /*
     <EndpointLayout
-      title="Climate Data"
-      description="Access daily climate variables for Brazilian municipalities derived from Copernicus ERA5 reanalysis data."
-      dataVariables={dataVariables}
-      chartOptions={chartOptions}
+      title={config.name}
+      description={config.description}
+      endpoint={config.endpoint}
+      dataVariables={config.data_variables}
+      chartOptions={config.chart_options}
+      controls={
+        <>
+          <div className="flex flex-col gap-1 relative z-20">
+            <CitySearch value={geocode} onChange={setGeocode} />
+          </div>
+
+          <div className="flex gap-2 relative z-10">
+            <div className="flex flex-col flex-1 gap-1">
+              <label className="text-sm font-medium">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                className="border rounded-md px-2 py-1"
+              />
+            </div>
+            <div className="flex flex-col flex-1 gap-1">
+              <label className="text-sm font-medium">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => handleEndDateChange(e.target.value)}
+                className="border rounded-md px-2 py-1"
+              />
+            </div>
+          </div>
+        </>
+      }
     >
       <div className="flex flex-col gap-6 w-full">
         <div>
@@ -53,7 +74,7 @@ export function Climate() {
             Temperature Overview
           </h3>
           <TemperatureChart
-            geocode={String(geocode)}
+            geocode={String(geocode || "")}
             start={startDate}
             end={endDate}
           />
@@ -64,7 +85,7 @@ export function Climate() {
             Precipitation (Accumulated)
           </h3>
           <AccumulatedWaterfallChart
-            geocode={String(geocode)}
+            geocode={String(geocode || "")}
             start={startDate}
             end={endDate}
           />
@@ -75,47 +96,12 @@ export function Climate() {
             Humidity & Pressure (Average)
           </h3>
           <UmidPressaoMedChart
-            geocode={String(geocode)}
+            geocode={String(geocode || "")}
             start={startDate}
             end={endDate}
           />
         </div>
       </div>
-
-      <div className="flex flex-col gap-4 mt-8 border-t pt-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Geocode</label>
-          <input
-            type="number"
-            value={geocode}
-            onChange={(e) => setGeocode(Number(e.target.value))}
-            className="border rounded-md px-2 py-1"
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <div className="flex flex-col flex-1 gap-1">
-            <label className="text-sm font-medium">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => handleStartDateChange(e.target.value)}
-              className="border rounded-md px-2 py-1"
-            />
-          </div>
-          <div className="flex flex-col flex-1 gap-1">
-            <label className="text-sm font-medium">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => handleEndDateChange(e.target.value)}
-              className="border rounded-md px-2 py-1"
-            />
-          </div>
-        </div>
-      </div>
     </EndpointLayout>
-    */
-    ""
   );
 }

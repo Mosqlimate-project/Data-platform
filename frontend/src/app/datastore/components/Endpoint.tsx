@@ -3,7 +3,8 @@
 import { useState } from "react";
 import TemperatureChart from "../components/charts/Temperature";
 import AccumulatedWaterfallChart from "../components/charts/AccumulatedWaterfall";
-import AirChart from "../components/charts/UmidPressaoMed"
+import AirChart from "../components/charts/UmidPressaoMed";
+import CitySearch from "@/app/datastore/components/CitySearch";
 
 export function AccordionCard({
   title,
@@ -17,7 +18,7 @@ export function AccordionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border rounded-md overflow-hidden transition-all">
+    <div className="border rounded-md transition-all">
       <button
         onClick={onClick}
         className={`w-full text-left px-4 py-3 font-medium border-b border-[var(--color-border)] transition-colors ${isOpen
@@ -47,15 +48,21 @@ export function Layout({
   dataVariables?: { variable: string; type: string; description: string }[];
   chartOptions?: { option: string; type: string }[];
 }) {
+  const now = new Date();
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
   const [openCard, setOpenCard] = useState<"Charts" | string | null>("Charts");
   const [selectedChart, setSelectedChart] = useState<string>(
     chartOptions && chartOptions.length > 0 ? chartOptions[0].option : "Default"
   );
 
   const [selectedDisease, setSelectedDisease] = useState("dengue");
-  const [geocode, setGeocode] = useState<number>(3304557);
-  const [startDate, setStartDate] = useState<string>("2023-01-01");
-  const [endDate, setEndDate] = useState<string>("2023-03-03");
+  const [geocode, setGeocode] = useState<number>();
+  const [startDate, setStartDate] = useState<string>(formatDate(oneYearAgo));
+  const [endDate, setEndDate] = useState<string>(formatDate(now));
 
   const toggleCard = (key: string) =>
     setOpenCard((prev) => (prev === key ? null : key));
@@ -84,9 +91,21 @@ export function Layout({
       >
         {endpoint === "/climate/" && geocode && startDate && endDate ? (
           <>
-            <TemperatureChart geocode={String(geocode)} start={startDate} end={endDate} />
-            <AccumulatedWaterfallChart geocode={String(geocode)} start={startDate} end={endDate} />
-            <AirChart geocode={String(geocode)} start={startDate} end={endDate} />
+            <TemperatureChart
+              geocode={String(geocode)}
+              start={startDate}
+              end={endDate}
+            />
+            <AccumulatedWaterfallChart
+              geocode={String(geocode)}
+              start={startDate}
+              end={endDate}
+            />
+            <AirChart
+              geocode={String(geocode)}
+              start={startDate}
+              end={endDate}
+            />
           </>
         ) : (
           <p className="opacity-60 text-center">
@@ -155,17 +174,11 @@ export function Layout({
                 </div>
               )}
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Geocode</label>
-                <input
-                  type="number"
-                  value={geocode || ""}
-                  onChange={(e) => setGeocode(Number(e.target.value))}
-                  className="border rounded-md px-2 py-1"
-                />
+              <div className="flex flex-col gap-1 relative z-50">
+                <CitySearch value={geocode} onChange={setGeocode} />
               </div>
 
-              <div className="flex gap-2 items-end">
+              <div className="flex gap-2 items-end relative z-10">
                 <div className="flex flex-col gap-1 flex-1">
                   <label className="text-sm font-medium">Start Date</label>
                   <input
@@ -174,7 +187,6 @@ export function Layout({
                     onChange={(e) => handleStartDateChange(e.target.value)}
                     className="border rounded-md px-2 py-1"
                   />
-
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
                   <label className="text-sm font-medium">End Date</label>

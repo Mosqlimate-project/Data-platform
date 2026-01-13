@@ -781,7 +781,7 @@ def municipality_daily_umid_press_med(
     auth=uidkey_auth,
     tags=["datastore"],
 )
-def list_diseases(
+def disease_search(
     request,
     icd: Literal["ICD-10", "ICD-11"],
     version: str,
@@ -789,3 +789,24 @@ def list_diseases(
 ):
     qs = models.Disease.objects.filter(icd__system=icd, icd__version=version)
     return filters.filter(qs)
+
+
+@router.get(
+    "/cities/",
+    response=List[schema.CityOut],
+    auth=uidkey_auth,
+    tags=["datastore"],
+)
+def city_search(
+    request,
+    adm_0: Optional[str] = "BRA",
+    filters: filters.Adm2FilterSchema = Query(...),
+):
+    qs = models.Adm2.objects.select_related("adm1", "adm1__country")
+
+    if adm_0:
+        qs = qs.filter(adm1__country__geocode=adm_0)
+
+    qs = filters.filter(qs)
+
+    return qs
