@@ -240,3 +240,10 @@ class DiseaseOut(Schema):
     code: str
     name: str
     description: Optional[str] = None
+
+
+class CityOut(Schema):
+    geocode: int
+    name: str
+    adm1: str = Field(..., alias="adm1.name")
+    country: str = Field(..., alias="adm1.country.name")

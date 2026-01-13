@@ -43,3 +43,12 @@ class DiseaseFilterSchema(FilterSchema):
         if not value:
             return Q()
         return Q(name__icontains=value) | Q(code__icontains=value)
+
+
+class Adm2FilterSchema(FilterSchema):
+    name: Optional[str] = Field(None)
+    geocode: Optional[int] = Field(None)
+    adm1: Optional[str] = Field(None, alias="adm1__name")
+
+    def filter_name(self, value: str) -> Q:
+        return Q(name__icontains=value)
