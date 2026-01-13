@@ -11,6 +11,7 @@ from ninja.errors import HttpError
 from main.schema import Schema
 from users.schema import UserSchema
 from vis.brasil.models import State, City
+from vis.schema import PredictionScore
 from .models import Model
 
 
@@ -279,53 +280,6 @@ class PredictionDataRowSchema(Schema):
         return values
 
 
-class PredictionDataRowOut(Schema):
-    date: dt
-    pred: float
-    lower_95: Optional[float] = None
-    lower_90: float
-    lower_80: Optional[float] = None
-    lower_50: Optional[float] = None
-    upper_50: Optional[float] = None
-    upper_80: Optional[float] = None
-    upper_90: float
-    upper_95: Optional[float] = None
-
-
-class PredictionSchema(Schema):
-    id: int
-    model: ModelSchema
-    description: str = ""
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    published: bool
-    adm_0: str = "BRA"
-    adm_1: Optional[str] = None
-    adm_2: Optional[int] = None
-    adm_3: Optional[int] = None
-    data: List[PredictionDataRowSchema]
-
-
-class PredictionOut(Schema):
-    message: Optional[str] = None
-    id: Optional[int] = None
-    model: ModelSchema | int
-    description: str
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    # adm_0: str = "BRA"
-    adm_1: str = Field(None, alias="adm_1.uf")
-    adm_2: int = Field(None, alias="adm_2.geocode")
-    # adm_3: Optional[int] = None
-    data: List[PredictionDataRowOut]
-    mae: Optional[float] = None
-    mse: Optional[float] = None
-    crps: Optional[float] = None
-    log_score: Optional[float] = None
-    interval_score: Optional[float] = None
-    wis: Optional[float] = None
-
-
 class PredictionIn(Schema):
     model: int
     description: str = ""
@@ -425,142 +379,6 @@ class PredictionIn(Schema):
         return values
 
 
-class PredictionFilterSchema(FilterSchema):
-    """url/?paremeters to search for Predictions"""
-
-    id: Annotated[
-        Optional[int],
-        Field(default=None, q="id__exact", description="Prediction ID"),
-    ]
-    model_id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="model__id__exact",
-            description="Model ID",
-        ),
-    ]
-    model_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__name__icontains",
-            description="Model name",
-        ),
-    ]
-    model_adm_level: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="model__adm_level",
-            description="Model administrative level",
-        ),
-    ]
-    model_time_resolution: Annotated[
-        Optional[Literal["day", "week", "month", "year"]],
-        Field(
-            default=None,
-            q="model__time_resolution__iexact",
-            description="Model time resolution",
-        ),
-    ]
-    model_disease: Annotated[
-        Optional[Literal["dengue", "zika", "chikungunya"]],
-        Field(
-            default=None,
-            q="model__disease__iexact",
-            description="Model disease.",
-        ),
-    ]
-    author_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__user__name__icontains",
-            description="Author name",
-        ),
-    ]
-    author_username: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__user__username__icontains",
-            description="Author username",
-        ),
-    ]
-    author_institution: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__institution__icontains",
-            description="Author institution",
-        ),
-    ]
-    repository: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__repository__icontains",
-            description="Model repository",
-        ),
-    ]
-    implementation_language: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__implementation_language__language__iexact",
-            description="Model implementation language. Example: 'python'",
-        ),
-    ]
-    temporal: Optional[bool] = Field(None, q="model__temporal")
-    spatial: Optional[bool] = Field(None, q="model__spatial")
-    categorical: Optional[bool] = Field(None, q="model__categorical")
-    commit: Annotated[
-        Optional[str],
-        Field(default=None, q="commit", description="Repository commit hash"),
-    ]
-    predict_date: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date",
-            description="Prediction's predict date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    start: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date__gte",
-            description="Prediction start date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    end: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date__lte",
-            description="Prediction end date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    tags: Annotated[
-        Optional[List[int]],
-        Field(
-            default=None,
-            q="model__tags__id__in",
-            description="List of Tag IDs",
-        ),
-    ]
-    sprint: Annotated[
-        Optional[bool],
-        Field(
-            default=None,
-            q="model__sprint",
-            description="Prediction for Sprint 2024/25",
-        ),
-    ]
-
-
 class ModelThumbs(Schema):
     model_id: int
     owner: str
@@ -650,3 +468,66 @@ class ModelOut(Schema):
     @staticmethod
     def resolve_disease(obj):
         return obj.disease.name
+
+
+class ModelPredictionOut(Schema):
+    id: int
+    date: dt
+    commit: str
+    adm_0: Optional[str] = None
+    adm_1: Optional[str] = None
+    adm_2: Optional[str] = None
+    adm_3: Optional[str] = None
+    description: Optional[str] = None
+    start: Optional[dt] = None
+    end: Optional[dt] = None
+    sprint: Optional[int] = None
+    scores: Optional[list[PredictionScore]] = None
+    published: Optional[bool] = None
+
+    @staticmethod
+    def resolve_date(obj):
+        return obj.predict_date
+
+    @staticmethod
+    def resolve_adm_0(obj):
+        return obj.adm0.name if obj.adm0 else None
+
+    @staticmethod
+    def resolve_adm_1(obj):
+        return obj.adm1.name if obj.adm1 else None
+
+    @staticmethod
+    def resolve_adm_2(obj):
+        return obj.adm2.name if obj.adm2 else None
+
+    @staticmethod
+    def resolve_adm_3(obj):
+        return obj.adm3.name if obj.adm3 else None
+
+    @staticmethod
+    def resolve_sprint(obj):
+        if obj.model.sprint:
+            return obj.model.sprint.year
+        return None
+
+    @staticmethod
+    def resolve_scores(obj):
+        score_fields = [
+            "mae_score",
+            "mse_score",
+            "crps_score",
+            "log_score",
+            "interval_score",
+            "wis_score",
+        ]
+        return [
+            {"name": field, "score": getattr(obj, field)}
+            for field in score_fields
+            if getattr(obj, field) is not None
+        ]
+
+
+class RepositoryPermissions(Schema):
+    is_owner: bool
+    can_manage: bool

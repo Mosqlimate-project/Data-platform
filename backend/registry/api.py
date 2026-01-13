@@ -261,29 +261,89 @@ def repository_readme(request, owner: str, repository: str):
     return 200, {"content": content}
 
 
-#
-# @router.get(
-#     "/model/{owner}/{repository}/predictions",
-#     response={200: s.ModelPredictionsOut, 404: NotFoundSchema},
-#     auth=UidKeyAuth(),
-#     tags=["registry", "frontend"],
-#     include_in_schema=False,
-# )
-# @decorate_view(never_cache)
-# def repository_predictions(request, owner: str, repository: str):
-#     query = models.Q(repository__name=repository) & (
-#         models.Q(repository__organization__name=owner)
-#         | models.Q(repository__owner__username=owner)
-#     )
-#
-#     try:
-#         model = m.RepositoryModel.objects.select_related(
-#             "repository",
-#             "repository__organization",
-#             "repository__owner",
-#             "disease",
-#         ).get(query)
-#     except m.RepositoryModel.DoesNotExist:
-#         return 404, {"message": f"Model '{owner}/{repository}' not found"}
-#
-#     return model
+@router.get(
+    "/model/{owner}/{repository}/predictions/",
+    response={200: list[s.ModelPredictionOut], 404: NotFoundSchema},
+    auth=UidKeyAuth(),
+    tags=["registry", "model", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_predictions(request, owner: str, repository: str):
+    query = models.Q(repository__name=repository) & (
+        models.Q(repository__organization__name=owner)
+        | models.Q(repository__owner__username=owner)
+    )
+
+    try:
+        model = m.RepositoryModel.objects.get(query)
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+
+    predictions = (
+        m.ModelPrediction.objects.filter(model=model)
+        .select_related(
+            "model__repository",
+            "model__sprint",
+            "adm0",
+            "adm1",
+            "adm2",
+            "adm3",
+        )
+        .annotate(
+            start=models.Min("quantitativeprediction__data__date"),
+            end=models.Max("quantitativeprediction__data__date"),
+        )
+        .order_by("-created_at")
+    )
+
+    return predictions
+
+
+@router.get(
+    "/model/{owner}/{repository}/permissions/",
+    response=s.RepositoryPermissions,
+    auth=JWTAuth(),
+    tags=["registry", "model", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def repository_permissions(request, owner: str, repository: str):
+    user = request.auth
+
+    query = models.Q(repository__name=repository) & (
+        models.Q(repository__organization__name=owner)
+        | models.Q(repository__owner__username=owner)
+    )
+
+    try:
+        model = m.RepositoryModel.objects.select_related(
+            "repository__owner", "repository__organization"
+        ).get(query)
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": "Repository not found"}
+
+    repo = model.repository
+    is_owner = False
+    can_manage = False
+
+    if user.is_superuser:
+        can_manage = True
+
+    if repo.owner and repo.owner == user:
+        is_owner = True
+        can_manage = True
+
+    elif repo.organization:
+        membership = repo.organization.members.filter(user=user).first()
+        if membership and membership.role in ["OWNER", "ADMIN"]:
+            can_manage = True
+
+    if not can_manage:
+        is_admin = m.RepositoryContributor.objects.filter(
+            repository=repo, user=user, permission="ADMIN"
+        ).exists()
+        if is_admin:
+            can_manage = True
+
+    return {"is_owner": is_owner, "can_manage": can_manage}

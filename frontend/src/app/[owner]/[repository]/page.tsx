@@ -1,4 +1,4 @@
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MarkdownRenderer from "@/components/model/MarkdownRenderer";
 import { FRONTEND_URL } from "@/lib/env";
 
 interface PageProps {
@@ -28,7 +28,7 @@ export default async function ReadmePage({ params }: PageProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-      <div className="lg:col-span-3 border p-8 rounded bg-card text-card-foreground">
+      <div className="lg:col-span-3 border p-8 rounded bg-card text-card-foreground min-w-0 break-words overflow-hidden">
         {content ? (
           <MarkdownRenderer
             content={content}
