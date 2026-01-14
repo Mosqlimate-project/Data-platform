@@ -677,6 +677,19 @@ class QuantitativePrediction(ModelPrediction):
     interval_score = models.FloatField(null=True, default=None)
     wis_score = models.FloatField(null=True, default=None)
 
+    @property
+    def scores(self) -> dict:
+        return {
+            "mae": round(self.mae_score, 2) if self.mae_score else None,
+            "mse": round(self.mse_score, 2) if self.mse_score else None,
+            "crps": round(self.crps_score, 2) if self.crps_score else None,
+            "log_score": round(self.log_score, 2) if self.log_score else None,
+            "interval_score": (
+                round(self.interval_score, 2) if self.interval_score else None
+            ),
+            "wis": round(self.wis_score, 2) if self.wis_score else None,
+        }
+
 
 class QuantitativePredictionRow(models.Model):
     prediction = models.ForeignKey(

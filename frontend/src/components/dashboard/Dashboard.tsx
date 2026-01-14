@@ -604,7 +604,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   return (
     <div className="relative space-y-6 min-h-[500px] max-w-full">
       {isConfigLoading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-lg">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-lg">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         </div>
       )}

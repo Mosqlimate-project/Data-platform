@@ -1,3 +1,4 @@
+from django.db.models import Min, Max
 from datetime import date
 from typing import Optional, Literal
 
@@ -6,7 +7,7 @@ from django.db.models import Sum
 from django.contrib.auth import get_user_model
 from mosqlient.scoring.score import Scorer
 
-from main.utils import UF_CODES
+from main.utils import UF_CODES, CODES_UF
 from datastore.models import (
     Adm2,
     HistoricoAlerta,
@@ -82,31 +83,64 @@ def calculate_score(
         wis=None,
     )
 
-    data_df = hist_alerta_data(
-        sprint=prediction.model.sprint,
-        disease=prediction.model.disease,
-        start_window_date=prediction.date_ini_prediction,
-        end_window_date=prediction.date_end_prediction,
-        adm_level=int(prediction.model.adm_level),
-        adm_1=prediction.adm_1.uf if prediction.adm_1 else None,
-        adm_2=int(prediction.adm_2.geocode) if prediction.adm_2 else None,
+    match prediction.model.disease.code:
+        case "A90":
+            disease = "dengue"
+        case "A92.5":
+            disease = "zika"
+        case "A92.0":
+            disease = "chik"
+        case _:
+            disease = None
+
+    if not disease:
+        return scores
+
+    data = prediction.data.aggregate(
+        min_date=Min("date"), max_date=Max("date")
     )
 
-    pred_df = prediction.to_dataframe()
+    start_window_date = data["min_date"]
+    end_window_date = data["max_date"]
+
+    if not start_window_date or not end_window_date:
+        return scores
+
+    data_df = hist_alerta_data(
+        sprint=prediction.model.sprint,
+        disease=disease,
+        start_window_date=start_window_date,
+        end_window_date=end_window_date,
+        adm_level=int(prediction.model.adm_level),
+        adm_1=(
+            CODES_UF[int(prediction.adm1.geocode)] if prediction.adm1 else None
+        ),
+        adm_2=int(prediction.adm2.geocode) if prediction.adm2 else None,
+    )
+
+    pred_df = pd.DataFrame(list(prediction.data.values()))
+
     pred_df = pred_df.dropna(axis=1)
 
     if data_df.empty or pred_df.empty:
         return scores
 
     data_df.rename(columns={"target": "casos"}, inplace=True)
+
+    if "casos" not in data_df.columns:
+        return scores
+
     data_df = data_df[["date", "casos"]]
     data_df.date = pd.to_datetime(data_df.date)
 
-    staff_user: User = User.objects.filter(is_staff=True).first()
+    staff_user = User.objects.filter(is_staff=True).first()
+    if not staff_user:
+        return scores
 
     score = Scorer(staff_user.api_key, df_true=data_df, pred=pred_df)
 
     for s in ["mae", "mse", "crps", "log_score", "interval_score", "wis"]:
-        scores[s] = score.summary[s]["pred"]
+        if s in score.summary and "pred" in score.summary[s]:
+            scores[s] = score.summary[s]["pred"]
 
     return scores

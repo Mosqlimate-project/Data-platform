@@ -174,7 +174,7 @@ export function Layout({
                 </div>
               )}
 
-              <div className="flex flex-col gap-1 relative z-50">
+              <div className="flex flex-col gap-1 relative z-40">
                 <CitySearch value={geocode} onChange={setGeocode} />
               </div>
 

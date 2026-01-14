@@ -1,6 +1,5 @@
 import json
 import logging
-import markdown
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -77,12 +76,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         for message in messages:
             msg = {
-                "msg": markdown.markdown(
-                    message.content,
-                    extensions=["fenced_code", "codehilite"],
-                    output_format="xhtml",
-                    tab_length=4,
-                ),
+                "msg": message.content,
                 "source": message.sender,
             }
             await self.send(text_data=json.dumps({"text": msg}))
@@ -95,10 +89,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         response = json.loads(text_data)
         question = response["text"]
-
-        await self.send(
-            text_data=json.dumps({"text": {"msg": question, "source": "user"}})
-        )
 
         await self.send(
             text_data=json.dumps(
@@ -145,14 +135,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def bot_message(self, event):
         answer = event["message"]
         await self.save_message("bot", answer)
-        message = markdown.markdown(
-            answer,
-            extensions=["fenced_code", "codehilite"],
-            output_format="xhtml",
-            tab_length=4,
-        )
+
         await self.send(
-            text_data=json.dumps({"text": {"msg": message, "source": "bot"}})
+            text_data=json.dumps({"text": {"msg": answer, "source": "bot"}})
         )
 
     async def save_message(self, sender, content):
