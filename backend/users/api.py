@@ -391,6 +391,7 @@ def oauth_decode(request, data: str):
     "/me/",
     response={200: s.UserOut, 400: BadRequestSchema},
     auth=JWTAuth(),
+    include_in_schema=False,
 )
 def me(request):
     user = request.auth
@@ -416,6 +417,7 @@ def api_key(request):
 @router.post(
     "/login/",
     response={200: s.LoginOut, 403: ForbiddenSchema},
+    include_in_schema=False,
 )
 def login(request, payload: s.LoginIn):
     identifier = payload.identifier
@@ -441,6 +443,7 @@ def login(request, payload: s.LoginIn):
 @router.post(
     "/register/",
     response={201: s.LoginOut, 400: BadRequestSchema},
+    include_in_schema=False,
     auth=None,
 )
 def register(request, payload: s.RegisterIn):
@@ -489,6 +492,7 @@ def register(request, payload: s.RegisterIn):
 @router.post(
     "/refresh/",
     response={200: s.LoginOut, 401: ForbiddenSchema},
+    include_in_schema=False,
 )
 def refresh_token(request, data: s.RefreshIn):
     payload = decode_token(data.refresh_token)
@@ -517,6 +521,7 @@ def refresh_token(request, data: s.RefreshIn):
         401: BadRequestSchema,
         404: NotFoundSchema,
     },
+    include_in_schema=False,
 )
 @decorate_view(never_cache)
 def list_repositories(request, provider: Literal["github", "gitlab"]):

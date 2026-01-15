@@ -3,6 +3,15 @@ module.exports = {
   content: ['./src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
+      keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+      },
+      animation: {
+        float: "float 3s ease-in-out infinite",
+      },
       colors: {
         bg: 'var(--color-bg)',
         text: 'var(--color-text)',

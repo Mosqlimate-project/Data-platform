@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 
 from celery.schedules import crontab
-from celery.signals import worker_ready
 from django.core.cache import cache
 
 from mosqlimate.celeryapp import app
@@ -43,19 +42,3 @@ def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
             prediction.interval_score = scores["interval_score"]
             prediction.wis_score = scores["wis"]
             prediction.save()
-
-
-@worker_ready.connect
-def at_start(sender, **k):
-    with sender.app.connection() as conn:
-        sender.app.send_task(
-            "vis.tasks.populate_total_cases_task",
-            kwargs={"t100k_hab": False},
-            connection=conn,
-        )
-        sender.app.send_task(
-            "vis.tasks.populate_total_cases_task",
-            kwargs={"t100k_hab": True},
-            connection=conn,
-        )
-        logging.warning("EXECUTING vis.tasks.populate_total_cases_task")

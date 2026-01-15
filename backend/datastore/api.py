@@ -780,6 +780,7 @@ def municipality_daily_umid_press_med(
     response=List[schema.DiseaseOut],
     auth=uidkey_auth,
     tags=["datastore"],
+    include_in_schema=False,
 )
 def disease_search(
     request,
@@ -796,6 +797,7 @@ def disease_search(
     response=List[schema.CityOut],
     auth=uidkey_auth,
     tags=["datastore"],
+    include_in_schema=False,
 )
 def city_search(
     request,

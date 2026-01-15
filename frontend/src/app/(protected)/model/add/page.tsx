@@ -288,7 +288,12 @@ export default function AddModelPage() {
         throw new Error(data.message || 'Could not import repository.');
       }
 
-      router.push('/dashboard');
+      const modelPath = getModelName(url).replace(/\.git$/, '');
+      if (modelPath) {
+        router.push(`/${modelPath}/predictions`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {

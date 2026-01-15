@@ -99,7 +99,7 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
       </div>
 
       {isOpen && results.length > 0 && (
-        <div className="bg-bg absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
+        <div className="bg-bg absolute z-40 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
           <ul className="max-h-60 overflow-auto p-1">
             {results.map((city) => (
               <li
@@ -118,7 +118,7 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
       )}
 
       {isOpen && results.length === 0 && query.length >= 3 && !loading && (
-        <div className="bg-bg absolute z-50 mt-1 w-full p-2 text-sm text-muted-foreground bg-popover border rounded-md shadow-md text-center">
+        <div className="bg-bg absolute z-40 mt-1 w-full p-2 text-sm text-muted-foreground bg-popover border rounded-md shadow-md text-center">
           No cities found.
         </div>
       )}
