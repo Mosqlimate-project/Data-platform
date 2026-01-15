@@ -90,7 +90,6 @@ def model_add(request, payload: s.ModelIncludeInit):
                 provider=payload.repo_provider,
                 owner=owner,
                 organization=org,
-                avatar_url=payload.repo_avatar_url,
                 active=True,
             )
 
@@ -105,6 +104,8 @@ def model_add(request, payload: s.ModelIncludeInit):
         except m.Disease.DoesNotExist:
             return 400, {"message": "Unknown Disease."}
 
+        sprint_id = payload.sprint if payload.sprint != 0 else None
+
         model, created = m.RepositoryModel.objects.update_or_create(
             repository=repository,
             defaults={
@@ -112,7 +113,7 @@ def model_add(request, payload: s.ModelIncludeInit):
                 "time_resolution": payload.time_resolution,
                 "adm_level": payload.adm_level,
                 "category": payload.category,
-                "sprint": payload.sprint,
+                "sprint_id": sprint_id,
             },
         )
 

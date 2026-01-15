@@ -35,6 +35,16 @@ const nextConfig = {
     return config;
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "http://0.0.0.0:8043/docs/",
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
