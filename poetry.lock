@@ -1702,21 +1702,6 @@ plotly = "*"
 Werkzeug = "*"
 
 [[package]]
-name = "django-polymorphic"
-version = "4.5.1"
-description = "Seamless polymorphic inheritance for Django models."
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-files = [
-    {file = "django_polymorphic-4.5.1-py3-none-any.whl", hash = "sha256:e4c6845de64761e2c9c1e8253c1e58a70218874904caa85e2178c311298b8dbe"},
-    {file = "django_polymorphic-4.5.1.tar.gz", hash = "sha256:9c43fbd1975ff3f5ed0cecaef8da22e099a63780b8b5611c0dd403319222d638"},
-]
-
-[package.dependencies]
-django = ">=4.2"
-
-[[package]]
 name = "django-redis"
 version = "5.4.0"
 description = "Full featured redis cache backend for Django."
@@ -8281,4 +8266,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "b1c7e1450e2f3354672e82ce17860f42dcd807341891831abd6e52503e2893ca"
+content-hash = "72485354064efeb80785f1e86ca2ad9fe0d6d9a352d158c7eadb697cd808e6cd"

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p $FRONTEND_PORT",
     "serve": "npm run build && env-cmd -f ../.env next dev",
     "typecheck": "tsc --noEmit"
   },

@@ -69,9 +69,9 @@ class DashboardPredictionOut(Schema):
             "wis_score",
         ]
         return [
-            {"name": field, "score": getattr(obj, field)}
+            {"name": field, "score": getattr(obj, field, None)}
             for field in score_fields
-            if getattr(obj, field) is not None
+            if getattr(obj, field, None) is not None
         ]
 
 

@@ -1,4 +1,5 @@
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
+export const FRONTEND_PORT = process.env.FRONTEND_PORT!;
 export const ADMIN_UIDKEY = process.env.ADMIN_UIDKEY!;
 
 export const SECRET_KEY = process.env.SECRET_KEY!;

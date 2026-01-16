@@ -34,7 +34,7 @@ interface PredictionsListProps {
 export default function PredictionsList({ predictions, canManage = false }: PredictionsListProps) {
   const { i18n } = useTranslation();
   const safePredictions = predictions || [];
-  const availableScores = safePredictions[0]?.scores.map((s) => s.name) || [];
+  const availableScores = safePredictions.find(p => p.scores && p.scores.length > 0)?.scores.map((s) => s.name) || [];
   const [selectedMetric, setSelectedMetric] = useState<string>(availableScores[0] || "");
   const [mounted, setMounted] = useState(false);
 
@@ -94,7 +94,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
           </div>
         ) : (
           filteredPredictions.map((pred) => {
-            const activeScore = pred.scores.find((s) => s.name === selectedMetric);
+            const activeScore = pred.scores?.find((s) => s.name === selectedMetric);
 
             return (
               <div

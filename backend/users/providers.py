@@ -227,9 +227,10 @@ class GithubProvider(OAuthProvider):
             "Authorization": f"Bearer {encoded_jwt}",
             "Accept": "application/vnd.github.v3+json",
         }
-        url = f"https://api.github.com/app/installations/{
-            installation_id
-        }/access_tokens"
+        url = (
+            "https://api.github.com"
+            f"/app/installations/{installation_id}/access_tokens"
+        )
         with httpx.Client() as client:
             res = client.post(url, headers=headers)
             res.raise_for_status()
@@ -427,14 +428,13 @@ class GitlabProvider(OAuthProvider):
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
 
-        project_id = (
-            repository.repo_id
-            or f"{
-                repository.owner.username
-                if repository.owner
-                else repository.organization.name
-            }/{repository.name}"
+        owner = (
+            repository.owner.username
+            if repository.owner
+            else repository.organization.name
         )
+
+        project_id = repository.repo_id or f"{owner}/{repository.name}"
 
         if "/" in str(project_id):
             project_id = urllib.parse.quote(str(project_id), safe="")

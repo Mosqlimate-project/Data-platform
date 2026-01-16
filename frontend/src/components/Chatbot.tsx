@@ -57,7 +57,7 @@ export default function Chatbot() {
     async function init() {
       const res = await apiFetch("/session_key/");
       const sessionKey = res.session_key;
-      const backend_url = process.env.NODE_ENV === "production" ? "api.mosqlimate.org" : "localhost:8042";
+      const backend_url = process.env.NODE_ENV === "production" ? "backend:8042" : "localhost:8042";
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
       const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
       socketRef.current = ws;
@@ -91,9 +91,19 @@ export default function Chatbot() {
     return () => socketRef.current?.close();
   }, []);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-scroll when opening the chat
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [open]);
 
   const sendMessage = () => {
     if (socketRef.current && input.trim() !== "") {

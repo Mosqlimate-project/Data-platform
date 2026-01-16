@@ -161,11 +161,7 @@ DATABASE_ROUTERS = (
 )
 
 BACKEND_PORT = env("BACKEND_PORT", default=8042)
-BACKEND_URL = (
-    "https://api.mosqlimate.org"
-    if ENV == "prod"
-    else f"http://0.0.0.0:{BACKEND_PORT}"
-)
+BACKEND_URL = env("BACKEND_URL", default=f"http://0.0.0.0:{BACKEND_PORT}")
 
 FRONTEND_PORT = env("FRONTEND_PORT")
 FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")

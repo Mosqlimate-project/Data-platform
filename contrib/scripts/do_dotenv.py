@@ -108,7 +108,7 @@ dj_port = var_in(
 )
 
 frontend_port = var_in(
-    "FRONTEND_PORT", input_text="  Frontend port [3000]: ", default=3000
+    "FRONTEND_PORT", input_text="  Frontend port [8041]: ", default=8041
 )
 
 frontend_url = var_in(
