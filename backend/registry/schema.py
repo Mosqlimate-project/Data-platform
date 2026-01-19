@@ -482,7 +482,7 @@ class ModelPredictionOut(Schema):
     start: Optional[dt] = None
     end: Optional[dt] = None
     sprint: Optional[int] = None
-    scores: Optional[list[PredictionScore]] = None
+    scores: list[PredictionScore]
     published: Optional[bool] = None
 
     @staticmethod
@@ -522,9 +522,9 @@ class ModelPredictionOut(Schema):
             "wis_score",
         ]
         return [
-            {"name": field, "score": getattr(obj, field)}
+            {"name": field, "score": getattr(obj, field, None)}
             for field in score_fields
-            if getattr(obj, field) is not None
+            if getattr(obj, field, None) is not None
         ]
 
 

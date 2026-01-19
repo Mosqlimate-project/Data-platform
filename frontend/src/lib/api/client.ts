@@ -1,10 +1,5 @@
-export const BACKEND_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://api.mosqlimate.org"
-    : "http://localhost:8042";
-
-export const FRONTEND_BASE_URL =
-  process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+export const BACKEND_BASE_URL = process.env.BACKEND_URL || "http://0.0.0.0:8042";
+export const FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:8041";
 
 interface ApiFetchOptions extends RequestInit {
   auth?: boolean;

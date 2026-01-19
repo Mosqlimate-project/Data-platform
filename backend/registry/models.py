@@ -9,7 +9,6 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
-from polymorphic.models import PolymorphicModel
 
 from main.utils import UF_CODES
 from main.models import TimestampModel
@@ -567,9 +566,10 @@ class RepositoryModel(TimestampModel):
         @property
         def help_text(self):
             m = self.meta
-            return f"Domain: {m['domain']} | Output: {m['output']} | Ex: {
-                m['example']
-            }"
+            return (
+                f"Domain: {m['domain']} | Output: {m['output']} | "
+                f"Ex: {m['example']}"
+            )
 
     Category.CategoryMeta = {
         Category.QUANTITATIVE: {
@@ -644,7 +644,7 @@ class RepositoryModel(TimestampModel):
         verbose_name_plural = _("Models")
 
 
-class ModelPrediction(PolymorphicModel):
+class ModelPrediction(models.Model):
     model = models.ForeignKey(
         RepositoryModel,
         on_delete=models.CASCADE,
