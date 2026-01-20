@@ -1,4 +1,5 @@
-export const BACKEND_BASE_URL = process.env.BACKEND_URL || "http://0.0.0.0:8042";
+export const BACKEND_BASE_URL = process.env.INTERNAL_BACKEND_URL || "http://backend:8042";
+export const PUBLIC_BACKEND_URL = process.env.PUBLIC_BACKEND_URL || "http://0.0.0.0:8042";
 export const FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:8041";
 
 interface ApiFetchOptions extends RequestInit {
@@ -7,7 +8,7 @@ interface ApiFetchOptions extends RequestInit {
 
 export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
   const baseFetch = async () => {
-    return fetch(`${BACKEND_BASE_URL}/api${endpoint}`, {
+    return fetch(`${PUBLIC_BACKEND_URL}/api${endpoint}`, {
       ...options,
       headers: {
         Accept: "application/json",

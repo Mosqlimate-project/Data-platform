@@ -4,8 +4,6 @@ services:
         NODE_ENV: production
 
   backend:
-    ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ${BACKEND_HOST_DATA_PATH}:${BACKEND_CONTAINER_DATA_PATH}
     networks:

@@ -11,6 +11,7 @@ profiles:
       - containers/compose-dev.yaml
     services:
       available:
+        - name: frontend
         - name: backend
         - name: worker
         - name: postgres

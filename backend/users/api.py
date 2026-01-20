@@ -175,9 +175,12 @@ def oauth_callback(
         )
 
     except OAuthAccount.DoesNotExist:
-        existing_user = User.objects.filter(
-            email__iexact=adapter.email,
-        ).first()
+        existing_user = None
+
+        if adapter.email:
+            existing_user = User.objects.filter(
+                email__iexact=adapter.email,
+            ).first()
 
         if existing_user:
             OAuthAccount.objects.create(
@@ -291,7 +294,6 @@ def oauth_install_callback(
                 adapter = OAuthAdapter.from_request(
                     request, provider, raw_info
                 )
-
                 account = OAuthAccount.objects.select_related("user").get(
                     provider=provider, provider_id=adapter.provider_id
                 )

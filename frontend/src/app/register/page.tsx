@@ -45,6 +45,8 @@ function RegisterPageContent() {
 
   const ran = useRef(false);
 
+  const isEmailLocked = !!initialEmail || !!oauthDecoded?.email;
+
   useEffect(() => {
     if (!data || ran.current) return;
     ran.current = true;
@@ -216,6 +218,16 @@ function RegisterPageContent() {
             className="md:col-span-2"
           />
 
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isEmailLocked}
+            required
+            className="md:col-span-2"
+          />
+
           <div className="md:col-span-2">
             <Input
               label="Password"
@@ -324,7 +336,8 @@ function Input({
         {...props}
         className="w-full border border-gray-300 dark:border-neutral-700 rounded-md 
                    px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 
-                   text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                   text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none
+                   disabled:opacity-50 disabled:cursor-not-allowed"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>

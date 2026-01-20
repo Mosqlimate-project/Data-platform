@@ -2,10 +2,13 @@ services:
   frontend:
     environment:
         NODE_ENV: development
+        WATCHPACK_POLLING: "true"
+    volumes:
+      - ../frontend/:/app
+      - frontend_data:/app/node_modules
+    command: npm run dev
 
   backend:
-    ports:
-      - ${BACKEND_PORT}:8042
     volumes:
       - ../backend/:/opt/services/mosqlimate
       - backend_data:/opt/services/storage
@@ -19,6 +22,7 @@ services:
 
 volumes:
   backend_data:
+  frontend_data:
 
 networks:
   infodengue-dev_infodengue:
