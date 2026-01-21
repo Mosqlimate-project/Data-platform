@@ -1,4 +1,4 @@
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {

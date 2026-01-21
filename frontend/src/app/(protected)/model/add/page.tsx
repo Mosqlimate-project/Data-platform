@@ -9,7 +9,6 @@ import {
   FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup
 } from 'react-icons/fa';
 import clsx from 'clsx';
-import { apiFetch } from '@/lib/api';
 import { useTheme } from 'next-themes';
 import { oauthLogin } from '@/lib/api/auth';
 import NetworkBackground from "@/components/NetworkBackground";
@@ -147,12 +146,18 @@ export default function AddModelPage() {
 
   const fetchConnectedProviders = async () => {
     try {
-      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
-      setConnectedProviders(connectedProviders);
+      const res = await fetch("/api/user/oauth/connections");
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedProviders(data);
+      } else {
+        console.error("Failed to fetch connections");
+      }
     } catch (err) {
-      console.error("Failed to fetch connections");
+      console.error("Network error:", err);
     }
   };
+
 
   useEffect(() => {
     if (initialized.current) return;
@@ -180,16 +185,22 @@ export default function AddModelPage() {
 
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
-          const data = await apiFetch(`/user/repositories/${provider}/`, { auth: true });
-          if (Array.isArray(data)) {
-            if (provider === 'github') {
-              if (data.length > 0) {
-                setGithubAppStatus('connected');
-              } else {
-                setGithubAppStatus('missing');
+          const res = await fetch('/api/user/oauth/repositories/github');
+
+          if (res.ok) {
+            const data = res.json();
+            if (Array.isArray(data)) {
+              if (provider === 'github') {
+                if (data.length > 0) {
+                  setGithubAppStatus('connected');
+                } else {
+                  setGithubAppStatus('missing');
+                }
               }
+              results.push(...data.map((r: any) => ({ ...r, provider })));
             }
-            results.push(...data.map((r: any) => ({ ...r, provider })));
+          } else {
+            setGithubAppStatus('missing');
           }
         } catch (err) {
           if (provider === 'github') setGithubAppStatus('missing');

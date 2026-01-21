@@ -1,4 +1,4 @@
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { ADMIN_UIDKEY } from "@/lib/env";
 import { NextRequest, NextResponse } from "next/server";
 

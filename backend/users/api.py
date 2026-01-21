@@ -419,6 +419,21 @@ def api_key(request):
 
 
 @router.post(
+    "/api-key/refresh/",
+    response={201: dict, 400: BadRequestSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def refresh_api_key(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    user.refresh_api_key()
+    return 201, {"api_key": user.api_key()}
+
+
+@router.post(
     "/login/",
     response={200: s.LoginOut, 403: ForbiddenSchema},
     include_in_schema=False,

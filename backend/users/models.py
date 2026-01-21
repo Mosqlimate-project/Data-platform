@@ -45,6 +45,10 @@ class CustomUser(AbstractUser):
     def api_key(self):
         return f"{self.username}:{self.uuid}"
 
+    def refresh_api_key(self):
+        self.uuid = uuid.uuid4()
+        self.save()
+
     def get_avatar(self):
         if self.avatar:
             return self.avatar.url

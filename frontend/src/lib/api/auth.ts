@@ -1,4 +1,4 @@
-import { PUBLIC_BACKEND_URL, BACKEND_BASE_URL } from "@/lib/api";
+import { PUBLIC_BACKEND_URL, BACKEND_BASE_URL } from "@/lib/env";
 
 
 export function oauthLogin(provider: "google" | "github" | "gitlab", next?: string) {

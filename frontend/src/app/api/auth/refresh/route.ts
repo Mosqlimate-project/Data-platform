@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { setTokens } from "../setCookies";
 
 export async function GET(req: NextRequest) {

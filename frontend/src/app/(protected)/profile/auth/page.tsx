@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab, FaKey, FaCopy, FaSync, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash, FaLink } from 'react-icons/fa';
 import clsx from 'clsx';
@@ -33,9 +32,15 @@ export default function AuthSettingsPage() {
 
   const checkGithubAppStatus = async () => {
     try {
-      const repos = await apiFetch('/user/repositories/github/', { auth: true });
-      if (Array.isArray(repos) && repos.length > 0) {
-        setGithubAppStatus('connected');
+      const res = await fetch('/api/user/oauth/repositories/github');
+
+      if (res.ok) {
+        const repos = await res.json();
+        if (Array.isArray(repos) && repos.length > 0) {
+          setGithubAppStatus('connected');
+        } else {
+          setGithubAppStatus('missing');
+        }
       } else {
         setGithubAppStatus('missing');
       }
@@ -46,8 +51,13 @@ export default function AuthSettingsPage() {
 
   const fetchApiKey = async () => {
     try {
-      const data = await apiFetch('/user/api-key/');
-      setApiKey(data.api_key);
+      const res = await fetch('/api/user/api-key');
+      if (res.ok) {
+        const data = await res.json();
+        setApiKey(data.api_key);
+      } else {
+        console.error("Failed to fetch user api-key");
+      }
     } catch (err) {
       console.error("Failed to fetch API key");
     }
@@ -55,10 +65,15 @@ export default function AuthSettingsPage() {
 
   const fetchConnectedProviders = async () => {
     try {
-      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
-      setConnectedProviders(connectedProviders);
+      const res = await fetch("/api/user/oauth/connections");
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedProviders(data);
+      } else {
+        console.error("Failed to fetch connections");
+      }
     } catch (err) {
-      console.error("Failed to fetch connections");
+      console.error("Network error:", err);
     }
   };
 
@@ -67,9 +82,14 @@ export default function AuthSettingsPage() {
 
     setLoadingKey(true);
     try {
-      const data = await apiFetch('/user/api-key/rotate/', { method: 'POST' });
-      setApiKey(data.key);
+      const res = await fetch('/api/user/api-key/refresh', { method: 'POST' });
+
+      if (res.ok) {
+        const data = await res.json();
+        setApiKey(data.api_key);
+      }
     } catch (err) {
+      console.error(err);
     } finally {
       setLoadingKey(false);
     }

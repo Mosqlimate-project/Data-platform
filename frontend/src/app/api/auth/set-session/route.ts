@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setTokens } from "@/app/api/auth/setCookies";
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
