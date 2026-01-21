@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from django.db import transaction
+from django.utils.dateparse import parse_datetime
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
@@ -381,6 +382,7 @@ def oauth_install_callback(
     include_in_schema=False,
     response={200: dict, 400: BadRequestSchema},
 )
+@decorate_view(never_cache)
 def oauth_decode(request, data: str):
     try:
         decoded = signing.loads(data, salt="oauth-callback", max_age=300)
@@ -444,15 +446,54 @@ def login(request, payload: s.LoginIn):
 
 @router.post(
     "/register/",
-    response={201: s.LoginOut, 400: BadRequestSchema},
+    response={201: s.LoginOut, 200: s.LoginOut, 400: BadRequestSchema},
     include_in_schema=False,
     auth=None,
 )
 def register(request, payload: s.RegisterIn):
-    if User.objects.filter(email=payload.email).exists():
+    oauth_info = None
+    if payload.oauth_data:
+        try:
+            oauth_info = signing.loads(
+                payload.oauth_data, salt="oauth-callback", max_age=600
+            )
+        except signing.BadSignature:
+            return 400, {"message": "Invalid or expired OAuth data"}
+
+    existing_user = User.objects.filter(email__iexact=payload.email).first()
+
+    if existing_user:
+        if oauth_info:
+            expires_at = None
+            if oauth_info.get("access_token_expires_at"):
+                expires_at = parse_datetime(
+                    oauth_info["access_token_expires_at"]
+                )
+
+            OAuthAccount.objects.update_or_create(
+                user=existing_user,
+                provider=oauth_info["provider"],
+                defaults={
+                    "provider_id": oauth_info["provider_id"],
+                    "raw_info": oauth_info["raw_info"],
+                    "access_token": oauth_info["access_token"],
+                    "refresh_token": oauth_info.get("refresh_token"),
+                    "access_token_expires_at": expires_at,
+                },
+            )
+
+            return 200, {
+                "access_token": create_access_token(
+                    {"sub": str(existing_user.pk)}
+                ),
+                "refresh_token": create_refresh_token(
+                    {"sub": str(existing_user.pk)}
+                ),
+            }
+
         return 400, {"message": "Email already registered"}
 
-    if User.objects.filter(username=payload.username).exists():
+    if User.objects.filter(username__iexact=payload.username).exists():
         return 400, {"message": "Username already registered"}
 
     user = User.objects.create_user(
@@ -464,24 +505,18 @@ def register(request, payload: s.RegisterIn):
         is_staff=False,
     )
 
-    if payload.oauth_data:
-        data = signing.loads(
-            payload.oauth_data, salt="oauth-callback", max_age=600
-        )
-
+    if oauth_info:
         expires_at = None
-        if data.get("expires_at_iso"):
-            from django.utils.dateparse import parse_datetime
-
-            expires_at = parse_datetime(data["expires_at_iso"])
+        if oauth_info.get("access_token_expires_at"):
+            expires_at = parse_datetime(oauth_info["access_token_expires_at"])
 
         OAuthAccount.objects.create(
             user=user,
-            provider=data["provider"],
-            provider_id=data["provider_id"],
-            raw_info=data["raw_info"],
-            access_token=data["access_token"],
-            refresh_token=data.get("refresh_token"),
+            provider=oauth_info["provider"],
+            provider_id=oauth_info["provider_id"],
+            raw_info=oauth_info["raw_info"],
+            access_token=oauth_info["access_token"],
+            refresh_token=oauth_info.get("refresh_token"),
             access_token_expires_at=expires_at,
         )
 
