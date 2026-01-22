@@ -27,6 +27,17 @@ jobs:
 
     - uses: actions/checkout@v4
 
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
     - uses: conda-incubator/setup-miniconda@v3
       with:
         miniforge-version: latest
@@ -39,6 +50,10 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install --no-root
+
+    - name: Clean Conda Cache
+      run: |
+        conda clean --all --yes
 
     - name: Linting
       run: |
@@ -69,6 +84,6 @@ jobs:
     #      make container-wait-all
     
     # TODO remove it
-    # - name: Setup tmate session
-    #   if: "${{ failure() }}"
-    #   uses: mxschmitt/action-tmate@v3
+    - name: Setup tmate session
+      if: "${{ failure() }}"
+      uses: mxschmitt/action-tmate@v3

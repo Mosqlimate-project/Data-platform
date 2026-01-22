@@ -1,5 +1,4 @@
 import React from "react";
-import { notFound } from "next/navigation";
 import Dashboard from "@/components/dashboard/Dashboard";
 
 interface PageProps {
@@ -14,19 +13,8 @@ interface PageProps {
   };
 }
 
-export function generateStaticParams() {
-  return [
-    { category: "quantitative" },
-    { category: "categorical" },
-  ];
-}
-
-export default function Page({ params, searchParams }: PageProps) {
+export default function Page({ params }: PageProps) {
   const { category } = params;
 
-  if (category !== "quantitative" && category !== "categorical") {
-    return notFound();
-  }
-
-  return <Dashboard category={category} />;
+  return <Dashboard category={category as any} />;
 }

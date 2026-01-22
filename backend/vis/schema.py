@@ -159,3 +159,9 @@ class CategoryOut(Schema):
     id: str
     label: str
     levels: List[LevelOut]
+
+
+class SectionOut(Schema):
+    id: str
+    label: str
+    categories: List[CategoryOut]

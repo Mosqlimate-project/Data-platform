@@ -234,7 +234,7 @@ export default function HomePage() {
               </p>
 
               {/*TO DO: Replace this image with a URL to a dashboard featuring some models from our website*/}
-              <a href="/registry/models" className="inline-block">
+              <a href="/models" className="inline-block">
                 <Image
                   src="/models.png"
                   alt="Models"
@@ -315,7 +315,7 @@ export default function HomePage() {
             <div className="w-full mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">Conheça a nossa equipe</h2>
               {/*TO DO: Replace href with the correct tab name containing the team descriptions*/}
-              <a href="/equipe" className="inline-block">
+              <a href="/about" className="inline-block">
                 <Image
                   src="/team.svg"
                   alt="Team"

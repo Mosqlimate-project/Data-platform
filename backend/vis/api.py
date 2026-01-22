@@ -1,4 +1,4 @@
-from typing import Literal, List, Optional
+from typing import List, Optional
 
 from users.auth import UidKeyAuth
 from datastore.models import (
@@ -28,16 +28,16 @@ uidkey_auth = UidKeyAuth()
 
 @router.get(
     "/dashboard/categories/",
-    response=List[schema.CategoryOut],
+    response=List[schema.SectionOut],
     auth=uidkey_auth,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def dashboard_categories(request):
-    categories = (
+    data = (
         RepositoryModel.objects.annotate(predictions_count=Count("predicts"))
         .filter(predictions_count__gt=0)
-        .values_list("category", "adm_level")
+        .values_list("sprint_id", "category", "adm_level")
         .distinct()
     )
 
@@ -54,58 +54,73 @@ def dashboard_categories(request):
         ),
     }
 
-    groups_map = {
-        "quantitative": {
-            "id": "quantitative",
-            "label": "Quantitative Predictions",
-            "levels": set(),
-        },
-        "categorical": {
-            "id": "categorical",
-            "label": "Categorical Predictions",
-            "levels": set(),
-        },
-    }
+    category_labels = dict(RepositoryModel.Category.choices)
 
-    for category, adm in categories:
-        target_group = None
+    sections_structure = {"default": {}, "sprint": {}}
 
-        if "quantitative" in category:
-            target_group = groups_map["quantitative"]
-        elif "categorical" in category:
-            target_group = groups_map["categorical"]
+    for sprint_id, category_slug, adm_level in data:
+        if adm_level not in adm_levels:
+            continue
 
-        if target_group and adm in adm_levels:
-            target_group["levels"].add(adm_levels[adm])
+        section_key = "sprint" if sprint_id is not None else "default"
+
+        if category_slug not in sections_structure[section_key]:
+            sections_structure[section_key][category_slug] = set()
+
+        sections_structure[section_key][category_slug].add(
+            adm_levels[adm_level]
+        )
 
     results = []
     level_order = ["national", "state", "municipal", "sub_municipal"]
 
-    for key, data in groups_map.items():
-        if not data["levels"]:
+    section_definitions = [
+        ("default", "General"),
+        ("sprint", "Sprint"),
+    ]
+
+    for section_key, section_label in section_definitions:
+        categories_data = sections_structure.get(section_key, {})
+        if not categories_data:
             continue
 
-        formatted_levels = [
-            {"id": slug, "label": label, "url_slug": slug}
-            for slug, label in data["levels"]
-        ]
+        formatted_categories = []
 
-        formatted_levels.sort(
-            key=lambda x: (
-                level_order.index(x["id"]) if x["id"] in level_order else 99
+        for cat_slug, levels_set in categories_data.items():
+            if not levels_set:
+                continue
+
+            formatted_levels = [
+                {"id": slug, "label": label, "url_slug": slug}
+                for slug, label in levels_set
+            ]
+            formatted_levels.sort(
+                key=lambda x: (
+                    level_order.index(x["id"])
+                    if x["id"] in level_order
+                    else 99
+                )
             )
-        )
+
+            formatted_categories.append(
+                {
+                    "id": cat_slug,
+                    "label": str(category_labels.get(cat_slug, cat_slug)),
+                    "levels": formatted_levels,
+                }
+            )
+
+        formatted_categories.sort(key=lambda x: x["label"])
 
         results.append(
             {
-                "id": data["id"],
-                "label": data["label"],
-                "levels": formatted_levels,
+                "id": section_key,
+                "label": section_label,
+                "categories": formatted_categories,
             }
         )
 
-    results.sort(key=lambda x: x["label"])
-
+    print(results)
     return results
 
 
@@ -116,7 +131,7 @@ def dashboard_categories(request):
     include_in_schema=False,
 )
 def dashboard_diseases(
-    request, category: Literal["quantitative", "categorical"], adm_level: int
+    request, category: str, adm_level: int, sprint: bool = False
 ):
     category_map = {
         "quantitative": [
@@ -131,17 +146,20 @@ def dashboard_diseases(
         ],
     }
 
-    categories = category_map.get(category)
-    if not categories and category == "categorical":
-        categories = category_map["categorical"]
+    categories = category_map.get(category, [category])
 
     diseases = Disease.objects.filter(
         models__adm_level=adm_level,
         models__category__in=categories,
         models__predicts__isnull=False,
-    ).distinct()
+    )
 
-    return diseases
+    if sprint:
+        diseases = diseases.filter(models__sprint__isnull=False)
+    else:
+        diseases = diseases.filter(models__sprint__isnull=True)
+
+    return diseases.distinct()
 
 
 @router.get(
@@ -152,9 +170,10 @@ def dashboard_diseases(
 )
 def dashboard_countries(
     request,
-    category: Literal["quantitative", "categorical"],
+    category: str,
     adm_level: int,
     disease: str = "A90",
+    sprint: bool = False,
 ):
     category_map = {
         "quantitative": [
@@ -169,24 +188,26 @@ def dashboard_countries(
         ],
     }
 
-    categories = category_map.get(category)
-
-    if not categories and category == "categorical":
-        categories = category_map["categorical"]
+    categories = category_map.get(category, [category])
 
     if adm_level is None:
         return []
 
-    prediction_geocodes = (
-        RepositoryModel.objects.filter(
-            disease__code=disease,
-            adm_level=adm_level,
-            category__in=categories,
-            predicts__isnull=False,
-        )
-        .values_list(f"predicts__adm{adm_level}__geocode", flat=True)
-        .distinct()
+    repo_qs = RepositoryModel.objects.filter(
+        disease__code=disease,
+        adm_level=adm_level,
+        category__in=categories,
+        predicts__isnull=False,
     )
+
+    if sprint:
+        repo_qs = repo_qs.filter(sprint__isnull=False)
+    else:
+        repo_qs = repo_qs.filter(sprint__isnull=True)
+
+    prediction_geocodes = repo_qs.values_list(
+        f"predicts__adm{adm_level}__geocode", flat=True
+    ).distinct()
 
     if adm_level == 0:
         countries = Adm0.objects.filter(geocode__in=prediction_geocodes)
@@ -214,10 +235,11 @@ def dashboard_countries(
 )
 def dashboard_states(
     request,
-    category: Literal["quantitative", "categorical"],
+    category: str,
     adm_level: int,
     disease: str = "A90",
     country: str = "BRA",
+    sprint: bool = False,
 ):
     category_map = {
         "quantitative": [
@@ -232,24 +254,26 @@ def dashboard_states(
         ],
     }
 
-    categories = category_map.get(category)
-
-    if not categories and category == "categorical":
-        categories = category_map["categorical"]
+    categories = category_map.get(category, [category])
 
     if adm_level is None:
         return []
 
-    prediction_geocodes = (
-        RepositoryModel.objects.filter(
-            disease__code=disease,
-            adm_level=adm_level,
-            category__in=categories,
-            predicts__isnull=False,
-        )
-        .values_list(f"predicts__adm{adm_level}__geocode", flat=True)
-        .distinct()
+    repo_qs = RepositoryModel.objects.filter(
+        disease__code=disease,
+        adm_level=adm_level,
+        category__in=categories,
+        predicts__isnull=False,
     )
+
+    if sprint:
+        repo_qs = repo_qs.filter(sprint__isnull=False)
+    else:
+        repo_qs = repo_qs.filter(sprint__isnull=True)
+
+    prediction_geocodes = repo_qs.values_list(
+        f"predicts__adm{adm_level}__geocode", flat=True
+    ).distinct()
 
     if adm_level == 1:
         states = Adm1.objects.filter(
@@ -275,11 +299,12 @@ def dashboard_states(
 )
 def dashboard_cities(
     request,
-    category: Literal["quantitative", "categorical"],
+    category: str,
     adm_level: int,
     disease: str,
     country: str,
     state: str,
+    sprint: bool = False,
 ):
     category_map = {
         "quantitative": [
@@ -294,23 +319,26 @@ def dashboard_cities(
         ],
     }
 
-    categories = category_map.get(category)
-    if not categories and category == "categorical":
-        categories = category_map["categorical"]
+    categories = category_map.get(category, [category])
 
     if adm_level < 2:
         return []
 
-    prediction_geocodes = (
-        RepositoryModel.objects.filter(
-            disease__code=disease,
-            adm_level=adm_level,
-            category__in=categories,
-            predicts__isnull=False,
-        )
-        .values_list(f"predicts__adm{adm_level}__geocode", flat=True)
-        .distinct()
+    repo_qs = RepositoryModel.objects.filter(
+        disease__code=disease,
+        adm_level=adm_level,
+        category__in=categories,
+        predicts__isnull=False,
     )
+
+    if sprint:
+        repo_qs = repo_qs.filter(sprint__isnull=False)
+    else:
+        repo_qs = repo_qs.filter(sprint__isnull=True)
+
+    prediction_geocodes = repo_qs.values_list(
+        f"predicts__adm{adm_level}__geocode", flat=True
+    ).distinct()
 
     if adm_level == 2:
         cities = Adm2.objects.filter(
@@ -334,13 +362,17 @@ def dashboard_cities(
 )
 def dashboard_sprints(
     request,
-    category: Literal["quantitative", "categorical"],
+    category: str,
     adm_level: int,
     disease: str,
     country: Optional[str] = None,
     state: Optional[str] = None,
     city: Optional[str] = None,
+    sprint: bool = False,
 ):
+    if not sprint:
+        return []
+
     category_map = {
         "quantitative": [
             RepositoryModel.Category.QUANTITATIVE,
@@ -354,9 +386,7 @@ def dashboard_sprints(
         ],
     }
 
-    categories = category_map.get(category)
-    if not categories and category == "categorical":
-        categories = category_map["categorical"]
+    categories = category_map.get(category, [category])
 
     qs = Sprint.objects.filter(
         repositorymodel__disease__code=disease,
@@ -383,18 +413,23 @@ def dashboard_sprints(
 @decorate_view(never_cache)
 def dashboard_predictions(
     request,
-    category: Literal["quantitative", "categorical"],
+    category: str,
     adm_level: int,
     disease: str,
     country: Optional[str] = None,
     state: Optional[str] = None,
     city: Optional[str] = None,
+    sprint: bool = False,
 ):
-    # TODO: needs more categories when other categories are included
     qs = QuantitativePrediction.objects.filter(
         model__disease__code=disease,
         model__adm_level=adm_level,
     )
+
+    if sprint:
+        qs = qs.filter(model__sprint__isnull=False)
+    else:
+        qs = qs.filter(model__sprint__isnull=True)
 
     if adm_level == 0 and country:
         qs = qs.filter(adm0__geocode=country)
