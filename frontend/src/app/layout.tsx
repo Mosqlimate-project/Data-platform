@@ -5,6 +5,7 @@ import ClientProviders from '@/components/ClientProviders';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
+import I18nProvider from '@/components/I18nProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,14 +19,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen flex flex-col transition-colors`}>
-        <ClientProviders>
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1 md:items-center bg-bg">{children}</main>
-            <Footer />
-            <Chatbot />
-          </div>
-        </ClientProviders>
+        <I18nProvider>
+          <ClientProviders>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1 md:items-center bg-bg">{children}</main>
+              <Footer />
+              <Chatbot />
+            </div>
+          </ClientProviders>
+        </I18nProvider>
       </body>
     </html>
   );
