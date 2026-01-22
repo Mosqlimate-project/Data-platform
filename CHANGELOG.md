@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [1.2.2](https://github.com/Mosqlimate-project/Data-platform/compare/1.2.1...1.2.2) (2026-01-22)
+
+
+### Performance Improvements
+
+* login on production & much more ([#361](https://github.com/Mosqlimate-project/Data-platform/issues/361)) ([bb7cf2e](https://github.com/Mosqlimate-project/Data-platform/commit/bb7cf2e0a2b7535a023b51a9882dc86755c71160))
+
 ## [1.2.1](https://github.com/Mosqlimate-project/Data-platform/compare/1.2.0...1.2.1) (2026-01-19)
 
 
