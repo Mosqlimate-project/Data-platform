@@ -1,6 +1,6 @@
 services:
   frontend:
-    container_name: mosqlimate-frontend
+    hostname: mosqlimate-frontend
     command: npm run start
     build:
       context: ..
@@ -8,16 +8,24 @@ services:
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
-    env_file:
-      - ../.env
     ports:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    env_file:
+      - ../.env
+    user: "mosqlimate:mosqlimate"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${FRONTEND_PORT}"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - mosqlimate
 
 
   backend:
     hostname: mosqlimate-backend
-    restart: unless-stopped
     environment:
       RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
@@ -25,16 +33,17 @@ services:
       context: ..
       dockerfile: containers/mosqlimate/Dockerfile
       args:
-        # note: if you want to use a specific UID and GID, ensure to add it to
-        #       the .env file
         - UID=${HOST_UID}
         - GID=${HOST_GID}
         - BACKEND_CONTAINER_DATA_PATH=${BACKEND_CONTAINER_DATA_PATH}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
     env_file:
       - ../.env
     user: "mosqlimate:mosqlimate"
     volumes:
       - ${EPISCANNER_HOST_DATA_DIR}:${BACKEND_CONTAINER_DATA_PATH}/episcanner
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}/api/status/"]
       interval: 60s

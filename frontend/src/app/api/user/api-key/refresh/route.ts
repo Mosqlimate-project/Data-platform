@@ -1,36 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
 import { BACKEND_BASE_URL } from "@/lib/env";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const accessToken = req.cookies.get("access_token")?.value;
+export async function POST(request: NextRequest) {
+  const token = request.cookies.get("access_token")?.value;
 
-  if (!accessToken) {
+  if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/model/add/`, {
+    const res = await fetch(`${BACKEND_BASE_URL}/api/user/api-key/refresh/`, {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(body),
       cache: "no-store",
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
       return NextResponse.json(
-        { message: errorText || "Backend Error" },
+        { message: "Failed to refresh api-key" },
         { status: res.status }
       );
     }
 
     const data = await res.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data);
 
   } catch (error) {
     console.error("Proxy Error:", error);

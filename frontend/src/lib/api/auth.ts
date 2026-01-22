@@ -1,8 +1,8 @@
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { PUBLIC_BACKEND_URL, BACKEND_BASE_URL } from "@/lib/env";
 
 
 export function oauthLogin(provider: "google" | "github" | "gitlab", next?: string) {
-  window.location.href = `${BACKEND_BASE_URL}/api/user/oauth/login/${provider}/?next=${encodeURIComponent(next || "")}`;
+  window.location.href = `${PUBLIC_BACKEND_URL}/api/user/oauth/login/${provider}/?next=${encodeURIComponent(next || "")}`;
 }
 
 export async function csrfToken(): Promise<string> {

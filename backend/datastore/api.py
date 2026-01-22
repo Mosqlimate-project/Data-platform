@@ -707,7 +707,7 @@ def get_episcanner(
 @router.get(
     "/charts/municipality/temperature/",
     response=List[schema.MunTempOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )
@@ -731,7 +731,7 @@ def municipality_daily_temperature(
 @router.get(
     "/charts/municipality/accumulated-waterfall/",
     response=List[schema.MunAccWaterfallOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )
@@ -754,7 +754,7 @@ def municipality_daily_accumulated_waterfall(
 @router.get(
     "/charts/municipality/umid-pressao-med/",
     response=List[schema.MunUmidPressMedOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )

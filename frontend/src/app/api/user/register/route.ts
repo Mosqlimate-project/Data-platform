@@ -1,4 +1,4 @@
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { NextResponse } from "next/server";
 import { setTokens } from "@/app/api/auth/setCookies";
 

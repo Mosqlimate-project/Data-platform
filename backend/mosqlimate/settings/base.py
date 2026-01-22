@@ -55,7 +55,6 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
     "django_celery_beat",
-    "polymorphic",
     # Plotly Dash
     "django_plotly_dash.apps.DjangoPlotlyDashConfig",
     "dpd_static_support",
@@ -161,7 +160,9 @@ DATABASE_ROUTERS = (
 )
 
 BACKEND_PORT = env("BACKEND_PORT", default=8042)
-BACKEND_URL = env("BACKEND_URL", default=f"http://0.0.0.0:{BACKEND_PORT}")
+PUBLIC_BACKEND_URL = env(
+    "PUBLIC_BACKEND_URL", default=f"http://0.0.0.0:{BACKEND_PORT}"
+)
 
 FRONTEND_PORT = env("FRONTEND_PORT")
 FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")

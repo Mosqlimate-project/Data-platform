@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_BASE_URL } from "@/lib/api";
+import { BACKEND_BASE_URL } from "@/lib/env";
 
 export async function GET(req: NextRequest) {
   const email = req.nextUrl.searchParams.get("email");
