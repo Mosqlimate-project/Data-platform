@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Eye, EyeOff } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +113,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [chartData, setChartData] = useState<Series>({ labels: [], data: [] });
   const [chartPredictions, setChartPredictions] = useState<QuantitativePrediction[]>([]);
   const [loadingPredictions, setLoadingPredictions] = useState<number[]>([]);
+  const [activeIntervals, setActiveIntervals] = useState<Set<number>>(new Set());
 
   const [diseaseOptions, setDiseaseOptions] = useState<DiseaseOption[]>([]);
   const [diseasesLoading, setDiseasesLoading] = useState(true);
@@ -136,6 +137,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [modelSearch, setModelSearch] = useState("");
   const [predictionSearch, setPredictionSearch] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const [sortConfig, setSortConfig] = useState<{
@@ -362,6 +364,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setChartPredictions([]);
       setLoadingPredictions([]);
       setSelectedModels([]);
+      setActiveIntervals(new Set());
       setCurrentPage(1);
     } catch (error) {
       console.error(error);
@@ -488,6 +491,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setPredictions([]);
       setChartPredictions([]);
       setChartData({ labels: [], data: [] });
+      setActiveIntervals(new Set());
     }
 
     updateURL({ [name]: newValue });
@@ -509,11 +513,28 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     );
   };
 
+  const toggleInterval = (predictionId: number) => {
+    setActiveIntervals((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(predictionId)) {
+        newSet.delete(predictionId);
+      } else {
+        newSet.add(predictionId);
+      }
+      return newSet;
+    });
+  };
+
   const togglePrediction = async (prediction: Prediction) => {
     const isSelected = chartPredictions.some((p) => p.id === prediction.id);
 
     if (isSelected) {
       setChartPredictions((prev) => prev.filter((p) => p.id !== prediction.id));
+      setActiveIntervals((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(prediction.id);
+        return newSet;
+      });
     } else {
       setLoadingPredictions((prev) => [...prev, prediction.id]);
       try {
@@ -741,6 +762,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           <LineChart
             data={chartData}
             predictions={chartPredictions}
+            activeIntervals={activeIntervals}
             height="100%"
           />
         ) : (
@@ -830,6 +852,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                       <tr>
                         <th className="px-3 py-2 w-[40%]">Model</th>
+                        <th className="px-3 py-2 text-center w-[10%]">Interval Bounds</th>
                         {SCORE_COLUMNS.map((col) => (
                           <th
                             key={col.key}
@@ -896,6 +919,21 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                   </div>
                                 </div>
                               </div>
+                            </td>
+                            <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => toggleInterval(p.id)}
+                                disabled={!isSelected}
+                                className={`p-1 rounded transition-colors ${isSelected
+                                  ? activeIntervals.has(p.id)
+                                    ? "text-blue-600 hover:bg-blue-100"
+                                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                                  : "text-gray-200 cursor-not-allowed"
+                                  }`}
+                                title="Toggle Confidence Intervals"
+                              >
+                                {activeIntervals.has(p.id) ? <Eye size={16} /> : <EyeOff size={16} />}
+                              </button>
                             </td>
                             {SCORE_COLUMNS.map((col) => {
                               const score = p.scores.find((s) => s.name === col.key);

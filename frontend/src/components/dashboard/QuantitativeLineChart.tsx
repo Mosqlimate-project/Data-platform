@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useMemo, useState } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import * as echarts from "echarts";
 import { useTheme } from "next-themes";
 
@@ -33,6 +33,7 @@ export interface ChartProps {
   predictions: QuantitativePrediction[];
   height?: string | number;
   width?: string | number;
+  activeIntervals?: Set<number | string>;
 }
 
 const formatDate = (date: Date) => {
@@ -44,11 +45,11 @@ export const LineChart: React.FC<ChartProps> = ({
   predictions,
   height = "400px",
   width = "100%",
+  activeIntervals = new Set(),
 }) => {
   const { resolvedTheme } = useTheme();
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
-  const [activeIntervals, setActiveIntervals] = useState<Set<string>>(new Set());
 
   const mainLabels = useMemo(() => {
     const uniqueDates = new Set<string>();
@@ -64,21 +65,6 @@ export const LineChart: React.FC<ChartProps> = ({
 
     if (!instanceRef.current) {
       instanceRef.current = echarts.init(chartRef.current);
-
-      instanceRef.current.on('legendselectchanged', (params: any) => {
-        const name = params.name;
-        if (name !== 'Data') {
-          setActiveIntervals(prev => {
-            const next = new Set(prev);
-            if (next.has(name)) {
-              next.delete(name);
-            } else {
-              next.add(name);
-            }
-            return next;
-          });
-        }
-      });
     }
 
     const chartInstance = instanceRef.current;
@@ -120,13 +106,13 @@ export const LineChart: React.FC<ChartProps> = ({
 
     predictions.forEach((pred) => {
       const predId = `${pred.id}`;
-      const isActive = activeIntervals.has(predId);
+      const isActive = activeIntervals.has(pred.id) || activeIntervals.has(predId);
 
       legendData.push({
         name: predId,
         textStyle: {
           color: pred.color,
-          fontWeight: isActive ? "bold" : "normal"
+          fontWeight: "normal"
         },
         itemStyle: {
           color: pred.color
@@ -169,15 +155,6 @@ export const LineChart: React.FC<ChartProps> = ({
 
       seriesOptions.push({
         name: predId,
-        type: 'line',
-        data: [],
-        showSymbol: false,
-        itemStyle: { color: pred.color },
-        lineStyle: { color: pred.color }
-      });
-
-      seriesOptions.push({
-        name: `${predId}_line`,
         type: "line",
         data: alignedPredData,
         smooth: true,
@@ -287,35 +264,36 @@ export const LineChart: React.FC<ChartProps> = ({
             if (p.value == null) return;
 
             const isData = p.seriesName === "Data";
-            const isPredLine = p.seriesName.endsWith("_line");
+            const rawName = p.seriesName;
+            const isPredLine = !isData && !rawName.includes("_base") && !rawName.includes("_area");
 
             if (isData || isPredLine) {
               hasContent = true;
-              const rawName = p.seriesName.replace("_line", "");
               const val = typeof p.value === 'number' ? p.value.toFixed(2) : p.value;
               const color = typeof p.color === 'object' ? (p.color as any).colorStops?.[0]?.color || '#000' : p.color;
 
               let intervalStr = "";
               if (isPredLine) {
-                const intervals = intervalDataCache[rawName];
-                if (intervals && activeIntervals.has(rawName)) {
-                  const l90 = intervals.l90[idx];
-                  const u90 = intervals.u90[idx];
-
-                  if (l90 != null && u90 != null) {
-                    intervalStr = ` <span style="font-size:11px; opacity:0.7; margin-left:4px;">(${l90.toFixed(2)} - ${u90.toFixed(2)})</span>`;
+                if (activeIntervals.has(parseInt(rawName)) || activeIntervals.has(rawName)) {
+                  const intervals = intervalDataCache[rawName];
+                  if (intervals) {
+                    const l90 = intervals.l90[idx];
+                    const u90 = intervals.u90[idx];
+                    if (l90 != null && u90 != null) {
+                      intervalStr = ` <span style="font-size:11px; opacity:0.7; margin-left:4px;">(${l90.toFixed(2)} - ${u90.toFixed(2)})</span>`;
+                    }
                   }
                 }
               }
 
               html += `
-               <div style="display:flex; justify-content:space-between; align-items:center; min-width:120px; margin-bottom:2px;">
-                 <div style="display:flex; align-items:center;">
-                   <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${color};margin-right:6px;"></span>
-                   <span style="opacity:0.9">${rawName}</span>
-                 </div>
-                 <span style="font-family:monospace; margin-left:12px; font-weight:600">${val}${intervalStr}</span>
-               </div>`;
+                <div style="display:flex; justify-content:space-between; align-items:center; min-width:120px; margin-bottom:2px;">
+                  <div style="display:flex; align-items:center;">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${color};margin-right:6px;"></span>
+                    <span style="opacity:0.9">${rawName}</span>
+                  </div>
+                  <span style="font-family:monospace; margin-left:12px; font-weight:600">${val}${intervalStr}</span>
+                </div>`;
             }
           });
           return hasContent ? html : "";
@@ -376,7 +354,7 @@ export const LineChart: React.FC<ChartProps> = ({
       ]
     };
 
-    chartInstance.setOption(options, { notMerge: false, replaceMerge: ['series', 'legend'] });
+    chartInstance.setOption(options, { notMerge: true });
 
     const handleResize = () => chartInstance.resize();
     window.addEventListener("resize", handleResize);
