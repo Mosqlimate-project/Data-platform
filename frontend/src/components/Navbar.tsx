@@ -9,7 +9,7 @@ import LanguageSelector from "../components/Language";
 import { useTranslation } from "react-i18next";
 import { useAuth } from './AuthProvider';
 import { HiMenu } from "react-icons/hi";
-import { FaRegBell } from "react-icons/fa";
+import { FaRegBell, FaBraille } from "react-icons/fa";
 
 const links = [
   { href: '/', label: 'navbar.home' },
@@ -229,6 +229,23 @@ export default function Navbar() {
                       <path d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
                     </svg>
                     {t("navbar.docs")}
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    href="/contaovos"
+                    target="_blank"
+                    className={clsx(
+                      "flex items-center px-4 py-2 transition-colors",
+                      isActive('/contaovos')
+                        ? "bg-hover text-text font-bold"
+                        : "text-text/70 hover:bg-hover hover:text-text font-medium"
+                    )}
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <FaBraille className={clsx("w-4 h-4 mr-3", isActive('/contaovos') ? "text-text" : "text-text/70")} />
+                    {t("navbar.eggscounter")}
                   </Link>
                 </li>
 

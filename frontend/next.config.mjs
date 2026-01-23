@@ -42,6 +42,11 @@ const nextConfig = {
         destination: "http://0.0.0.0:8043/docs/",
         permanent: false,
       },
+      {
+        source: "/contaovos",
+        destination: "https://contaovos.com/pt-br/",
+        permanent: false,
+      },
     ];
   },
 

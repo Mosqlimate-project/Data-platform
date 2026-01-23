@@ -120,7 +120,6 @@ def dashboard_categories(request):
             }
         )
 
-    print(results)
     return results
 
 
@@ -368,11 +367,7 @@ def dashboard_sprints(
     country: Optional[str] = None,
     state: Optional[str] = None,
     city: Optional[str] = None,
-    sprint: bool = False,
 ):
-    if not sprint:
-        return []
-
     category_map = {
         "quantitative": [
             RepositoryModel.Category.QUANTITATIVE,
