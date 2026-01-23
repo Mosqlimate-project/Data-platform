@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -106,7 +106,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     adm_0: searchParams.get("adm_0") || "",
     adm_1: searchParams.get("adm_1") || "",
     adm_2: searchParams.get("adm_2") || "",
-    sprint: false,
+    sprint: searchParams.get("sprint") === "true",
   });
 
   const [loading, setLoading] = useState(false);
@@ -134,6 +134,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [predictionsLoading, setPredictionsLoading] = useState(false);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [modelSearch, setModelSearch] = useState("");
+  const [predictionSearch, setPredictionSearch] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -165,6 +167,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       const params = new URLSearchParams({
         category: category,
         adm_level: inputs.adm_level.toString(),
+        sprint: inputs.sprint.toString(),
       });
 
       const res = await fetch(`/api/vis/dashboard/diseases?${params.toString()}`);
@@ -190,7 +193,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setDiseasesLoading(false);
     }
-  }, [category, inputs.adm_level, updateURL]);
+  }, [category, inputs.adm_level, inputs.sprint, updateURL]);
 
   const fetchCountries = useCallback(async () => {
     if (!inputs.disease) return;
@@ -201,6 +204,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         category: category,
         adm_level: inputs.adm_level.toString(),
         disease: inputs.disease,
+        sprint: inputs.sprint.toString(),
       });
 
       const res = await fetch(`/api/vis/dashboard/countries?${params.toString()}`);
@@ -226,7 +230,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCountriesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.sprint, updateURL]);
 
   const fetchStates = useCallback(async () => {
     if (!inputs.disease || !inputs.adm_0 || inputs.adm_level < 1) return;
@@ -238,6 +242,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         adm_level: inputs.adm_level.toString(),
         disease: inputs.disease,
         country: inputs.adm_0,
+        sprint: inputs.sprint.toString(),
       });
 
       const res = await fetch(`/api/vis/dashboard/states?${params.toString()}`);
@@ -263,7 +268,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setStatesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.sprint, updateURL]);
 
   const fetchCities = useCallback(async () => {
     if (!inputs.disease || !inputs.adm_0 || !inputs.adm_1 || inputs.adm_level < 2) return;
@@ -276,6 +281,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         disease: inputs.disease,
         country: inputs.adm_0,
         state: inputs.adm_1,
+        sprint: inputs.sprint.toString(),
       });
 
       const res = await fetch(`/api/vis/dashboard/cities?${params.toString()}`);
@@ -301,7 +307,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCitiesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.sprint, updateURL]);
 
   const fetchSprints = useCallback(async () => {
     if (!inputs.disease) return;
@@ -312,6 +318,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         category: category,
         adm_level: inputs.adm_level.toString(),
         disease: inputs.disease,
+        sprint: inputs.sprint.toString(),
       });
 
       if (inputs.adm_0) params.append("country", inputs.adm_0);
@@ -330,7 +337,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setSprintsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint]);
 
   const fetchPredictions = useCallback(async () => {
     if (!inputs.disease) return;
@@ -341,6 +348,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         category: category,
         adm_level: inputs.adm_level.toString(),
         disease: inputs.disease,
+        sprint: inputs.sprint.toString(),
       });
 
       if (inputs.adm_0) params.append("country", inputs.adm_0);
@@ -362,7 +370,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setPredictionsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint]);
 
 
   const fetchData = useCallback(async () => {
@@ -417,14 +425,17 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   }, [inputs, predictions]);
 
   useEffect(() => {
-    const param = searchParams.get("adm_level");
-    if (param !== null) {
-      const urlLevel = Number(param);
-      if (urlLevel !== inputs.adm_level) {
-        setInputs((prev) => ({ ...prev, adm_level: urlLevel }));
+    const levelParam = searchParams.get("adm_level");
+    const sprintParam = searchParams.get("sprint") === "true";
+
+    setInputs((prev) => {
+      const newLevel = levelParam !== null ? Number(levelParam) : prev.adm_level;
+      if (newLevel !== prev.adm_level || sprintParam !== prev.sprint) {
+        return { ...prev, adm_level: newLevel, sprint: sprintParam };
       }
-    }
-  }, [searchParams, inputs.adm_level]);
+      return prev;
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     fetchDiseases();
@@ -466,7 +477,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedSprints, selectedModels]);
+  }, [selectedSprints, selectedModels, predictionSearch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -554,8 +565,13 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       baseList = baseList.filter((p) => p.sprint && selectedSprints.includes(p.sprint));
     }
     const models = Array.from(new Set(baseList.map((p) => p.repository))).sort();
+
+    if (modelSearch.trim() !== "") {
+      return models.filter(m => m.toLowerCase().includes(modelSearch.toLowerCase()));
+    }
+
     return models;
-  }, [predictions, selectedSprints]);
+  }, [predictions, selectedSprints, modelSearch]);
 
   const filteredAndSortedPredictions = useMemo(() => {
     let result = predictions;
@@ -566,6 +582,17 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
     if (selectedModels.length > 0) {
       result = result.filter((p) => selectedModels.includes(p.repository));
+    }
+
+    if (predictionSearch.trim() !== "") {
+      const query = predictionSearch.toLowerCase();
+      result = result.filter(p =>
+        p.id.toString().includes(query) ||
+        p.owner.toLowerCase().includes(query) ||
+        p.repository.toLowerCase().includes(query) ||
+        p.start.toLowerCase().includes(query) ||
+        p.end.toLowerCase().includes(query)
+      );
     }
 
     const selectedIds = new Set(chartPredictions.map((p) => p.id));
@@ -592,7 +619,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
 
     return result;
-  }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions]);
+  }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions, predictionSearch]);
 
   const paginatedPredictions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -725,15 +752,34 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       </div>
 
       <div className="bg-white p-4 rounded shadow">
-        <h3 className="text-lg font-bold mb-4">Predictions</h3>
         <div className="flex flex-col md:flex-row gap-6">
 
           <div className="w-full md:w-64 flex-shrink-0 border-r pr-4">
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Filter by Model</h4>
+            <h3 className="text-lg font-bold mb-4">Models</h3>
+
+            <div className="relative mb-3">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search models..."
+                value={modelSearch}
+                onChange={(e) => setModelSearch(e.target.value)}
+                className="w-full pl-8 pr-8 py-2 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {modelSearch && (
+                <button
+                  onClick={() => setModelSearch("")}
+                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
             {uniqueModels.length === 0 ? (
               <p className="text-xs text-gray-400 italic">No models available</p>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
                 {uniqueModels.map((model) => {
                   const isSelected = selectedModels.includes(model);
                   return (
@@ -754,6 +800,26 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           </div>
 
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+            <h3 className="text-lg font-bold mb-4">Predictions</h3>
+            <div className="relative mb-4">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search predictions by ID, Owner, Model or Year..."
+                value={predictionSearch}
+                onChange={(e) => setPredictionSearch(e.target.value)}
+                className="w-full pl-9 pr-9 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {predictionSearch && (
+                <button
+                  onClick={() => setPredictionSearch("")}
+                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
             {predictionsLoading ? (
               <div className="text-sm text-gray-500">Loading predictions...</div>
             ) : filteredAndSortedPredictions.length === 0 ? (

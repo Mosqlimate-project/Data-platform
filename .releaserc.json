@@ -11,42 +11,18 @@
             "files": ["pyproject.toml"],
             "from": "version = \".*\"  # changed by semantic-release",
             "to": "version = \"${nextRelease.version}\"  # changed by semantic-release",
-            "results": [
-              {
-                "file": "pyproject.toml",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
             "countMatches": true
           },
           {
             "files": ["frontend/package.json"],
-            "from": "\"version\": \".*\"",
+            "from": "\"version\":\\s*\".*\"",
             "to": "\"version\": \"${nextRelease.version}\"",
-            "results": [
-              {
-                "file": "package.json",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
             "countMatches": true
           },
           {
             "files": ["backend/mosqlimate/__init__.py"],
             "from": "return \".*\"  # changed by semantic-release",
             "to": "return \"${nextRelease.version}\"  # changed by semantic-release",
-            "results": [
-              {
-                "file": "backend/mosqlimate/__init__.py",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
             "countMatches": true
           }
         ]
