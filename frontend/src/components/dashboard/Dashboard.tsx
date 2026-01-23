@@ -136,7 +136,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [modelSearch, setModelSearch] = useState("");
   const [predictionSearch, setPredictionSearch] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
 
   const [sortConfig, setSortConfig] = useState<{
@@ -877,9 +876,15 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                     <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded border border-blue-200 font-mono">
                                       {p.owner}
                                     </span>
-                                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-mono">
+                                    <a
+                                      href={`/${p.owner}/${p.repository}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-mono hover:bg-gray-200 hover:underline transition-colors"
+                                    >
                                       {p.repository}
-                                    </span>
+                                    </a>
                                   </div>
                                   <div className="text-xs text-gray-500 flex gap-2 items-center">
                                     <span>{p.start} - {p.end}</span>
