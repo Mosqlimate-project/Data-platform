@@ -1,6 +1,30 @@
 Release Notes
 ---
 
+# [2.0.0](https://github.com/Mosqlimate-project/Data-platform/compare/1.2.2...2.0.0) (2026-01-23)
+
+
+### Features
+
+* include sprint param back in the dashboard fetch & model and predictions search ([#366](https://github.com/Mosqlimate-project/Data-platform/issues/366)) ([db51e71](https://github.com/Mosqlimate-project/Data-platform/commit/db51e7112a9dc8ba4411bdbeb7c70ef3930c0698))
+* restructure dashboard api response ([#364](https://github.com/Mosqlimate-project/Data-platform/issues/364)) ([6a7b951](https://github.com/Mosqlimate-project/Data-platform/commit/6a7b951909c577948aecd0bd4a8a17033ff9de31))
+
+
+### BREAKING CHANGES
+
+* The /dashboard/ now contains the sprint=bool in the param
+
+* include contaovos link
+
+* link to model
+
+* toggle interval bounds
+* The /dashboard/categories endpoint now returns sections instead of a flat list.
+
+* chore: include translations on frontend
+
+* chore: include install route on frontend
+
 ## [1.2.2](https://github.com/Mosqlimate-project/Data-platform/compare/1.2.1...1.2.2) (2026-01-22)
 
 
