@@ -13,7 +13,6 @@ import { useTheme } from 'next-themes';
 import { oauthLogin } from '@/lib/api/auth';
 import NetworkBackground from "@/components/NetworkBackground";
 
-
 interface Repository {
   id: string;
   name: string;
@@ -185,10 +184,10 @@ export default function AddModelPage() {
 
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
-          const res = await fetch('/api/user/oauth/repositories/github');
+          const res = await fetch(`/api/user/oauth/repositories/${provider}`);
 
           if (res.ok) {
-            const data = res.json();
+            const data = await res.json();
             if (Array.isArray(data)) {
               if (provider === 'github') {
                 if (data.length > 0) {
@@ -200,7 +199,7 @@ export default function AddModelPage() {
               results.push(...data.map((r: any) => ({ ...r, provider })));
             }
           } else {
-            setGithubAppStatus('missing');
+            if (provider === 'github') setGithubAppStatus('missing');
           }
         } catch (err) {
           if (provider === 'github') setGithubAppStatus('missing');
@@ -512,13 +511,30 @@ export default function AddModelPage() {
                               </a>
                             </>
                           )
-                            : (
+                            : activeTab === 'gitlab' && !connectedProviders.includes('gitlab') ? (
                               <>
-                                <FaCodeBranch className="icon-sm mb-2 opacity-50" />
-                                <p className="opacity-50">No repositories found.</p>
-                                <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                                <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                                  <FaGitlab className="text-2xl text-orange-600" />
+                                </div>
+                                <h3 className="text-base font-medium mb-1">Connect GitLab Account</h3>
+                                <p className="text-xs opacity-60 max-w-[200px] mb-4">
+                                  You need to connect your GitLab account to access repositories.
+                                </p>
+                                <a
+                                  href="/profile/auth"
+                                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition"
+                                >
+                                  <FaLink /> Connect GitLab
+                                </a>
                               </>
-                            )}
+                            )
+                              : (
+                                <>
+                                  <FaCodeBranch className="icon-sm mb-2 opacity-50" />
+                                  <p className="opacity-50">No repositories found.</p>
+                                  <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                                </>
+                              )}
 
                       </div>
                     )}

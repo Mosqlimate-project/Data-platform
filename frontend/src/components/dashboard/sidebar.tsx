@@ -16,8 +16,14 @@ interface Category {
   levels: Level[];
 }
 
-interface SidebarProps {
+interface Section {
+  id: string;
+  label: string;
   categories: Category[];
+}
+
+interface SidebarProps {
+  sections: Section[];
 }
 
 const LEVEL_TO_INT: Record<string, string> = {
@@ -27,12 +33,22 @@ const LEVEL_TO_INT: Record<string, string> = {
   sub_municipal: "3",
 };
 
-export function DashboardSidebar({ categories }: SidebarProps) {
+export function DashboardSidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const createLink = (basePath: string, extraParams: Record<string, string> = {}) => {
+  const createLink = (
+    basePath: string,
+    sectionId: string,
+    extraParams: Record<string, string> = {}
+  ) => {
     const params = new URLSearchParams(searchParams.toString());
+
+    if (sectionId === "sprint") {
+      params.set("sprint", "true");
+    } else {
+      params.set("sprint", "false");
+    }
 
     Object.entries(extraParams).forEach(([key, value]) => {
       params.set(key, value);
@@ -41,8 +57,20 @@ export function DashboardSidebar({ categories }: SidebarProps) {
     return `${basePath}?${params.toString()}`;
   };
 
-  const isLevelActive = (categoryId: string, levelSlug: string) => {
+  const isLevelActive = (
+    categoryId: string,
+    levelSlug: string,
+    sectionId: string
+  ) => {
     if (!pathname.includes(`/dashboard/${categoryId}`)) return false;
+
+    const currentSprint = searchParams.get("sprint");
+    const isSprintSection = sectionId === "sprint";
+    const targetSprintValue = isSprintSection ? "true" : "false";
+
+    const effectiveCurrentSprint = currentSprint === null ? "false" : currentSprint;
+
+    if (effectiveCurrentSprint !== targetSprintValue) return false;
 
     const currentLevel = searchParams.get("adm_level");
     const targetLevel = LEVEL_TO_INT[levelSlug];
@@ -61,37 +89,45 @@ export function DashboardSidebar({ categories }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${pathname === "/dashboard"
-              ? "bg-accent/10 text-accent"
-              : "hover:bg-primary/5 hover:text-text"
+                ? "bg-accent/10 text-accent"
+                : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             Overview
           </Link>
 
-          {categories.map((cat) => (
-            <div key={cat.id}>
-              <div className="pt-2 pb-2">
-                <p className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  {cat.label}
-                </p>
-              </div>
+          {(sections || []).map((section) => (
+            <div key={section.id} className="mb-6">
+              <h3 className="text-sm font-bold text-text mb-3 uppercase tracking-wider border-b pb-1">
+                {section.label}
+              </h3>
 
-              <div className="space-y-1">
-                {(cat.levels || []).map((level) => (
-                  <Link
-                    key={level.id}
-                    href={createLink(`/dashboard/${cat.id}`, {
-                      adm_level: LEVEL_TO_INT[level.id] || "1",
-                    })}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${isLevelActive(cat.id, level.id)
-                      ? "bg-accent/10 text-accent font-medium"
-                      : "hover:bg-primary/5 hover:text-text"
-                      }`}
-                  >
-                    {level.label}
-                  </Link>
-                ))}
-              </div>
+              {(section.categories || []).map((cat) => (
+                <div key={cat.id} className="mb-4">
+                  <div className="pt-1 pb-2">
+                    <p className="text-xs font-bold text-secondary uppercase tracking-wider">
+                      {cat.label}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    {(cat.levels || []).map((level) => (
+                      <Link
+                        key={level.id}
+                        href={createLink(`/dashboard/${cat.id}`, section.id, {
+                          adm_level: LEVEL_TO_INT[level.id] || "1",
+                        })}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${isLevelActive(cat.id, level.id, section.id)
+                            ? "bg-accent/10 text-accent font-medium"
+                            : "hover:bg-primary/5 hover:text-text"
+                          }`}
+                      >
+                        {level.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </nav>

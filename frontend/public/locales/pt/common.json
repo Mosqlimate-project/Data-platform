@@ -1,13 +1,95 @@
 {
-  "Home": "Início",
-  "Models": "Modelos",
-  "Dashboard": "Dashboard",
-  "Datastore": "Acervo de Dados",
-  "Docs": "Documentação",
-  "Login": "Entrar",
-  "Profile": "Perfil",
-  "About Us": "Sobre Nós",
-  "Discord": "Discord",
-  "Forum": "Fórum",
-  "Papers": "Artigos"
+  "about": {
+    "title": "Nossa equipe",
+    "roles": {
+      "coordination": "Coordenação",
+      "data_scientist": "Cientista de Dados",
+      "developer_data_scientist": "Desenvolvedor e Cientista de Dados",
+      "postdoc": "Pesquisador de pós-doutorado",
+      "undergrad": "Aluno de graduação",
+      "grad": "Aluno de pós-graduação",
+      "associated": "Pesquisador associado"
+    },
+    "team": {
+      "flavio": "Investigador Principal do Mosqlimate e professor associado na Escola de Matemática Aplicada da FGV, Rio de Janeiro, Brasil. Também faço parte da rede GRAPH, sediada na Universidade de Genebra, onde sou coordenador de análise de dados. No Brasil, sou um dos coordenadores do projeto Infodengue. Meus interesses de pesquisa giram em torno da epidemiologia de doenças infecciosas sob o ponto de vista da matemática, estatística e ciência de dados.",
+      "leonardo": "Pesquisador em saúde pública no Programa de Computação Científica (PROCC), Fundação Oswaldo Cruz (Fiocruz). É bolsista de pesquisa da FAPERJ e CNPq. Sua principal pesquisa é no desenvolvimento e aplicação de métodos estatísticos (Bayesianos) para epidemiologia de doenças infecciosas. Ele é co-líder no WP2.",
+      "luiz": "Professor Assistente na Escola de Matemática Aplicada, Fundação Getulio Vargas. Seus interesses são em Bioestatística, particularmente Monte Carlo via cadeias de Markov, filogenética estatística e combinação de modelos. Ele co-liderou o WP2, esperando trazer técnicas de ponta de comparação e combinação de modelos para prever doenças arbovirais.",
+      "leon": "Professor no CEFET, Rio de Janeiro, Brasil. Desenvolvedor do aplicativo Conta Ovos, que visa monitorar a densidade de ovos de Aedes aegypti no espaço e no tempo. Meus interesses são em processamento de imagens e design de aplicativos. Coordenador do WP1.",
+      "eduardo": "Bacharel em engenharia de controle e automação na UTFPR. Tem experiência na análise de dados de saúde pública e desenvolvimento de modelos de aprendizado de máquina aplicados a contextos epidemiológicos. Seus interesses incluem ciência de dados aplicada à saúde, modelagem matemática e computacional de doenças, desenvolvimento de ferramentas em Python e colaboração interdisciplinar em projetos de impacto social. Atua como cientista de dados no WP2 do projeto Mosqlimate. Também é gerente do projeto Mosqlimate.",
+      "iasmim": "Pós-doutoranda na FGV EMAp. Doutora e Mestre em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Pesquisadora no projeto Infodengue e Mosqlimate, atua no WP2 com modelos envolvendo padrões de transmissão de arboviroses e seus determinantes epidemiológicos e climáticos. É também Gerente de Engajamento Comunitário do Mosqlimate e pesquisadora líder no WP3. Seus interesses de pesquisa focam em doenças transmissíveis e sua epidemiologia.",
+      "lua": "Estudante de Ciência da Computação e entusiasta de Código Aberto. Desenvolvedor de Software na Fundação Getulio Vargas, responsável pelo desenvolvimento, implantação e manutenção do Projeto Mosqlimate.",
+      "lucas": "Estatístico e cientista de dados, com doutorado em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Minha experiência profissional inclui a aplicação de metodologias estatísticas e de aprendizado de máquina em diversos campos como agricultura e saúde, além de contribuir para iniciativas de saúde pública e análise de dados para organizações internacionais.",
+      "fabiana": "Mestre e doutora em Epidemiologia e Saúde Pública pela Universidade de Brasília e Universitat Autònoma de Barcelona. É pesquisadora de pós-doutorado na FGV EMAp e membro da Equipe Mosqlimate, pesquisando estratégias de vigilância da dengue e a relação entre fatores socioeconômicos, climáticos e ambientais com doenças arbovirais. Fabiana é coordenadora do Forecast Sprint do Mosqlimate, gerenciando nossas competições internacionais anuais de previsão.",
+      "beatriz": "Pós-doutoranda na FGV EMAp e membro da Equipe Mosqlimate, realizando pesquisas sobre inferência Bayesiana, modelagem matemática da Dengue e Teoria da Possibilidade. Mestre e Doutora em Matemática Aplicada pela UNICAMP. Tem curiosidade por modelos híbridos de doenças infecciosas envolvendo sistemas dinâmicos fuzzy, redes neurais e métodos estatísticos de quantificação de incerteza.",
+      "marcio": "Doutorando em Física, possui profunda afinidade com sistemas dinâmicos, mecânica estatística, inferência Bayesiana e aprendizado de máquina. Atualmente contribui com seus insights como pesquisador colaborativo no projeto Mosqlimate.",
+      "davi": "Pós-doutorando na FGV EMAp e membro da Equipe Mosqlimate, onde foca na previsão de dengue usando aprendizado de máquina e métodos de transporte ótimo dentro da modelagem espaço-temporal. Doutor em Matemática Aplicada e Ciência de Dados pela FGV EMAp.",
+      "julie": "Pós-doutoranda na FGV EMAp. É matemática aplicada, física e cientista de dados com doutorado em Matemática Aplicada e Ciência de Dados. Possui mestrado e bacharelado em Física. Sua pesquisa foca na modelagem matemática de epidemias, enfatizando o uso de redes neurais informadas por modelos epidemiológicos (PINNs) para capturar a dinâmica complexa da dengue. Também tem experiência em aprendizado de máquina, inferência causal e desenvolvimento de pipelines de dados para análise epidemiológica. Seu trabalho busca integrar computação avançada e métodos de inteligência artificial para entender e controlar doenças infecciosas.",
+      "ana": "Aluna de graduação em Ciência de Dados e Inteligência Artificial na FGV-EMAp. Atua como desenvolvedora e cientista de dados no projeto de pesquisa Mosqlimate. Bolsista de iniciação científica da FAPERJ em projeto realizado por pesquisadores da Fiocruz com 15 meninas de escolas públicas do Rio de Janeiro. Interesse em ciência de dados aplicada à saúde, aprendizado de máquina e projetos sociais, especialmente os relacionados à educação.",
+      "ezequiel": "Mestrando em Matemática Aplicada e Ciência de Dados na FGV EMAp. Seu trabalho foca em modelagem Bayesiana, particularmente em power priors. Atualmente atua como assistente de pesquisa no projeto do pacote R hdbayes e no Mosqlimate. Seus principais interesses de pesquisa estão em bioestatística, especialmente em estatística Bayesiana e computacional.",
+      "zuilho": "Aluno de graduação em Ciência de Dados e Inteligência Artificial na FGV EMAp. Tenho interesse particular em Aprendizado de Máquina e Aprendizado por Reforço. Atualmente, estou trabalhando em modelos de aprendizado por reforço onde agentes são projetados para otimizar a distribuição de testes para doenças arbovirais como dengue e chikungunya em diferentes regiões.",
+      "sillas": "Aluno de graduação em Ciência de Dados e Inteligência Artificial na FGV-EMAp. Atualmente trabalha na integração de um assistente de IA na plataforma Mosqlimate. Seus interesses focam em Aprendizado de Máquina, particularmente modelos de Deep Learning.",
+      "raquel": "Bolsista Marie Curie no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global. Sua formação é em epidemiologia quantitativa e sua pesquisa foca na dinâmica de doenças infecciosas e sua associação com fatores ambientais, climáticos e sociais. É colaboradora no projeto Mosqlimate.",
+      "thais": "Bióloga com mestrado e doutorado em Zoologia. Tenho interesse em estudos sobre ecologia e dinâmica populacional de vetores de arboviroses e seu impacto na dinâmica de transmissão de doenças. Atualmente trabalho como analista no Centro de Inteligência Epidemiológica da Secretaria de Saúde da Cidade do Rio de Janeiro e como pesquisadora colaboradora no sistema Infodengue.",
+      "lais": "Pesquisadora no Programa de Computação Científica (PROCC/Fiocruz), com mestrado e doutorado em Epidemiologia pela ENSP/Fiocruz. Realizou pós-doutorado no PROCC e CReSP, Université de Montréal. Seu trabalho foca em modelagem Bayesiana de doenças infecciosas, especialmente arboviroses, analisando padrões espaciais e determinantes socioambientais.",
+      "bruno": "Pós-doutorando no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global, onde desenvolve modelos de doenças infecciosas para alerta precoce e suporte à decisão. Constrói indicadores para rastrear os impactos das mudanças climáticas na saúde usando kits de ferramentas digitais de acesso aberto e reproduzíveis. É biólogo, Doutor em Ecologia e Evolução e Mestre em Parasitologia. Como colaborador no Mosqlimate, Bruno está desenvolvendo modelos de aprendizado profundo para prever dengue no Brasil usando dados do sistema Infodengue."
+    }
+  },
+  "navbar": {
+    "home": "Início",
+    "models": "Modelos",
+    "dashboard": "Dashboard",
+    "datastore": "Conjuntos de Dados",
+    "docs": "Documentação",
+    "login": "Entrar",
+    "profile": "Perfil",
+    "about": "Sobre Nós",
+    "discord": "Discord",
+    "forum": "Fórum",
+    "papers": "Artigos"
+  },
+  "home": {
+    "scroll": "rolar",
+    "hero": {
+      "title": "Mosqlimate",
+      "subtitle": "Vigilância Inteligente de Arboviroses e Clima"
+    },
+    "project": {
+      "title": "Conheça o projeto",
+      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a arboviroses (doenças transmitidas por mosquitos) no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como dengue, chikungunya e Zika.",
+      "products": "Nossos dois principais produtos são:",
+      "btn_data": "Dados",
+      "btn_models": "Modelos Preditivos"
+    },
+    "data": {
+      "title": "Explore nossos dados",
+      "cases_title": "Casos",
+      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "climate_title": "Clima",
+      "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
+      "mosquito_title": "Mosquito",
+      "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
+      "epi_title": "Epi-Scanner",
+      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
+    },
+    "models": {
+      "title": "Analise nossos modelos",
+      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue."
+    },
+    "differentials": {
+      "title": "Descubra os diferenciais do Mosqlimate",
+      "integration_title": "Integração completa de dados",
+      "integration_desc": "Reúne, em um só lugar, informações epidemiológicas, climáticas e entomológicas.",
+      "comparison_title": "Comparação inteligente de modelos",
+      "comparison_desc": "Visualizações dinâmicas que permitem comparar previsões de diferentes modelos.",
+      "team_title": "Equipe multidisciplinar de excelência",
+      "team_desc": "Epidemiologistas, cientistas de dados, biólogos, estatísticos e físicos garantindo análises inovadoras.",
+      "quality_title": "Compromisso com a qualidade",
+      "quality_desc": "Conteúdo atualizado, sustentado por publicações científicas e resultados validados.",
+      "community_title": "Comunidade ativa e colaborativa",
+      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
+    },
+    "team": {
+      "title": "Conheça a nossa equipe"
+    }
+  }
 }

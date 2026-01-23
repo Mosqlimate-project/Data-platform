@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-async function getCategories() {
+async function getSections() {
   try {
     if (!FRONTEND_URL) return [];
 
@@ -27,12 +27,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await getCategories();
+  const sections = await getSections();
 
   return (
     <div className="flex min-h-screen bg-bg">
       <div className="w-64 shrink-0">
-
         <Suspense
           fallback={
             <div className="flex-1 h-full items-center justify-center">
@@ -40,9 +39,8 @@ export default async function DashboardLayout({
             </div>
           }
         >
-          <DashboardSidebar categories={categories} />
+          <DashboardSidebar sections={sections} />
         </Suspense>
-
       </div>
 
       <main className="flex-1 overflow-y-auto h-full">
