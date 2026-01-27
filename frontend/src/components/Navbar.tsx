@@ -19,6 +19,7 @@ const links = [
   { href: '/about', label: 'navbar.about' },
   { href: '/publications', label: 'navbar.publications' },
   { href: '/docs', label: 'navbar.docs' },
+  { href: '/IMDC', label: 'IMDC' },
 ];
 
 export default function Navbar() {
@@ -71,10 +72,13 @@ export default function Navbar() {
         <div className="hidden md:flex gap-6">
           {links.map((link) => {
             const active = isActive(link.href);
+            const isExternal = ['/docs', '/IMDC'].includes(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
                 className={clsx(
                   'text-sm transition-all duration-200',
                   active
@@ -223,6 +227,8 @@ export default function Navbar() {
                         : "text-text/70 hover:bg-hover hover:text-text font-medium"
                     )}
                     onClick={() => setDropdownOpen(false)}
+                    target='_blank'
+                    rel='noopener noreferrer'
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/docs') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
                       <path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1z" />
@@ -236,6 +242,7 @@ export default function Navbar() {
                   <Link
                     href="/contaovos"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className={clsx(
                       "flex items-center px-4 py-2 transition-colors",
                       isActive('/contaovos')

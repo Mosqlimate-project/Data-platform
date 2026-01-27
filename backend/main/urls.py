@@ -10,7 +10,7 @@ def frontend(response):
 
 
 def docs(response):
-    return redirect(f"http://localhost:${settings.DOCS_PORT}/", code=302)
+    return redirect(settings.DOCS_URL, code=302)
 
 
 urlpatterns = [

@@ -39,12 +39,17 @@ const nextConfig = {
     return [
       {
         source: "/docs",
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/docs/`,
+        destination: `${process.env.NEXT_PUBLIC_DOCS_URL}`,
         permanent: false,
       },
       {
         source: "/contaovos",
         destination: "https://contaovos.com/pt-br/",
+        permanent: false,
+      },
+      {
+        source: "/IMDC",
+        destination: "https://sprint.mosqlimate.org/",
         permanent: false,
       },
     ];

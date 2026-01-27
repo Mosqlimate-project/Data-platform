@@ -782,7 +782,12 @@ def disease_search(
     version: str,
     filters: filters.DiseaseFilterSchema = Query(...),
 ):
-    qs = models.Disease.objects.filter(icd__system=icd, icd__version=version)
+    available = ["A90", "A92.0", "A92.5"]
+    qs = models.Disease.objects.filter(
+        icd__system=icd,
+        icd__version=version,
+        code__in=available,
+    )
     return filters.filter(qs)
 
 

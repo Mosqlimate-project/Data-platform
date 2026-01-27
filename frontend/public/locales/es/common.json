@@ -1,4 +1,60 @@
 {
+  "publications": {
+    "title": "Producción Científica",
+    "subtitle": "Una colección de nuestras contribuciones académicas, conjuntos de datos y desarrollo de software.",
+    "youtube_channel": "Canal de YouTube",
+    "view_source": "Ver Fuente",
+    "abstracts": {
+      "title": "Resúmenes publicados en actas de congresos"
+    },
+    "articles": {
+      "title": "Publicaciones"
+    },
+    "preprints": {
+      "title": "Preprints"
+    },
+    "theses": {
+      "title": "Tesis y Disertaciones"
+    },
+    "datasets": {
+      "title": "Conjuntos de Datos"
+    },
+    "software": {
+      "title": "Software"
+    },
+    "seminars": {
+      "title": "Seminarios y Webinarios",
+      "webinar": {
+        "title": "Webinario: Preparándose para la temporada de dengue de 2025",
+        "link_text": "Ver Grabación"
+      },
+      "series_title": "Serie de Seminarios Mensuales 2025"
+    },
+    "items": {
+      "araujo_cnmac_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Evaluating transfer learning for forecasting chikungunya cases. In: XLII CNMAC, 2023, Bonito - MS. Proceeding Series of the Brazilian Society of Computational and Applied Mathematics, 2023. v. 10.",
+      "araujo_evigilancia_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Forecasting dengue burden using machine learning. In: E-Vigilância 2023, 2023, Rio de Janeiro. Livro de Resumos, 2023.",
+      "almeida_epi_2024": "ALMEIDA, I. F.; LANA, R. M. ; COELHO, F. C. ; CODECO, C. T. . PERFIS DE TRANSMISSÃO DE DENGUE: ANÁLISE DOS MUNICÍPIOS BRASILEIROS (2010-2022). In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "araujo_epi_2024": "ARAUJO, E. C.; CARVALHO, L. M. ; VACARO, L. B. ; BASTOS, M. M. ; BASTOS, L. S. ; LANA, R. M. ; CODECO, C. T. ; ALMEIDA, I. F. ; FREITAS, L. P. ; SEGUNDO, Z. R. C. ; COELHO, F. C. . MOSQLIMATE: A PLATFORM FOR COMPARING ARBOVIRAL DISEASES FORECASTING MODELS. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "segundo_epi_2024": "SEGUNDO, Zuilho Rodrigues Castro , 2025, MODELOS DE DECISÃO PARA TESTAGEM DE CASOS SUSPEITOS DE ARBOVIROSES POR RL. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "magalhaes_eid_2024": "Magalhaes, T., Coelho, F. C., Souza, W. V., Viana, I. F., Jaenisch, T., Marques, E. T., ... & Braga, C. (2024). Effect of Sexual Partnerships on Zika Virus Transmission in Virus-Endemic Region, Northeast Brazil. Emerging Infectious Diseases, 30(12), 2559.",
+      "araujo_rsos_2025": "Araujo, E. C., Codeço, C. T., Loch, S., Vacaro, L. B., Freitas, L. P., Lana, R. M., ... & Coelho, F. C. (2025). Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, 12(5), 241261.",
+      "ganem_arxiv_2024": "Ganem, F., Vacaro, L. B., Araujo, E. C., Alves, L. D., Bastos, L., Carvalho, L. M., ... & Coelho, F. C. (2024). Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv preprint arXiv:2410.18945.",
+      "bastos_arxiv_2024": "Bastos, M. M., Carvalho, L. M., Araujo, E. C., & Coelho, F. C. (2024). Long-term predictive models for mosquito borne diseases: a narrative review. arXiv preprint arXiv:2411.13680.",
+      "araujo_medrxiv_2025": "Araujo, E. C., Carvalho, L. M., Ganem, F., Vacaro, L. B., Bastos, L. S., Freitas, L. P., ... & Coelho, F. C. (2025). Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil. medRxiv, 2025-05.",
+      "freitas_medrxiv_2025": "Picinini Freitas, L., Ferreira, D. A. D. C., Martins Lana, R., Câmara, D. C. P., Portella, T. P., Carvalho, M. S., ... & Bastos, L. S. (2025). A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. medRxiv, 2025-06.",
+      "santos_thesis_2024": "Santos, J. P. S. dos. (2024). Analyzing dengue epidemic dynamics using physics informed neural networks [Doctoral dissertation, Fundação Getulio Vargas]. Fundação Getulio Vargas EMAp.",
+      "dataset_egg": "Aedes aegypti Egg Image Data Set",
+      "dataset_sprint": "Sprint-dataset 2024",
+      "dataset_dengue": "Dengue: Padrões de dinâmica de transmissão nos municípios do Brasil, 2010-2023",
+      "soft_platform": "Mosqlimate data platform",
+      "soft_client": "Mosqlimate Client library",
+      "soft_episcanner": "Episcanner: Real-time Epidemic Scanner",
+      "sem_julie": "Analyzing Dengue Epidemic Dynamics Using Physics-Informed Neural Networks",
+      "sem_caio": "Modelando os mosquitos e a dinâmica da dengue em Foz do Iguaçu",
+      "sem_davide": "Data-Driven Modelling of Vector-Borne Diseases",
+      "sem_megan": "Social vulnerability in epidemic mathematical modelling"
+    }
+  },
   "about": {
     "title": "Nuestro equipo",
     "roles": {
