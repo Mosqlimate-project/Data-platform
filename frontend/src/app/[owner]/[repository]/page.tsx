@@ -1,5 +1,5 @@
 import MarkdownRenderer from "@/components/model/MarkdownRenderer";
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 
 interface PageProps {
   params: Promise<{
@@ -10,7 +10,7 @@ interface PageProps {
 
 async function getReadmeContent(owner: string, repository: string) {
   try {
-    const res = await fetch(`${FRONTEND_URL}/api/registry/model/${owner}/${repository}/readme`);
+    const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/readme`);
 
     if (!res.ok) return null;
 

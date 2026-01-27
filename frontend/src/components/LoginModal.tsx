@@ -110,7 +110,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 const username = dataForm.get("username") as string;
                 const password = dataForm.get("password") as string;
 
-                const resp = await fetch("/api/auth/set-session", {
+                const resp = await fetch(`/api/auth/set-session`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ identifier: username, password }),

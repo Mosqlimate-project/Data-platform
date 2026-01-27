@@ -1,8 +1,8 @@
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import Models from "./Models";
 
 export default async function Page() {
-  const res = await fetch(`${FRONTEND_URL}/api/registry/models/`, {
+  const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/`, {
     cache: "no-store",
   });
 

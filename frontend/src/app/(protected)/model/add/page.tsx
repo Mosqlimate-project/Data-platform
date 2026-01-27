@@ -219,6 +219,41 @@ export default function AddModelPage() {
     initData();
   }, []);
 
+  useEffect(() => {
+    const initDefaultDisease = async () => {
+      if (config.disease) return;
+
+      try {
+        const params = new URLSearchParams({
+          icd: "ICD-10",
+          version: "2010",
+          name: "A90"
+        });
+
+        const res = await fetch(`/api/datastore/diseases?${params}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          const defaultDisease = data[0];
+
+          setConfig(prev => ({
+            ...prev,
+            disease: String(defaultDisease.id)
+          }));
+
+          setDiseaseSearch(defaultDisease.name);
+
+          setDiseases(data);
+        }
+      } catch (err) {
+        console.error("Failed to initialize default disease", err);
+      }
+    };
+
+    initDefaultDisease();
+  }, []);
+
   const filteredRepos = repos.filter(repo => {
     const matchesSearch = repo.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'all' || repo.provider === activeTab;

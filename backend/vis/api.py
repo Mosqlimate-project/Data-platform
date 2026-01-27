@@ -76,7 +76,7 @@ def dashboard_categories(request):
 
     section_definitions = [
         ("default", "General"),
-        ("sprint", "Sprint"),
+        ("sprint", "IMDC"),
     ]
 
     for section_key, section_label in section_definitions:

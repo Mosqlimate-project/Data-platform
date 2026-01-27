@@ -5,6 +5,7 @@ RUN apk add --no-cache bash sudo shadow
 
 ARG UID
 ARG GID
+ARG NEXT_PUBLIC_BACKEND_URL
 
 RUN deluser --remove-home node \
     && addgroup -g ${GID} mosqlimate \
@@ -20,6 +21,7 @@ COPY frontend/package*.json ./
 RUN npm ci --ignore-scripts
 
 FROM base AS builder
+ENV NEXT_PUBLIC_BACKEND_URL ${NEXT_PUBLIC_BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY --chown=mosqlimate:mosqlimate frontend/ .
 RUN npm run build
@@ -33,3 +35,4 @@ COPY --chown=mosqlimate:mosqlimate --from=builder /app/.next ./.next
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/public ./public
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/node_modules ./node_modules
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/package*.json ./
+COPY --chown=mosqlimate:mosqlimate --from=builder /app/next.config.mjs ./next.config.mjs

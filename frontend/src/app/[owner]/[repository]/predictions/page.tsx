@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import PredictionsList, { ModelPrediction } from "@/components/model/Predictions";
 
 interface PageProps {
@@ -14,7 +14,7 @@ async function getPermissions(owner: string, repository: string) {
     const cookieStore = await cookies();
 
     const res = await fetch(
-      `${FRONTEND_URL}/api/registry/model/${owner}/${repository}/permissions`,
+      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/permissions`,
       {
         cache: "no-store",
         headers: {
@@ -36,7 +36,7 @@ async function getPermissions(owner: string, repository: string) {
 async function getPredictions(owner: string, repository: string): Promise<ModelPrediction[]> {
   try {
     const res = await fetch(
-      `${FRONTEND_URL}/api/registry/model/${owner}/${repository}/predictions`,
+      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/predictions`,
       {
         cache: "no-store",
       }

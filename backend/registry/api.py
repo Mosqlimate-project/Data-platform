@@ -4,22 +4,28 @@ from urllib.parse import urlparse
 import httpx
 from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
+
+# from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     NotFoundSchema,
+    # ForbiddenSchema,
+    # UnprocessableContentSchema,
+    # InternalErrorSchema,
 )
 from ninja import Router
 from ninja.decorators import decorate_view
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
+
+# from .utils import calling_via_swagger
 from . import schema as s
 from . import models as m
 
 router = Router()
-uidkey_auth = UidKeyAuth()
 User = get_user_model()
 
 
@@ -174,7 +180,7 @@ def models_thumbnails(request):
 )
 @decorate_view(never_cache)
 def repository_owner(request, owner: str):
-    raise ValueError(f"{owner}")
+    return {"owner": owner}
 
 
 @router.get(
@@ -348,3 +354,42 @@ def repository_permissions(request, owner: str, repository: str):
             can_manage = True
 
     return {"is_owner": is_owner, "can_manage": can_manage}
+
+
+#
+#
+# @router.post(
+#     "/predictions/",
+#     response={
+#         201: s.PredictionSchema,
+#         403: ForbiddenSchema,
+#         404: NotFoundSchema,
+#         422: UnprocessableContentSchema,
+#         500: InternalErrorSchema,
+#     },
+#     auth=UidKeyAuth(),
+#     tags=["registry", "predictions"],
+# )
+# @decorate_view(csrf_exempt)
+# def create_prediction(request, payload: s.PredictionIn):
+#     try:
+#         model = Model.objects.get(pk=payload.model)
+#     except Model.DoesNotExist:
+#         return 404, {"message": f"Model '{payload.model}' not found"}
+#
+#     payload.model = model
+#
+#     validation_result = validate_prediction(payload)
+#
+#     # Returns the status code and the error message
+#     # if the validation fails or None if it succeeds
+#     if validation_result is not None:
+#         return validation_result
+#
+#     prediction = Prediction(**payload.dict())
+#
+#     if not calling_via_swagger(request):
+#         prediction.parse_metadata()
+#         prediction.save()
+#
+#     return 201, prediction
