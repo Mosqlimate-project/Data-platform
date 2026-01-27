@@ -281,25 +281,16 @@ class PredictionDataRowSchema(Schema):
 
 
 class PredictionIn(Schema):
-    model: int
+    repository: str
     description: str = ""
     commit: str
     predict_date: dt  # YYYY-mm-dd
     published: bool = True
-    # adm_0: str = "BRA"
+    adm_0: str = "BRA"
     adm_1: Optional[str] = None
     adm_2: Optional[int] = None
-    # adm_3: Optional[int] = None
+    adm_3: Optional[int] = None
     prediction: List[PredictionDataRowSchema]
-
-    @field_validator("model")
-    @classmethod
-    def validate_model(cls, v):
-        try:
-            Model.objects.get(pk=v)
-            return v
-        except Model.DoesNotExist:
-            raise HttpError(404, f"Model '{v}' not found")
 
     @field_validator("description")
     @classmethod
@@ -350,7 +341,20 @@ class PredictionIn(Schema):
         adm_2 = values.adm_2
         # adm_3 = values.adm_3
 
-        if sum(list(map(bool, [adm_1, adm_2]))) != 1:
+        if (
+            sum(
+                list(
+                    map(
+                        bool,
+                        [
+                            adm_1,
+                            adm_2,
+                        ],
+                    )
+                )
+            )
+            != 1
+        ):
             raise ValueError(
                 "[only] one of `adm_1`, `adm_2` or `adm_3` param is required"
             )

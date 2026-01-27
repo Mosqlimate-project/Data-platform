@@ -46,6 +46,7 @@ api = NinjaAPI(
     ),
     version="1",
     docs=Swagger(),
+    docs_url="/docs",
 )
 
 router = Router()

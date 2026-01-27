@@ -251,9 +251,10 @@ class GithubProvider(OAuthProvider):
             for install in installations:
                 install_id = install["id"]
                 repo_resp = client.get(
-                    f"https://api.github.com/user/installations/{
-                        install_id
-                    }/repositories",
+                    (
+                        "https://api.github.com/user/installations/"
+                        f"{install_id}/repositories"
+                    ),
                     headers=headers,
                     params={"per_page": 100},
                 )

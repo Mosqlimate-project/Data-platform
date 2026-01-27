@@ -33,3 +33,4 @@ COPY --chown=mosqlimate:mosqlimate --from=builder /app/.next ./.next
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/public ./public
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/node_modules ./node_modules
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/package*.json ./
+COPY --chown=mosqlimate:mosqlimate --from=builder /app/next.config.mjs ./next.config.mjs

@@ -26,6 +26,10 @@ def random_rgb() -> str:
 
 
 class Tag(models.Model):
+    """
+    Up for removal
+    """
+
     name = models.CharField(max_length=30, unique=True)
     group = models.CharField(unique=False, null=True)
     color = models.CharField(
@@ -130,6 +134,10 @@ class Tag(models.Model):
 
 
 class ImplementationLanguage(models.Model):
+    """
+    Up for removal
+    """
+
     language = models.CharField(
         max_length=100, null=False, blank=False, unique=True
     )
@@ -148,6 +156,10 @@ class ImplementationLanguage(models.Model):
 
 
 class Author(models.Model):
+    """
+    Up for removal
+    """
+
     user = models.OneToOneField(
         "users.CustomUser",
         on_delete=models.CASCADE,
@@ -167,6 +179,10 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    """
+    Up for removal
+    """
+
     class Diseases(models.TextChoices):
         CHIKUNGUNYA = "chikungunya", _("Chikungunya")
         DENGUE = "dengue", _("Dengue")
@@ -230,6 +246,10 @@ class Model(models.Model):
 
 
 class Prediction(models.Model):
+    """
+    Up for removal
+    """
+
     model = models.ForeignKey(
         Model, on_delete=models.CASCADE, null=False, related_name="predictions"
     )
@@ -366,6 +386,10 @@ class Prediction(models.Model):
 
 
 class PredictionDataRow(models.Model):
+    """
+    Up for removal
+    """
+
     predict = models.ForeignKey(
         Prediction, on_delete=models.CASCADE, related_name="data", null=True
     )
@@ -410,6 +434,7 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 
 
 # ---- Frontend new models:
+#
 
 
 class Sprint(models.Model):
@@ -711,3 +736,85 @@ class QuantitativePredictionRow(models.Model):
         indexes = [
             models.Index(fields=["prediction", "date"]),
         ]
+
+
+class Publication(TimestampModel):
+    class Type(models.TextChoices):
+        CONFERENCE = "conference", _("Conference Proceeding")
+        JOURNAL = "journal", _("Journal Article")
+        PREPRINT = "preprint", _("Preprint")
+        THESIS = "thesis", _("Thesis/Dissertation")
+        REPORT = "report", _("Technical Report")
+        OTHER = "other", _("Other")
+
+    title = models.CharField(
+        max_length=500,
+        help_text=_("The full title of the publication."),
+    )
+    authors_list = models.TextField(
+        help_text=_(
+            "Full list of authors as they appear in the citation "
+            "(e.g., 'Silva, J.; Doe, J.')."
+        )
+    )
+    publication_type = models.CharField(
+        max_length=20, choices=Type.choices, default=Type.JOURNAL
+    )
+    year = models.IntegerField(help_text=_("Year of publication"))
+    date = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_(
+            "Specific publication date if available (e.g. for preprints)."
+        ),
+    )
+    venue = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Name of the Journal, Conference, or Institution (for theses)."
+        ),
+    )
+    volume = models.CharField(max_length=50, null=True, blank=True)
+    issue = models.CharField(max_length=50, null=True, blank=True)
+    pages = models.CharField(max_length=50, null=True, blank=True)
+    doi = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name="DOI",
+        help_text=_("Digital Object Identifier (e.g., 10.1098/rsos.241261)"),
+    )
+    url = models.URLField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text=_("Link to the paper or PDF."),
+    )
+    related_models = models.ManyToManyField(
+        RepositoryModel,
+        blank=True,
+        related_name="publications",
+        help_text=_("Models discussed or used in this publication."),
+    )
+    related_sprints = models.ManyToManyField(
+        Sprint,
+        blank=True,
+        related_name="publications",
+        help_text=_("Sprints associated with this publication."),
+    )
+
+    class Meta:
+        ordering = ["-year", "-date", "title"]
+        verbose_name = _("Publication")
+        verbose_name_plural = _("Publications")
+
+    def __str__(self):
+        return f"{self.title} ({self.year})"
+
+    @property
+    def citation_preview(self):
+        return (
+            f"{self.authors_list} ({self.year}). {self.title}. {self.venue}."
+        )

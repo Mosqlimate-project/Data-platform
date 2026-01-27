@@ -159,13 +159,11 @@ DATABASE_ROUTERS = (
     "datastore.routers.WeatherRouter",
 )
 
-BACKEND_PORT = env("BACKEND_PORT", default=8042)
-PUBLIC_BACKEND_URL = env(
-    "PUBLIC_BACKEND_URL", default=f"http://0.0.0.0:{BACKEND_PORT}"
-)
+BACKEND_PORT = env("BACKEND_PORT")
+PUBLIC_BACKEND_URL = env("PUBLIC_BACKEND_URL")
 
 FRONTEND_PORT = env("FRONTEND_PORT")
-FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
+FRONTEND_URL = env("FRONTEND_URL")
 
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
@@ -225,6 +223,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SITE_ID = 2  # select * from django_site;
+
+REDIS_PORT = env("REDIS_PORT")
+DOCS_PORT = env("MKDOCS_PORT")
 
 AUTH_USER_MODEL = "users.CustomUser"
 FRONTEND_PORT = env("FRONTEND_PORT")
@@ -310,7 +311,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                ("mosqlimate-redis", 6379),
+                ("mosqlimate-redis", REDIS_PORT),
             ],
         },
     },

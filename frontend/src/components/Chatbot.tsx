@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { PUBLIC_BACKEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_API_URL, PUBLIC_BACKEND_URL } from "@/lib/env";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Highlight } from "prism-react-renderer";
@@ -55,7 +55,7 @@ export default function Chatbot() {
     initializedRef.current = true;
 
     async function init() {
-      const response = await fetch("/api/session-key");
+      const response = await fetch(`${NEXT_PUBLIC_API_URL}/session-key`);
 
       if (!response.ok) {
         console.error("Failed to get session key");

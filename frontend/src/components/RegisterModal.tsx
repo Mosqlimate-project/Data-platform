@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from '@/lib/api/auth';
+import { NEXT_PUBLIC_API_URL } from '@/lib/env';
 
 interface RegisterModalProps {
   open: boolean;
@@ -42,12 +43,12 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   };
 
   const checkUsernameAvailable = async (username: string) => {
-    const resp = await fetch(`/api/user/check-username/?username=${username}`);
+    const resp = await fetch(`${NEXT_PUBLIC_API_URL}/user/check-username/?username=${username}`);
     return resp.ok ? null : 'Username is already taken';
   };
 
   const checkEmailAvailable = async (email: string) => {
-    const resp = await fetch(`/api/user/check-email/?email=${email}`);
+    const resp = await fetch(`${NEXT_PUBLIC_API_URL}/user/check-email/?email=${email}`);
     return resp.ok ? null : 'Email is already registered';
   };
 

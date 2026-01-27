@@ -1,7 +1,6 @@
 from ninja.security import APIKeyHeader, HttpBearer
 
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 from .jwt import decode_token
@@ -72,17 +71,15 @@ class UidKeyAuth(APIKeyHeader):
                 session.save()
             uidkey = cache.get(session.session_key, None)
 
-        if ":" in str(uidkey):
-            uid, key = uidkey.split(":")
-            if self.validate_uid_key(uid, key):
-                return uidkey
-        raise InvalidUIDKey
+        uid = None
+        key = None
 
-    def validate_uid_key(self, uid: str, key: str) -> bool:
-        """Searches for the User with the exact pair"""
+        if ":" in str(uidkey):
+            uid, key = str(uidkey).split(":")
+
         try:
-            User.objects.get(username=uid, uuid=key)
-            return True
-        except (User.DoesNotExist, ValidationError):
-            return False
-        return False
+            return User.objects.get(username=uid, uuid=key)
+        except User.DoesNotExist:
+            pass
+
+        raise InvalidUIDKey

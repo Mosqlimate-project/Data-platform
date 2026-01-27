@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: true,
 
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 
@@ -39,7 +40,7 @@ const nextConfig = {
     return [
       {
         source: "/docs",
-        destination: "http://0.0.0.0:8043/docs/",
+        destination: `${PUBLIC_BACKEND_URL}/docs/`,
         permanent: false,
       },
       {
