@@ -1,6 +1,6 @@
 services:
   frontend:
-    hostname: mosqlimate-frontend
+    hostname: mosqlimate-frontend-${VERSION}
     command: npm run start
     build:
       context: ..
@@ -8,6 +8,7 @@ services:
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
+        - PUBLIC_BACKEND_URL=${PUBLIC_BACKEND_URL}
     ports:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     env_file:
@@ -20,12 +21,9 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
-    networks:
-      - mosqlimate
-
 
   backend:
-    hostname: mosqlimate-backend
+    hostname: mosqlimate-backend-${VERSION}
     environment:
       RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
@@ -54,11 +52,9 @@ services:
       postgres:
         condition: service_healthy
     command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
-    networks:
-      - mosqlimate
 
   worker:
-    hostname: mosqlimate-worker
+    hostname: mosqlimate-worker-${VERSION}
     restart: unless-stopped
     build:
       context: ..
@@ -82,11 +78,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - mosqlimate
 
   postgres:
-    hostname: mosqlimate-postgres
+    hostname: mosqlimate-postgres-${VERSION}
     restart: unless-stopped
     build:
       context: ..
@@ -114,11 +108,9 @@ services:
       timeout: 5s
       retries: 10
     command: ["-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
-    networks:
-      - mosqlimate
 
   documentation:
-    hostname: mosqlimate-docs
+    hostname: mosqlimate-docs-${VERSION}
     restart: unless-stopped
     build:
       context: ..
@@ -135,13 +127,11 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    networks:
-      - mosqlimate
 
   redis:
     platform: linux/amd64
     image: redis:alpine
-    hostname: mosqlimate-redis
+    hostname: mosqlimate-redis-${VERSION}
     restart: unless-stopped
     # environment:
       # DISABLE_COMMANDS: "FLUSHDB,FLUSHALL,CONFIG"
@@ -157,23 +147,15 @@ services:
       start_period: 30s
     volumes:
       - redis:/data
-    networks:
-      - mosqlimate
 
   ollama:
     image: ollama/ollama
-    hostname: mosqlimate-ollama
+    hostname: mosqlimate-ollama-${VERSION}
     ports:
       - 11434:11434
     volumes:
       - ollama:/root/.ollama
-    networks:
-      - mosqlimate
     restart: unless-stopped
-
-networks:
-  mosqlimate:
-    driver: bridge
 
 volumes:
   redis:

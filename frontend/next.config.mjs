@@ -40,7 +40,7 @@ const nextConfig = {
     return [
       {
         source: "/docs",
-        destination: `${PUBLIC_BACKEND_URL}/docs/`,
+        destination: `${process.env.PUBLIC_BACKEND_URL}/docs/`,
         permanent: false,
       },
       {

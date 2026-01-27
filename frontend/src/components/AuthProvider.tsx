@@ -3,7 +3,6 @@
 import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
-import { NEXT_PUBLIC_API_URL } from '@/lib/env';
 
 interface User {
   id: string;
@@ -35,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch(`${NEXT_PUBLIC_API_URL}/me/`);
+      const res = await fetch(`/me/`);
 
       if (res.ok) {
         const data = await res.json();
@@ -59,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch(`${NEXT_PUBLIC_API_URL}/auth/logout`, { method: "POST" });
+      await fetch(`/auth/logout`, { method: "POST" });
       setUser(null);
       window.location.href = "/";
     } catch (error) {

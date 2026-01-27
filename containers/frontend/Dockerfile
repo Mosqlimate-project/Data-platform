@@ -5,6 +5,7 @@ RUN apk add --no-cache bash sudo shadow
 
 ARG UID
 ARG GID
+ARG PUBLIC_BACKEND_URL
 
 RUN deluser --remove-home node \
     && addgroup -g ${GID} mosqlimate \
@@ -20,6 +21,7 @@ COPY frontend/package*.json ./
 RUN npm ci --ignore-scripts
 
 FROM base AS builder
+ENV PUBLIC_BACKEND_URL ${PUBLIC_BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY --chown=mosqlimate:mosqlimate frontend/ .
 RUN npm run build

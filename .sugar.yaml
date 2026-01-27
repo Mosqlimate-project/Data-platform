@@ -1,8 +1,10 @@
 backend: compose
 env-file: .env
+
 defaults:
   profile: "${{ env.ENV }}"
-  project-name: mosqlimate
+  project-name: "mosqlimate-${{ env.VERSION }}"
+
 profiles:
   dev:
     env-file: .env

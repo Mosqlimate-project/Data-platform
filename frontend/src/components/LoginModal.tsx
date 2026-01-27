@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from "@/lib/api/auth";
-import { NEXT_PUBLIC_API_URL } from "@/lib/env";
 
 interface LoginModalProps {
   open: boolean;
@@ -111,7 +110,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 const username = dataForm.get("username") as string;
                 const password = dataForm.get("password") as string;
 
-                const resp = await fetch(`${NEXT_PUBLIC_API_URL}/auth/set-session`, {
+                const resp = await fetch(`/auth/set-session`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ identifier: username, password }),
