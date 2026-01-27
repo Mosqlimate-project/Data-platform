@@ -1,6 +1,6 @@
 services:
   frontend:
-    hostname: mosqlimate-frontend-${VERSION}
+    hostname: mosqlimate-${VERSION}-frontend
     command: npm run start
     build:
       context: ..
@@ -21,9 +21,11 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
+    networks:
+      - default
 
   backend:
-    hostname: mosqlimate-backend-${VERSION}
+    hostname: mosqlimate-${VERSION}-backend
     environment:
       RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
@@ -52,9 +54,11 @@ services:
       postgres:
         condition: service_healthy
     command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
+    networks:
+      - default
 
   worker:
-    hostname: mosqlimate-worker-${VERSION}
+    hostname: mosqlimate-${VERSION}-worker
     restart: unless-stopped
     build:
       context: ..
@@ -78,9 +82,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - default
 
   postgres:
-    hostname: mosqlimate-postgres-${VERSION}
+    hostname: mosqlimate-${VERSION}-postgres
     restart: unless-stopped
     build:
       context: ..
@@ -108,9 +114,11 @@ services:
       timeout: 5s
       retries: 10
     command: ["-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    networks:
+      - default
 
   documentation:
-    hostname: mosqlimate-docs-${VERSION}
+    hostname: mosqlimate-${VERSION}-docs
     restart: unless-stopped
     build:
       context: ..
@@ -127,11 +135,13 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - default
 
   redis:
     platform: linux/amd64
     image: redis:alpine
-    hostname: mosqlimate-redis-${VERSION}
+    hostname: mosqlimate-${VERSION}-redis
     restart: unless-stopped
     # environment:
       # DISABLE_COMMANDS: "FLUSHDB,FLUSHALL,CONFIG"
@@ -147,15 +157,19 @@ services:
       start_period: 30s
     volumes:
       - redis:/data
+    networks:
+      - default
 
   ollama:
     image: ollama/ollama
-    hostname: mosqlimate-ollama-${VERSION}
+    hostname: mosqlimate-${VERSION}-ollama
     ports:
       - 11434:11434
     volumes:
       - ollama:/root/.ollama
     restart: unless-stopped
+    networks:
+      - default
 
 volumes:
   redis:

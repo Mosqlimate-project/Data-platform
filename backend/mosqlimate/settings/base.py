@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -12,6 +11,8 @@ load_dotenv()
 env = environ.Env()
 
 ENV = env("ENV", default="dev")  # or "prod"
+
+VERSION = env("VERSION")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -138,7 +139,7 @@ DATABASES = {
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": os.environ.get("POSTGRES_HOST", "mosqlimate-postgres"),
+        "HOST": "postgres",
         "PORT": DEFAULT_URI.port,
     },
     "infodengue": {
@@ -311,7 +312,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                ("mosqlimate-redis", REDIS_PORT),
+                (f"mosqlimate-{VERSION}-redis", REDIS_PORT),
             ],
         },
     },
