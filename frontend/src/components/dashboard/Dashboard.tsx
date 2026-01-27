@@ -171,7 +171,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         sprint: inputs.sprint.toString(),
       });
 
-      const res = await fetch(`/vis/dashboard/diseases?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/diseases?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch diseases");
 
       const data: DiseaseOption[] = await res.json();
@@ -208,7 +208,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         sprint: inputs.sprint.toString(),
       });
 
-      const res = await fetch(`/vis/dashboard/countries?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/countries?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch countries");
 
       const data: CountryOption[] = await res.json();
@@ -246,7 +246,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         sprint: inputs.sprint.toString(),
       });
 
-      const res = await fetch(`/vis/dashboard/states?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/states?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch states");
 
       const data: StateOption[] = await res.json();
@@ -285,7 +285,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         sprint: inputs.sprint.toString(),
       });
 
-      const res = await fetch(`/vis/dashboard/cities?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/cities?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch cities");
 
       const data: CityOption[] = await res.json();
@@ -326,7 +326,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (inputs.adm_1 && inputs.adm_level >= 1) params.append("state", inputs.adm_1);
       if (inputs.adm_2 && inputs.adm_level >= 2) params.append("city", inputs.adm_2);
 
-      const res = await fetch(`/vis/dashboard/sprints?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/sprints?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch sprints");
 
       const data: SprintOption[] = await res.json();
@@ -356,7 +356,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (inputs.adm_1 && inputs.adm_level >= 1) params.append("state", inputs.adm_1);
       if (inputs.adm_2 && inputs.adm_level >= 2) params.append("city", inputs.adm_2);
 
-      const res = await fetch(`/vis/dashboard/predictions?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/predictions?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch predictions");
 
       const data: Prediction[] = await res.json();
@@ -410,7 +410,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (inputs.adm_1) params.append("adm_1", inputs.adm_1);
       if (inputs.adm_2) params.append("adm_2", inputs.adm_2.toString());
 
-      const res = await fetch(`/vis/dashboard/cases?${params.toString()}`);
+      const res = await fetch(`/api/vis/dashboard/cases?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch cases");
 
       const rawData: CaseData[] = await res.json();
@@ -538,7 +538,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } else {
       setLoadingPredictions((prev) => [...prev, prediction.id]);
       try {
-        const res = await fetch(`/vis/dashboard/prediction/${prediction.id}`);
+        const res = await fetch(`/api/vis/dashboard/prediction/${prediction.id}`);
         if (!res.ok) throw new Error("Failed to fetch prediction data");
         const data: PredictionRowData[] = await res.json();
 

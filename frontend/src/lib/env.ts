@@ -3,7 +3,7 @@ export const FRONTEND_PORT = process.env.FRONTEND_PORT!;
 export const ADMIN_UIDKEY = process.env.ADMIN_UIDKEY!;
 
 export const BACKEND_BASE_URL = process.env.INTERNAL_BACKEND_URL!;
-export const PUBLIC_BACKEND_URL = process.env.PUBLIC_BACKEND_URL!;
+export const NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!;
 export const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX || "";
 
 export const SECRET_KEY = process.env.SECRET_KEY!;

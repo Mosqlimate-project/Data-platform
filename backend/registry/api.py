@@ -180,7 +180,7 @@ def models_thumbnails(request):
 )
 @decorate_view(never_cache)
 def repository_owner(request, owner: str):
-    raise ValueError(f"{owner}")
+    return {"owner": owner}
 
 
 @router.get(

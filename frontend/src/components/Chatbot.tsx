@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { PUBLIC_BACKEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Highlight } from "prism-react-renderer";
@@ -55,7 +55,7 @@ export default function Chatbot() {
     initializedRef.current = true;
 
     async function init() {
-      const response = await fetch(`/session-key`);
+      const response = await fetch(`/api/session-key`);
 
       if (!response.ok) {
         console.error("Failed to get session key");
@@ -64,7 +64,7 @@ export default function Chatbot() {
 
       const data = await response.json();
       const sessionKey = data.session_key;
-      const backend_url = new URL(PUBLIC_BACKEND_URL).host;
+      const backend_url = new URL(NEXT_PUBLIC_BACKEND_URL).host;
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
       const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
       socketRef.current = ws;

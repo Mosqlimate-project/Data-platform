@@ -29,6 +29,13 @@ router = Router(tags=["user"])
 User = get_user_model()
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
+
+
 @router.get(
     "/check-username/",
     include_in_schema=False,
@@ -94,6 +101,7 @@ def oauth_callback(
     state: str,
 ):
     client = OAuthProvider.from_request(request, provider)
+    ip = get_client_ip(request)
 
     try:
         state_data = client.decode_state(state)
@@ -164,6 +172,7 @@ def oauth_callback(
 
         data = signing.dumps(
             {
+                "ip": ip,
                 "access_token": create_access_token({"sub": str(user.pk)}),
                 "refresh_token": create_refresh_token({"sub": str(user.pk)}),
                 "next": next_url,
@@ -196,6 +205,7 @@ def oauth_callback(
 
             data = signing.dumps(
                 {
+                    "ip": ip,
                     "access_token": create_access_token(
                         {"sub": str(existing_user.pk)}
                     ),
@@ -223,6 +233,7 @@ def oauth_callback(
                 "provider_id": provider_id,
                 "raw_info": raw_info,
                 "access_token": access_token,
+                "ip": ip,
                 "refresh_token": refresh_token,
                 "access_token_expires_at": (
                     expires_at.isoformat() if expires_at else None
@@ -388,6 +399,13 @@ def oauth_decode(request, data: str):
         decoded = signing.loads(data, salt="oauth-callback", max_age=300)
     except signing.BadSignature:
         return 400, {"message": "Invalid or expired data"}
+
+    original_ip = decoded.get("ip_address")
+    current_ip = get_client_ip(request)
+
+    if original_ip and original_ip != current_ip:
+        return 400, {"message": "Security check failed: IP address mismatch"}
+
     return decoded
 
 

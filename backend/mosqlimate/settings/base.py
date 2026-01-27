@@ -161,7 +161,7 @@ DATABASE_ROUTERS = (
 )
 
 BACKEND_PORT = env("BACKEND_PORT")
-PUBLIC_BACKEND_URL = env("PUBLIC_BACKEND_URL")
+PUBLIC_BACKEND_URL = env("NEXT_PUBLIC_BACKEND_URL")
 
 FRONTEND_PORT = env("FRONTEND_PORT")
 FRONTEND_URL = env("FRONTEND_URL")
@@ -312,7 +312,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                (f"mosqlimate-{VERSION}-redis", REDIS_PORT),
+                ("broker", REDIS_PORT),
             ],
         },
     },

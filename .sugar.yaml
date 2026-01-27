@@ -18,7 +18,7 @@ profiles:
         - name: worker
         - name: postgres
         - name: documentation
-        - name: redis
+        - name: broker
         - name: ollama
 
   prod:
@@ -33,5 +33,5 @@ profiles:
         - name: worker
         - name: postgres
         - name: documentation
-        - name: redis
+        - name: broker
         - name: ollama

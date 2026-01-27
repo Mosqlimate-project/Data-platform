@@ -42,12 +42,12 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   };
 
   const checkUsernameAvailable = async (username: string) => {
-    const resp = await fetch(`/user/check-username/?username=${username}`);
+    const resp = await fetch(`/api/user/check-username/?username=${username}`);
     return resp.ok ? null : 'Username is already taken';
   };
 
   const checkEmailAvailable = async (email: string) => {
-    const resp = await fetch(`$/user/check-email/?email=${email}`);
+    const resp = await fetch(`$/api/user/check-email/?email=${email}`);
     return resp.ok ? null : 'Email is already registered';
   };
 
