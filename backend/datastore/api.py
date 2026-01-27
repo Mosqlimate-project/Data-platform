@@ -679,12 +679,7 @@ def get_episcanner(
         db.close()
 
     if df.empty:
-        return 404, {
-            "message": (
-                "No data for specific query "
-                f"(disease={disease}, uf={uf}, year={year})"
-            )
-        }
+        return 200, []
 
     # if geocode:
     #     df = df[df['geocode'].isin(geocode)]
