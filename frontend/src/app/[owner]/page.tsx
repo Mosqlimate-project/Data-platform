@@ -1,4 +1,4 @@
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -11,7 +11,7 @@ export default async function OwnerPage({ params }: PageProps) {
   const { owner } = await params;
 
   const res = await fetch(
-    `${FRONTEND_URL}/api/registry/model/${owner}/`,
+    `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/`,
     {
       cache: "no-store",
     }

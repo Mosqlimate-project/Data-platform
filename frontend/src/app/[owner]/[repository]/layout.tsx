@@ -1,4 +1,4 @@
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { ModelTabs } from "@/components/model/tabs";
 import { notFound } from "next/navigation";
 
@@ -12,7 +12,7 @@ export default async function ModelLayout({
   const { owner, repository } = await params;
 
   const res = await fetch(
-    `${FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
+    `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
     { cache: "no-store" }
   );
 

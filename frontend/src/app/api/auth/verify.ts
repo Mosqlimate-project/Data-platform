@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { parseToken } from "./parseToken";
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 
 export type VerifyResult = {
   user: any;
@@ -19,7 +19,7 @@ export async function verifyUser(req: NextRequest): Promise<VerifyResult> {
   if (!refreshToken) return null;
 
   try {
-    const res = await fetch(`${FRONTEND_URL}/api/auth/refresh`, {
+    const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/auth/refresh`, {
       method: "GET",
       headers: {
         Cookie: `refresh_token=${refreshToken}`,

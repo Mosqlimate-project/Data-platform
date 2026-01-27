@@ -301,25 +301,29 @@ dotenv_template = templates.get_template("env.tpl")
 dotenv_file = project_dir / ".env"
 
 variables = {
-    # [Frontend]
-    "FRONTEND_PORT": frontend_port,
-    "FRONTEND_URL": frontend_url,
-    # [Django Core]
+    # [Core]
     "ENV": env,
-    "SECRET_KEY": secret_key,
-    "ALLOWED_HOSTS": allowed_hosts,
-    "DJANGO_SETTINGS_MODULE": dj_settings,
-    # [Django Image]
+    "VERSION": "2",
     "HOST_UID": uid,
     "HOST_GID": gid,
+    "FRONTEND_URL": frontend_url,
+    "BACKEND_URL": "http://0.0.0.0:$BACKEND_PORT",
+    "DOCS_URL": "http://0.0.0.0:$MKDOCS_PORT/docs",
+    # [Frontend]
+    "FRONTEND_PORT": frontend_port,
+    "NODE_ENV": "development",
+    "ADMIN_UIDKEY": admin_uidkey,
+    # [Backend]
     "BACKEND_PORT": dj_port,
+    "ALLOWED_HOSTS": allowed_hosts,
+    "SECRET_KEY": secret_key,
+    "DJANGO_SETTINGS_MODULE": dj_settings,
+    "DJANGO_LOG_LEVEL": "INFO",
     "BACKEND_HOST_DATA_PATH": str(dj_host_data),
     "BACKEND_CONTAINER_DATA_PATH": str(dj_cont_data),
     # [Django Worker]
     "WORKER_PORT": worker_port,
     # [Django Oauth]
-    "SITE_DOMAIN": site_domain,
-    "SITE_NAME": site_name,
     "GITHUB_CLIENT_ID": github_id,
     "GITHUB_SECRET": github_secret,
     "GITHUB_APP": github_app,
@@ -356,7 +360,7 @@ variables = {
         "episcanner",
     ),
     # [Mosqlient]
-    "MOSQLIENT_API_URL": "http://localhost:8042/api/",
+    "MOSQLIENT_API_URL": "http://localhost:$BACKEND_PORT/api/",
 }
 
 if not CI:

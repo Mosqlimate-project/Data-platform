@@ -102,7 +102,7 @@ class OAuthProvider(ABC):
 class GoogleProvider(OAuthProvider):
     provider = "google"
     redirect_url = (
-        f"{settings.PUBLIC_BACKEND_URL}/api/user/oauth/callback/{provider}/"
+        f"{settings.BACKEND_URL}/api/user/oauth/callback/{provider}/"
     )
     client_id = settings.GOOGLE_CLIENT_ID
     client_secret = settings.GOOGLE_SECRET
@@ -155,7 +155,7 @@ class GoogleProvider(OAuthProvider):
 class GithubProvider(OAuthProvider):
     provider = "github"
     redirect_url = (
-        f"{settings.PUBLIC_BACKEND_URL}/api/user/oauth/callback/{provider}/"
+        f"{settings.BACKEND_URL}/api/user/oauth/callback/{provider}/"
     )
     client_id = settings.GITHUB_CLIENT_ID
     client_secret = settings.GITHUB_SECRET
@@ -336,7 +336,7 @@ class GitlabProvider(OAuthProvider):
     client_id = settings.GITLAB_CLIENT_ID
     client_secret = settings.GITLAB_SECRET
     redirect_url = (
-        f"{settings.PUBLIC_BACKEND_URL}/api/user/oauth/callback/{provider}/"
+        f"{settings.BACKEND_URL}/api/user/oauth/callback/{provider}/"
     )
     auth_url = "https://gitlab.com/oauth/authorize"
     token_url = "https://gitlab.com/oauth/token"

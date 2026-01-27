@@ -1,15 +1,15 @@
 import { Suspense } from "react";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 async function getSections() {
   try {
-    if (!FRONTEND_URL) return [];
+    if (!NEXT_PUBLIC_FRONTEND_URL) return [];
 
-    const res = await fetch(`${FRONTEND_URL}/api/vis/dashboard/categories/`, {
+    const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/vis/dashboard/categories/`, {
       cache: "no-store",
     });
 
