@@ -139,7 +139,7 @@ DATABASES = {
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": "postgres",
+        "HOST": DEFAULT_URI.hostname,
         "PORT": DEFAULT_URI.port,
     },
     "infodengue": {

@@ -104,11 +104,17 @@ class GithubAdapter(OAuthAdapter):
 
     @property
     def first_name(self) -> str:
-        return self.data.get("name", "").split(" ")[0]
+        name = self.data.get("name")
+        if not name:
+            return ""
+        return str(name).split(" ")[0]
 
     @property
     def last_name(self) -> str:
-        parts = self.data.get("name", "").split(" ")
+        name = self.data.get("name")
+        if not name:
+            return ""
+        parts = str(name).split(" ")
         return " ".join(parts[1:]) if len(parts) > 1 else ""
 
     @property
@@ -131,17 +137,17 @@ class GitlabAdapter(OAuthAdapter):
 
     @property
     def first_name(self) -> str:
-        name = self.data.get("name", "").strip()
+        name = self.data.get("name", "")
         if not name:
             return ""
-        return name.split()[0]
+        return str(name).strip().split()[0]
 
     @property
     def last_name(self) -> str:
-        name = self.data.get("name", "").strip()
+        name = self.data.get("name", "")
         if not name:
             return ""
-        parts = name.split()
+        parts = str(name).strip().split()
         if len(parts) > 1:
             return " ".join(parts[1:])
         return ""

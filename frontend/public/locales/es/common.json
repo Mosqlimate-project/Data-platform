@@ -1,4 +1,83 @@
 {
+  "datastore": {
+    "infodengue": {
+      "title": "Enfermedades transmitidas por mosquitos",
+      "description": "Este endpoint proporciona acceso a datos del proyecto Infodengue, que ofrece diversas variables epidemiológicas para todos los municipios brasileños en una escala semanal. Los parámetros de la solicitud y las variables de datos se describen a continuación.",
+      "variables": {
+        "data_iniSE": "Fecha de inicio de la semana epidemiológica",
+        "SE": "Semana epidemiológica",
+        "casos_est": "Número estimado de casos por semana utilizando el modelo de nowcasting",
+        "casos_est_min": "Intervalo de credibilidad del 95% del número estimado de casos",
+        "casos": "Número de casos notificados por semana (valores actualizados retrospectivamente cada semana)",
+        "municipio_geocodigo": "Código del municipio (IBGE)",
+        "p_rt1": "Probabilidad (Rt > 1)",
+        "p_inc100k": "Tasa de incidencia estimada (casos por hab. x 100.000)",
+        "Localidade_id": "División submunicipal",
+        "nivel": "Nivel de alerta (1 = verde, 2 = amarillo, 3 = naranja, 4 = rojo)",
+        "id": "Índice numérico",
+        "versao_modelo": "Versión del modelo",
+        "Rt": "Estimación puntual del número reproductivo de casos",
+        "municipio_nome": "Nombre del municipio",
+        "pop": "Población (IBGE)",
+        "receptivo": "Indica receptividad climática, es decir, condiciones para alta capacidad vectorial. 0 = desfavorable, 1 = favorable, 2 = favorable esta semana y la anterior, 3 = favorable durante al menos tres semanas",
+        "transmissao": "Evidencia de transmisión sostenida: 0 = sin evidencia, 1 = posible, 2 = probable, 3 = muy probable",
+        "nivel_inc": "Incidencia estimada por debajo del umbral pre-epidémico, 1 = por encima del umbral pre-epidémico pero por debajo del umbral epidémico, 2 = por encima del umbral epidémico",
+        "umidmax": "Promedio de los porcentajes diarios de humedad máxima durante la semana",
+        "umidmed": "Promedio de los porcentajes diarios de humedad durante la semana",
+        "umidmin": "Promedio de los porcentajes diarios de humedad mínima durante la semana",
+        "tempmax": "Promedio de las temperaturas diarias máximas durante la semana",
+        "tempmed": "Promedio de las temperaturas diarias durante la semana",
+        "tempmin": "Promedio de las temperaturas diarias mínimas durante la semana",
+        "casprov": "Número probable de casos por semana (casos - casos descartados)",
+        "casprov_est": "Número probable de casos estimados por semana",
+        "casprov_est_min": "Intervalo de credibilidad del número probable de casos",
+        "casprov_est_max": "Intervalo de credibilidad del número probable de casos",
+        "casconf": "Casos efectivamente confirmados mediante pruebas de laboratorio"
+      }
+    },
+    "climate": {
+      "title": "Datos climáticos",
+      "description": "A través de este endpoint, puede obtener diversas variables climáticas extraídas para todos los municipios brasileños a partir de datos de reanálisis satelital proporcionados por Copernicus ERA5.",
+      "variables": {
+        "date": "Día del año",
+        "geocodigo": "Código del municipio (IBGE)",
+        "temp_min": "Temperatura mínima diaria",
+        "temp_med": "Temperatura media diaria",
+        "temp_max": "Temperatura máxima diaria",
+        "precip_min": "Precipitación mínima diaria",
+        "precip_med": "Precipitación media diaria",
+        "precip_max": "Precipitación máxima diaria",
+        "precip_tot": "Precipitación total diaria",
+        "pressao_min": "Presión mínima diaria al nivel del mar",
+        "pressao_med": "Presión media diaria al nivel del mar",
+        "pressao_max": "Presión máxima diaria al nivel del mar",
+        "umid_min": "Humedad relativa mínima diaria",
+        "umid_med": "Humedad relativa media diaria",
+        "umid_max": "Humedad relativa máxima diaria"
+      }
+    },
+    "mosquito": {
+      "title": "Conteo de Huevos de Mosquito",
+      "description": "Aquí obtiene acceso a datos de abundancia de mosquitos del proyecto Contaovos, codesarrollado por el proyecto Mosqlimate. Estos datos, descritos a continuación, se basan en ovitrampas distribuidas por todo Brasil según un diseño de monitoreo especificado por el Ministerio de Salud.",
+      "variables": {
+        "counting_id": "",
+        "date": "",
+        "date_collect": "",
+        "eggs": "Conteo de huevos",
+        "latitude": "Latitud de la ovitrampa",
+        "longitude": "Longitud de la ovitrampa",
+        "municipality": "Nombre del municipio",
+        "municipality_code": "Geocódigo. Ejemplo: 3304557",
+        "ovitrap_id": "ID de la ovitrampa",
+        "ovitrap_website_id": "",
+        "state_code": "Geocódigo. Ejemplo: 33",
+        "state_name": "",
+        "time": "Formato de fecha RFC 1123",
+        "week": "Semana epidemiológica",
+        "year": "Año"
+      }
+    }
+  },
   "publications": {
     "title": "Producción Científica",
     "subtitle": "Una colección de nuestras contribuciones académicas, conjuntos de datos y desarrollo de software.",

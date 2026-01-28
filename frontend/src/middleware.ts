@@ -14,6 +14,7 @@ const publicPaths = [
   "/api/registry/models",
   "/api/registry/model",
   "/api/datastore/charts",
+  "/api/datastore/cities",
   "/api/vis/dashboard",
   "/_next",
   "/favicon.ico",

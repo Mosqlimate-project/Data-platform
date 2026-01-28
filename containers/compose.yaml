@@ -9,8 +9,9 @@ services:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
         - NEXT_PUBLIC_BACKEND_URL=${BACKEND_URL}
-        - NEXT_PUBLIC_DOCS_URL=${BACKEND_URL}
+        - NEXT_PUBLIC_DOCS_URL=${DOCS_URL}
     environment:
+        NEXT_PUBLIC_FRONTEND_URL: ${FRONTEND_URL}
         NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
         NEXT_PUBLIC_DOCS_URL: ${DOCS_URL}
     ports:

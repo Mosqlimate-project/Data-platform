@@ -54,7 +54,19 @@ def dashboard_categories(request):
         ),
     }
 
-    category_labels = dict(RepositoryModel.Category.choices)
+    category_groups = {
+        RepositoryModel.Category.QUANTITATIVE: "quantitative",
+        RepositoryModel.Category.SPATIAL_QUANTITATIVE: "quantitative",
+        RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE: "quantitative",
+        RepositoryModel.Category.CATEGORICAL: "categorical",
+        RepositoryModel.Category.SPATIAL_CATEGORICAL: "categorical",
+        RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL: "categorical",
+    }
+
+    group_labels = {
+        "quantitative": "Quantitative",
+        "categorical": "Categorical",
+    }
 
     sections_structure = {"default": {}, "sprint": {}}
 
@@ -62,14 +74,16 @@ def dashboard_categories(request):
         if adm_level not in adm_levels:
             continue
 
+        group_slug = category_groups.get(category_slug)
+        if not group_slug:
+            continue
+
         section_key = "sprint" if sprint_id is not None else "default"
 
-        if category_slug not in sections_structure[section_key]:
-            sections_structure[section_key][category_slug] = set()
+        if group_slug not in sections_structure[section_key]:
+            sections_structure[section_key][group_slug] = set()
 
-        sections_structure[section_key][category_slug].add(
-            adm_levels[adm_level]
-        )
+        sections_structure[section_key][group_slug].add(adm_levels[adm_level])
 
     results = []
     level_order = ["national", "state", "municipal", "sub_municipal"]
@@ -86,7 +100,7 @@ def dashboard_categories(request):
 
         formatted_categories = []
 
-        for cat_slug, levels_set in categories_data.items():
+        for group_slug, levels_set in categories_data.items():
             if not levels_set:
                 continue
 
@@ -104,8 +118,8 @@ def dashboard_categories(request):
 
             formatted_categories.append(
                 {
-                    "id": cat_slug,
-                    "label": str(category_labels.get(cat_slug, cat_slug)),
+                    "id": group_slug,
+                    "label": group_labels.get(group_slug, group_slug),
                     "levels": formatted_levels,
                 }
             )
@@ -416,9 +430,25 @@ def dashboard_predictions(
     city: Optional[str] = None,
     sprint: bool = False,
 ):
+    category_map = {
+        "quantitative": [
+            RepositoryModel.Category.QUANTITATIVE,
+            RepositoryModel.Category.SPATIAL_QUANTITATIVE,
+            RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE,
+        ],
+        "categorical": [
+            RepositoryModel.Category.CATEGORICAL,
+            RepositoryModel.Category.SPATIAL_CATEGORICAL,
+            RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL,
+        ],
+    }
+
+    categories = category_map.get(category, [category])
+
     qs = QuantitativePrediction.objects.filter(
         model__disease__code=disease,
         model__adm_level=adm_level,
+        model__category__in=categories,
     )
 
     if sprint:
