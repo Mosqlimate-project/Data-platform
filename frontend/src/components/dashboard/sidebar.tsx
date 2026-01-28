@@ -89,8 +89,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${pathname === "/dashboard"
-                ? "bg-accent/10 text-accent"
-                : "hover:bg-primary/5 hover:text-text"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             Overview
@@ -104,11 +104,13 @@ export function DashboardSidebar({ sections }: SidebarProps) {
 
               {(section.categories || []).map((cat) => (
                 <div key={cat.id} className="mb-4">
-                  <div className="pt-1 pb-2">
-                    <p className="text-xs font-bold text-secondary uppercase tracking-wider">
-                      {cat.label}
-                    </p>
-                  </div>
+                  {section.categories.length > 1 && (
+                    <div className="pt-1 pb-2">
+                      <p className="text-xs font-bold text-secondary uppercase tracking-wider">
+                        {cat.label}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-1">
                     {(cat.levels || []).map((level) => (
@@ -118,8 +120,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                           adm_level: LEVEL_TO_INT[level.id] || "1",
                         })}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${isLevelActive(cat.id, level.id, section.id)
-                            ? "bg-accent/10 text-accent font-medium"
-                            : "hover:bg-primary/5 hover:text-text"
+                          ? "bg-accent/10 text-accent font-medium"
+                          : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
                         {level.label}

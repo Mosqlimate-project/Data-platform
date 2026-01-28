@@ -80,10 +80,10 @@ export default function HomePage() {
     );
   }
   return (
-    <div className="relative w-full min-h-screen bg-[var(--color-bg-home)] text-text transition-colors duration-300">
+    <div className="relative w-full min-h-screen bg-[var(--color-bg)] text-text transition-colors duration-300">
 
       <div className="relative">
-        <section className="py-32 px-6 text-center bg-[var(--color-bg-home)]">
+        <section className="py-32 px-6 text-center bg-[var(--color-bg)]">
           <Image
             src="/mosquito.svg"
             alt="Logo"
@@ -103,7 +103,7 @@ export default function HomePage() {
           <ScrollIndicator />
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
+        <section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">{t("home.project.title")}</h2>
@@ -144,7 +144,7 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg-home)]">
+        <section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-6xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-10 text-text">{t("home.data.title")}</h2>
@@ -226,7 +226,7 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg-home)]">
+        <section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-5xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">{t("home.models.title")}</h2>
@@ -247,7 +247,7 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
+        <section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-[1400px] mx-auto text-center">
               <h2 className="text-5xl font-bold mb-16 text-text">{t("home.differentials.title")}</h2>
@@ -308,7 +308,7 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg-home)]">
+        <section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="w-full mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">{t("home.team.title")}</h2>
