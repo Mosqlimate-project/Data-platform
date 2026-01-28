@@ -1,15 +1,18 @@
 'use client';
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Layout } from "./components/Endpoint";
-import { endpoints } from "./data";
+import { getEndpoints } from "./data";
 import NetworkBackground from "@/components/NetworkBackground";
 
 export default function DatastorePage() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<number | null>(null);
 
-  const renderContent = () => {
+  const endpoints = getEndpoints(t);
 
+  const renderContent = () => {
     if (selected === null) return (
       <>
         <h2 className="text-lg font-semibold mb-4">Endpoint Details</h2>
@@ -20,6 +23,9 @@ export default function DatastorePage() {
     );
 
     const endpoint = endpoints[selected];
+
+    if (!endpoint) return null;
+
     return (
       <Layout
         title={endpoint.name}

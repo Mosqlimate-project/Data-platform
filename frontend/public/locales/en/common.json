@@ -1,4 +1,83 @@
 {
+  "datastore": {
+    "infodengue": {
+      "title": "Mosquito-borne Diseases",
+      "description": "This endpoint gives access to data from the Infodengue project, which provide a number of epidemiological variables for all the Brazilian municipalities on a weekly time scale. The request parameters and data variables are described below.",
+      "variables": {
+        "data_iniSE": "Start date of epidemiological week",
+        "SE": "Epidemiological week",
+        "casos_est": "Estimated number of cases per week using the nowcasting model",
+        "casos_est_min": "95% credibility interval of the estimated number of cases",
+        "casos": "Number of notified cases per week (values are retrospectively updated every week)",
+        "municipio_geocodigo": "IBGE's municipality code",
+        "p_rt1": "Probability (Rt > 1)",
+        "p_inc100k": "Estimated incidence rate (cases per pop x 100.00)",
+        "Localidade_id": "Sub-municipality division",
+        "nivel": "Alert level (1 = green, 2 = yellow, 3 = orange, 4 = red)",
+        "id": "Numeric index",
+        "versao_modelo": "Model version",
+        "Rt": "Point estimate of the reproductive number of cases",
+        "municipio_nome": "Municipality's name",
+        "pop": "Population (IBGE)",
+        "receptivo": "Indicates climate receptivity, i.e., conditions for high vectorial capacity. 0 = unfavorable, 1 = favorable, 2 = favorable this week and last week, 3 = favorable for at least three weeks",
+        "transmissao": "Evidence of sustained transmission: 0 = no evidence, 1 = possible, 2 = likely, 3 = highly likely",
+        "nivel_inc": "Estimated incidence below pre-epidemic threshold, 1 = above pre-epidemic threshold but below epidemic threshold, 2 = above epidemic threshold",
+        "umidmax": "Average daily maximum humidity percentages along the week",
+        "umidmed": "Average daily humidity percentages along the week",
+        "umidmin": "Average daily minimum humidity percentages along the week",
+        "tempmax": "Average daily maximum temperatures along the week",
+        "tempmed": "Average daily temperatures along the week",
+        "tempmin": "Average daily minimum temperatures along the week",
+        "casprov": "Probable number of cases per week (cases - discarded cases)",
+        "casprov_est": "Probable number of estimated cases per week",
+        "casprov_est_min": "Credibility interval of the probable number of cases",
+        "casprov_est_max": "Credibility interval of the probable number of cases",
+        "casconf": "Cases effectively confirmed with laboratory testing"
+      }
+    },
+    "climate": {
+      "title": "Climate data",
+      "description": "Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based reanalysis data provided by Copernicus ERA5.",
+      "variables": {
+        "date": "Day of the year",
+        "geocodigo": "IBGE's municipality code",
+        "temp_min": "Minimum daily temperature",
+        "temp_med": "Average daily temperature",
+        "temp_max": "Maximum daily temperature",
+        "precip_min": "Minimum daily precipitation",
+        "precip_med": "Average daily precipitation",
+        "precip_max": "Maximum daily precipitation",
+        "precip_tot": "Total daily precipitation",
+        "pressao_min": "Minimum daily sea level pressure",
+        "pressao_med": "Average daily sea level pressure",
+        "pressao_max": "Maximum daily sea level pressure",
+        "umid_min": "Minimum daily relative humidity",
+        "umid_med": "Average daily relative humidity",
+        "umid_max": "Maximum daily relative humidity"
+      }
+    },
+    "mosquito": {
+      "title": "Mosquito Egg Count",
+      "description": "Here you get access to mosquito abundance data from the Contaovos project, co-developed by the Mosqlimate project. These data, described below, are based on eggtraps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.",
+      "variables": {
+        "counting_id": "",
+        "date": "",
+        "date_collect": "",
+        "eggs": "Eggs count",
+        "latitude": "Ovitrap latitude",
+        "longitude": "Ovitrap longitude",
+        "municipality": "Municipality name",
+        "municipality_code": "Geocode. Example: 3304557",
+        "ovitrap_id": "Ovitrap ID",
+        "ovitrap_website_id": "",
+        "state_code": "Geocode. Example: 33",
+        "state_name": "",
+        "time": "RFC 1123 date format",
+        "week": "Epidemiological week",
+        "year": "Year"
+      }
+    }
+  },
   "publications": {
     "title": "Scientific Production",
     "subtitle": "A collection of our academic contributions, datasets, and software developments.",
