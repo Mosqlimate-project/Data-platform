@@ -40,7 +40,6 @@
 
 :root {
   --color-bg: #ffffff;
-  --color-bg-home: #BCC5E2;
   --color-text: #212538;
   --color-border: #E6E6E9;
   --color-accent: #212538;
@@ -49,7 +48,6 @@
 
 .dark {
   --color-bg: #212538;
-  --color-bg-home: #2A3552;
   --color-text: #ffffff;
   --color-border: #445680;
   --color-accent: #171A27;
