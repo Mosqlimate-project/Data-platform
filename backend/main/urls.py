@@ -6,15 +6,18 @@ from .api import api
 
 
 def frontend(response):
-    return redirect(settings.FRONTEND_URL, code=302)
+    return redirect(settings.FRONTEND_URL)
 
 
 def docs(response):
-    return redirect(settings.DOCS_URL, code=302)
+    url = settings.DOCS_URL
+    if not url.endswith("/"):
+        url += "/"
+    return redirect(url)
 
 
 urlpatterns = [
-    path("", frontend),
+    # path("", frontend),
     path("api/", api.urls),
     path("docs/", docs, name="docs"),
 ]

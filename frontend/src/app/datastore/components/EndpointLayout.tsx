@@ -18,8 +18,8 @@ export function AccordionCard({
       <button
         onClick={onClick}
         className={`w-full text-left px-4 py-3 font-medium border-b border-border transition-colors flex justify-between items-center ${isOpen
-            ? "bg-muted/50 text-foreground"
-            : "bg-card text-muted-foreground hover:bg-muted/30"
+          ? "bg-muted/50 text-foreground"
+          : "bg-card text-muted-foreground hover:bg-muted/30"
           }`}
       >
         <span>{title}</span>
@@ -35,21 +35,21 @@ interface EndpointLayoutProps {
   endpoint: string;
   description: string;
   dataVariables?: { variable: string; type: string; description: string }[];
-  chartOptions?: { option: string; type: string }[];
   children?: ReactNode;
   controls?: ReactNode;
+  apiBuilder?: ReactNode;
 }
 
 export function EndpointLayout({
   title,
   description,
   dataVariables,
-  chartOptions,
   endpoint,
   children,
   controls,
+  apiBuilder,
 }: EndpointLayoutProps) {
-  const [openCard, setOpenCard] = useState<string | null>(controls ? "Controls" : "Description");
+  const [openCard, setOpenCard] = useState<string | null>("Visualization Controls");
 
   const toggleCard = (key: string) => {
     setOpenCard((prev) => (prev === key ? null : key));
@@ -62,7 +62,7 @@ export function EndpointLayout({
           <div className="mb-6 border-b pb-4">
             <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
             <code className="text-xs bg-muted px-2 py-1 rounded mt-2 inline-block text-muted-foreground">
-              GET {endpoint}
+              GET /api/datastore{endpoint}
             </code>
           </div>
 
@@ -78,12 +78,32 @@ export function EndpointLayout({
 
         {controls && (
           <AccordionCard
-            title="Visualization Controls"
-            isOpen={openCard === "Controls"}
-            onClick={() => toggleCard("Controls")}
+            title="Charts / Visualization"
+            isOpen={openCard === "Visualization Controls"}
+            onClick={() => toggleCard("Visualization Controls")}
           >
             <div className="flex flex-col gap-4">
-              {controls}
+              <div className="text-xs text-muted-foreground mb-2">
+                Adjust the parameters below to update the charts.
+              </div>
+              <div className="flex flex-col gap-4 p-2 bg-muted/20 rounded-md border border-border/50">
+                {controls}
+              </div>
+            </div>
+          </AccordionCard>
+        )}
+
+        {apiBuilder && (
+          <AccordionCard
+            title="API Request Builder"
+            isOpen={openCard === "API Request Builder"}
+            onClick={() => toggleCard("API Request Builder")}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="text-xs text-muted-foreground mb-2">
+                Construct a raw API query with all available parameters.
+              </div>
+              {apiBuilder}
             </div>
           </AccordionCard>
         )}
@@ -117,36 +137,6 @@ export function EndpointLayout({
                       <td className="px-2 py-2 font-mono text-primary">{v.variable}</td>
                       <td className="px-2 py-2 opacity-70">{v.type}</td>
                       <td className="px-2 py-2 opacity-90">{v.description}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </AccordionCard>
-        )}
-
-        {chartOptions && chartOptions.length > 0 && (
-          <AccordionCard
-            title="Available Parameters"
-            isOpen={openCard === "Parameters"}
-            onClick={() => toggleCard("Parameters")}
-          >
-            <div className="mb-2 text-xs text-muted-foreground">
-              These parameters can be used to filter the API response:
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground">
-                    <th className="px-2 py-2 font-semibold">Parameter</th>
-                    <th className="px-2 py-2 font-semibold">Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {chartOptions.map((opt) => (
-                    <tr key={opt.option} className="border-b border-border/50 last:border-0">
-                      <td className="px-2 py-2 font-mono text-primary">{opt.option}</td>
-                      <td className="px-2 py-2 opacity-70">{opt.type}</td>
                     </tr>
                   ))}
                 </tbody>
