@@ -77,7 +77,6 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
 
   return (
     <div className="relative w-full" ref={wrapperRef}>
-      <label className="text-sm font-medium mb-1 block"> City </label>
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <input

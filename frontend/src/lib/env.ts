@@ -1,5 +1,6 @@
 export const NEXT_PUBLIC_FRONTEND_URL = process.env.FRONTEND_URL!;
 export const NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!;
+export const NEXT_PUBLIC_DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL!;
 
 export const FRONTEND_PORT = process.env.FRONTEND_PORT!;
 export const BACKEND_PORT = process.env.BACKEND_PORT!;

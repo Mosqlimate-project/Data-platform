@@ -226,7 +226,9 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 2  # select * from django_site;
 
 REDIS_PORT = env("REDIS_PORT")
+
 DOCS_PORT = env("MKDOCS_PORT")
+DOCS_URL = env("DOCS_URL")
 
 AUTH_USER_MODEL = "users.CustomUser"
 FRONTEND_PORT = env("FRONTEND_PORT")

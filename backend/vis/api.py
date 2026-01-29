@@ -449,6 +449,7 @@ def dashboard_predictions(
         model__disease__code=disease,
         model__adm_level=adm_level,
         model__category__in=categories,
+        published=True,  # TODO: enabled non-published predictions logged users
     )
 
     if sprint:

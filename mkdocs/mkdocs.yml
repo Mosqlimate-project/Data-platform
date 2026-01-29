@@ -144,4 +144,5 @@ nav:
     - "How to use": "vis/dashboard/how_to_use.md"
     - "Scores": "vis/dashboard/scores.md"
     - "Details": "vis/dashboard/details.md"
-  - "Back to API": "https://api.mosqlimate.org/"
+  - "API Docs": "https://api.mosqlimate.org/api/docs/"
+  - "Back to API": "https://mosqlimate.org/"
