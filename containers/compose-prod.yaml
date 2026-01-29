@@ -2,6 +2,7 @@ services:
   frontend:
     environment:
         NODE_ENV: production
+    command: node server.js
 
   backend:
     volumes:

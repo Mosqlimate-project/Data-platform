@@ -8,9 +8,11 @@ services:
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
+        - PORT=${FRONTEND_PORT}
         - NEXT_PUBLIC_BACKEND_URL=${BACKEND_URL}
         - NEXT_PUBLIC_DOCS_URL=${DOCS_URL}
     environment:
+        PORT: ${FRONTEND_PORT}
         NEXT_PUBLIC_FRONTEND_URL: ${FRONTEND_URL}
         NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
         NEXT_PUBLIC_DOCS_URL: ${DOCS_URL}

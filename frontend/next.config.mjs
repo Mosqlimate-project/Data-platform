@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  output: 'standalone',
 
   experimental: {
     optimizePackageImports: ['@tanstack/react-query', 'axios'],
@@ -39,7 +39,7 @@ const nextConfig = {
     return [
       {
         source: "/docs",
-        destination: `${process.env.NEXT_PUBLIC_DOCS_URL}`,
+        destination: "https://api.mosqlimate.org/docs/",
         permanent: false,
       },
       {
