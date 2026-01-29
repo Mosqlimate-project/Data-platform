@@ -5,7 +5,7 @@ RUN apk add --no-cache bash sudo shadow
 
 ARG UID
 ARG GID
-ARG NEXT_PUBLIC_BACKEND_URL
+ARG PORT
 
 RUN deluser --remove-home node \
     && addgroup -g ${GID} mosqlimate \
@@ -21,18 +21,29 @@ COPY frontend/package*.json ./
 RUN npm ci --ignore-scripts
 
 FROM base AS builder
-ENV NEXT_PUBLIC_BACKEND_URL ${NEXT_PUBLIC_BACKEND_URL}
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_DOCS_URL
+
+ENV PORT=${PORT}
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+ENV NEXT_PUBLIC_DOCS_URL=${NEXT_PUBLIC_DOCS_URL}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --chown=mosqlimate:mosqlimate frontend/ .
+
 RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
 
-USER mosqlimate 
+ENV NODE_ENV=production
 
-COPY --chown=mosqlimate:mosqlimate --from=builder /app/.next ./.next
+USER mosqlimate
+
 COPY --chown=mosqlimate:mosqlimate --from=builder /app/public ./public
-COPY --chown=mosqlimate:mosqlimate --from=builder /app/node_modules ./node_modules
-COPY --chown=mosqlimate:mosqlimate --from=builder /app/package*.json ./
-COPY --chown=mosqlimate:mosqlimate --from=builder /app/next.config.mjs ./next.config.mjs
+COPY --chown=mosqlimate:mosqlimate --from=builder /app/.next/standalone ./
+COPY --chown=mosqlimate:mosqlimate --from=builder /app/.next/static ./.next/static
+
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]

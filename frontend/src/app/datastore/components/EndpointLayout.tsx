@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { useDateFormatter } from "@/hooks/useDateFormatter";
 
 export function AccordionCard({
   title,
@@ -50,6 +51,7 @@ export function EndpointLayout({
   apiBuilder,
 }: EndpointLayoutProps) {
   const [openCard, setOpenCard] = useState<string | null>("Visualization Controls");
+  const { dateFormatPattern } = useDateFormatter();
 
   const toggleCard = (key: string) => {
     setOpenCard((prev) => (prev === key ? null : key));
@@ -83,8 +85,8 @@ export function EndpointLayout({
             onClick={() => toggleCard("Visualization Controls")}
           >
             <div className="flex flex-col gap-4">
-              <div className="text-xs text-muted-foreground mb-2">
-                Adjust the parameters below to update the charts.
+              <div className="flex justify-between items-center text-xs text-muted-foreground mb-2">
+                <span>Adjust the parameters below to update the charts.</span>
               </div>
               <div className="flex flex-col gap-4 p-2 bg-muted/20 rounded-md border border-border/50">
                 {controls}

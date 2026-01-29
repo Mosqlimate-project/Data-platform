@@ -98,7 +98,7 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
       </div>
 
       {isOpen && results.length > 0 && (
-        <div className="bg-bg absolute z-40 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
+        <div className="bg-bg absolute z-30 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
           <ul className="max-h-60 overflow-auto p-1">
             {results.map((city) => (
               <li
