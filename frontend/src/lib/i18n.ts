@@ -15,7 +15,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
+    load: 'languageOnly',
     fallbackLng: 'en',
     ns: ['common'],
     defaultNS: 'common',
