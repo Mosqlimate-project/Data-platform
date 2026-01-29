@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Calendar as CalendarIcon } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
 import { TemperatureChart, AccumulatedWaterfallChart, AirChart } from "../components/charts/ClimateCharts";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
+import { useDateFormatter } from "@/hooks/useDateFormatter";
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -38,16 +39,56 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
+function LocalizedDateInput({
+  value,
+  onChange,
+  label
+}: {
+  value: string,
+  onChange: (val: string) => void,
+  label?: string
+}) {
+  const { formatDate, dateFormatPattern } = useDateFormatter();
+
+  return (
+    <div className="flex flex-col gap-1 w-full">
+      {label && <label className="text-xs font-medium opacity-70">{label}</label>}
+      <div className="relative h-9 w-full">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-between px-3 py-1 border rounded-md bg-background text-sm pointer-events-none z-0">
+          <span className={!value ? "opacity-50" : ""}>
+            {value ? formatDate(value) : <span className="opacity-40">{dateFormatPattern}</span>}
+          </span>
+          <CalendarIcon className="w-4 h-4 opacity-50" />
+        </div>
+
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onClick={(e) => {
+            try {
+              e.currentTarget.showPicker();
+            } catch {
+              // Fallback for browsers that don't support showPicker
+            }
+          }}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ClimateApiBuilder() {
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
   const [uf, setUf] = useState<string>("");
-  const [start, setStart] = useState<string>(formatDate(oneYearAgo));
-  const [end, setEnd] = useState<string>(formatDate(now));
+  const [start, setStart] = useState<string>(formatDateISO(oneYearAgo));
+  const [end, setEnd] = useState<string>(formatDateISO(now));
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(100);
 
@@ -70,37 +111,28 @@ function ClimateApiBuilder() {
         <CitySearch value={geocode} onChange={setGeocode} />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium opacity-70">uf</label>
+      <div className="flex flex-col gap-1">        <label className="text-xs font-medium opacity-70">uf</label>
         <input
           type="text"
           maxLength={2}
           placeholder="e.g. RJ"
           value={uf}
           onChange={(e) => setUf(e.target.value.toUpperCase())}
-          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
+          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium opacity-70">start</label>
-          <input
-            type="date"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium opacity-70">end</label>
-          <input
-            type="date"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
-          />
-        </div>
+        <LocalizedDateInput
+          label="start"
+          value={start}
+          onChange={setStart}
+        />
+        <LocalizedDateInput
+          label="end"
+          value={end}
+          onChange={setEnd}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -111,7 +143,7 @@ function ClimateApiBuilder() {
             min={1}
             value={page}
             onChange={(e) => setPage(parseInt(e.target.value) || 1)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
+            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -122,7 +154,7 @@ function ClimateApiBuilder() {
             max={300}
             value={perPage}
             onChange={(e) => setPerPage(parseInt(e.target.value) || 300)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
+            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
           />
         </div>
       </div>
@@ -136,11 +168,11 @@ export function ClimateView({ config }: { config: EndpointDetails }) {
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
-  const [startDate, setStartDate] = useState<string>(formatDate(oneYearAgo));
-  const [endDate, setEndDate] = useState<string>(formatDate(now));
+  const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
+  const [endDate, setEndDate] = useState<string>(formatDateISO(now));
 
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
@@ -167,24 +199,16 @@ export function ClimateView({ config }: { config: EndpointDetails }) {
           </div>
 
           <div className="flex gap-2 relative z-10">
-            <div className="flex flex-col flex-1 gap-1">
-              <label className="text-xs font-medium opacity-70">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => handleStartDateChange(e.target.value)}
-                className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
-              />
-            </div>
-            <div className="flex flex-col flex-1 gap-1">
-              <label className="text-xs font-medium opacity-70">End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => handleEndDateChange(e.target.value)}
-                className="border rounded-md px-2 py-1 bg-background text-foreground text-sm"
-              />
-            </div>
+            <LocalizedDateInput
+              label="Start Date"
+              value={startDate}
+              onChange={handleStartDateChange}
+            />
+            <LocalizedDateInput
+              label="End Date"
+              value={endDate}
+              onChange={handleEndDateChange}
+            />
           </div>
         </>
       }
