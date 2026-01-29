@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "start": "PORT=$FRONTEND_PORT node .next/standalone/server.js",
+    "start": "next start -p $FRONTEND_PORT",
     "dev": "next dev -p $FRONTEND_PORT",
     "typecheck": "tsc --noEmit"
   },

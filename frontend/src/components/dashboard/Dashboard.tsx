@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
-import { Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Eye, EyeOff } from "lucide-react";
+import {
+  Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
+  Search, X, Eye, EyeOff, CheckSquare, Square
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -648,6 +651,61 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   const totalPages = Math.ceil(filteredAndSortedPredictions.length / ITEMS_PER_PAGE);
 
+  const handleSelectAll = async () => {
+    const unselectedPredictions = filteredAndSortedPredictions.filter(
+      p => !chartPredictions.some(cp => cp.id === p.id)
+    ).slice(0, 10);
+
+    if (unselectedPredictions.length === 0) return;
+
+    const idsToLoad = unselectedPredictions.map(p => p.id);
+    setLoadingPredictions(prev => [...prev, ...idsToLoad]);
+
+    try {
+      const results = await Promise.all(
+        unselectedPredictions.map(async (prediction) => {
+          try {
+            const res = await fetch(`/api/vis/dashboard/prediction/${prediction.id}`);
+            if (!res.ok) return null;
+            const data: PredictionRowData[] = await res.json();
+
+            const newPrediction: QuantitativePrediction = {
+              id: prediction.id,
+              color: CHART_COLORS[prediction.id % CHART_COLORS.length],
+              data: {
+                labels: data.map((d) => new Date(d.date)),
+                data: data.map((d) => d.pred),
+                lower_50: data.map((d) => d.lower_50 ?? null),
+                lower_80: data.map((d) => d.lower_80 ?? null),
+                lower_90: data.map((d) => d.lower_90 ?? null),
+                lower_95: data.map((d) => d.lower_95 ?? null),
+                upper_50: data.map((d) => d.upper_50 ?? null),
+                upper_80: data.map((d) => d.upper_80 ?? null),
+                upper_90: data.map((d) => d.upper_90 ?? null),
+                upper_95: data.map((d) => d.upper_95 ?? null),
+              },
+            };
+            return newPrediction;
+          } catch (e) {
+            return null;
+          }
+        })
+      );
+
+      const validResults = results.filter((r): r is QuantitativePrediction => r !== null);
+      setChartPredictions(prev => [...prev, ...validResults]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingPredictions(prev => prev.filter(id => !idsToLoad.includes(id)));
+    }
+  };
+
+  const handleClearAll = () => {
+    setChartPredictions([]);
+    setActiveIntervals(new Set());
+  };
+
   return (
     <div className="relative space-y-6 min-h-[500px] max-w-full">
       {isConfigLoading && (
@@ -692,7 +750,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                 ))}
               </select>
             </div>
-
             {inputs.adm_level >= 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
                 <label className="text-sm font-semibold mb-1">State</label>
@@ -734,7 +791,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
           {sprintOptions.length > 0 && (
             <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
-              <h3 className="text-sm font-semibold mb-1">Sprints</h3>
+              <h3 className="text-sm font-semibold mb-1">IMDC</h3>
               <div className="flex flex-wrap gap-2">
                 {sprintOptions.map((sprint) => {
                   const isSelected = selectedSprints.includes(sprint.year);
@@ -747,7 +804,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                         : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                         }`}
                     >
-                      Sprint {sprint.year}
+                      {sprint.year}
                     </button>
                   );
                 })}
@@ -821,7 +878,25 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           </div>
 
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
-            <h3 className="text-lg font-bold mb-4">Predictions</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Predictions</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSelectAll}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                  title="Select 10 predictions"
+                >
+                  Select 10
+                </button>
+                <button
+                  onClick={handleClearAll}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+                  title="Clear all selections"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
             <div className="relative mb-4">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <input

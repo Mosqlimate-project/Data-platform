@@ -1,124 +1,118 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaExternalLinkAlt, FaYoutube, FaDatabase, FaVideo, FaGithub } from 'react-icons/fa';
+import {
+  FaExternalLinkAlt,
+  FaYoutube,
+  FaDatabase,
+  FaVideo,
+  FaGithub,
+  FaFileAlt,
+  FaNewspaper,
+  FaHistory,
+  FaGraduationCap
+} from 'react-icons/fa';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+
+type PubType = 'abstract' | 'article' | 'preprint' | 'thesis';
 
 interface PublicationItem {
   citation: string;
   link?: string;
+  type: PubType;
 }
 
-interface YearSection {
+interface YearGroup {
   year: string;
   items: PublicationItem[];
-}
-
-interface Section {
-  title: string;
-  years: YearSection[];
 }
 
 export default function PublicationsPage() {
   const { t } = useTranslation('common');
 
-  const sections: Section[] = [
+  const getTypeInfo = (type: PubType) => {
+    switch (type) {
+      case 'article':
+        return { icon: <FaNewspaper />, label: 'Journal Article', color: 'text-green-600 bg-green-100 dark:bg-green-900/30' };
+      case 'preprint':
+        return { icon: <FaHistory />, label: 'Preprint', color: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30' };
+      case 'thesis':
+        return { icon: <FaGraduationCap />, label: 'Thesis', color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' };
+      case 'abstract':
+      default:
+        return { icon: <FaFileAlt />, label: 'Abstract/Conference', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' };
+    }
+  };
+
+  const timeline: YearGroup[] = [
     {
-      title: t('publications.abstracts.title'),
-      years: [
+      year: "2025",
+      items: [
         {
-          year: "2023",
-          items: [
-            {
-              citation: t('publications.items.araujo_cnmac_2023'),
-            },
-            {
-              citation: t('publications.items.araujo_evigilancia_2023'),
-            }
-          ]
+          type: 'article',
+          citation: t('publications.items.araujo_rsos_2025'),
+          link: "https://doi.org/10.1098/rsos.241261"
         },
         {
-          year: "2024",
-          items: [
-            {
-              citation: t('publications.items.almeida_epi_2024'),
-            },
-            {
-              citation: t('publications.items.araujo_epi_2024'),
-            },
-            {
-              citation: t('publications.items.segundo_epi_2024'),
-            }
-          ]
+          type: 'preprint',
+          citation: t('publications.items.araujo_medrxiv_2025'),
+          link: "https://www.medrxiv.org/content/10.1101/2025.05.12.25327419v1"
+        },
+        {
+          type: 'preprint',
+          citation: t('publications.items.freitas_medrxiv_2025'),
+          link: "https://www.medrxiv.org/content/10.1101/2025.06.12.25329525v1"
         }
       ]
     },
     {
-      title: t('publications.articles.title'),
-      years: [
+      year: "2024",
+      items: [
         {
-          year: "2024",
-          items: [
-            {
-              citation: t('publications.items.magalhaes_eid_2024'),
-              link: "https://doi.org/10.3201/eid3012.231733"
-            }
-          ]
+          type: 'article',
+          citation: t('publications.items.magalhaes_eid_2024'),
+          link: "https://doi.org/10.3201/eid3012.231733"
         },
         {
-          year: "2025",
-          items: [
-            {
-              citation: t('publications.items.araujo_rsos_2025'),
-              link: "https://doi.org/10.1098/rsos.241261"
-            }
-          ]
+          type: 'preprint',
+          citation: t('publications.items.ganem_arxiv_2024'),
+          link: "https://arxiv.org/abs/2410.18945"
+        },
+        {
+          type: 'preprint',
+          citation: t('publications.items.bastos_arxiv_2024'),
+          link: "https://doi.org/10.48550/arXiv.2411.13680"
+        },
+        {
+          type: 'thesis',
+          citation: t('publications.items.santos_thesis_2024'),
+          link: "https://emap.fgv.br/en/tese/analyzing-dengue-epidemic-dynamics-using-physics-informed-neural-networks"
+        },
+        {
+          type: 'abstract',
+          citation: t('publications.items.almeida_epi_2024'),
+        },
+        {
+          type: 'abstract',
+          citation: t('publications.items.araujo_epi_2024'),
+        },
+        {
+          type: 'abstract',
+          citation: t('publications.items.segundo_epi_2024'),
         }
       ]
     },
     {
-      title: t('publications.preprints.title'),
-      years: [
+      year: "2023",
+      items: [
         {
-          year: "2024",
-          items: [
-            {
-              citation: t('publications.items.ganem_arxiv_2024'),
-              link: "https://arxiv.org/abs/2410.18945"
-            },
-            {
-              citation: t('publications.items.bastos_arxiv_2024'),
-              link: "https://doi.org/10.48550/arXiv.2411.13680"
-            }
-          ]
+          type: 'abstract',
+          citation: t('publications.items.araujo_cnmac_2023'),
         },
         {
-          year: "2025",
-          items: [
-            {
-              citation: t('publications.items.araujo_medrxiv_2025'),
-              link: "https://www.medrxiv.org/content/10.1101/2025.05.12.25327419v1"
-            },
-            {
-              citation: t('publications.items.freitas_medrxiv_2025'),
-              link: "https://www.medrxiv.org/content/10.1101/2025.06.12.25329525v1"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      title: t('publications.theses.title'),
-      years: [
-        {
-          year: "2024",
-          items: [
-            {
-              citation: t('publications.items.santos_thesis_2024'),
-              link: "https://emap.fgv.br/en/tese/analyzing-dengue-epidemic-dynamics-using-physics-informed-neural-networks"
-            }
-          ]
+          type: 'abstract',
+          citation: t('publications.items.araujo_evigilancia_2023'),
         }
       ]
     }
@@ -172,47 +166,51 @@ export default function PublicationsPage() {
           </div>
         </div>
 
-        {sections.map((section, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: idx * 0.1 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-bold border-b border-[var(--color-border)] pb-2">{section.title}</h2>
+        <div className="space-y-12">
+          {timeline.map((group, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              className="relative pl-8 border-l-2 border-blue-500/30"
+            >
+              <span className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-[var(--color-bg)]" />
+              <h2 className="text-2xl font-bold mb-6 text-blue-600 dark:text-blue-400">{group.year}</h2>
 
-            <div className="space-y-8">
-              {section.years.map((group, gIdx) => (
-                <div key={gIdx} className="relative pl-8 border-l-2 border-blue-500/30">
-                  <span className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-[var(--color-bg)]" />
-                  <h3 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">{group.year}</h3>
-                  <div className="space-y-4">
-                    {group.items.map((item, iIdx) => (
-                      <div key={iIdx} className="bg-gray-50 dark:bg-white/5 p-4 rounded-lg border border-[var(--color-border)] hover:border-blue-500/50 transition-colors">
-                        <p className="text-sm leading-relaxed opacity-90">
-                          {item.citation}
-                        </p>
-                        {item.link && (
-                          <div className="mt-2 pt-2 border-t border-[var(--color-border)]">
-                            <Link
-                              href={item.link}
-                              target="_blank"
-                              className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 w-fit"
-                            >
-                              <FaExternalLinkAlt size={10} /> {t('publications.view_source')}
-                            </Link>
-                          </div>
-                        )}
+              <div className="space-y-4">
+                {group.items.map((item, iIdx) => {
+                  const typeInfo = getTypeInfo(item.type);
+                  return (
+                    <div key={iIdx} className="bg-gray-50 dark:bg-white/5 p-4 rounded-lg border border-[var(--color-border)] hover:border-blue-500/50 transition-colors">
+                      <div className="flex items-start gap-3 mb-2">
+                        <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1.5 font-medium ${typeInfo.color}`}>
+                          {typeInfo.icon}
+                          {typeInfo.label}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+                      <p className="text-sm leading-relaxed opacity-90">
+                        {item.citation}
+                      </p>
+                      {item.link && (
+                        <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                          <Link
+                            href={item.link}
+                            target="_blank"
+                            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 w-fit"
+                          >
+                            <FaExternalLinkAlt size={10} /> {t('publications.view_source')}
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <motion.div
