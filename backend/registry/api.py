@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 from urllib.parse import urlparse
 
@@ -16,7 +17,7 @@ from main.schema import (
     # UnprocessableContentSchema,
     # InternalErrorSchema,
 )
-from ninja import Router
+from ninja import Router, Query
 from ninja.decorators import decorate_view
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
@@ -170,6 +171,71 @@ def models_thumbnails(request):
         .all()
     )
     return repo_models.order_by("-updated")
+
+
+@router.get(
+    "/models/tags/",
+    response=List[s.ModelTags],
+    auth=UidKeyAuth(),
+    tags=["registry", "frontend"],
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def models_tags(request, ids: List[int] = Query(None)):
+    qs = (
+        m.RepositoryModel.objects.select_related("disease")
+        .annotate(predictions_count=models.Count("predicts"))
+        .filter(predictions_count__gt=0)
+        .all()
+    )
+
+    if ids:
+        qs = qs.filter(id__in=ids)
+
+    tags_map = defaultdict(lambda: {"name": "", "models": set()})
+
+    for model in qs:
+        if model.disease:
+            key = ("disease", str(model.disease.id))
+            tags_map[key]["name"] = str(model.disease)
+            tags_map[key]["models"].add(model.id)
+
+        if model.adm_level is not None:
+            key = ("adm_level", str(model.adm_level))
+            tags_map[key]["name"] = model.get_adm_level_display()
+            tags_map[key]["models"].add(model.id)
+
+        if model.category:
+            key = ("model_category", str(model.category))
+            tags_map[key]["name"] = model.get_category_display()
+            tags_map[key]["models"].add(model.id)
+
+        if model.time_resolution:
+            key = ("periodicity", str(model.time_resolution))
+            tags_map[key]["name"] = model.get_time_resolution_display()
+            tags_map[key]["models"].add(model.id)
+
+        if model.sprint_id:
+            key = ("IMDC", str(model.sprint_id))
+            tags_map[key]["name"] = (
+                str(model.sprint.year)
+                if model.sprint
+                else f"{model.sprint_id}"
+            )
+            tags_map[key]["models"].add(model.id)
+
+    response_data = []
+    for (category, tag_id), data in tags_map.items():
+        response_data.append(
+            {
+                "id": tag_id,
+                "name": data["name"],
+                "category": category,
+                "models": [{"id": mid} for mid in data["models"]],
+            }
+        )
+
+    return sorted(response_data, key=lambda x: (x["category"], x["name"]))
 
 
 @router.get(

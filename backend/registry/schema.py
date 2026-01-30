@@ -383,6 +383,17 @@ class PredictionIn(Schema):
         return values
 
 
+class ModelSummary(Schema):
+    id: int
+
+
+class ModelTags(Schema):
+    id: str
+    name: str
+    category: str
+    models: List[ModelSummary]
+
+
 class ModelThumbs(Schema):
     model_id: int
     owner: str

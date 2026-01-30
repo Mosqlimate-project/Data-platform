@@ -7,7 +7,7 @@ import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
-import { InfodengueSummary, EpidemicCurveChart, RtChart } from "../components/charts/InfodengueCharts";
+import { TotalCases, DailyCasesChart } from "../components/charts/InfodengueCharts";
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -72,7 +72,7 @@ function LocalizedDateInput({
               // Fallback
             }
           }}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
       </div>
     </div>
@@ -228,7 +228,7 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
             <CitySearch value={geocode} onChange={setGeocode} />
           </div>
 
-          <div className="flex gap-2 relative z-10">
+          <div className="flex gap-2 relative">
             <LocalizedDateInput
               label="Start Date"
               value={startDate}
@@ -244,30 +244,20 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
       }
     >
       <div className="flex flex-col gap-8 w-full">
-        <InfodengueSummary
+        <TotalCases
           geocode={String(geocode)}
           disease={disease}
           start={startDate}
           end={endDate}
         />
-
-        <div className="border rounded-md p-4 bg-card">
-          <EpidemicCurveChart
-            geocode={String(geocode)}
-            disease={disease}
-            start={startDate}
-            end={endDate}
-          />
-        </div>
-
-        <div className="border rounded-md p-4 bg-card">
-          <RtChart
-            geocode={String(geocode)}
-            disease={disease}
-            start={startDate}
-            end={endDate}
-          />
-        </div>
+      </div>
+      <div className="flex flex-col gap-8 w-full">
+        < DailyCasesChart
+          geocode={String(geocode)}
+          disease={disease}
+          start={startDate}
+          end={endDate}
+        />
       </div>
     </EndpointLayout>
   );

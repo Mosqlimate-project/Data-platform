@@ -72,7 +72,7 @@ function LocalizedDateInput({
               // Fallback
             }
           }}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
       </div>
     </div>
@@ -190,7 +190,7 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
             <CitySearch value={geocode} onChange={setGeocode} />
           </div>
 
-          <div className="flex gap-2 relative z-10">
+          <div className="flex gap-2 relative">
             <LocalizedDateInput
               label="Start Date"
               value={startDate}

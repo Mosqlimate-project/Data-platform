@@ -59,8 +59,7 @@ export default function Navbar() {
   return (
     <nav
       className={clsx(
-        "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors",
-        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-bg"
+        "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors bg-bg",
       )}
     >
 

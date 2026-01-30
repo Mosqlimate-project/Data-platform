@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await fetch(
-      `${BACKEND_BASE_URL}/api/datastore/charts/municipality/temperature/?geocode=${geocode}&start=${start}&end=${end}`,
+      `${BACKEND_BASE_URL}/api/datastore/charts/climate/accumulated-waterfall/?geocode=${geocode}&start=${start}&end=${end}`,
       {
         method: "GET",
         headers: {

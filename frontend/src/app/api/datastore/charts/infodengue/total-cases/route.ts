@@ -8,13 +8,14 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
+  const disease = searchParams.get("disease");
   const geocode = searchParams.get("geocode");
   const start = searchParams.get("start");
   const end = searchParams.get("end");
 
   try {
     const res = await fetch(
-      `${BACKEND_BASE_URL}/api/datastore/charts/municipality/accumulated-waterfall/?geocode=${geocode}&start=${start}&end=${end}`,
+      `${BACKEND_BASE_URL}/api/datastore/charts/infodengue/total-cases/?disease=${disease}&geocode=${geocode}&start=${start}&end=${end}`,
       {
         method: "GET",
         headers: {

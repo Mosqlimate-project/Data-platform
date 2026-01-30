@@ -163,7 +163,7 @@ class Disease(models.Model):
         ]
 
     def __str__(self):
-        return f"[{self.icd}] {self.code} - {self.name}"
+        return self.name
 
 
 class Municipio(models.Model):

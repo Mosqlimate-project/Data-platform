@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { useDateFormatter } from "@/hooks/useDateFormatter";
 
 export function AccordionCard({
   title,
@@ -15,7 +14,10 @@ export function AccordionCard({
   children: ReactNode;
 }) {
   return (
-    <div className="border rounded-md overflow-hidden transition-all bg-card">
+    <div
+      className={`border rounded-md transition-all bg-card relative ${isOpen ? "z-20" : "z-0"
+        }`}
+    >
       <button
         onClick={onClick}
         className={`w-full text-left px-4 py-3 font-medium border-b border-border transition-colors flex justify-between items-center ${isOpen
@@ -51,7 +53,6 @@ export function EndpointLayout({
   apiBuilder,
 }: EndpointLayoutProps) {
   const [openCard, setOpenCard] = useState<string | null>("Visualization Controls");
-  const { dateFormatPattern } = useDateFormatter();
 
   const toggleCard = (key: string) => {
     setOpenCard((prev) => (prev === key ? null : key));
