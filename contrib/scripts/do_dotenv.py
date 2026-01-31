@@ -132,6 +132,11 @@ dj_cont_data = var_in(
     default="/opt/services/storage/django",
 )
 
+print("\nMkDocs:")
+docs_port = var_in(
+    "MKDOCS_PORT", input_text="  Documentation port [8043]: ", default=8043
+)
+
 print("\nRedis:")
 redis_port = var_in(
     "REDIS_PORT", input_text="  Redis port [8044]: ", default=8044
@@ -354,6 +359,9 @@ variables = {
     "EMAIL_HOST_USER": dj_email_host_user,
     "EMAIL_HOST_PASSWORD": dj_email_host_pass,
     "EMAIL_USE_TLS": dj_email_use_tls,
+    # [Containers]
+    "MKDOCS_PORT": docs_port,
+    "REDIS_PORT": redis_port,
     # [EpiScanner]
     "EPISCANNER_HOST_DATA_DIR": os.path.join(
         os.path.expanduser("~"),

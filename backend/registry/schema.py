@@ -1,254 +1,13 @@
-import requests
-from typing_extensions import Annotated
+import re
 from datetime import date as dt
 from typing import Optional, Literal, List
-from pydantic import validator, model_validator, field_validator
+from pydantic import model_validator, field_validator
 
-import pandas as pd
-from ninja import Field, FilterSchema
+from ninja import Field
 from ninja.errors import HttpError
 
 from main.schema import Schema
-from users.schema import UserSchema
-from vis.brasil.models import State, City
 from vis.schema import PredictionScore
-from .models import Model
-
-
-class ImplementationLanguageSchema(Schema):
-    language: Annotated[
-        str,
-        Field(
-            default="python",
-            max_length=50,
-            description="Implementation Language",
-        ),
-    ]
-
-
-class AuthorSchema(Schema):
-    user: UserSchema
-    institution: Annotated[
-        Optional[str],
-        Field(default="", max_length=100, description="Author's association"),
-    ]
-
-
-class AuthorFilterSchema(FilterSchema):
-    """url/?paremeters to search for Authors"""
-
-    name: Annotated[
-        str,
-        Field(
-            None, q="user__name__icontains", description="Author's full name"
-        ),
-    ]
-    institution: Annotated[
-        str,
-        Field(
-            default=None,
-            q="institution__icontains",
-            max_length=100,
-            description="Author's association",
-        ),
-    ]
-    username: Annotated[
-        str,
-        Field(
-            default=None,
-            q="user__username__icontains",
-            description="Author's username",
-        ),
-    ]
-
-
-class TagSchema(Schema):
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            description="Tag ID",
-            gt=0,
-        ),
-    ]
-    name: str
-    color: str
-
-    @validator("id", pre=True, always=True)
-    def convert_id(cls, value):
-        if value is not None:
-            try:
-                return int(value)
-            except ValueError:
-                raise ValueError("Tag ID must be an integer")
-        return value
-
-
-class ModelSchema(Schema):
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            description="Model ID",
-            gt=0,
-        ),
-    ]
-    name: Annotated[str, Field(description="Model name")]
-    description: Annotated[
-        str,
-        Field(
-            description="Model description",
-            max_length=500,
-        ),
-    ]
-    author: AuthorSchema
-    repository: Annotated[
-        str,
-        Field(
-            default="https://github.com/",
-            description="Model git repository",
-        ),
-    ]
-    implementation_language: ImplementationLanguageSchema
-    disease: Annotated[
-        Literal["dengue", "chikungunya", "zika"],
-        Field(default="dengue", description="Model for disease"),
-    ]
-    categorical: bool | None = None
-    spatial: bool | None = None
-    temporal: bool | None = None
-    adm_level: Annotated[
-        Literal[0, 1, 2, 3],
-        Field(
-            default=0,
-            description=(
-                "Administrative level. Country, State, Municipality and "
-                "SubMunicipality respectively"
-            ),
-        ),
-    ]
-    time_resolution: Annotated[
-        Literal["day", "week", "month", "year"],
-        Field(
-            default="week",
-            description=(
-                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
-            ),
-        ),
-    ]
-    sprint: Annotated[
-        bool,
-        Field(
-            default=False,
-            description="Model for Sprint 2024/25",
-        ),
-    ]
-
-
-class ModelFilterSchema(FilterSchema):
-    """url/?paremeters to search for Models"""
-
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="id__exact",
-            description="Model ID",
-            gt=0,
-        ),
-    ]
-    name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="name__icontains",
-            description="Model name",
-        ),
-    ]
-    author_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__user__name__icontains",
-            description="Model's Author full name",
-        ),
-    ]
-    author_username: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__user__username__icontains",
-            description="Model's Author username",
-        ),
-    ]
-    author_institution: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__institution__icontains",
-            description="Model's Author association",
-        ),
-    ]
-    repository: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="repository__icontains",
-            description="Model git repository",
-        ),
-    ]
-    implementation_language: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="implementation_language__language__iexact",
-            description="Model implementation language",
-        ),
-    ]
-    disease: Annotated[
-        Optional[Literal["dengue", "zika", "chikungunya"]],
-        Field(
-            default=None, q="disease__iexact", description="Model for disease"
-        ),
-    ]
-    adm_level: Annotated[
-        Optional[Literal[0, 1, 2, 3]],
-        Field(
-            default=None,
-            q="adm_level",
-            description=(
-                "Administrative level. Country, State, Municipality and "
-                "SubMunicipality respectively"
-            ),
-        ),
-    ]
-    temporal: Optional[bool] = Field(None, q="temporal")
-    spatial: Optional[bool] = Field(None, q="spatial")
-    categorical: Optional[bool] = Field(None, q="categorical")
-    time_resolution: Annotated[
-        Optional[Literal["day", "week", "month", "year"]],
-        Field(
-            default=None,
-            q="time_resolution__iexact",
-            description=(
-                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
-            ),
-        ),
-    ]
-    tags: Annotated[
-        Optional[List[int]],
-        Field(
-            default=None,
-            q="tags__id__in",
-            description="List of Model tags",
-        ),
-    ]
-    sprint: Annotated[
-        Optional[bool],
-        Field(
-            default=None, q="sprint", description="Model for Sprint 2024/25"
-        ),
-    ]
 
 
 class PredictionDataRowSchema(Schema):
@@ -276,110 +35,75 @@ class PredictionDataRowSchema(Schema):
             <= values.upper_90
             <= values.upper_95
         ):
-            raise ValueError("Prediction bounds are not in the correct order")
+            raise HttpError(
+                422, "Prediction bounds are not in the correct order"
+            )
         return values
 
 
 class PredictionIn(Schema):
-    repository: str
-    description: str = ""
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    published: bool = True
-    adm_0: str = "BRA"
-    adm_1: Optional[str] = None
-    adm_2: Optional[int] = None
-    adm_3: Optional[int] = None
+    """
+    test
+    """
+
+    repository: str = Field(
+        ...,
+        description="The full repository name in 'owner/name' format.",
+        examples="owner/repository-name",
+    )
+    description: str = Field(
+        "",
+        description="A brief description of this specific prediction.",
+    )
+    commit: str = Field(
+        ...,
+        description="The full 40-character commit hash",
+        examples="8843d7f92416211de9ebb963ff4ce28125932878",
+        pattern=r"^[0-9a-fA-F]{40}$",
+    )
+    predict_date: dt = Field(
+        ...,
+        description="The reference date for this prediction (YYYY-MM-DD).",
+        example="2023-10-25",
+    )
+    published: bool = Field(
+        True, description="Whether this prediction is visible to the public."
+    )
+    adm_0: str = Field("BRA", description="Country ISO code", examples="BRA")
+    adm_1: Optional[int] = Field(
+        None, description="State geocode", examples="33"
+    )
+    adm_2: Optional[int] = Field(
+        None, description="Municipality geocode", examples="3304557"
+    )
+    adm_3: Optional[int] = Field(None, description="Sub-municipality geocode")
     prediction: List[PredictionDataRowSchema]
+
+    @field_validator("repository")
+    @classmethod
+    def validate_repository(cls, v):
+        if "/" not in v:
+            raise HttpError(422, "`repository` format: 'owner/repository'")
+        return v
 
     @field_validator("description")
     @classmethod
     def validate_description(cls, v):
         if len(v) == 0:
-            raise HttpError(422, "Description too short")
+            raise HttpError(422, "`description` too short")
         if len(v) > 500:
-            raise HttpError(422, "Description too long. Max: 500 characters")
+            raise HttpError(422, "`description` too long. Max: 500 characters")
         return v
 
     @field_validator("commit")
     @classmethod
     def validate_commit(cls, v, values):
-        repository = Model.objects.get(pk=values.data.get("model")).repository
-        url = (
-            repository + f"commit/{v}"
-            if repository.endswith("/")
-            else repository + f"/commit/{v}"
-        )
-        try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 404:
-                raise HttpError(422, f"Failed to fetch commit: {url}")
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise HttpError(422, e)
-        return v
-
-    @field_validator("prediction")
-    @classmethod
-    def validate_prediction(cls, v):
-        if not v:
-            raise HttpError(422, "Empty prediction data")
-        try:
-            data = [row.dict() for row in v]
-            pd.DataFrame(data=data)
-        except Exception as e:
-            raise HttpError(422, f"Unprocessable prediction data. Error: {e}")
-        return v
+        if not re.fullmatch(r"^[0-9a-fA-F]{40}$", v):
+            raise HttpError(422, "`commit` must be a full 40-character hash.")
+        return v.lower()
 
     @model_validator(mode="before")
     def validate_adm_levels(cls, values):
-        try:
-            model = Model.objects.get(pk=values.model)
-        except Model.DoesNotExist:
-            raise HttpError(404, f"Model '{values.model}' not found")
-        adm_1 = values.adm_1
-        adm_2 = values.adm_2
-        # adm_3 = values.adm_3
-
-        if (
-            sum(
-                list(
-                    map(
-                        bool,
-                        [
-                            adm_1,
-                            adm_2,
-                        ],
-                    )
-                )
-            )
-            != 1
-        ):
-            raise ValueError(
-                "[only] one of `adm_1`, `adm_2` or `adm_3` param is required"
-            )
-
-        if adm_1:
-            adm_1 = adm_1.upper()
-            if adm_1 not in list(
-                State.objects.all().values_list("uf", flat=True)
-            ):
-                raise ValueError(f"unkown UF '{adm_1}'. Format: 'RJ'")
-
-        if adm_2:
-            if model.adm_level == 1:
-                raise ValueError(f"Model {model.id} ADM Level is 1")
-            try:
-                City.objects.get(geocode=adm_2)
-            except City.DoesNotExist:
-                raise ValueError(f"unkown geocode '{adm_2}'. Format: 3304557")
-
-        # if adm_3:
-        #     raise NotImplementedError(
-        #         "ADM 3 (Submunicipality) is not yet implemented. "
-        #         "Please contact the moderation"
-        #     )
-
         return values
 
 
@@ -546,3 +270,7 @@ class ModelPredictionOut(Schema):
 class RepositoryPermissions(Schema):
     is_owner: bool
     can_manage: bool
+
+
+class CreatePredictionOut(Schema):
+    id: int

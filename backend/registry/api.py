@@ -5,24 +5,23 @@ from urllib.parse import urlparse
 import httpx
 from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
-
-# from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     NotFoundSchema,
-    # ForbiddenSchema,
-    # UnprocessableContentSchema,
-    # InternalErrorSchema,
+    ForbiddenSchema,
+    UnprocessableContentSchema,
+    InternalErrorSchema,
 )
 from ninja import Router, Query
 from ninja.decorators import decorate_view
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
 
-# from .utils import calling_via_swagger
+from .utils import calling_via_swagger
 from . import schema as s
 from . import models as m
 
@@ -422,40 +421,161 @@ def repository_permissions(request, owner: str, repository: str):
     return {"is_owner": is_owner, "can_manage": can_manage}
 
 
-#
-#
-# @router.post(
-#     "/predictions/",
-#     response={
-#         201: s.PredictionSchema,
-#         403: ForbiddenSchema,
-#         404: NotFoundSchema,
-#         422: UnprocessableContentSchema,
-#         500: InternalErrorSchema,
-#     },
-#     auth=UidKeyAuth(),
-#     tags=["registry", "predictions"],
-# )
-# @decorate_view(csrf_exempt)
-# def create_prediction(request, payload: s.PredictionIn):
-#     try:
-#         model = Model.objects.get(pk=payload.model)
-#     except Model.DoesNotExist:
-#         return 404, {"message": f"Model '{payload.model}' not found"}
-#
-#     payload.model = model
-#
-#     validation_result = validate_prediction(payload)
-#
-#     # Returns the status code and the error message
-#     # if the validation fails or None if it succeeds
-#     if validation_result is not None:
-#         return validation_result
-#
-#     prediction = Prediction(**payload.dict())
-#
-#     if not calling_via_swagger(request):
-#         prediction.parse_metadata()
-#         prediction.save()
-#
-#     return 201, prediction
+@router.post(
+    "/predictions/",
+    response={
+        201: s.CreatePredictionOut,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+        422: UnprocessableContentSchema,
+        500: InternalErrorSchema,
+    },
+    auth=UidKeyAuth(),
+    tags=["registry", "predictions"],
+)
+@decorate_view(csrf_exempt)
+def create_prediction(request, payload: s.PredictionIn):
+    user = request.auth
+    repo_owner, repo_name = payload.repository.strip("/").split("/", 1)
+
+    model = (
+        m.RepositoryModel.objects.select_related(
+            "repository", "repository__owner", "repository__organization"
+        )
+        .filter(repository__name=repo_name)
+        .filter(
+            models.Q(repository__owner__username__iexact=repo_owner)
+            | models.Q(repository__organization__name__iexact=repo_owner)
+        )
+        .first()
+    )
+
+    if not model:
+        return 422, {
+            "message": f"Repository '{payload.repository}' not found."
+        }
+
+    repo = model.repository
+    has_permission = False
+
+    if repo.owner == user:
+        has_permission = True
+
+    elif repo.organization:
+        is_org_admin = m.OrganizationMembership.objects.filter(
+            organization=repo.organization,
+            user=user,
+            role__in=[
+                m.OrganizationMembership.Roles.OWNER,
+                m.OrganizationMembership.Roles.MAINTAINER,
+            ],
+        ).exists()
+        if is_org_admin:
+            has_permission = True
+
+    if not has_permission:
+        is_contributor = m.RepositoryContributor.objects.filter(
+            repository=repo,
+            user=user,
+            permission__in=[
+                m.RepositoryContributor.Permissions.ADMIN,
+                m.RepositoryContributor.Permissions.WRITE,
+            ],
+        ).exists()
+        if is_contributor:
+            has_permission = True
+
+    if not has_permission:
+        return (
+            403,
+            {
+                "message": "You do not have write permission for this repository."
+            },
+        )
+
+    adms = {"adm0": None, "adm1": None, "adm2": None, "adm3": None}
+
+    adm_config = {
+        m.RepositoryModel.AdministrativeLevel.NATIONAL: (
+            m.Adm0,
+            "adm_0",
+            "adm0",
+        ),
+        m.RepositoryModel.AdministrativeLevel.STATE: (m.Adm1, "adm_1", "adm1"),
+        m.RepositoryModel.AdministrativeLevel.MUNICIPALITY: (
+            m.Adm2,
+            "adm_2",
+            "adm2",
+        ),
+        m.RepositoryModel.AdministrativeLevel.SUB_MUNICIPALITY: (
+            m.Adm3,
+            "adm_3",
+            "adm3",
+        ),
+    }
+
+    config = adm_config.get(model.adm_level)
+
+    if not config:
+        return 500, {
+            "message": (
+                "Server Error: Unknown administrative "
+                f"level find in Model '{model.adm_level}'"
+            )
+        }
+
+    Adm, payload_adm, db_field = config
+    geocode = getattr(payload, payload_adm)
+
+    if not geocode:
+        return 422, {
+            "message": (
+                f"Model requires administrative level {model.adm_level},"
+                f" but '{payload_adm}' is missing or empty."
+            )
+        }
+
+    try:
+        adms[db_field] = Adm.objects.get(pk=geocode)
+    except Adm.DoesNotExist:
+        return 422, {
+            "message": (
+                f"Administrative unit '{geocode}' "
+                f"not found in {Adm._meta.verbose_name}."
+            )
+        }
+
+    prediction = m.QuantitativePrediction(
+        model=model,
+        commit=payload.commit,
+        description=payload.description,
+        predict_date=payload.predict_date,
+        published=payload.published,
+        **adms,
+    )
+
+    rows = [
+        m.QuantitativePredictionRow(
+            prediction=prediction,
+            date=row.date,
+            pred=row.pred,
+            lower_95=row.lower_95,
+            lower_90=row.lower_90,
+            lower_80=row.lower_80,
+            lower_50=row.lower_50,
+            upper_50=row.upper_50,
+            upper_80=row.upper_80,
+            upper_90=row.upper_90,
+            upper_95=row.upper_95,
+        )
+        for row in payload.prediction
+    ]
+
+    if not calling_via_swagger(request):
+        prediction.parse_metadata()
+        prediction.save()
+        m.QuantitativePredictionRow.objects.bulk_create(rows)
+    else:
+        prediction.id = 0
+
+    return 201, {"id": prediction.id}
