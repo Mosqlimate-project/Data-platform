@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.0.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.1...2.0.2) (2026-01-31)
+
+
+### Bug Fixes
+
+* **models:** include back the endpoints for uploading models & predictions ([#384](https://github.com/Mosqlimate-project/Data-platform/issues/384)) ([f5a8b07](https://github.com/Mosqlimate-project/Data-platform/commit/f5a8b07b07449a941a0d2f69bad955500c7acb45))
+
 ## [2.0.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.0...2.0.1) (2026-01-29)
 
 
