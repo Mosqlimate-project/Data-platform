@@ -78,7 +78,9 @@ class UidKeyAuth(APIKeyHeader):
             uid, key = str(uidkey).split(":")
 
         try:
-            return User.objects.get(username=uid, uuid=key)
+            user = User.objects.get(username=uid, uuid=key)
+            request.user = user
+            return user
         except User.DoesNotExist:
             pass
 

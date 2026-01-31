@@ -83,17 +83,13 @@
     "subtitle": "A collection of our academic contributions, datasets, and software developments.",
     "youtube_channel": "YouTube Channel",
     "view_source": "View Source",
-    "abstracts": {
-      "title": "Abstracts published in conference proceedings"
-    },
-    "articles": {
-      "title": "Publications"
-    },
-    "preprints": {
-      "title": "Preprints"
-    },
-    "theses": {
-      "title": "Theses and Dissertations"
+    "type": {
+      "article": "Journal Article",
+      "preprint": "Preprint",
+      "report": "Technical Report",
+      "thesis": "Thesis/Dissertation",
+      "presentation": "Presentation",
+      "abstract": "Conference Abstract"
     },
     "datasets": {
       "title": "Datasets"
@@ -104,7 +100,7 @@
     "seminars": {
       "title": "Seminars & Webinars",
       "webinar": {
-        "title": "Webinar: Preparing for the 2025 dengue season",
+        "title": "IMDC Webinars",
         "link_text": "Watch Recording"
       },
       "series_title": "2025 Monthly Seminar Series"
@@ -116,22 +112,39 @@
       "araujo_epi_2024": "ARAUJO, E. C.; CARVALHO, L. M. ; VACARO, L. B. ; BASTOS, M. M. ; BASTOS, L. S. ; LANA, R. M. ; CODECO, C. T. ; ALMEIDA, I. F. ; FREITAS, L. P. ; SEGUNDO, Z. R. C. ; COELHO, F. C. . MOSQLIMATE: A PLATFORM FOR COMPARING ARBOVIRAL DISEASES FORECASTING MODELS. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
       "segundo_epi_2024": "SEGUNDO, Zuilho Rodrigues Castro , 2025, MODELOS DE DECISÃO PARA TESTAGEM DE CASOS SUSPEITOS DE ARBOVIROSES POR RL. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
       "magalhaes_eid_2024": "Magalhaes, T., Coelho, F. C., Souza, W. V., Viana, I. F., Jaenisch, T., Marques, E. T., ... & Braga, C. (2024). Effect of Sexual Partnerships on Zika Virus Transmission in Virus-Endemic Region, Northeast Brazil. Emerging Infectious Diseases, 30(12), 2559.",
-      "araujo_rsos_2025": "Araujo, E. C., Codeço, C. T., Loch, S., Vacaro, L. B., Freitas, L. P., Lana, R. M., ... & Coelho, F. C. (2025). Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, 12(5), 241261.",
-      "ganem_arxiv_2024": "Ganem, F., Vacaro, L. B., Araujo, E. C., Alves, L. D., Bastos, L., Carvalho, L. M., ... & Coelho, F. C. (2024). Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv preprint arXiv:2410.18945.",
-      "bastos_arxiv_2024": "Bastos, M. M., Carvalho, L. M., Araujo, E. C., & Coelho, F. C. (2024). Long-term predictive models for mosquito borne diseases: a narrative review. arXiv preprint arXiv:2411.13680.",
-      "araujo_medrxiv_2025": "Araujo, E. C., Carvalho, L. M., Ganem, F., Vacaro, L. B., Bastos, L. S., Freitas, L. P., ... & Coelho, F. C. (2025). Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil. medRxiv, 2025-05.",
-      "freitas_medrxiv_2025": "Picinini Freitas, L., Ferreira, D. A. D. C., Martins Lana, R., Câmara, D. C. P., Portella, T. P., Carvalho, M. S., ... & Bastos, L. S. (2025). A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. medRxiv, 2025-06.",
+      "araujo_rsos_2025": "ARAUJO, E. C.; CODEÇO, C. T.; LOCH, S.; VACARO, L. B.; FREITAS, L. P.; LANA, R. M.; et al.; COELHO, F. C. Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, v. 12, n. 5, p. 241261, 2025.",
+      "ganem_arxiv_2024": "GANEM, F.; VACARO, L. B.; ARAUJO, E. C.; ALVES, L. D.; BASTOS, L.; CARVALHO, L. M.; et al.; COELHO, F. C. Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv, 2024.",
+      "bastos_arxiv_2024": "BASTOS, M. M.; CARVALHO, L. M.; ARAUJO, E. C.; COELHO, F. C. Long-term predictive models for mosquito borne diseases: a narrative review. arXiv, 2024.",
+      "araujo_medrxiv_2025": "ARAUJO, E. C.; CARVALHO, L. M.; GANEM, F.; VACARO, L. B.; BASTOS, L. S.; FREITAS, L. P.; et al.; COELHO, F. C. Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil. medRxiv, 2025.",
+      "freitas_idm_2025": "FREITAS, L. P.; CRUZ FERREIRA, D. A.; LANA, R. M. CÂMARA, D. C. P.; PORTELLA, T. P.; CARVALHO, M. S.; et al.; BASTOS, L. S. A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. Infectious Disease Modelling, 2025.",
       "santos_thesis_2024": "Santos, J. P. S. dos. (2024). Analyzing dengue epidemic dynamics using physics informed neural networks [Doctoral dissertation, Fundação Getulio Vargas]. Fundação Getulio Vargas EMAp.",
+      "coelho_imdc_report_2025": "COELHO, F. C.; CODEÇO, C. T.; ARAUJO, E. C.; GANEM, F. S. et al. Relatório IMDC 2025. Zenodo, 2025.",
+      "codeco_infodengue_2024": "CODEÇO, C. T.; COELHO, F. C.; GANEM, F. S.; ARAUJO, E. C. Relatório Técnico Infodengue. Zenodo, 2024.",
+      "almeida_thesis_2025": "ALMEIDA, Iasmim Ferreira de. Dengue e chikungunya nos municípios brasileiros: padrões de transmissão e seus determinantes, 2010-2024. 2025. 174 f. Tese (Doutorado em Epidemiologia em Saúde Pública) - Escola Nacional de Saúde Pública Sergio Arouca, Fundação Oswaldo Cruz, Rio de Janeiro, 2025.",
+      "carvalho_pres_2025": "CARVALHO, Luiz Max. Data integration and predictive ensembles for arbovirus surveillance in Brazil. Apresentação no âmbito de projeto internacional em colaboração com a University of Oxford, coordenação do WP2, 2025.",
+      "coelho_pres_2025": "COELHO, Flávio C. Integração de dados e modelagem estatística para vigilância epidemiológica. Seminário apresentado no Seminário de Estatística da Universidade Federal do Rio de Janeiro (UFRJ), Rio de Janeiro, abr. 2025.",
+      "laiate_cnmac_2025": "LAIATE, Beatriz; COELHO, Flávio Codeço; SOUZA, Julie. A computational approach to Bayesian inference of interval-valued probabilities: application to dengue fever cases prediction. In: PROCEEDING SERIES OF THE BRAZILIAN SOCIETY OF COMPUTATIONAL AND APPLIED MATHEMATICS, 2025.",
+      "coelho_evigilancia_2023": "COELHO, Flávio C. Mosqlimate: plataforma de vigilância climática aplicada à saúde. Apresentação realizada no E-Vigilância, nov. 2023.",
+      "araujo_episcanner_2024": "ARAUJO, E. C.; CARVALHO, L. M.; CODEÇO, C. T.; LANA, R. M.; ALMEIDA, I. F.; FREITAS, L. P.; VACARO, L. B.; BASTOS, L. S.; BASTOS, M. M.; SEGUNDO, Z. R. C.; COELHO, F. C. EPISCANNER: real-time epidemic scanner. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
+      "araujo_mosqlimate_2024": "ARAUJO, E. C.; CARVALHO, L. M.; VACARO, L. B.; BASTOS, M. M.; BASTOS, L. S.; LANA, R. M.; CODEÇO, C. T.; ALMEIDA, I. F.; FREITAS, L. P.; SEGUNDO, Z. R. C.; COELHO, F. C. Mosqlimate: a platform for comparing arboviral diseases forecasting models. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
       "dataset_egg": "Aedes aegypti Egg Image Data Set",
       "dataset_sprint": "Sprint-dataset 2024",
-      "dataset_dengue": "Dengue: Padrões de dinâmica de transmissão nos municípios do Brasil, 2010-2023",
+      "dataset_dengue": "Dengue: padrões de dinâmica de transmissão nos municípios do Brasil, 2010–2023",
+      "dataset_sprint_template": "Dengue Forecasting Sprint template",
       "soft_platform": "Mosqlimate data platform",
-      "soft_client": "Mosqlimate Client library",
+      "soft_mosqlient": "Mosqlimate Client library",
       "soft_episcanner": "Episcanner: Real-time Epidemic Scanner",
-      "sem_julie": "Analyzing Dengue Epidemic Dynamics Using Physics-Informed Neural Networks",
+      "sem_julie": "Analyzing dengue epidemic dynamics using physics-informed neural networks",
       "sem_caio": "Modelando os mosquitos e a dinâmica da dengue em Foz do Iguaçu",
-      "sem_davide": "Data-Driven Modelling of Vector-Borne Diseases",
-      "sem_megan": "Social vulnerability in epidemic mathematical modelling"
+      "sem_davide": "Data-driven modelling of vector-borne diseases",
+      "sem_megan": "Social vulnerability in epidemic mathematical modelling",
+      "sem_eduardo": "Investigação numérica da propagação de doenças transmitidas por vetores via modelo matemático espaço-tempo contínuo com difusão fracionária",
+      "sem_paulo": "Current and future directions in dengue modeling: a renewal equation for Aedes aegypti abundance",
+      "sem_chloe": "Compound and cascading effects of climatic extremes on dengue risk: an interaction modelling framework for epidemic preparedness in Barbados and Brazil",
+      "web_tghn": "Preparación para la temporada de dengue 2025: perspectivas de los modelos predictivos",
+      "web_imdc_res1": "Webinar for the official announcement of the results of the validation of the second IMDC",
+      "web_imdc_res2": "Webinar with the official results and predictions for the upcoming season",
+      "web_imdc_2026": "Dengue forecasts for 2026: results of the 2nd InfoDengue–Mosqlimate Challenge"
     }
   },
   "about": {

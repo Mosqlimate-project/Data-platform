@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Info, FileText, LineChart } from "lucide-react";
+// import { Info, FileText, LineChart } from "lucide-react";
 
 interface Level {
   id: string;
@@ -135,34 +135,34 @@ export function DashboardSidebar({ sections }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="p-4 bg-bg/50">
-        <h3 className="text-xs text-secondary font-semibold uppercase tracking-wider mb-3 px-2">
-          More Info
-        </h3>
-        <div className="space-y-1">
-          <Link
-            href="/dashboard/details"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors"
-          >
-            <FileText size={18} />
-            Models
-          </Link>
-          <Link
-            href="/dashboard/predictions"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors"
-          >
-            <LineChart size={18} />
-            Predictions
-          </Link>
-          <Link
-            href="/dashboard/about"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors"
-          >
-            <Info size={18} />
-            About
-          </Link>
-        </div>
-      </div>
+      {/* <div className="p-4 bg-bg/50"> */}
+      {/*   <h3 className="text-xs text-secondary font-semibold uppercase tracking-wider mb-3 px-2"> */}
+      {/*     More Info */}
+      {/*   </h3> */}
+      {/*   <div className="space-y-1"> */}
+      {/*     <Link */}
+      {/*       href="/dashboard/details" */}
+      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
+      {/*     > */}
+      {/*       <FileText size={18} /> */}
+      {/*       Models */}
+      {/*     </Link> */}
+      {/*     <Link */}
+      {/*       href="/dashboard/predictions" */}
+      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
+      {/*     > */}
+      {/*       <LineChart size={18} /> */}
+      {/*       Predictions */}
+      {/*     </Link> */}
+      {/*     <Link */}
+      {/*       href="/dashboard/about" */}
+      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
+      {/*     > */}
+      {/*       <Info size={18} /> */}
+      {/*       About */}
+      {/*     </Link> */}
+      {/*   </div> */}
+      {/* </div> */}
     </div>
   );
 }

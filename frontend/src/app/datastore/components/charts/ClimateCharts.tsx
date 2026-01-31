@@ -22,7 +22,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
     async function load() {
       try {
         const [chartRes, cityRes] = await Promise.all([
-          fetch(`/api/datastore/charts/municipality/accumulated-waterfall/?${query}`),
+          fetch(`/api/datastore/charts/climate/accumulated-waterfall/?${query}`),
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 
@@ -46,12 +46,6 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
         const dates = data.map((d: any) => d.date.split(" ")[0]);
         const totalPrecip = data.map((d: any) => d.precip_tot);
         const meanPrecip = data.map((d: any) => d.precip_med);
-
-        const objDates = data.map((d: any) => new Date(d.date)).sort((a: any, b: any) => a.getTime() - b.getTime());
-        const diffWeeks = objDates.length > 1
-          ? (objDates[objDates.length - 1].getTime() - objDates[0].getTime()) / (1000 * 60 * 60 * 24 * 7)
-          : 0;
-        const showMonth = diffWeeks > 6;
 
         setOption({
           title: {
@@ -82,31 +76,15 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             containLabel: true
           },
           xAxis: {
-            name: showMonth ? "Month" : "Epidemiological Week",
+            name: "Date",
             nameLocation: "middle",
             nameGap: 30,
             nameTextStyle: { fontSize: 12, fontWeight: "bold" },
             type: "category",
             data: dates,
             axisLabel: {
-              interval: 0,
-              formatter: (value: string, index: number) => {
-                if (showMonth) {
-                  const month = new Date(value + "T00:00:00").toLocaleString("en-US", { month: "short" });
-                  const prevMonth = index > 0
-                    ? new Date(dates[index - 1] + "T00:00:00").toLocaleString("en-US", { month: "short" })
-                    : null;
-                  const year = value.split("-")[0];
-                  const prevYear = index > 0 ? dates[index - 1].split("-")[0] : null;
-                  return month !== prevMonth ? (year !== prevYear ? `${month}\n${year}` : month) : "";
-                } else {
-                  return index === 0 || data[index].epiweek !== data[index - 1].epiweek
-                    ? data[index].epiweek
-                    : "";
-                }
-              },
               fontSize: 11,
-              margin: 12,
+              formatter: (value: string) => value
             },
           },
           yAxis: {
@@ -167,7 +145,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
     async function load() {
       try {
         const [chartRes, cityRes] = await Promise.all([
-          fetch(`/api/datastore/charts/municipality/temperature/?${query}`),
+          fetch(`/api/datastore/charts/climate/temperature/?${query}`),
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 
@@ -255,7 +233,7 @@ export function AirChart({ geocode, start, end }: ChartProps) {
     async function load() {
       try {
         const [chartRes, cityRes] = await Promise.all([
-          fetch(`/api/datastore/charts/municipality/umid-pressao-med/?${query}`),
+          fetch(`/api/datastore/charts/climate/umid-pressao-med/?${query}`),
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 

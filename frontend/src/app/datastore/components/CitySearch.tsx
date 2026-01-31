@@ -98,13 +98,13 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
       </div>
 
       {isOpen && results.length > 0 && (
-        <div className="bg-bg absolute z-30 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
-          <ul className="max-h-60 overflow-auto p-1">
+        <div className="absolute z-10 mt-1 w-full rounded-md border bg-bg text-popover-foreground shadow-lg outline-none animate-in fade-in-0 zoom-in-95 max-h-60 overflow-auto">
+          <ul className="p-1">
             {results.map((city) => (
               <li
                 key={city.geocode}
                 onClick={() => handleSelect(city)}
-                className="relative cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-white hover:text-accent-foreground"
+                className="relative cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground hover:text-white transition-colors"
               >
                 <div className="font-medium">{city.name}</div>
                 <div className="text-xs text-muted-foreground">
@@ -117,7 +117,7 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
       )}
 
       {isOpen && results.length === 0 && query.length >= 3 && !loading && (
-        <div className="bg-bg absolute z-40 mt-1 w-full p-2 text-sm text-muted-foreground bg-popover border rounded-md shadow-md text-center">
+        <div className="absolute z-10 mt-1 w-full p-2 text-sm text-muted-foreground bg-bg border rounded-md shadow-lg text-center">
           No cities found.
         </div>
       )}

@@ -988,7 +988,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                     <span>{p.start} - {p.end}</span>
                                     {p.sprint && (
                                       <span className="px-2 py-0.5 bg-gray-200 rounded-full text-[10px]">
-                                        Sprint {p.sprint}
+                                        IMDC {p.sprint}
                                       </span>
                                     )}
                                   </div>

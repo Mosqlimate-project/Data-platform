@@ -1,19 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import * as echarts from "echarts";
-
-interface InfodengueData {
-  data_iniSE: string;
-  SE: number;
-  casos: number;
-  casos_est: number;
-  casos_est_min: number;
-  casos_est_max: number;
-  Rt: number;
-  nivel: number;
-  tempmed: number;
-}
 
 interface ChartProps {
   geocode: string;
@@ -22,135 +10,213 @@ interface ChartProps {
   end: string;
 }
 
+interface DailyCaseData {
+  date: string;
+  cases: number;
+}
+
 function useChart(options: echarts.EChartsOption | null, loading: boolean) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
-    if (!chartRef.current) return;
-    chartInstance.current = echarts.init(chartRef.current);
+    if (chartRef.current && !chartInstance.current) {
+      chartInstance.current = echarts.init(chartRef.current);
 
-    const handleResize = () => chartInstance.current?.resize();
-    window.addEventListener("resize", handleResize);
+      const handleResize = () => chartInstance.current?.resize();
+      window.addEventListener("resize", handleResize);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chartInstance.current?.dispose();
-    };
-  }, []);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+  }, [options, loading]);
 
   useEffect(() => {
     if (!chartInstance.current) return;
+
     if (loading) {
       chartInstance.current.showLoading();
     } else {
       chartInstance.current.hideLoading();
-      if (options) chartInstance.current.setOption(options);
+      if (options) {
+        chartInstance.current.setOption(options, { notMerge: true }); // notMerge ensures clean update between cities
+        chartInstance.current.resize();
+      }
     }
   }, [loading, options]);
+
+  useEffect(() => {
+    return () => {
+      chartInstance.current?.dispose();
+      chartInstance.current = null;
+    };
+  }, []);
 
   return chartRef;
 }
 
-export function InfodengueSummary({ geocode, disease, start, end }: ChartProps) {
-  const [stats, setStats] = useState({ total: 0, maxRt: 0, currentLevel: 0 });
+const getDiseaseCode = (name: string) => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("dengue")) return "A90";
+  if (normalized.includes("zika")) return "A92.5";
+  if (normalized.includes("chik")) return "A92.0";
+  return "A90";
+};
+
+export function TotalCases({ geocode, disease, start, end }: ChartProps) {
+  const [totalCases, setTotalCases] = useState<number>(0);
 
   useEffect(() => {
     if (!geocode) return;
-    const query = new URLSearchParams({ geocode, disease, start, end, per_page: "1000" });
+    const query = new URLSearchParams({ geocode, disease, start, end });
 
-    fetch(`/api/datastore/infodengue/?${query}`)
-      .then(res => res.json())
-      .then((data: InfodengueData[]) => {
-        if (!data || data.length === 0) return;
-
-        const total = data.reduce((acc, curr) => acc + (curr.casos_est || 0), 0);
-        const maxRt = Math.max(...data.map(d => d.Rt));
-        const lastItem = data[data.length - 1];
-
-        setStats({
-          total: Math.round(total),
-          maxRt: parseFloat(maxRt.toFixed(2)),
-          currentLevel: lastItem.nivel
-        });
+    fetch(`/api/datastore/charts/infodengue/total-cases/?${query}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.total_cases !== undefined) {
+          setTotalCases(data.total_cases);
+        }
       })
       .catch(console.error);
   }, [geocode, disease, start, end]);
 
-  const levelColors = ["#E5E7EB", "#22c55e", "#eab308", "#f97316", "#ef4444"];
-  const levelNames = ["Unknown", "Green", "Yellow", "Orange", "Red"];
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div className="border rounded-md p-4 bg-card text-card-foreground shadow-sm">
-        <div className="text-sm opacity-70">Total Est. Cases</div>
-        <div className="text-3xl font-bold">{stats.total.toLocaleString()}</div>
-      </div>
-      <div className="border rounded-md p-4 bg-card text-card-foreground shadow-sm">
-        <div className="text-sm opacity-70">Max Rt (Period)</div>
-        <div className={`text-3xl font-bold ${stats.maxRt > 1 ? "text-red-500" : "text-green-500"}`}>
-          {stats.maxRt}
-        </div>
-      </div>
-      <div className="border rounded-md p-4 bg-card text-card-foreground shadow-sm flex flex-col justify-between"
-        style={{ borderRight: `6px solid ${levelColors[stats.currentLevel]}` }}>
-        <div className="text-sm opacity-70">Latest Alert Level</div>
-        <div className="text-2xl font-bold" style={{ color: levelColors[stats.currentLevel] }}>
-          Level {stats.currentLevel} - {levelNames[stats.currentLevel]}
-        </div>
+        <div className="text-sm opacity-70">Total Reported Cases</div>
+        <div className="text-3xl font-bold">{totalCases.toLocaleString()}</div>
       </div>
     </div>
   );
 }
 
-export function EpidemicCurveChart({ geocode, disease, start, end }: ChartProps) {
+export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!geocode) return;
+    if (!geocode || !disease || !start || !end) return;
+
     setLoading(true);
-    const query = new URLSearchParams({ geocode, disease, start, end, per_page: "1000" });
 
-    fetch(`/api/datastore/infodengue/?${query}`)
-      .then(res => res.json())
-      .then((data: InfodengueData[]) => {
-        if (!data.length) { setOption(null); return; }
+    const diseaseCode = getDiseaseCode(disease);
 
-        const dates = data.map(d => d.data_iniSE);
-        const casos = data.map(d => d.casos);
-        const casosEst = data.map(d => d.casos_est);
+    const params = new URLSearchParams({
+      sprint: "false",
+      disease: diseaseCode,
+      start: start,
+      end: end,
+      adm_level: "2",
+      adm_2: geocode,
+    });
+
+    fetch(`/api/vis/dashboard/cases/?${params}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
+      .then((data: DailyCaseData[]) => {
+        if (!data || data.length === 0) {
+          setOption(null);
+          return;
+        }
+
+        const sortedData = data.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        const dates = sortedData.map((d) => d.date);
+        const cases = sortedData.map((d) => d.cases);
 
         setOption({
-          title: { text: "Epidemic Curve (Reported vs Estimated)", left: "center" },
-          tooltip: { trigger: "axis" },
-          legend: { top: 30 },
-          grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-          xAxis: { type: "category", data: dates },
-          yAxis: { type: "value", name: "Cases" },
+          title: {
+            text: "Daily Cases",
+            left: "center",
+            textStyle: { fontSize: 14, fontWeight: "normal" },
+          },
+          tooltip: {
+            trigger: "axis",
+            formatter: (params: any) => {
+              const p = params[0];
+              const date = new Date(p.axisValue).toLocaleDateString();
+              return `${date}<br/><strong>${p.marker} ${p.seriesName}: ${p.value}</strong>`;
+            },
+          },
+          graphic: {
+            type: 'image',
+            top: 10,
+            right: 10,
+            z: 0,
+            bounding: 'raw',
+            style: {
+              image: '/watermark.png',
+              width: 100,
+              height: 100,
+              opacity: 0.3,
+            }
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            top: "40px",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            data: dates,
+            axisLabel: {
+              formatter: (value: string) => value.split("T")[0],
+            },
+          },
+          yAxis: {
+            type: "value",
+            name: "Cases",
+            splitLine: { show: true, lineStyle: { type: "dashed" } },
+          },
           series: [
             {
-              name: "Reported Cases",
-              type: "bar",
-              data: casos,
-              itemStyle: { color: "#93c5fd" }
-            },
-            {
-              name: "Estimated (Nowcast)",
+              name: "Cases",
               type: "line",
-              data: casosEst,
-              itemStyle: { color: "#2563eb" },
-              lineStyle: { type: "dashed" }
-            }
+              data: cases,
+              smooth: false,
+              showSymbol: false,
+              itemStyle: { color: "#3b82f6" },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(59, 130, 246, 0.5)" },
+                  { offset: 1, color: "rgba(59, 130, 246, 0.0)" },
+                ]),
+              },
+            },
           ],
-          dataZoom: [{ type: "inside" }, { type: "slider" }]
         });
+      })
+      .catch((err) => {
+        console.error(err);
+        setOption(null);
       })
       .finally(() => setLoading(false));
   }, [geocode, disease, start, end]);
 
   const chartRef = useChart(option, loading);
-  return <div ref={chartRef} style={{ width: "100%", height: "400px" }} />;
+
+  return (
+    <div className="w-full border rounded-md p-4 bg-card shadow-sm mt-6">
+      {!loading && !option ? (
+        <div className="h-[350px] flex items-center justify-center text-muted-foreground opacity-60 text-sm">
+          No data available for this period.
+        </div>
+      ) : (
+        <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+      )}
+    </div>
+  );
+}
+
+interface RtData {
+  data_iniSE: string;
+  Rt: number;
 }
 
 export function RtChart({ geocode, disease, start, end }: ChartProps) {
@@ -158,51 +224,134 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!geocode) return;
+    if (!geocode || !disease || !start || !end) return;
+
     setLoading(true);
-    const query = new URLSearchParams({ geocode, disease, start, end, per_page: "1000" });
 
-    fetch(`/api/datastore/infodengue/?${query}`)
-      .then(res => res.json())
-      .then((data: InfodengueData[]) => {
-        if (!data.length) { setOption(null); return; }
+    const query = new URLSearchParams({ geocode, disease, start, end });
 
-        const dates = data.map(d => d.data_iniSE);
-        const rt = data.map(d => d.Rt);
+    fetch(`/api/datastore/charts/infodengue/rt/?${query}`)
+      .then((res) => res.json())
+      .then((data: RtData[]) => {
+        if (!data || data.length === 0) {
+          setOption(null);
+          return;
+        }
+
+        const sortedData = data.sort(
+          (a, b) => new Date(a.data_iniSE).getTime() - new Date(b.data_iniSE).getTime()
+        );
+        const dates = sortedData.map((d) => d.data_iniSE);
+        const rtValues = sortedData.map((d) => d.Rt);
 
         setOption({
-          title: { text: "Effective Reproductive Number (Rt)", left: "center" },
-          tooltip: { trigger: "axis" },
-          grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-          xAxis: { type: "category", data: dates },
+          title: {
+            text: "Effective Reproductive Number (Rt)",
+            left: "center",
+            textStyle: { fontSize: 14, fontWeight: "normal" },
+          },
+          tooltip: {
+            trigger: "axis",
+            formatter: (params: any) => {
+              const p = params[0];
+              const date = new Date(p.axisValue).toLocaleDateString();
+              const val = Number(p.value);
+              const color = val > 1 ? "#ef4444" : "#22c55e";
+              return `${date}<br/><strong>Rt: ${val.toFixed(2)}</strong>`;
+            },
+          },
+          graphic: {
+            type: 'image',
+            top: 10,
+            right: 10,
+            z: 0,
+            bounding: 'raw',
+            style: {
+              image: '/watermark.png',
+              width: 100,
+              height: 100,
+              opacity: 0.3,
+            }
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            top: "50px",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            data: dates,
+            axisLabel: {
+              formatter: (value: string) => value.split("T")[0],
+            },
+          },
           yAxis: {
             type: "value",
             name: "Rt",
+            splitLine: { show: true, lineStyle: { type: "dashed" } },
+            min: 0,
           },
           visualMap: {
             show: false,
-            pieces: [{ gt: 1, color: "#ef4444" }, { lte: 1, color: "#22c55e" }],
-            outOfRange: { color: "grey" }
+            pieces: [
+              { gt: 0, lte: 1, color: "#22c55e" },
+              { gt: 1, color: "#ef4444" },
+            ],
+            outOfRange: {
+              color: "#999",
+            },
           },
           series: [
             {
               name: "Rt",
               type: "line",
-              data: rt,
+              data: rtValues,
+              smooth: true,
+              showSymbol: false,
               markLine: {
+                silent: true,
                 symbol: "none",
-                label: { formatter: "Threshold (1.0)" },
-                data: [{ yAxis: 1, name: "Threshold" }],
-                lineStyle: { color: "#333", type: "dashed", width: 2 }
-              }
-            }
+                lineStyle: {
+                  color: "#333",
+                  type: "dashed",
+                  width: 1,
+                },
+                label: {
+                  position: "end",
+                  formatter: "Threshold (1.0)",
+                },
+                data: [{ yAxis: 1.0 }],
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(150, 150, 150, 0.2)" },
+                  { offset: 1, color: "rgba(150, 150, 150, 0.0)" },
+                ]),
+              },
+            },
           ],
-          dataZoom: [{ type: "inside" }, { type: "slider" }]
         });
+      })
+      .catch((err) => {
+        console.error(err);
+        setOption(null);
       })
       .finally(() => setLoading(false));
   }, [geocode, disease, start, end]);
 
   const chartRef = useChart(option, loading);
-  return <div ref={chartRef} style={{ width: "100%", height: "400px" }} />;
+
+  return (
+    <div className="w-full border rounded-md p-4 bg-card shadow-sm mt-6">
+      {!loading && !option ? (
+        <div className="h-[350px] flex items-center justify-center text-muted-foreground opacity-60 text-sm">
+          No Rt data available for this period.
+        </div>
+      ) : (
+        <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+      )}
+    </div>
+  );
 }

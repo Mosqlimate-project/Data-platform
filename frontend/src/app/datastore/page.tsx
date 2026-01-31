@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getEndpoints } from "./data";
-import NetworkBackground from "@/components/NetworkBackground";
 import { ClimateView } from "./views/ClimateView";
 import { InfodengueView } from "./views/InfodengueView";
 import { ContaovosView } from "./views/ContaovosView";
@@ -32,7 +31,6 @@ export default function DatastorePage() {
 
   return (
     <>
-      <NetworkBackground />
       <section className="md:p-8 md:flex md:flex-col md:gap-8 md:max-w-[1800px] md:w-full">
         <h1 className="text-2xl font-bold text-[var(--color-text)]">Datastore</h1>
 

@@ -2,7 +2,6 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import Image from "next/image";
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -10,7 +9,6 @@ import clsx from 'clsx';
 export default function Footer() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
   useEffect(() => setMounted(true), []);
@@ -20,8 +18,7 @@ export default function Footer() {
   return (
     <footer
       className={clsx(
-        "z-20 border-t border-border w-full text-[var(--color-text)] transition-colors",
-        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-[var(--color-bg)]"
+        "z-20 border-t border-border w-full text-[var(--color-text)] transition-colors bg-bg",
       )}
     >
       <div className="max-w-7xl mx-auto px-6 py-12">
