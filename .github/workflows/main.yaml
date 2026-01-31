@@ -60,15 +60,10 @@ jobs:
         pre-commit install
         pre-commit run --all-files
 
-    - name: Env vars
+    - name: Start containers
       run: |
         python contrib/scripts/do_dotenv.py
         python contrib/scripts/do_psqlconf.py
-
-    - name: Start containers
-      run: |
-        export BACKEND_PORT=8042
-        export MKDOCS_PORT=8043
         docker network create infodengue-dev_infodengue
         sugar compose up --options -d
 

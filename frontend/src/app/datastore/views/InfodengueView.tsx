@@ -7,7 +7,7 @@ import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
-import { TotalCases, DailyCasesChart } from "../components/charts/InfodengueCharts";
+import { TotalCases, DailyCasesChart, RtChart } from "../components/charts/InfodengueCharts";
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -253,6 +253,14 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
       </div>
       <div className="flex flex-col gap-8 w-full">
         < DailyCasesChart
+          geocode={String(geocode)}
+          disease={disease}
+          start={startDate}
+          end={endDate}
+        />
+      </div>
+      <div className="flex flex-col gap-8 w-full">
+        < RtChart
           geocode={String(geocode)}
           disease={disease}
           start={startDate}

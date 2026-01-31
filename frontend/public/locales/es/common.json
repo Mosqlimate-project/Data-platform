@@ -126,7 +126,7 @@
       "dataset_sprint": "Sprint-dataset 2024",
       "dataset_dengue": "Dengue: Padrões de dinâmica de transmissão nos municípios do Brasil, 2010-2023",
       "soft_platform": "Mosqlimate data platform",
-      "soft_client": "Mosqlimate Client library",
+      "soft_mosqlient": "Mosqlimate Client library",
       "soft_episcanner": "Episcanner: Real-time Epidemic Scanner",
       "sem_julie": "Analyzing Dengue Epidemic Dynamics Using Physics-Informed Neural Networks",
       "sem_caio": "Modelando os mosquitos e a dinâmica da dengue em Foz do Iguaçu",

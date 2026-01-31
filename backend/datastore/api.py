@@ -459,6 +459,37 @@ def get_episcanner(
 
 
 @router.get(
+    "/charts/infodengue/rt/",
+    auth=UidKeyAuth(),
+    tags=["datastore", "infodengue", "charts"],
+    include_in_schema=False,
+)
+def charts_infodengue_rt(
+    request,
+    disease: str,
+    geocode: int,
+    start: datetime.date,
+    end: datetime.date,
+):
+    qs = get_infodengue_queryset(disease)
+
+    if qs is None:
+        return 404, {"message": "Unknown disease"}
+
+    data = (
+        qs.filter(
+            municipio_geocodigo=geocode,
+            data_iniSE__gte=start,
+            data_iniSE__lte=end,
+        )
+        .values("data_iniSE", "Rt")
+        .order_by("data_iniSE")
+    )
+
+    return list(data)
+
+
+@router.get(
     "/charts/infodengue/total-cases/",
     auth=UidKeyAuth(),
     tags=["datastore", "infodengue", "charts"],

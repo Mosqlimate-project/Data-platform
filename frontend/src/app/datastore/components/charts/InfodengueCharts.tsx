@@ -213,3 +213,145 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
     </div>
   );
 }
+
+interface RtData {
+  data_iniSE: string;
+  Rt: number;
+}
+
+export function RtChart({ geocode, disease, start, end }: ChartProps) {
+  const [option, setOption] = useState<echarts.EChartsOption | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!geocode || !disease || !start || !end) return;
+
+    setLoading(true);
+
+    const query = new URLSearchParams({ geocode, disease, start, end });
+
+    fetch(`/api/datastore/charts/infodengue/rt/?${query}`)
+      .then((res) => res.json())
+      .then((data: RtData[]) => {
+        if (!data || data.length === 0) {
+          setOption(null);
+          return;
+        }
+
+        const sortedData = data.sort(
+          (a, b) => new Date(a.data_iniSE).getTime() - new Date(b.data_iniSE).getTime()
+        );
+        const dates = sortedData.map((d) => d.data_iniSE);
+        const rtValues = sortedData.map((d) => d.Rt);
+
+        setOption({
+          title: {
+            text: "Effective Reproductive Number (Rt)",
+            left: "center",
+            textStyle: { fontSize: 14, fontWeight: "normal" },
+          },
+          tooltip: {
+            trigger: "axis",
+            formatter: (params: any) => {
+              const p = params[0];
+              const date = new Date(p.axisValue).toLocaleDateString();
+              const val = Number(p.value);
+              const color = val > 1 ? "#ef4444" : "#22c55e";
+              return `${date}<br/><strong>Rt: ${val.toFixed(2)}</strong>`;
+            },
+          },
+          graphic: {
+            type: 'image',
+            top: 10,
+            right: 10,
+            z: 0,
+            bounding: 'raw',
+            style: {
+              image: '/watermark.png',
+              width: 100,
+              height: 100,
+              opacity: 0.3,
+            }
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            top: "50px",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            data: dates,
+            axisLabel: {
+              formatter: (value: string) => value.split("T")[0],
+            },
+          },
+          yAxis: {
+            type: "value",
+            name: "Rt",
+            splitLine: { show: true, lineStyle: { type: "dashed" } },
+            min: 0,
+          },
+          visualMap: {
+            show: false,
+            pieces: [
+              { gt: 0, lte: 1, color: "#22c55e" },
+              { gt: 1, color: "#ef4444" },
+            ],
+            outOfRange: {
+              color: "#999",
+            },
+          },
+          series: [
+            {
+              name: "Rt",
+              type: "line",
+              data: rtValues,
+              smooth: true,
+              showSymbol: false,
+              markLine: {
+                silent: true,
+                symbol: "none",
+                lineStyle: {
+                  color: "#333",
+                  type: "dashed",
+                  width: 1,
+                },
+                label: {
+                  position: "end",
+                  formatter: "Threshold (1.0)",
+                },
+                data: [{ yAxis: 1.0 }],
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(150, 150, 150, 0.2)" },
+                  { offset: 1, color: "rgba(150, 150, 150, 0.0)" },
+                ]),
+              },
+            },
+          ],
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setOption(null);
+      })
+      .finally(() => setLoading(false));
+  }, [geocode, disease, start, end]);
+
+  const chartRef = useChart(option, loading);
+
+  return (
+    <div className="w-full border rounded-md p-4 bg-card shadow-sm mt-6">
+      {!loading && !option ? (
+        <div className="h-[350px] flex items-center justify-center text-muted-foreground opacity-60 text-sm">
+          No Rt data available for this period.
+        </div>
+      ) : (
+        <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+      )}
+    </div>
+  );
+}
