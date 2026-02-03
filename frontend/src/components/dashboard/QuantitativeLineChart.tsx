@@ -53,14 +53,20 @@ export const LineChart: React.FC<ChartProps> = ({
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
 
+  const hasObservedData = useMemo(() => {
+    return data.data && data.data.length > 0 && data.data.some((v) => v !== null);
+  }, [data.data]);
+
   const mainLabels = useMemo(() => {
     const uniqueDates = new Set<string>();
-    data.labels.forEach((d) => uniqueDates.add(formatDate(d)));
+    if (hasObservedData) {
+      data.labels.forEach((d) => uniqueDates.add(formatDate(d)));
+    }
     predictions.forEach((p) => {
       p.data.labels.forEach((d) => uniqueDates.add(formatDate(d)));
     });
     return Array.from(uniqueDates).sort();
-  }, [data.labels, predictions]);
+  }, [data.labels, predictions, hasObservedData]);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -72,39 +78,42 @@ export const LineChart: React.FC<ChartProps> = ({
     const chartInstance = instanceRef.current;
     const seriesOptions: echarts.SeriesOption[] = [];
     const intervalDataCache: Record<string, { l90: (number | null)[], u90: (number | null)[], l50: (number | null)[], u50: (number | null)[] }> = {};
+    const legendData: any[] = [];
+    const legendSelected: Record<string, boolean> = {};
 
-    const dataMap = new Map<string, number | null>();
-    data.labels.forEach((date, i) => {
-      dataMap.set(formatDate(date), data.data[i]);
-    });
+    if (hasObservedData) {
+      const dataMap = new Map<string, number | null>();
+      data.labels.forEach((date, i) => {
+        dataMap.set(formatDate(date), data.data[i]);
+      });
 
-    const alignedData = mainLabels.map(label => {
-      const val = dataMap.get(label);
-      return val === undefined ? null : val;
-    });
+      const alignedData = mainLabels.map(label => {
+        const val = dataMap.get(label);
+        return val === undefined ? null : val;
+      });
 
-    seriesOptions.push({
-      name: dataSeriesName,
-      type: "line",
-      data: alignedData,
-      smooth: false,
-      symbol: "circle",
-      symbolSize: 6,
-      itemStyle: { color: resolvedTheme === "dark" ? "#ffffff" : "#000000" },
-      lineStyle: { width: 0 },
-      connectNulls: true,
-      z: 50,
-    });
+      seriesOptions.push({
+        name: dataSeriesName,
+        type: "line",
+        data: alignedData,
+        smooth: false,
+        symbol: "circle",
+        symbolSize: 6,
+        itemStyle: { color: resolvedTheme === "dark" ? "#ffffff" : "#000000" },
+        lineStyle: { width: 0 },
+        connectNulls: true,
+        z: 50,
+      });
 
-    const legendData: any[] = [{
-      name: dataSeriesName,
-      textStyle: {
-        color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
-        fontWeight: "bold"
-      }
-    }];
-
-    const legendSelected: Record<string, boolean> = { [dataSeriesName]: true };
+      legendData.push({
+        name: dataSeriesName,
+        textStyle: {
+          color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+          fontWeight: "bold"
+        }
+      });
+      legendSelected[dataSeriesName] = true;
+    }
 
     predictions.forEach((pred) => {
       const predId = `${pred.id}`;
@@ -377,7 +386,7 @@ export const LineChart: React.FC<ChartProps> = ({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [data, predictions, mainLabels, resolvedTheme, activeIntervals, dataSeriesName]);
+  }, [data, predictions, mainLabels, resolvedTheme, activeIntervals, dataSeriesName, hasObservedData]);
 
   return <div ref={chartRef} style={{ width, height }} />;
-};
+};;

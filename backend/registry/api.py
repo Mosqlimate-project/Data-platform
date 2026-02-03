@@ -33,7 +33,6 @@ User = get_user_model()
     "/model/add/sprint/active/",
     auth=JWTAuth(),
     response={200: bool},
-    tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
 def is_sprint_active(request):
@@ -47,7 +46,6 @@ def is_sprint_active(request):
     "/model/add/",
     auth=JWTAuth(),
     response={201: dict, 400: BadRequestSchema},
-    tags=["registry", "model-add", "frontend"],
     include_in_schema=False,
 )
 def model_add(request, payload: s.ModelIncludeInit):
@@ -153,7 +151,6 @@ def model_add(request, payload: s.ModelIncludeInit):
     "/models/thumbnails/",
     response=List[s.ModelThumbs],
     auth=UidKeyAuth(),
-    tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -176,7 +173,6 @@ def models_thumbnails(request):
     "/models/tags/",
     response=List[s.ModelTags],
     auth=UidKeyAuth(),
-    tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -240,7 +236,6 @@ def models_tags(request, ids: List[int] = Query(None)):
 @router.get(
     "/model/{owner}/",
     auth=UidKeyAuth(),
-    tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -252,7 +247,6 @@ def repository_owner(request, owner: str):
     "/model/{owner}/{repository}/",
     response={200: s.ModelOut, 404: NotFoundSchema},
     auth=UidKeyAuth(),
-    tags=["registry", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -280,11 +274,48 @@ def repository_model(request, owner: str, repository: str):
     return model
 
 
+@router.patch(
+    "/model/{owner}/{repository}/description/",
+    response={200: str, 403: ForbiddenSchema, 404: NotFoundSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+def update_repository_model_description(
+    request, owner: str, repository: str, payload: s.ModelDescriptionIn
+):
+    query = models.Q(repository__name=repository) & (
+        models.Q(repository__organization__name=owner)
+        | models.Q(repository__owner__username=owner)
+    )
+
+    try:
+        model = m.RepositoryModel.objects.select_related(
+            "repository__owner", "repository__organization"
+        ).get(query)
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+
+    user = request.auth
+    repo = model.repository
+
+    is_owner = repo.owner == user
+    is_contributor = repo.repository_contributors.filter(user=user).exists()
+
+    if not (is_owner or is_contributor or user.is_superuser):
+        return 403, {
+            "message": "You do not have permission to edit this model."
+        }
+
+    model.description = payload.description
+    model.save()
+
+    return 200, "ok"
+
+
 @router.get(
     "/model/{owner}/{repository}/readme/",
     response={200: dict, 404: NotFoundSchema},
     auth=UidKeyAuth(),
-    tags=["registry", "repository", "frontend"],
     include_in_schema=False,
 )
 def repository_readme(request, owner: str, repository: str):
@@ -342,7 +373,6 @@ def repository_readme(request, owner: str, repository: str):
     "/model/{owner}/{repository}/predictions/",
     response={200: list[s.ModelPredictionOut], 404: NotFoundSchema},
     auth=UidKeyAuth(),
-    tags=["registry", "model", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -367,10 +397,17 @@ def repository_predictions(request, owner: str, repository: str):
             "adm1",
             "adm2",
             "adm3",
+            "quantitativeprediction",
         )
         .annotate(
             start=models.Min("quantitativeprediction__data__date"),
             end=models.Max("quantitativeprediction__data__date"),
+            mae_score=models.F("quantitativeprediction__mae_score"),
+            mse_score=models.F("quantitativeprediction__mse_score"),
+            crps_score=models.F("quantitativeprediction__crps_score"),
+            log_score=models.F("quantitativeprediction__log_score"),
+            interval_score=models.F("quantitativeprediction__interval_score"),
+            wis_score=models.F("quantitativeprediction__wis_score"),
         )
         .order_by("-created_at")
     )
@@ -382,7 +419,6 @@ def repository_predictions(request, owner: str, repository: str):
     "/model/{owner}/{repository}/permissions/",
     response=s.RepositoryPermissions,
     auth=JWTAuth(),
-    tags=["registry", "model", "frontend"],
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -425,6 +461,42 @@ def repository_permissions(request, owner: str, repository: str):
             can_manage = True
 
     return {"is_owner": is_owner, "can_manage": can_manage}
+
+
+@router.patch(
+    "/prediction/{prediction_id}/published/",
+    response={201: str, 403: dict, 404: dict},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+def update_prediction_published(
+    request,
+    prediction_id: int,
+    payload: s.PredictionPublishUpdateIn,
+):
+    try:
+        prediction = m.ModelPrediction.objects.select_related(
+            "model__repository__owner", "model__repository__organization"
+        ).get(id=prediction_id)
+    except m.ModelPrediction.DoesNotExist:
+        return 404, {"message": "Prediction not found"}
+
+    user = request.auth
+    repo = prediction.model.repository
+
+    is_authorized = (
+        repo.owner == user
+        or repo.repository_contributors.filter(user=user).exists()
+        or user.is_superuser
+    )
+
+    if not is_authorized:
+        return 403, {"message": "Permission denied"}
+
+    prediction.published = payload.published
+    prediction.save()
+
+    return 201, "ok"
 
 
 @router.post(

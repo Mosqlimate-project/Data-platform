@@ -34,7 +34,7 @@ export default function ModelSidebar({
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/registry/model/${owner}/${repository}/`, {
+      const res = await fetch(`/api/registry/model/${owner}/${repository}/description/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description }),
@@ -54,7 +54,6 @@ export default function ModelSidebar({
 
   return (
     <div className="space-y-6">
-      {/* About Section */}
       <div className="bg-card border rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg">About</h3>

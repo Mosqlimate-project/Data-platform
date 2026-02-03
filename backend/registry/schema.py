@@ -226,8 +226,6 @@ class ModelOut(Schema):
         if repo.owner:
             users_map[repo.owner.id] = repo.owner
 
-        print(users_map)
-
         return [
             {
                 "username": user.username,
@@ -240,6 +238,14 @@ class ModelOut(Schema):
             }
             for user in users_map.values()
         ]
+
+
+class ModelDescriptionIn(Schema):
+    description: str
+
+
+class PredictionPublishUpdateIn(Schema):
+    published: bool
 
 
 class ModelPredictionOut(Schema):
