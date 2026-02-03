@@ -42,7 +42,6 @@ export async function GET(
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "X-UID-Key": ADMIN_UIDKEY,
           "Authorization": `Bearer ${accessToken}`,
         },
         cache: "no-store",

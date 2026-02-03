@@ -6,7 +6,6 @@ export async function GET(
 ) {
   const target = params.path.join("/");
   const url = `${BACKEND_BASE_URL}/api/${target}`;
-  console.log(url)
 
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },

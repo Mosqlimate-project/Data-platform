@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-// import { Info, FileText, LineChart } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 interface Level {
   id: string;
@@ -36,6 +37,26 @@ const LEVEL_TO_INT: Record<string, string> = {
 export function DashboardSidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setIsOpen(false);
+    }
+
+    const handleResize = (e: Event) => {
+      if (!e.isTrusted) return;
+
+      if (window.innerWidth < 1024) {
+        setIsOpen(false);
+      } else {
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const createLink = (
     basePath: string,
@@ -57,20 +78,28 @@ export function DashboardSidebar({ sections }: SidebarProps) {
     return `${basePath}?${params.toString()}`;
   };
 
+  const isSectionActive = (sectionId: string) => {
+    const currentSprint = searchParams.get("sprint");
+    const isSprintSection = sectionId === "sprint";
+    const targetSprintValue = isSprintSection ? "true" : "false";
+    const effectiveCurrentSprint =
+      currentSprint === null ? "false" : currentSprint;
+
+    return effectiveCurrentSprint === targetSprintValue;
+  };
+
+  const isCategoryActive = (categoryId: string, sectionId: string) => {
+    if (!pathname.includes(`/dashboard/${categoryId}`)) return false;
+    return isSectionActive(sectionId);
+  };
+
   const isLevelActive = (
     categoryId: string,
     levelSlug: string,
     sectionId: string
   ) => {
     if (!pathname.includes(`/dashboard/${categoryId}`)) return false;
-
-    const currentSprint = searchParams.get("sprint");
-    const isSprintSection = sectionId === "sprint";
-    const targetSprintValue = isSprintSection ? "true" : "false";
-
-    const effectiveCurrentSprint = currentSprint === null ? "false" : currentSprint;
-
-    if (effectiveCurrentSprint !== targetSprintValue) return false;
+    if (!isSectionActive(sectionId)) return false;
 
     const currentLevel = searchParams.get("adm_level");
     const targetLevel = LEVEL_TO_INT[levelSlug];
@@ -81,15 +110,35 @@ export function DashboardSidebar({ sections }: SidebarProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-bg border-r border-border">
-      <div className="p-6 flex-1 overflow-y-auto">
-        <h2 className="text-lg font-bold text-text mb-6">Dashboard</h2>
+    <div
+      className={`flex flex-col flex-shrink-0 h-full bg-bg border-r border-border transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
+        }`}
+    >
+      <div className="relative flex items-center justify-between h-16 px-4 border-b border-border/50">
+        <h2
+          className={`text-lg font-bold text-text whitespace-nowrap transition-opacity duration-200 ${isOpen ? "opacity-100" : "opacity-0 hidden"
+            }`}
+        >
+          Dashboard
+        </h2>
 
-        <nav className="space-y-6">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-primary/10 text-text/70 hover:text-text transition-colors"
+        >
+          {isOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <nav
+          className={`space-y-6 p-4 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 invisible"
+            }`}
+        >
           <Link
             href="/dashboard"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${pathname === "/dashboard"
-              ? "bg-accent/10 text-accent"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors whitespace-nowrap ${pathname === "/dashboard"
+              ? "bg-accent text-white"
               : "hover:bg-primary/5 hover:text-text"
               }`}
           >
@@ -98,7 +147,7 @@ export function DashboardSidebar({ sections }: SidebarProps) {
 
           {(sections || []).map((section) => (
             <div key={section.id} className="mb-6">
-              <h3 className="text-sm font-bold text-text mb-3 uppercase tracking-wider border-b pb-1">
+              <h3 className="text-sm font-bold text-text mb-3 uppercase tracking-wider border-b pb-1 whitespace-nowrap">
                 {section.label}
               </h3>
 
@@ -106,7 +155,9 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                 <div key={cat.id} className="mb-4">
                   {section.categories.length > 1 && (
                     <div className="pt-1 pb-2">
-                      <p className="text-xs font-bold text-secondary uppercase tracking-wider">
+                      <p
+                        className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors`}
+                      >
                         {cat.label}
                       </p>
                     </div>
@@ -119,8 +170,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                         href={createLink(`/dashboard/${cat.id}`, section.id, {
                           adm_level: LEVEL_TO_INT[level.id] || "1",
                         })}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${isLevelActive(cat.id, level.id, section.id)
-                          ? "bg-accent/10 text-accent font-medium"
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
+                          ? "bg-accent text-white font-medium"
                           : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
@@ -134,35 +185,6 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           ))}
         </nav>
       </div>
-
-      {/* <div className="p-4 bg-bg/50"> */}
-      {/*   <h3 className="text-xs text-secondary font-semibold uppercase tracking-wider mb-3 px-2"> */}
-      {/*     More Info */}
-      {/*   </h3> */}
-      {/*   <div className="space-y-1"> */}
-      {/*     <Link */}
-      {/*       href="/dashboard/details" */}
-      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
-      {/*     > */}
-      {/*       <FileText size={18} /> */}
-      {/*       Models */}
-      {/*     </Link> */}
-      {/*     <Link */}
-      {/*       href="/dashboard/predictions" */}
-      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
-      {/*     > */}
-      {/*       <LineChart size={18} /> */}
-      {/*       Predictions */}
-      {/*     </Link> */}
-      {/*     <Link */}
-      {/*       href="/dashboard/about" */}
-      {/*       className="flex items-center gap-3 px-3 py-2 text-sm font-medium hover:text-text rounded-md hover:bg-primary/5 transition-colors" */}
-      {/*     > */}
-      {/*       <Info size={18} /> */}
-      {/*       About */}
-      {/*     </Link> */}
-      {/*   </div> */}
-      {/* </div> */}
     </div>
   );
 }

@@ -34,6 +34,7 @@ export interface ChartProps {
   height?: string | number;
   width?: string | number;
   activeIntervals?: Set<number | string>;
+  dataSeriesName?: string;
 }
 
 const formatDate = (date: Date) => {
@@ -46,6 +47,7 @@ export const LineChart: React.FC<ChartProps> = ({
   height = "400px",
   width = "100%",
   activeIntervals = new Set(),
+  dataSeriesName = "Data",
 }) => {
   const { resolvedTheme } = useTheme();
   const chartRef = useRef<HTMLDivElement>(null);
@@ -82,7 +84,7 @@ export const LineChart: React.FC<ChartProps> = ({
     });
 
     seriesOptions.push({
-      name: "Data",
+      name: dataSeriesName,
       type: "line",
       data: alignedData,
       smooth: false,
@@ -95,14 +97,14 @@ export const LineChart: React.FC<ChartProps> = ({
     });
 
     const legendData: any[] = [{
-      name: "Data",
+      name: dataSeriesName,
       textStyle: {
         color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
         fontWeight: "bold"
       }
     }];
 
-    const legendSelected: Record<string, boolean> = { "Data": true };
+    const legendSelected: Record<string, boolean> = { [dataSeriesName]: true };
 
     predictions.forEach((pred) => {
       const predId = `${pred.id}`;
@@ -263,7 +265,7 @@ export const LineChart: React.FC<ChartProps> = ({
           params.forEach((p) => {
             if (p.value == null) return;
 
-            const isData = p.seriesName === "Data";
+            const isData = p.seriesName === dataSeriesName;
             const rawName = p.seriesName;
             const isPredLine = !isData && !rawName.includes("_base") && !rawName.includes("_area");
 
@@ -310,6 +312,19 @@ export const LineChart: React.FC<ChartProps> = ({
         right: "4%",
         bottom: "10%",
         containLabel: true,
+      },
+      graphic: {
+        type: 'image',
+        top: 10,
+        right: 10,
+        z: 0,
+        bounding: 'raw',
+        style: {
+          image: '/watermark.png',
+          width: 100,
+          height: 100,
+          opacity: 0.3,
+        }
       },
       xAxis: {
         type: "category",
@@ -362,7 +377,7 @@ export const LineChart: React.FC<ChartProps> = ({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [data, predictions, mainLabels, resolvedTheme, activeIntervals]);
+  }, [data, predictions, mainLabels, resolvedTheme, activeIntervals, dataSeriesName]);
 
   return <div ref={chartRef} style={{ width, height }} />;
 };

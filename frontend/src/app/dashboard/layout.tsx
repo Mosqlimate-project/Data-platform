@@ -31,17 +31,15 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-bg">
-      <div className="w-64 shrink-0">
-        <Suspense
-          fallback={
-            <div className="flex-1 h-full items-center justify-center">
-              <Loader2 className="animate-spin text-secondary" />
-            </div>
-          }
-        >
-          <DashboardSidebar sections={sections} />
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={
+          <div className="w-64 h-full border-r border-border bg-bg flex items-center justify-center shrink-0">
+            <Loader2 className="animate-spin text-secondary" />
+          </div>
+        }
+      >
+        <DashboardSidebar sections={sections} />
+      </Suspense>
 
       <main className="flex-1 overflow-y-auto h-full">
         {children}

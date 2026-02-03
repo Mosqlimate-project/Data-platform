@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
 import {
   Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
-  Search, X, Eye, EyeOff, CheckSquare, Square
+  Search, X, Eye, EyeOff
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -717,47 +717,49 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       <div className="bg-white rounded shadow">
         <div className="flex flex-wrap gap-4 p-4">
           <div className="flex-1 flex flex-wrap gap-4 min-w-[300px]">
-            <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-sm font-semibold mb-1">Disease</label>
-              <select
-                name="disease"
-                value={inputs.disease}
-                onChange={handleChange}
-                disabled={diseaseOptions.length === 0}
-                className="border p-2 rounded disabled:bg-gray-100"
-              >
-                {diseaseOptions.map((d) => (
-                  <option key={d.code} value={d.code}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {diseaseOptions.length > 1 && (
+              <div className="flex flex-col flex-1 min-w-[150px]">
+                <label className="text-sm font-semibold mb-1">Disease</label>
+                <select
+                  name="disease"
+                  value={inputs.disease}
+                  onChange={handleChange}
+                  className="border p-2 rounded disabled:bg-gray-100"
+                >
+                  {diseaseOptions.map((d) => (
+                    <option key={d.code} value={d.code}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-sm font-semibold mb-1">Country</label>
-              <select
-                name="adm_0"
-                value={inputs.adm_0}
-                onChange={handleChange}
-                disabled={countryOptions.length === 0}
-                className="border p-2 rounded disabled:bg-gray-100"
-              >
-                {countryOptions.map((c) => (
-                  <option key={c.geocode} value={c.geocode}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {inputs.adm_level >= 1 && (
+            {countryOptions.length > 1 && (
+              <div className="flex flex-col flex-1 min-w-[150px]">
+                <label className="text-sm font-semibold mb-1">Country</label>
+                <select
+                  name="adm_0"
+                  value={inputs.adm_0}
+                  onChange={handleChange}
+                  className="border p-2 rounded disabled:bg-gray-100"
+                >
+                  {countryOptions.map((c) => (
+                    <option key={c.geocode} value={c.geocode}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {inputs.adm_level >= 1 && stateOptions.length > 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
                 <label className="text-sm font-semibold mb-1">State</label>
                 <select
                   name="adm_1"
                   value={inputs.adm_1}
                   onChange={handleChange}
-                  disabled={stateOptions.length === 0}
                   className="border p-2 rounded disabled:bg-gray-100"
                 >
                   {stateOptions.map((s) => (
@@ -776,7 +778,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                   name="adm_2"
                   value={inputs.adm_2}
                   onChange={handleChange}
-                  disabled={cityOptions.length === 0}
                   className="border p-2 rounded disabled:bg-gray-100"
                 >
                   {cityOptions.map((c) => (
@@ -821,6 +822,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             predictions={chartPredictions}
             activeIntervals={activeIntervals}
             height="100%"
+            dataSeriesName={inputs.sprint ? "Probable cases" : "Reported cases"}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
@@ -857,7 +859,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             {uniqueModels.length === 0 ? (
               <p className="text-xs text-gray-400 italic">No models available</p>
             ) : (
-              <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col gap-2 overflow-y-auto">
                 {uniqueModels.map((model) => {
                   const isSelected = selectedModels.includes(model);
                   return (

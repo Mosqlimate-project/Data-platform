@@ -263,12 +263,17 @@ def repository_model(request, owner: str, repository: str):
     )
 
     try:
-        model = m.RepositoryModel.objects.select_related(
-            "repository",
-            "repository__organization",
-            "repository__owner",
-            "disease",
-        ).get(query)
+        model = (
+            m.RepositoryModel.objects.select_related(
+                "repository",
+                "repository__organization",
+                "repository__owner",
+                "disease",
+            )
+            .prefetch_related("repository__repository_contributors__user")
+            .annotate(predictions=models.Count("predicts"))
+            .get(query)
+        )
     except m.RepositoryModel.DoesNotExist:
         return 404, {"message": f"Model '{owner}/{repository}' not found"}
 
@@ -357,6 +362,7 @@ def repository_predictions(request, owner: str, repository: str):
         .select_related(
             "model__repository",
             "model__sprint",
+            "model__disease",
             "adm0",
             "adm1",
             "adm2",

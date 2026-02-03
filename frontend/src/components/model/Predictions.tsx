@@ -14,16 +14,29 @@ export interface ModelPrediction {
   id: number;
   date: string;
   commit: string;
-  adm_0: string;
-  adm_1?: string | null;
-  adm_2?: string | null;
-  adm_3?: string | null;
+
   description?: string | null;
   start?: string | null;
   end?: string | null;
   sprint?: number | null;
   scores: PredictionScore[];
   published?: boolean;
+
+  disease_code: string;
+  category: string;
+  adm_level: number;
+
+  adm_0_name: string;
+  adm_0_code: string;
+
+  adm_1_name?: string | null;
+  adm_1_code?: string | null;
+
+  adm_2_name?: string | null;
+  adm_2_code?: string | null;
+
+  adm_3_name?: string | null;
+  adm_3_code?: string | null;
 }
 
 interface PredictionsListProps {
@@ -57,6 +70,21 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
 
   const handlePublishToggle = async (id: number, currentStatus: boolean) => {
     console.log(`Toggle publish for ${id}. New status: ${!currentStatus}`);
+  };
+
+  const getDashboardLink = (pred: ModelPrediction) => {
+    const params = new URLSearchParams();
+
+    params.set("sprint", pred.sprint ? "true" : "false");
+    params.set("adm_level", pred.adm_level.toString());
+    params.set("disease", pred.disease_code);
+
+    if (pred.adm_0_code) params.set("adm_0", pred.adm_0_code);
+    if (pred.adm_level >= 1 && pred.adm_1_code) params.set("adm_1", pred.adm_1_code);
+    if (pred.adm_level >= 2 && pred.adm_2_code) params.set("adm_2", pred.adm_2_code);
+    if (pred.adm_level >= 3 && pred.adm_3_code) params.set("adm_3", pred.adm_3_code);
+
+    return `/dashboard/${pred.category}?${params.toString()}`;
   };
 
   const filteredPredictions = safePredictions.filter((pred) => {
@@ -95,6 +123,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
         ) : (
           filteredPredictions.map((pred) => {
             const activeScore = pred.scores?.find((s) => s.name === selectedMetric);
+            const dashboardUrl = getDashboardLink(pred);
 
             return (
               <div
@@ -129,7 +158,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
                     <div className="h-4 w-px bg-border mx-1"></div>
 
                     <Link
-                      href="#"
+                      href={dashboardUrl}
                       className="text-muted-foreground hover:text-primary transition-colors"
                       title="View Dashboard"
                     >
@@ -152,10 +181,10 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
 
                   <div className="space-y-1">
                     <div className="text-sm">
-                      {pred.adm_0 && <span className="font-medium text-foreground"> {pred.adm_0} </span>}
-                      {pred.adm_1 && <span className="text-muted-foreground"> {pred.adm_1}</span>}
-                      {pred.adm_2 && <span className="text-muted-foreground"> {pred.adm_2}</span>}
-                      {pred.adm_3 && <span className="text-muted-foreground"> {pred.adm_3}</span>}
+                      {pred.adm_0_name && <span className="font-medium text-foreground"> {pred.adm_0_name} </span>}
+                      {pred.adm_1_name && <span className="text-muted-foreground"> {pred.adm_1_name}</span>}
+                      {pred.adm_2_name && <span className="text-muted-foreground"> {pred.adm_2_name}</span>}
+                      {pred.adm_3_name && <span className="text-muted-foreground"> {pred.adm_3_name}</span>}
                     </div>
                   </div>
 
