@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from main.schema import NotFoundSchema
 from users.auth import UidKeyAuth
 from datastore.models import (
     Adm0,
@@ -12,6 +13,7 @@ from registry.models import (
     Sprint,
     QuantitativePrediction,
     QuantitativePredictionRow,
+    ModelPrediction,
 )
 from vis.utils import hist_alerta_data
 from vis import schema
@@ -477,6 +479,30 @@ def dashboard_predictions(
     qs = qs.filter(start__isnull=False)
 
     return qs
+
+
+@router.get(
+    "/dashboard/prediction/{prediction_id}/metadata/",
+    response={200: dict, 404: NotFoundSchema},
+    auth=uidkey_auth,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def dashboard_prediction_meta(request, prediction_id: int):
+    try:
+        prediction = ModelPrediction.objects.get(id=prediction_id)
+    except ModelPrediction.DoesNotExist:
+        return {"message": f"Prediction #{prediction_id} not found"}
+
+    return {
+        "id": prediction.id,
+        "disease_code": prediction.model.disease,
+        "adm_level": prediction.model.adm_level,
+        "adm_0_code": prediction.adm0.geocode if prediction.adm0 else None,
+        "adm_1_code": prediction.adm1.geocode if prediction.adm1 else None,
+        "adm_2_code": prediction.adm2.geocode if prediction.adm2 else None,
+        "sprint": prediction.model.sprint.exists(),
+    }
 
 
 @router.get(

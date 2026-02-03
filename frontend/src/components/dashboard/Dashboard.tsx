@@ -72,6 +72,16 @@ interface PredictionRowData {
   upper_95?: number;
 }
 
+interface PredictionMetadata {
+  id: number;
+  disease_code: string;
+  adm_level: number;
+  adm_0_code: string;
+  adm_1_code?: string;
+  adm_2_code?: string;
+  sprint?: number | null;
+}
+
 const SCORE_COLUMNS = [
   { key: "mae_score", label: "MAE" },
   { key: "mse_score", label: "MSE" },
@@ -97,6 +107,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const [isRestoringParams, setIsRestoringParams] = useState(
+    !!searchParams.get("prediction_id")
+  );
+
+  const [activePredictionMeta, setActivePredictionMeta] = useState<PredictionMetadata | null>(null);
 
   const [inputs, setInputs] = useState({
     disease: searchParams.get("disease") || "",
@@ -146,20 +162,69 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   const updateURL = useCallback(
     (newParams: Partial<typeof inputs>) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const merged = { ...inputs, ...newParams };
+      const params = new URLSearchParams();
 
-      Object.entries(newParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          params.set(key, String(value));
-        } else {
-          params.delete(key);
+      if (merged.disease) params.set("disease", merged.disease);
+      if (merged.adm_level) params.set("adm_level", merged.adm_level.toString());
+      if (merged.adm_0) params.set("adm_0", merged.adm_0);
+      if (merged.adm_1) params.set("adm_1", merged.adm_1);
+      if (merged.adm_2) params.set("adm_2", merged.adm_2);
+
+      params.set("sprint", merged.sprint ? "true" : "false");
+
+      if (activePredictionMeta) {
+        const sprintMatches = merged.sprint === (activePredictionMeta.sprint !== null && activePredictionMeta.sprint !== undefined);
+        const diseaseMatches = merged.disease === activePredictionMeta.disease_code;
+        const levelMatches = merged.adm_level === activePredictionMeta.adm_level;
+        const adm0Matches = merged.adm_0 === activePredictionMeta.adm_0_code;
+        const adm1Matches = merged.adm_1 === (activePredictionMeta.adm_1_code || "");
+        const adm2Matches = merged.adm_2 === (activePredictionMeta.adm_2_code || "");
+
+        if (sprintMatches && diseaseMatches && levelMatches && adm0Matches && adm1Matches && adm2Matches) {
+          params.set("prediction_id", activePredictionMeta.id.toString());
         }
-      });
+      }
 
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams]
+    [inputs, pathname, router, activePredictionMeta]
   );
+
+  useEffect(() => {
+    const predId = searchParams.get("prediction_id");
+
+    if (predId && isRestoringParams) {
+      const fetchMeta = async () => {
+        try {
+          const res = await fetch(`/api/vis/dashboard/prediction/${predId}/metadata/`);
+          if (!res.ok) throw new Error("Metadata fetch failed");
+
+          const meta: PredictionMetadata = await res.json();
+          setActivePredictionMeta(meta);
+
+          setInputs(prev => ({
+            ...prev,
+            disease: meta.disease_code,
+            adm_level: meta.adm_level,
+            adm_0: meta.adm_0_code,
+            adm_1: meta.adm_1_code || "",
+            adm_2: meta.adm_2_code || "",
+            sprint: meta.sprint !== null && meta.sprint !== undefined,
+          }));
+
+        } catch (error) {
+          console.error("Failed to restore prediction context", error);
+        } finally {
+          setIsRestoringParams(false);
+        }
+      };
+
+      fetchMeta();
+    } else if (!predId && isRestoringParams) {
+      setIsRestoringParams(false);
+    }
+  }, [searchParams, isRestoringParams]);
 
   useEffect(() => {
     const disease = searchParams.get("disease") || "";
@@ -169,22 +234,26 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     const adm_2 = searchParams.get("adm_2") || "";
     const sprint = searchParams.get("sprint") === "true";
 
-    setInputs((prev) => {
-      if (
-        prev.disease !== disease ||
-        prev.adm_level !== adm_level ||
-        prev.adm_0 !== adm_0 ||
-        prev.adm_1 !== adm_1 ||
-        prev.adm_2 !== adm_2 ||
-        prev.sprint !== sprint
-      ) {
-        return { disease, adm_level, adm_0, adm_1, adm_2, sprint };
-      }
-      return prev;
-    });
-  }, [searchParams]);
+    if (!isRestoringParams) {
+      setInputs((prev) => {
+        if (
+          prev.disease !== disease ||
+          prev.adm_level !== adm_level ||
+          prev.adm_0 !== adm_0 ||
+          prev.adm_1 !== adm_1 ||
+          prev.adm_2 !== adm_2 ||
+          prev.sprint !== sprint
+        ) {
+          return { disease, adm_level, adm_0, adm_1, adm_2, sprint };
+        }
+        return prev;
+      });
+    }
+  }, [searchParams, isRestoringParams]);
 
   const fetchDiseases = useCallback(async () => {
+    if (isRestoringParams) return;
+
     setDiseasesLoading(true);
     try {
       const params = new URLSearchParams({
@@ -200,17 +269,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setDiseaseOptions(data);
 
       if (data.length > 0) {
-        setInputs((prev) => {
-          const targetDisease = prev.disease;
-          const currentIsValid = data.some((d) => d.code === targetDisease);
+        const targetDisease = inputs.disease;
+        const currentIsValid = data.some((d) => d.code === targetDisease);
 
-          if (!currentIsValid || !targetDisease) {
-            const defaultDisease = data[0].code;
-            updateURL({ disease: defaultDisease });
-            return { ...prev, disease: defaultDisease };
-          }
-          return prev;
-        });
+        if (!currentIsValid || !targetDisease) {
+          const defaultDisease = data[0].code;
+          setInputs(prev => ({ ...prev, disease: defaultDisease }));
+          updateURL({ disease: defaultDisease });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -218,10 +284,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setDiseasesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.sprint, updateURL]);
+  }, [category, inputs.adm_level, inputs.sprint, inputs.disease, updateURL, isRestoringParams]);
 
   const fetchCountries = useCallback(async () => {
-    if (!inputs.disease) return;
+    if (isRestoringParams || !inputs.disease) return;
 
     setCountriesLoading(true);
     try {
@@ -239,17 +305,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setCountryOptions(data);
 
       if (data.length > 0) {
-        setInputs((prev) => {
-          const targetAdm0 = prev.adm_0;
-          const currentIsValid = data.some((c) => c.geocode === targetAdm0);
+        const targetAdm0 = inputs.adm_0;
+        const currentIsValid = data.some((c) => c.geocode === targetAdm0);
 
-          if (!currentIsValid || !targetAdm0) {
-            const defaultCountry = data[0].geocode;
-            updateURL({ disease: inputs.disease, adm_0: defaultCountry });
-            return { ...prev, adm_0: defaultCountry };
-          }
-          return prev;
-        });
+        if (!currentIsValid || !targetAdm0) {
+          const defaultCountry = data[0].geocode;
+          setInputs(prev => ({ ...prev, adm_0: defaultCountry }));
+          updateURL({ adm_0: defaultCountry });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -257,10 +320,11 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCountriesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.sprint, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.sprint, inputs.adm_0, updateURL, isRestoringParams]);
 
   const fetchStates = useCallback(async () => {
-    if (!inputs.disease || !inputs.adm_0 || inputs.adm_level < 1) return;
+    if (isRestoringParams || !inputs.disease || !inputs.adm_0 || inputs.adm_level < 1) return;
+
     setStatesLoading(true);
     try {
       const params = new URLSearchParams({
@@ -278,17 +342,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setStateOptions(data);
 
       if (data.length > 0) {
-        setInputs((prev) => {
-          const targetAdm1 = prev.adm_1;
-          const currentIsValid = data.some((s) => s.geocode === targetAdm1);
+        const targetAdm1 = inputs.adm_1;
+        const currentIsValid = data.some((s) => s.geocode === targetAdm1);
 
-          if (!currentIsValid || !targetAdm1) {
-            const defaultState = data[0].geocode;
-            updateURL({ adm_0: inputs.adm_0, adm_1: defaultState });
-            return { ...prev, adm_1: defaultState };
-          }
-          return prev;
-        });
+        if (!currentIsValid || !targetAdm1) {
+          const defaultState = data[0].geocode;
+          setInputs(prev => ({ ...prev, adm_1: defaultState }));
+          updateURL({ adm_1: defaultState });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -296,10 +357,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setStatesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.sprint, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.sprint, inputs.adm_1, updateURL, isRestoringParams]);
 
   const fetchCities = useCallback(async () => {
-    if (!inputs.disease || !inputs.adm_0 || !inputs.adm_1 || inputs.adm_level < 2) return;
+    if (isRestoringParams || !inputs.disease || !inputs.adm_0 || !inputs.adm_1 || inputs.adm_level < 2) return;
 
     setCitiesLoading(true);
     try {
@@ -319,17 +380,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setCityOptions(data);
 
       if (data.length > 0) {
-        setInputs((prev) => {
-          const targetAdm2 = prev.adm_2;
-          const currentIsValid = data.some((c) => c.geocode === targetAdm2);
+        const targetAdm2 = inputs.adm_2;
+        const currentIsValid = data.some((c) => c.geocode === targetAdm2);
 
-          if (!currentIsValid || !targetAdm2) {
-            const defaultCity = data[0].geocode;
-            updateURL({ adm_0: inputs.adm_0, adm_1: inputs.adm_1, adm_2: defaultCity });
-            return { ...prev, adm_2: defaultCity };
-          }
-          return prev;
-        });
+        if (!currentIsValid || !targetAdm2) {
+          const defaultCity = data[0].geocode;
+          setInputs(prev => ({ ...prev, adm_2: defaultCity }));
+          updateURL({ adm_2: defaultCity });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -337,10 +395,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCitiesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.sprint, updateURL]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.sprint, inputs.adm_2, updateURL, isRestoringParams]);
 
   const fetchSprints = useCallback(async () => {
-    if (!inputs.disease) return;
+    if (isRestoringParams || !inputs.disease) return;
 
     setSprintsLoading(true);
     try {
@@ -367,10 +425,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setSprintsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint, isRestoringParams]);
 
   const fetchPredictions = useCallback(async () => {
-    if (!inputs.disease) return;
+    if (isRestoringParams || !inputs.disease) return;
 
     setPredictionsLoading(true);
     try {
@@ -402,9 +460,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setPredictionsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint, isRestoringParams]);
 
   const fetchData = useCallback(async () => {
+    if (isRestoringParams) return;
     if (!inputs.disease) return;
     if (!inputs.adm_0) return;
     if (inputs.adm_level >= 1 && !inputs.adm_1) return;
@@ -453,7 +512,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setLoading(false);
     }
-  }, [inputs, predictions]);
+  }, [inputs, predictions, isRestoringParams]);
 
   useEffect(() => {
     fetchDiseases();
@@ -626,7 +685,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
   };
 
-  const isConfigLoading = diseasesLoading || countriesLoading || statesLoading || citiesLoading || sprintsLoading;
+  const isConfigLoading = diseasesLoading || countriesLoading || statesLoading || citiesLoading || sprintsLoading || isRestoringParams;
 
   const uniqueModels = useMemo(() => {
     let baseList = predictions;
