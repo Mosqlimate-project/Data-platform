@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { LineChart, Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
 import {
   Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
-  Search, X, Eye, EyeOff, CheckSquare, Square
+  Search, X, Eye, EyeOff
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -98,14 +98,9 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const getInitialLevel = () => {
-    const param = searchParams.get("adm_level");
-    return param !== null ? Number(param) : 1;
-  };
-
   const [inputs, setInputs] = useState({
     disease: searchParams.get("disease") || "",
-    adm_level: getInitialLevel(),
+    adm_level: searchParams.get("adm_level") ? Number(searchParams.get("adm_level")) : 1,
     adm_0: searchParams.get("adm_0") || "",
     adm_1: searchParams.get("adm_1") || "",
     adm_2: searchParams.get("adm_2") || "",
@@ -142,6 +137,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [predictionSearch, setPredictionSearch] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [initialPredictionLoaded, setInitialPredictionLoaded] = useState(false);
 
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
@@ -153,7 +149,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       const params = new URLSearchParams(searchParams.toString());
 
       Object.entries(newParams).forEach(([key, value]) => {
-        if (value) {
+        if (value !== undefined && value !== null && value !== "") {
           params.set(key, String(value));
         } else {
           params.delete(key);
@@ -164,6 +160,29 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     },
     [pathname, router, searchParams]
   );
+
+  useEffect(() => {
+    const disease = searchParams.get("disease") || "";
+    const adm_level = searchParams.get("adm_level") ? Number(searchParams.get("adm_level")) : 1;
+    const adm_0 = searchParams.get("adm_0") || "";
+    const adm_1 = searchParams.get("adm_1") || "";
+    const adm_2 = searchParams.get("adm_2") || "";
+    const sprint = searchParams.get("sprint") === "true";
+
+    setInputs((prev) => {
+      if (
+        prev.disease !== disease ||
+        prev.adm_level !== adm_level ||
+        prev.adm_0 !== adm_0 ||
+        prev.adm_1 !== adm_1 ||
+        prev.adm_2 !== adm_2 ||
+        prev.sprint !== sprint
+      ) {
+        return { disease, adm_level, adm_0, adm_1, adm_2, sprint };
+      }
+      return prev;
+    });
+  }, [searchParams]);
 
   const fetchDiseases = useCallback(async () => {
     setDiseasesLoading(true);
@@ -182,8 +201,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (data.length > 0) {
         setInputs((prev) => {
-          const currentIsValid = data.some((d) => d.code === prev.disease);
-          if (!currentIsValid || !prev.disease) {
+          const targetDisease = prev.disease;
+          const currentIsValid = data.some((d) => d.code === targetDisease);
+
+          if (!currentIsValid || !targetDisease) {
             const defaultDisease = data[0].code;
             updateURL({ disease: defaultDisease });
             return { ...prev, disease: defaultDisease };
@@ -219,10 +240,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (data.length > 0) {
         setInputs((prev) => {
-          const currentIsValid = data.some((c) => c.geocode === prev.adm_0);
-          if (!currentIsValid || !prev.adm_0) {
+          const targetAdm0 = prev.adm_0;
+          const currentIsValid = data.some((c) => c.geocode === targetAdm0);
+
+          if (!currentIsValid || !targetAdm0) {
             const defaultCountry = data[0].geocode;
-            updateURL({ adm_0: defaultCountry });
+            updateURL({ disease: inputs.disease, adm_0: defaultCountry });
             return { ...prev, adm_0: defaultCountry };
           }
           return prev;
@@ -238,7 +261,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   const fetchStates = useCallback(async () => {
     if (!inputs.disease || !inputs.adm_0 || inputs.adm_level < 1) return;
-
     setStatesLoading(true);
     try {
       const params = new URLSearchParams({
@@ -257,10 +279,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (data.length > 0) {
         setInputs((prev) => {
-          const currentIsValid = data.some((s) => s.geocode === prev.adm_1);
-          if (!currentIsValid || !prev.adm_1) {
+          const targetAdm1 = prev.adm_1;
+          const currentIsValid = data.some((s) => s.geocode === targetAdm1);
+
+          if (!currentIsValid || !targetAdm1) {
             const defaultState = data[0].geocode;
-            updateURL({ adm_1: defaultState });
+            updateURL({ adm_0: inputs.adm_0, adm_1: defaultState });
             return { ...prev, adm_1: defaultState };
           }
           return prev;
@@ -296,10 +320,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (data.length > 0) {
         setInputs((prev) => {
-          const currentIsValid = data.some((c) => c.geocode === prev.adm_2);
-          if (!currentIsValid || !prev.adm_2) {
+          const targetAdm2 = prev.adm_2;
+          const currentIsValid = data.some((c) => c.geocode === targetAdm2);
+
+          if (!currentIsValid || !targetAdm2) {
             const defaultCity = data[0].geocode;
-            updateURL({ adm_2: defaultCity });
+            updateURL({ adm_0: inputs.adm_0, adm_1: inputs.adm_1, adm_2: defaultCity });
             return { ...prev, adm_2: defaultCity };
           }
           return prev;
@@ -369,6 +395,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setSelectedModels([]);
       setActiveIntervals(new Set());
       setCurrentPage(1);
+      setInitialPredictionLoaded(false);
     } catch (error) {
       console.error(error);
       setPredictions([]);
@@ -376,7 +403,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setPredictionsLoading(false);
     }
   }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint]);
-
 
   const fetchData = useCallback(async () => {
     if (!inputs.disease) return;
@@ -430,19 +456,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   }, [inputs, predictions]);
 
   useEffect(() => {
-    const levelParam = searchParams.get("adm_level");
-    const sprintParam = searchParams.get("sprint") === "true";
-
-    setInputs((prev) => {
-      const newLevel = levelParam !== null ? Number(levelParam) : prev.adm_level;
-      if (newLevel !== prev.adm_level || sprintParam !== prev.sprint) {
-        return { ...prev, adm_level: newLevel, sprint: sprintParam };
-      }
-      return prev;
-    });
-  }, [searchParams]);
-
-  useEffect(() => {
     fetchDiseases();
   }, [fetchDiseases]);
 
@@ -488,7 +501,20 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     const { name, value, type } = e.target;
     const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
-    setInputs((prev) => ({ ...prev, [name]: newValue }));
+    const updates: any = { [name]: newValue };
+
+    if (name === "disease") {
+      updates.adm_0 = "";
+      updates.adm_1 = "";
+      updates.adm_2 = "";
+    } else if (name === "adm_0") {
+      updates.adm_1 = "";
+      updates.adm_2 = "";
+    } else if (name === "adm_1") {
+      updates.adm_2 = "";
+    }
+
+    setInputs((prev) => ({ ...prev, ...updates }));
 
     if (name === 'disease' || name === 'adm_0' || name === 'adm_1' || name === 'adm_2') {
       setPredictions([]);
@@ -497,7 +523,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       setActiveIntervals(new Set());
     }
 
-    updateURL({ [name]: newValue });
+    updateURL(updates);
   };
 
   const toggleSprint = (sprintYear: number) => {
@@ -528,6 +554,38 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
   };
 
+  const loadPredictionData = async (prediction: Prediction) => {
+    setLoadingPredictions((prev) => [...prev, prediction.id]);
+    try {
+      const res = await fetch(`/api/vis/dashboard/prediction/${prediction.id}`);
+      if (!res.ok) throw new Error("Failed to fetch prediction data");
+      const data: PredictionRowData[] = await res.json();
+
+      const newPrediction: QuantitativePrediction = {
+        id: prediction.id,
+        color: CHART_COLORS[prediction.id % CHART_COLORS.length],
+        data: {
+          labels: data.map((d) => new Date(d.date)),
+          data: data.map((d) => d.pred),
+          lower_50: data.map((d) => d.lower_50 ?? null),
+          lower_80: data.map((d) => d.lower_80 ?? null),
+          lower_90: data.map((d) => d.lower_90 ?? null),
+          lower_95: data.map((d) => d.lower_95 ?? null),
+          upper_50: data.map((d) => d.upper_50 ?? null),
+          upper_80: data.map((d) => d.upper_80 ?? null),
+          upper_90: data.map((d) => d.upper_90 ?? null),
+          upper_95: data.map((d) => d.upper_95 ?? null),
+        },
+      };
+
+      setChartPredictions((prev) => [...prev, newPrediction]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingPredictions((prev) => prev.filter((id) => id !== prediction.id));
+    }
+  };
+
   const togglePrediction = async (prediction: Prediction) => {
     const isSelected = chartPredictions.some((p) => p.id === prediction.id);
 
@@ -539,37 +597,25 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         return newSet;
       });
     } else {
-      setLoadingPredictions((prev) => [...prev, prediction.id]);
-      try {
-        const res = await fetch(`/api/vis/dashboard/prediction/${prediction.id}`);
-        if (!res.ok) throw new Error("Failed to fetch prediction data");
-        const data: PredictionRowData[] = await res.json();
-
-        const newPrediction: QuantitativePrediction = {
-          id: prediction.id,
-          color: CHART_COLORS[prediction.id % CHART_COLORS.length],
-          data: {
-            labels: data.map((d) => new Date(d.date)),
-            data: data.map((d) => d.pred),
-            lower_50: data.map((d) => d.lower_50 ?? null),
-            lower_80: data.map((d) => d.lower_80 ?? null),
-            lower_90: data.map((d) => d.lower_90 ?? null),
-            lower_95: data.map((d) => d.lower_95 ?? null),
-            upper_50: data.map((d) => d.upper_50 ?? null),
-            upper_80: data.map((d) => d.upper_80 ?? null),
-            upper_90: data.map((d) => d.upper_90 ?? null),
-            upper_95: data.map((d) => d.upper_95 ?? null),
-          },
-        };
-
-        setChartPredictions((prev) => [...prev, newPrediction]);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoadingPredictions((prev) => prev.filter((id) => id !== prediction.id));
-      }
+      await loadPredictionData(prediction);
     }
   };
+
+  useEffect(() => {
+    const predictionIdParam = searchParams.get("prediction_id");
+
+    if (!predictionIdParam || predictions.length === 0 || initialPredictionLoaded) return;
+
+    const idToSelect = parseInt(predictionIdParam);
+    const predObj = predictions.find(p => p.id === idToSelect);
+
+    if (predObj) {
+      if (!chartPredictions.some(p => p.id === idToSelect)) {
+        togglePrediction(predObj);
+      }
+      setInitialPredictionLoaded(true);
+    }
+  }, [predictions, searchParams, initialPredictionLoaded, chartPredictions]);
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => {
@@ -717,47 +763,49 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       <div className="bg-white rounded shadow">
         <div className="flex flex-wrap gap-4 p-4">
           <div className="flex-1 flex flex-wrap gap-4 min-w-[300px]">
-            <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-sm font-semibold mb-1">Disease</label>
-              <select
-                name="disease"
-                value={inputs.disease}
-                onChange={handleChange}
-                disabled={diseaseOptions.length === 0}
-                className="border p-2 rounded disabled:bg-gray-100"
-              >
-                {diseaseOptions.map((d) => (
-                  <option key={d.code} value={d.code}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {diseaseOptions.length > 1 && (
+              <div className="flex flex-col flex-1 min-w-[150px]">
+                <label className="text-sm font-semibold mb-1">Disease</label>
+                <select
+                  name="disease"
+                  value={inputs.disease}
+                  onChange={handleChange}
+                  className="border p-2 rounded disabled:bg-gray-100"
+                >
+                  {diseaseOptions.map((d) => (
+                    <option key={d.code} value={d.code}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-sm font-semibold mb-1">Country</label>
-              <select
-                name="adm_0"
-                value={inputs.adm_0}
-                onChange={handleChange}
-                disabled={countryOptions.length === 0}
-                className="border p-2 rounded disabled:bg-gray-100"
-              >
-                {countryOptions.map((c) => (
-                  <option key={c.geocode} value={c.geocode}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {inputs.adm_level >= 1 && (
+            {countryOptions.length > 1 && (
+              <div className="flex flex-col flex-1 min-w-[150px]">
+                <label className="text-sm font-semibold mb-1">Country</label>
+                <select
+                  name="adm_0"
+                  value={inputs.adm_0}
+                  onChange={handleChange}
+                  className="border p-2 rounded disabled:bg-gray-100"
+                >
+                  {countryOptions.map((c) => (
+                    <option key={c.geocode} value={c.geocode}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {inputs.adm_level >= 1 && stateOptions.length > 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
                 <label className="text-sm font-semibold mb-1">State</label>
                 <select
                   name="adm_1"
                   value={inputs.adm_1}
                   onChange={handleChange}
-                  disabled={stateOptions.length === 0}
                   className="border p-2 rounded disabled:bg-gray-100"
                 >
                   {stateOptions.map((s) => (
@@ -776,7 +824,6 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                   name="adm_2"
                   value={inputs.adm_2}
                   onChange={handleChange}
-                  disabled={cityOptions.length === 0}
                   className="border p-2 rounded disabled:bg-gray-100"
                 >
                   {cityOptions.map((c) => (
@@ -821,6 +868,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             predictions={chartPredictions}
             activeIntervals={activeIntervals}
             height="100%"
+            dataSeriesName={inputs.sprint ? "Probable cases" : "Reported cases"}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
@@ -857,7 +905,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             {uniqueModels.length === 0 ? (
               <p className="text-xs text-gray-400 italic">No models available</p>
             ) : (
-              <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col gap-2 overflow-y-auto">
                 {uniqueModels.map((model) => {
                   const isSelected = selectedModels.includes(model);
                   return (

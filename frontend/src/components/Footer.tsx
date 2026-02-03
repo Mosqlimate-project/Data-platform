@@ -9,6 +9,7 @@ import clsx from 'clsx';
 export default function Footer() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showCitation, setShowCitation] = useState(false);
   const currentYear = new Date().getFullYear();
 
   useEffect(() => setMounted(true), []);
@@ -24,7 +25,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
 
-          <div className="md:col-span-2 flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
               <div className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-xs">
                 <Image src="/mosquito.svg" alt="Logo" width={32} height={32} priority />
@@ -54,6 +55,56 @@ export default function Footer() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <h3 className="font-semibold text-sm">How to cite</h3>
+            <div className="text-xs opacity-80">
+              <button
+                onClick={() => setShowCitation(!showCitation)}
+                className="flex items-center gap-1 font-medium hover:text-[var(--color-primary)] transition-colors focus:outline-none"
+              >
+                <span>{showCitation ? "Hide citation" : "Show citation"}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-transform duration-200 ${showCitation ? "rotate-180" : ""}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              <div
+                className={`grid transition-all duration-300 ease-in-out ${showCitation ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0"
+                  }`}
+              >
+                <div className="overflow-hidden">
+                  <p className="leading-relaxed mb-2 italic bg-muted/10 p-2 rounded border border-border">
+                    Ganem, Fabiana, et al. &quot;Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease.&quot; arXiv preprint arXiv:2410.18945 (2024).
+                  </p>
+                  <a
+                    href="https://arxiv.org/abs/2410.18945"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline font-medium inline-flex items-center gap-1"
+                  >
+                    View on arXiv
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 

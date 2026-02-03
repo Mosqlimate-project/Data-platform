@@ -1,5 +1,6 @@
 import re
 from datetime import date as dt
+from datetime import datetime
 from typing import Optional, Literal, List
 from pydantic import model_validator, field_validator
 
@@ -7,7 +8,6 @@ from ninja import Field
 from ninja.errors import HttpError
 
 from main.schema import Schema
-from vis.schema import PredictionScore
 
 
 class PredictionDataRowSchema(Schema):
@@ -183,6 +183,11 @@ class ModelIncludeInit(Schema):
     sprint: int
 
 
+class ContributorOut(Schema):
+    username: str
+    avatar_url: str | None
+
+
 class ModelOut(Schema):
     owner: str
     repository: str
@@ -191,6 +196,8 @@ class ModelOut(Schema):
     category: str
     adm_level: int
     time_resolution: str
+    predictions: int
+    contributors: list[ContributorOut]
 
     @staticmethod
     def resolve_owner(obj):
@@ -208,47 +215,101 @@ class ModelOut(Schema):
     def resolve_disease(obj):
         return obj.disease.name
 
+    @staticmethod
+    def resolve_contributors(obj):
+        users_map = {}
+        repo = obj.repository
+
+        for contributor in repo.repository_contributors.all():
+            users_map[contributor.user.id] = contributor.user
+
+        if repo.owner:
+            users_map[repo.owner.id] = repo.owner
+
+        return [
+            {
+                "username": user.username,
+                "avatar_url": getattr(user, "avatar_url", None)
+                or (
+                    user.avatar.url
+                    if hasattr(user, "avatar") and user.avatar
+                    else None
+                ),
+            }
+            for user in users_map.values()
+        ]
+
+
+class ModelDescriptionIn(Schema):
+    description: str
+
+
+class PredictionPublishUpdateIn(Schema):
+    published: bool
+
 
 class ModelPredictionOut(Schema):
     id: int
     date: dt
     commit: str
-    adm_0: Optional[str] = None
-    adm_1: Optional[str] = None
-    adm_2: Optional[str] = None
-    adm_3: Optional[str] = None
-    description: Optional[str] = None
-    start: Optional[dt] = None
-    end: Optional[dt] = None
-    sprint: Optional[int] = None
-    scores: list[PredictionScore]
-    published: Optional[bool] = None
+    description: str | None
+    start: dt | None
+    end: dt | None
+    scores: list[dict]
+    published: bool
+    created_at: datetime
+    disease_code: str = Field(alias="model.disease.code")
+    category: str = Field(alias="model.category")
+    adm_level: int = Field(alias="model.adm_level")
+    sprint: int | None
+    adm_0_name: str | None
+    adm_0_code: str | None
+    adm_1_name: str | None
+    adm_1_code: int | None
+    adm_2_name: str | None
+    adm_2_code: int | None
+    adm_3_name: str | None
+    adm_3_code: int | None
 
     @staticmethod
     def resolve_date(obj):
         return obj.predict_date
 
     @staticmethod
-    def resolve_adm_0(obj):
+    def resolve_sprint(obj):
+        return obj.model.sprint.year if obj.model.sprint else None
+
+    @staticmethod
+    def resolve_adm_0_name(obj):
         return obj.adm0.name if obj.adm0 else None
 
     @staticmethod
-    def resolve_adm_1(obj):
+    def resolve_adm_0_code(obj):
+        return obj.adm0.geocode if obj.adm0 else None
+
+    @staticmethod
+    def resolve_adm_1_name(obj):
         return obj.adm1.name if obj.adm1 else None
 
     @staticmethod
-    def resolve_adm_2(obj):
+    def resolve_adm_1_code(obj):
+        return obj.adm1.geocode if obj.adm1 else None
+
+    @staticmethod
+    def resolve_adm_2_name(obj):
         return obj.adm2.name if obj.adm2 else None
 
     @staticmethod
-    def resolve_adm_3(obj):
+    def resolve_adm_2_code(obj):
+        return obj.adm2.geocode if obj.adm2 else None
+
+    @staticmethod
+    def resolve_adm_3_name(obj):
         return obj.adm3.name if obj.adm3 else None
 
     @staticmethod
-    def resolve_sprint(obj):
-        if obj.model.sprint:
-            return obj.model.sprint.year
-        return None
+    def resolve_adm_3_code(obj):
+        return obj.adm3.geocode if obj.adm3 else None
 
     @staticmethod
     def resolve_scores(obj):

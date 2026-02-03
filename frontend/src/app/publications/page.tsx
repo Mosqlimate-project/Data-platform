@@ -240,7 +240,6 @@ export default function PublicationsPage() {
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-20">
 
-        {/* Header Section */}
         <div className="text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {t('publications.title')}
