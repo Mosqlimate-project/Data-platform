@@ -6,6 +6,7 @@ import { LayoutDashboard, Search, X, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LineChart, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
+import MarkdownRenderer from "@/components/model/MarkdownRenderer";
 
 interface PredictionScore {
   name: string;
@@ -47,6 +48,8 @@ interface PredictionRowData {
 interface PredictionsListProps {
   predictions: ModelPrediction[];
   canManage?: boolean;
+  owner?: string;
+  modelName?: string;
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -180,7 +183,12 @@ const PredictionCard = memo(function PredictionCard({
   );
 });
 
-export default function PredictionsList({ predictions, canManage = false }: PredictionsListProps) {
+export default function PredictionsList({
+  predictions,
+  canManage = false,
+  owner = "owner",
+  modelName = "model"
+}: PredictionsListProps) {
   const { i18n } = useTranslation();
   const router = useRouter();
 
@@ -322,6 +330,66 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
       );
     });
   }, [localPredictions, debouncedSearchQuery, canManage]);
+
+  const emptyStateMarkdown = useMemo(() => `
+## No predictions published yet
+
+This model doesn't have any predictions associated with it. Use the [Mosqlient Python library](https://pypi.org/project/mosqlient/) to upload your first forecast.
+
+### 1. Install the client
+
+\`\`\`bash
+pip install mosqlient
+\`\`\`
+
+### 2. Upload your prediction
+
+\`\`\`python
+import mosqlient
+
+api_key = "usename:<api-key>" # your API Key can be found in the profile page
+
+prediction = [{
+  "date": str,
+  "lower_95": float,
+  "lower_90": float,
+  "lower_80": float,
+  "lower_50": float,
+  "pred": float,
+  "upper_50": float,
+  "upper_80": float,
+  "upper_90": float,
+  "upper_95": float
+}]
+
+mosqlient.upload_prediction(
+  api_key=api_key,
+  model="${owner}/${modelName}",
+  description=...,
+  commit=...,
+  predict_date="2025-01-01",
+  prediction=prediction,
+  adm_0="BRA",
+  adm_1=33,
+  adm_2=3304557,
+  adm_3=...,
+)
+\`\`\`
+
+Need an API Key? Go to your [Profile](/profile/auth) to generate one.
+  `, [owner, modelName]);
+
+  if (!predictions || predictions.length === 0) {
+    return (
+      <div className="w-full bg-bg border rounded-xl shadow-sm p-8 md:p-12">
+        <div className="max-w-3xl mx-auto bg-bg">
+          <div className="flex justify-center mb-6">
+            <MarkdownRenderer content={emptyStateMarkdown} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -9,7 +9,6 @@ interface PageProps {
   }>;
 }
 
-
 async function getPredictions(owner: string, repository: string): Promise<ModelPrediction[]> {
   try {
     const res = await fetch(
@@ -40,6 +39,8 @@ export default async function PredictionsPage({ params }: PageProps) {
     <PredictionsList
       predictions={predictions}
       canManage={permissions.can_manage}
+      owner={owner}
+      modelName={repository}
     />
   );
 }

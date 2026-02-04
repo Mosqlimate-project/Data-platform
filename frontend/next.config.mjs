@@ -1,3 +1,5 @@
+export const BACKEND_PORT = process.env.BACKEND_PORT;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -59,6 +61,15 @@ const nextConfig = {
         permanent: false,
       },
     ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/media/:path*',
+        destination: `http://backend:${BACKEND_PORT}/media/:path*`,
+      },
+    ]
   },
 
   async headers() {
