@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useChart } from "../../hooks/useChart";
+import { useTranslation } from "react-i18next";
 
 interface ChartProps {
   geocode: string;
@@ -10,6 +11,7 @@ interface ChartProps {
 }
 
 export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +28,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 
-        if (!chartRes.ok) throw new Error("Failed to load data");
+        if (!chartRes.ok) throw new Error(t('charts_climate.loading_error'));
 
         const data = await chartRes.json();
 
@@ -49,7 +51,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
 
         setOption({
           title: {
-            text: `Daily Precipitation - ${locationTitle}`,
+            text: t('charts_climate.precip_title', { location: locationTitle }),
             left: "center",
           },
           tooltip: {
@@ -65,7 +67,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             },
           },
           legend: {
-            data: ["Total Precipitation", "Average Precipitation"],
+            data: [t('charts_climate.precip_total'), t('charts_climate.precip_avg')],
             top: 40
           },
           grid: {
@@ -76,7 +78,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             containLabel: true
           },
           xAxis: {
-            name: "Date",
+            name: t('charts_climate.date'),
             nameLocation: "middle",
             nameGap: 30,
             nameTextStyle: { fontSize: 12, fontWeight: "bold" },
@@ -88,7 +90,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             },
           },
           yAxis: {
-            name: "Precipitation (mm)",
+            name: t('charts_climate.precip_axis'),
             nameLocation: "middle",
             nameGap: 40,
             nameTextStyle: { fontSize: 12, fontWeight: "bold" },
@@ -97,7 +99,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
           },
           series: [
             {
-              name: "Average Precipitation",
+              name: t('charts_climate.precip_avg'),
               type: "bar",
               data: meanPrecip,
               barWidth: "100%",
@@ -105,7 +107,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
               itemStyle: { color: "#2FDDEC" },
             },
             {
-              name: "Total Precipitation",
+              name: t('charts_climate.precip_total'),
               type: "bar",
               data: totalPrecip,
               barWidth: "100%",
@@ -126,13 +128,14 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end]);
+  }, [geocode, start, end, t]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "400px" }} />;
 }
 
 export function TemperatureChart({ geocode, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -149,7 +152,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 
-        if (!chartRes.ok) throw new Error("Failed to load data");
+        if (!chartRes.ok) throw new Error(t('charts_climate.loading_error'));
 
         const data = await chartRes.json();
 
@@ -172,29 +175,29 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
         const tempMax = data.map((d: any) => d.temp_max);
 
         setOption({
-          title: { text: `Temperature on ${locationTitle}`, left: "center" },
+          title: { text: t('charts_climate.temp_title', { location: locationTitle }), left: "center" },
           tooltip: { trigger: "axis" },
-          legend: { data: ["Max", "Med", "Min"], top: 35 },
+          legend: { data: [t('charts_climate.temp_max'), t('charts_climate.temp_med'), t('charts_climate.temp_min')], top: 35 },
           grid: { left: 50, right: 30, bottom: 50, top: 80 },
           xAxis: { type: "category", data: dates },
-          yAxis: { name: "Temperature (°C)", type: "value" },
+          yAxis: { name: t('charts_climate.temp_axis'), type: "value" },
           series: [
             {
-              name: "Max",
+              name: t('charts_climate.temp_max'),
               type: "line",
               data: tempMax,
               lineStyle: { color: "#6A75B7" },
               showSymbol: false,
             },
             {
-              name: "Med",
+              name: t('charts_climate.temp_med'),
               type: "line",
               data: tempMed,
               lineStyle: { color: "#90BE10" },
               showSymbol: false,
             },
             {
-              name: "Min",
+              name: t('charts_climate.temp_min'),
               type: "line",
               data: tempMin,
               lineStyle: { color: "#41BAC5" },
@@ -214,13 +217,14 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end]);
+  }, [geocode, start, end, t]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "500px" }} />;
 }
 
 export function AirChart({ geocode, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -237,7 +241,7 @@ export function AirChart({ geocode, start, end }: ChartProps) {
           fetch(`/api/datastore/cities?geocode=${geocode}`)
         ]);
 
-        if (!chartRes.ok) throw new Error("Failed to load data");
+        if (!chartRes.ok) throw new Error(t('charts_climate.loading_error'));
 
         const data = await chartRes.json();
 
@@ -260,12 +264,12 @@ export function AirChart({ geocode, start, end }: ChartProps) {
 
         setOption({
           title: {
-            text: `Average Relative Humidity and Pressure on ${locationTitle}`,
+            text: t('charts_climate.air_title', { location: locationTitle }),
             left: "center"
           },
           tooltip: { trigger: "axis" },
           legend: {
-            data: ["Average Relative Humidity", "Average Air Pressure"],
+            data: [t('charts_climate.air_humidity'), t('charts_climate.air_pressure')],
             top: 35
           },
           grid: { left: 50, right: 50, bottom: 50, top: 80 },
@@ -273,27 +277,27 @@ export function AirChart({ geocode, start, end }: ChartProps) {
           yAxis: [
             {
               type: "value",
-              name: "Pressure (atm)",
+              name: t('charts_climate.pressure_axis'),
               position: "left",
               min: "dataMin",
               max: (value) => value.max + 0.02,
             },
             {
               type: "value",
-              name: "Humidity (%)",
+              name: t('charts_climate.humidity_axis'),
               position: "right",
             },
           ],
           series: [
             {
-              name: "Average Air Pressure",
+              name: t('charts_climate.air_pressure'),
               type: "bar",
               data: pressure,
               yAxisIndex: 0,
               itemStyle: { color: "#8D9ECE" },
             },
             {
-              name: "Average Relative Humidity",
+              name: t('charts_climate.air_humidity'),
               type: "line",
               data: humidity,
               yAxisIndex: 1,
@@ -313,7 +317,7 @@ export function AirChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end]);
+  }, [geocode, start, end, t]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "500px" }} />;

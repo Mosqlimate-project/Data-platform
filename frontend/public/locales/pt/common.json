@@ -240,5 +240,163 @@
     "team": {
       "title": "Conheça a nossa equipe"
     }
+  },
+  "model_predictions": {
+    "empty_title": "Nenhuma previsão publicada ainda",
+    "empty_desc": "Este modelo não possui previsões associadas. Você pode enviar previsões usando Python, R ou diretamente via API.",
+    "python_rec": "1. Python (Recomendado)",
+    "need_api_key": "Precisa de uma chave de API? Vá para seu [Perfil](/profile/auth) para gerar uma.",
+    "select_prediction": "Selecione uma Previsão",
+    "prediction_id": "Previsão #{{id}}",
+    "unable_load": "Não foi possível carregar os dados do gráfico",
+    "select_below": "Selecione uma previsão da lista abaixo",
+    "search_placeholder": "Buscar previsões...",
+    "metric_label": "Métrica:",
+    "no_matches": "Nenhuma previsão corresponde à sua busca.",
+    "no_found": "Nenhuma previsão encontrada.",
+    "saving": "Salvando...",
+    "published": "Publicado",
+    "view_dashboard": "Ver Painel Completo"
+  },
+  "profile": {
+    "title": "Perfil",
+    "description": "Gerencie suas informações pessoais.",
+    "username": "Nome de usuário",
+    "email": "E-mail",
+    "first_name": "Nome",
+    "last_name": "Sobrenome",
+    "homepage": "URL da Homepage",
+    "profile_picture": "Foto de perfil",
+    "upload_hint": "Clique para enviar. Máx 5MB.",
+    "change": "Alterar",
+    "update_btn": "Atualizar perfil",
+    "loading": "Carregando...",
+    "alerts": {
+      "size_limit": "O tamanho da imagem deve ser menor que 5MB",
+      "update_fail": "Falha ao atualizar perfil",
+      "update_error": "Ocorreu um erro ao atualizar o perfil",
+      "upload_fail": "Falha ao enviar avatar",
+      "upload_error": "Ocorreu um erro ao enviar"
+    }
+  },
+  "profile_auth": {
+    "title": "Autenticação e API",
+    "description": "Gerencie suas contas conectadas e credenciais de desenvolvedor.",
+    "api_key_title": "Chave de API Pessoal",
+    "api_key_desc": "Use esta chave para autenticar ferramentas CLI ou scripts externos.",
+    "header_hint": "Passe este cabeçalho:",
+    "regenerate": "Gerar Nova Chave",
+    "connected_accounts": "Contas Conectadas",
+    "connected_desc": "Faça login no Mosqlimate usando estes provedores.",
+    "connected_to": "Conectado ao {{name}}",
+    "link_account": "Vincule sua conta {{name}}",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "github_app_title": "Integração GitHub App",
+    "github_app_desc": "Conceda permissão para importar repositórios e rastrear modelos.",
+    "github_link_warning": "Você deve vincular sua conta do GitHub acima antes de instalar.",
+    "checking": "Verificando...",
+    "installed": "Instalado",
+    "install_app": "Instalar App",
+    "configure_github": "Configurar acesso ao repositório no GitHub",
+    "alerts": {
+      "confirm_regenerate": "Tem certeza?",
+      "copied": "Copiado para a área de transferência!"
+    }
+  },
+  "profile_models": {
+    "title": "Modelos",
+    "description": "Modelos que você possui, contribui ou mantém dentro de uma organização.",
+    "empty_title": "Nenhum modelo encontrado",
+    "empty_desc": "Você ainda não vinculou nenhum modelo. Conecte um repositório para começar.",
+    "table": {
+      "name": "Nome",
+      "disease": "Agravo",
+      "category": "Categoria",
+      "status": "Status",
+      "actions": "Ações"
+    },
+    "status": {
+      "active": "Ativo",
+      "inactive": "Inativo"
+    },
+    "manage": "Gerenciar",
+    "view_only": "Somente Visualização",
+    "manage_soon": "Painel de gerenciamento em breve"
+  },
+  "profile_account": {
+    "title": "Configurações da Conta",
+    "description": "Gerencie seus métodos de login e exclua sua conta.",
+    "password_title": "Alterar Senha",
+    "password_desc": "Atualize a senha associada à sua conta.",
+    "password_btn": "Atualizar senha",
+    "delete_title": "Excluir Conta",
+    "delete_desc": "Remova permanentemente sua conta e todos os dados associados. Esta ação não pode ser desfeita.",
+    "delete_btn": "Excluir conta"
+  },
+  "endpoint_layout": {
+    "accordion": {
+      "charts_title": "Gráficos / Visualização",
+      "charts_desc": "Ajuste os parâmetros abaixo para atualizar os gráficos.",
+      "api_builder_title": "Construtor de Requisição API",
+      "api_builder_desc": "Construa uma consulta API bruta com todos os parâmetros disponíveis.",
+      "description_title": "Descrição",
+      "dictionary_title": "Dicionário de Dados",
+      "no_content": "Nenhum conteúdo de visualização disponível."
+    },
+    "dictionary": {
+      "variable": "Variável",
+      "type": "Tipo",
+      "description": "Descrição"
+    }
+  },
+  "charts_climate": {
+    "loading_error": "Falha ao carregar dados",
+    "precip_title": "Precipitação Diária - {{location}}",
+    "precip_total": "Precipitação Total",
+    "precip_avg": "Precipitação Média",
+    "date": "Data",
+    "precip_axis": "Precipitação (mm)",
+    "temp_title": "Temperatura em {{location}}",
+    "temp_max": "Máx",
+    "temp_med": "Méd",
+    "temp_min": "Mín",
+    "temp_axis": "Temperatura (°C)",
+    "air_title": "Umidade Relativa e Pressão Média em {{location}}",
+    "air_humidity": "Umidade Relativa Média",
+    "air_pressure": "Pressão Atmosférica Média",
+    "pressure_axis": "Pressão (atm)",
+    "humidity_axis": "Umidade (%)"
+  },
+  "charts_contaovos": {
+    "unavailable": "Visualização não disponível"
+  },
+  "charts_infodengue": {
+    "total_cases_label": "Total de Casos Notificados",
+    "daily_cases_title": "Casos Diários",
+    "cases_axis": "Casos",
+    "fetch_error": "Falha ao buscar",
+    "no_data": "Nenhum dado disponível para este período.",
+    "rt_title": "Número Reprodutivo Efetivo (Rt)",
+    "rt_tooltip": "Rt",
+    "threshold": "Limiar (1.0)",
+    "no_rt_data": "Nenhum dado de Rt disponível para este período."
+  },
+  "footer": {
+    "theme": "Tema",
+    "cite_title": "Como citar",
+    "cite_show": "Mostrar citação",
+    "cite_hide": "Ocultar citação",
+    "cite_text": "Ganem, Fabiana, et al. \"Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease.\" arXiv preprint arXiv:2410.18945 (2024).",
+    "cite_link": "Ver no arXiv",
+    "funding_title": "Financiamento",
+    "funding_agency": "Wellcome Trust",
+    "connect_title": "Conectar",
+    "connect_email": "Contato por E-mail",
+    "connect_youtube": "Canal no YouTube",
+    "project_name": "Projeto Mosqlimate",
+    "rights": "Todos os direitos reservados.",
+    "terms": "Termos de Serviço",
+    "privacy": "Política de Privacidade"
   }
 }

@@ -227,5 +227,163 @@
     "team": {
       "title": "Conozca a nuestro equipo"
     }
+  },
+  "model_predictions": {
+    "empty_title": "Aún no hay predicciones publicadas",
+    "empty_desc": "Este modelo no tiene predicciones asociadas. Puede cargar pronósticos usando Python, R o directamente a través de la API.",
+    "python_rec": "1. Python (Recomendado)",
+    "need_api_key": "¿Necesita una clave API? Vaya a su [Perfil](/profile/auth) para generar una.",
+    "select_prediction": "Seleccionar una Predicción",
+    "prediction_id": "Predicción #{{id}}",
+    "unable_load": "No se pudieron cargar los datos del gráfico",
+    "select_below": "Seleccione una predicción de la lista a continuación",
+    "search_placeholder": "Buscar predicciones...",
+    "metric_label": "Métrica:",
+    "no_matches": "Ninguna predicción coincide con su búsqueda.",
+    "no_found": "No se encontraron predicciones.",
+    "saving": "Guardando...",
+    "published": "Publicado",
+    "view_dashboard": "Ver Panel Completo"
+  },
+  "profile": {
+    "title": "Perfil",
+    "description": "Administra tu información personal.",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "homepage": "URL de la página de inicio",
+    "profile_picture": "Foto de perfil",
+    "upload_hint": "Clic para subir. Máx 5MB.",
+    "change": "Cambiar",
+    "update_btn": "Actualizar perfil",
+    "loading": "Cargando...",
+    "alerts": {
+      "size_limit": "El tamaño de la imagen debe ser menor a 5MB",
+      "update_fail": "Error al actualizar perfil",
+      "update_error": "Ocurrió un error al actualizar el perfil",
+      "upload_fail": "Error al subir avatar",
+      "upload_error": "Ocurrió un error al subir"
+    }
+  },
+  "profile_auth": {
+    "title": "Autenticación y API",
+    "description": "Administra tus cuentas conectadas y credenciales de desarrollador.",
+    "api_key_title": "Clave API Personal",
+    "api_key_desc": "Usa esta clave para autenticar herramientas CLI o scripts externos.",
+    "header_hint": "Pasa este encabezado:",
+    "regenerate": "Regenerar Clave",
+    "connected_accounts": "Cuentas Conectadas",
+    "connected_desc": "Inicia sesión en Mosqlimate usando estos proveedores.",
+    "connected_to": "Conectado a {{name}}",
+    "link_account": "Vincula tu cuenta de {{name}}",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "github_app_title": "Integración GitHub App",
+    "github_app_desc": "Otorga permiso para importar repositorios y rastrear modelos.",
+    "github_link_warning": "Debes vincular tu cuenta de GitHub arriba antes de instalar.",
+    "checking": "Verificando...",
+    "installed": "Instalado",
+    "install_app": "Instalar App",
+    "configure_github": "Configurar acceso al repositorio en GitHub",
+    "alerts": {
+      "confirm_regenerate": "¿Estás seguro?",
+      "copied": "¡Copiado al portapapeles!"
+    }
+  },
+  "profile_models": {
+    "title": "Modelos",
+    "description": "Modelos que posees, contribuyes o mantienes dentro de una organización.",
+    "empty_title": "No se encontraron modelos",
+    "empty_desc": "Aún no has vinculado ningún modelo. Conecta un repositorio para comenzar.",
+    "table": {
+      "name": "Nombre",
+      "disease": "Enfermedad",
+      "category": "Categoría",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "manage": "Administrar",
+    "view_only": "Solo Vista",
+    "manage_soon": "Panel de administración próximamente"
+  },
+  "profile_account": {
+    "title": "Configuración de la Cuenta",
+    "description": "Administra tus métodos de inicio de sesión y elimina tu cuenta.",
+    "password_title": "Cambiar Contraseña",
+    "password_desc": "Actualiza la contraseña asociada a tu cuenta.",
+    "password_btn": "Actualizar contraseña",
+    "delete_title": "Eliminar Cuenta",
+    "delete_desc": "Elimina permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+    "delete_btn": "Eliminar cuenta"
+  },
+  "endpoint_layout": {
+    "accordion": {
+      "charts_title": "Gráficos / Visualización",
+      "charts_desc": "Ajuste los parámetros a continuación para actualizar los gráficos.",
+      "api_builder_title": "Constructor de Solicitudes API",
+      "api_builder_desc": "Construya una consulta API sin procesar con todos los parámetros disponibles.",
+      "description_title": "Descripción",
+      "dictionary_title": "Diccionario de Datos",
+      "no_content": "No hay contenido de visualización disponible."
+    },
+    "dictionary": {
+      "variable": "Variable",
+      "type": "Tipo",
+      "description": "Descripción"
+    }
+  },
+  "charts_climate": {
+    "loading_error": "Failed to load data",
+    "precip_title": "Daily Precipitation - {{location}}",
+    "precip_total": "Total Precipitation",
+    "precip_avg": "Average Precipitation",
+    "date": "Date",
+    "precip_axis": "Precipitation (mm)",
+    "temp_title": "Temperature on {{location}}",
+    "temp_max": "Max",
+    "temp_med": "Med",
+    "temp_min": "Min",
+    "temp_axis": "Temperature (°C)",
+    "air_title": "Average Relative Humidity and Pressure on {{location}}",
+    "air_humidity": "Average Relative Humidity",
+    "air_pressure": "Average Air Pressure",
+    "pressure_axis": "Pressure (atm)",
+    "humidity_axis": "Humidity (%)"
+  },
+  "charts_contaovos": {
+    "unavailable": "Visualization not available"
+  },
+  "charts_infodengue": {
+    "total_cases_label": "Total Reported Cases",
+    "daily_cases_title": "Daily Cases",
+    "cases_axis": "Cases",
+    "fetch_error": "Failed to fetch",
+    "no_data": "No data available for this period.",
+    "rt_title": "Effective Reproductive Number (Rt)",
+    "rt_tooltip": "Rt",
+    "threshold": "Threshold (1.0)",
+    "no_rt_data": "No Rt data available for this period."
+  },
+  "footer": {
+    "theme": "Tema",
+    "cite_title": "Cómo citar",
+    "cite_show": "Mostrar cita",
+    "cite_hide": "Ocultar cita",
+    "cite_text": "Ganem, Fabiana, et al. \"Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease.\" arXiv preprint arXiv:2410.18945 (2024).",
+    "cite_link": "Ver en arXiv",
+    "funding_title": "Financiación",
+    "funding_agency": "Wellcome Trust",
+    "connect_title": "Conectar",
+    "connect_email": "Contacto por Correo",
+    "connect_youtube": "Canal de YouTube",
+    "project_name": "Proyecto Mosqlimate",
+    "rights": "Todos los derechos reservados.",
+    "terms": "Términos de Servicio",
+    "privacy": "Política de Privacidad"
   }
 }

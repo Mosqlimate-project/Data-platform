@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/model/add/sprint/active/`, {
+    const res = await fetch(`${BACKEND_BASE_URL}/api/registry/model/add/sprint/actives/`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${accessToken}`,

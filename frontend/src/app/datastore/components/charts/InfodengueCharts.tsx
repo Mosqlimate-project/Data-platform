@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import * as echarts from "echarts";
+import { useTranslation } from "react-i18next";
 
 interface ChartProps {
   geocode: string;
@@ -40,7 +41,7 @@ function useChart(options: echarts.EChartsOption | null, loading: boolean) {
     } else {
       chartInstance.current.hideLoading();
       if (options) {
-        chartInstance.current.setOption(options, { notMerge: true }); // notMerge ensures clean update between cities
+        chartInstance.current.setOption(options, { notMerge: true });
         chartInstance.current.resize();
       }
     }
@@ -65,6 +66,7 @@ const getDiseaseCode = (name: string) => {
 };
 
 export function TotalCases({ geocode, disease, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [totalCases, setTotalCases] = useState<number>(0);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export function TotalCases({ geocode, disease, start, end }: ChartProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div className="border rounded-md p-4 bg-card text-card-foreground shadow-sm">
-        <div className="text-sm opacity-70">Total Reported Cases</div>
+        <div className="text-sm opacity-70">{t('charts_infodengue.total_cases_label')}</div>
         <div className="text-3xl font-bold">{totalCases.toLocaleString()}</div>
       </div>
     </div>
@@ -92,6 +94,7 @@ export function TotalCases({ geocode, disease, start, end }: ChartProps) {
 }
 
 export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -113,7 +116,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
 
     fetch(`/api/vis/dashboard/cases/?${params}`)
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) throw new Error(t('charts_infodengue.fetch_error'));
         return res.json();
       })
       .then((data: DailyCaseData[]) => {
@@ -130,7 +133,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
 
         setOption({
           title: {
-            text: "Daily Cases",
+            text: t('charts_infodengue.daily_cases_title'),
             left: "center",
             textStyle: { fontSize: 14, fontWeight: "normal" },
           },
@@ -171,12 +174,12 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
           },
           yAxis: {
             type: "value",
-            name: "Cases",
+            name: t('charts_infodengue.cases_axis'),
             splitLine: { show: true, lineStyle: { type: "dashed" } },
           },
           series: [
             {
-              name: "Cases",
+              name: t('charts_infodengue.cases_axis'),
               type: "line",
               data: cases,
               smooth: false,
@@ -197,7 +200,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
         setOption(null);
       })
       .finally(() => setLoading(false));
-  }, [geocode, disease, start, end]);
+  }, [geocode, disease, start, end, t]);
 
   const chartRef = useChart(option, loading);
 
@@ -205,7 +208,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
     <div className="w-full border rounded-md p-4 bg-card shadow-sm mt-6">
       {!loading && !option ? (
         <div className="h-[350px] flex items-center justify-center text-muted-foreground opacity-60 text-sm">
-          No data available for this period.
+          {t('charts_infodengue.no_data')}
         </div>
       ) : (
         <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
@@ -220,6 +223,7 @@ interface RtData {
 }
 
 export function RtChart({ geocode, disease, start, end }: ChartProps) {
+  const { t } = useTranslation('common');
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -246,7 +250,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
 
         setOption({
           title: {
-            text: "Effective Reproductive Number (Rt)",
+            text: t('charts_infodengue.rt_title'),
             left: "center",
             textStyle: { fontSize: 14, fontWeight: "normal" },
           },
@@ -256,8 +260,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
               const p = params[0];
               const date = new Date(p.axisValue).toLocaleDateString();
               const val = Number(p.value);
-              const color = val > 1 ? "#ef4444" : "#22c55e";
-              return `${date}<br/><strong>Rt: ${val.toFixed(2)}</strong>`;
+              return `${date}<br/><strong>${t('charts_infodengue.rt_tooltip')}: ${val.toFixed(2)}</strong>`;
             },
           },
           graphic: {
@@ -320,7 +323,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
                 },
                 label: {
                   position: "end",
-                  formatter: "Threshold (1.0)",
+                  formatter: t('charts_infodengue.threshold'),
                 },
                 data: [{ yAxis: 1.0 }],
               },
@@ -339,7 +342,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
         setOption(null);
       })
       .finally(() => setLoading(false));
-  }, [geocode, disease, start, end]);
+  }, [geocode, disease, start, end, t]);
 
   const chartRef = useChart(option, loading);
 
@@ -347,7 +350,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
     <div className="w-full border rounded-md p-4 bg-card shadow-sm mt-6">
       {!loading && !option ? (
         <div className="h-[350px] flex items-center justify-center text-muted-foreground opacity-60 text-sm">
-          No Rt data available for this period.
+          {t('charts_infodengue.no_rt_data')}
         </div>
       ) : (
         <div ref={chartRef} style={{ width: "100%", height: "350px" }} />

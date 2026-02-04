@@ -8,7 +8,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
 from django.core.files.base import ContentFile
-from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     NotFoundSchema,
@@ -30,16 +29,13 @@ User = get_user_model()
 
 
 @router.get(
-    "/model/add/sprint/active/",
+    "/model/add/sprint/actives/",
     auth=JWTAuth(),
-    response={200: bool},
+    response=List[s.SprintOut],
     include_in_schema=False,
 )
 def is_sprint_active(request):
-    today = timezone.now().date()
-    return m.Sprint.objects.filter(
-        start_date__lte=today, end_date__gte=today
-    ).exists()
+    return m.Sprint.objects.all()
 
 
 @router.post(
