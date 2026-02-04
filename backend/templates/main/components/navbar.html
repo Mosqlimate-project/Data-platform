@@ -1,100 +1,68 @@
-{% load socialaccount %}
 {% load static %}
-{% load i18n %}
 
-<div id="predictions-url" data-base-url="{% url 'predictions' %}"></div>
-
-<nav id="navbar" class="navbar navbar-expand-lg navbar-light fixed-top bg-light" data-navbar-on-scroll="data-navbar-on-scroll">
-  <div class="container-fluid">
-    <!-- Navbar -->
-    <a class="navbar-brand" href="{% url 'home' %}">
-      <img class="d-inline-block align-top img-fluid" src="{% static 'img/logo-medium.png' %}" alt="" width="90">
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <!-- Navbar Items -->
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'home' %}">{% trans 'Home' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'about' %}">{% trans 'About' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'docs' %}">{% trans 'Documentation' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'api-1:openapi-view' %}">{% trans 'API Demo' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'dashboard' %}?dashboard=sprint">Dashboard</a>
-          </li>
-          <li class="nav-item">
-            <div class="nav-link disabled">|</div>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'models' %}">{% trans 'Models' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'predictions' %}">{% trans 'Predictions' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'datastore' %}">Datastore</a>
-          </li>
+<nav id="navbar" class="navbar navbar-expand-lg navbar-light fixed-top bg-light shadow-sm" data-navbar-on-scroll="data-navbar-on-scroll">
+  <div class="container">
+    <img class="d-inline-block align-top img-fluid" src="{% static 'img/logo-medium.png' %}" alt="Logo" width="90">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+        <li class="nav-item">
+          <a class="nav-link px-3 fw-semibold" href="{% url 'docs' %}">
+            Documentation
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-3 fw-semibold text-primary" href="{% url 'api-1:openapi-view' %}">
+            API Demo
+          </a>
+        </li>
         </ul>
-      <!-- Navbar User & Login/out -->
-      <ul class="navbar-nav navbar-user ms-auto mb-lg-0">
-        <li class="nav-item">
-          {% if user.is_authenticated %}
-          <a href="{% url 'profile' user.username %}" class="nav-link" aria-current="page">{{user.username}}</a>
-        </li>
-        <li class="nav-item">
-          <div class="nav-link disabled">|</div>
-        </li>
-        <li class="nav-item">
-          <form method="post" action="{% url 'account_logout' %}">
-            {% csrf_token %}
-            {% if redirect_field_value %}
-            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-            {% endif %}
-            <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">{% trans 'logout' %}</a>
-          </form>
-        </li>
-        {% else %}
-        <li class="nav-item">
-          <form method="post" action="{% provider_login_url "github" %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary me-auto" role="button">{% trans 'Login with Github' %}</button>
-          </form>
-          {% endif %}
-        </li>
-      </ul>
     </div>
   </div>
 </nav>
 
 <style>
   .navbar {
-    background-image: none;
-    transition: all 0.2s ease;
-    opacity: 0.9;
-    height: 105.5px;
-    padding: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
+    transition: all 0.3s ease-in-out;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    opacity: 0.98;
+    backdrop-filter: blur(10px);
   }
 
-.navbar > .container, .navbar > .container-fluid, 
-.navbar > .container-lg, .navbar > .container-md, 
-.navbar > .container-sm, .navbar > .container-xl, 
-.navbar > .container-xxl {
-  display: flex;
-  flex-wrap: inherit;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #f8f9fa;
-}
+  .navbar-nav .nav-link {
+    color: #555;
+    position: relative;
+    transition: color 0.3s ease;
+  }
+
+  .navbar-nav .nav-link:hover,
+  .navbar-nav .nav-link.active {
+    color: #000;
+  }
+
+  .navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    display: block;
+    margin-top: 5px;
+    right: 0;
+    background: #0d6efd;
+    transition: width 0.3s ease;
+    -webkit-transition: width 0.3s ease;
+  }
+
+  .navbar-nav .nav-link:hover::after {
+    width: 100%;
+    left: 0;
+    background: #0d6efd;
+  }
+
+  .nav-link.text-primary {
+      color: #0d6efd !important;
+  }
+  .nav-link.text-primary:hover {
+      color: #0a58ca !important;
+  }
 </style>

@@ -9,11 +9,9 @@ import {
   FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup
 } from 'react-icons/fa';
 import clsx from 'clsx';
-import { apiFetch } from '@/lib/api';
 import { useTheme } from 'next-themes';
 import { oauthLogin } from '@/lib/api/auth';
 import NetworkBackground from "@/components/NetworkBackground";
-
 
 interface Repository {
   id: string;
@@ -65,6 +63,7 @@ export default function AddModelPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
+  const [isSprintActive, setIsSprintActive] = useState(false);
 
   const performDiseaseSearch = async () => {
     if (config.disease) return;
@@ -146,12 +145,18 @@ export default function AddModelPage() {
 
   const fetchConnectedProviders = async () => {
     try {
-      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
-      setConnectedProviders(connectedProviders);
+      const res = await fetch("/api/user/oauth/connections");
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedProviders(data);
+      } else {
+        console.error("Failed to fetch connections");
+      }
     } catch (err) {
-      console.error("Failed to fetch connections");
+      console.error("Network error:", err);
     }
   };
+
 
   useEffect(() => {
     if (initialized.current) return;
@@ -165,18 +170,36 @@ export default function AddModelPage() {
 
       const results: Repository[] = [];
 
+      const checkSprintStatus = async () => {
+        try {
+          const res = await fetch("/api/registry/model/add/sprint/active");
+          if (res.ok) {
+            const active = await res.json();
+            setIsSprintActive(active);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
       const fetchProvider = async (provider: 'github' | 'gitlab') => {
         try {
-          const data = await apiFetch(`/user/repositories/${provider}/`, { auth: true });
-          if (Array.isArray(data)) {
-            if (provider === 'github') {
-              if (data.length > 0) {
-                setGithubAppStatus('connected');
-              } else {
-                setGithubAppStatus('missing');
+          const res = await fetch(`/api/user/oauth/repositories/${provider}`);
+
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              if (provider === 'github') {
+                if (data.length > 0) {
+                  setGithubAppStatus('connected');
+                } else {
+                  setGithubAppStatus('missing');
+                }
               }
+              results.push(...data.map((r: any) => ({ ...r, provider })));
             }
-            results.push(...data.map((r: any) => ({ ...r, provider })));
+          } else {
+            if (provider === 'github') setGithubAppStatus('missing');
           }
         } catch (err) {
           if (provider === 'github') setGithubAppStatus('missing');
@@ -186,6 +209,7 @@ export default function AddModelPage() {
       await Promise.all([
         fetchProvider('github'),
         fetchProvider('gitlab'),
+        checkSprintStatus(),
       ]);
 
       setRepos(results);
@@ -193,6 +217,41 @@ export default function AddModelPage() {
     };
 
     initData();
+  }, []);
+
+  useEffect(() => {
+    const initDefaultDisease = async () => {
+      if (config.disease) return;
+
+      try {
+        const params = new URLSearchParams({
+          icd: "ICD-10",
+          version: "2010",
+          name: "A90"
+        });
+
+        const res = await fetch(`/api/datastore/diseases?${params}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          const defaultDisease = data[0];
+
+          setConfig(prev => ({
+            ...prev,
+            disease: String(defaultDisease.id)
+          }));
+
+          setDiseaseSearch(defaultDisease.name);
+
+          setDiseases(data);
+        }
+      } catch (err) {
+        console.error("Failed to initialize default disease", err);
+      }
+    };
+
+    initDefaultDisease();
   }, []);
 
   const filteredRepos = repos.filter(repo => {
@@ -274,7 +333,12 @@ export default function AddModelPage() {
         throw new Error(data.message || 'Could not import repository.');
       }
 
-      router.push('/dashboard');
+      const modelPath = getModelName(url).replace(/\.git$/, '');
+      if (modelPath) {
+        router.push(`/${modelPath}/predictions`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
@@ -482,13 +546,30 @@ export default function AddModelPage() {
                               </a>
                             </>
                           )
-                            : (
+                            : activeTab === 'gitlab' && !connectedProviders.includes('gitlab') ? (
                               <>
-                                <FaCodeBranch className="icon-sm mb-2 opacity-50" />
-                                <p className="opacity-50">No repositories found.</p>
-                                <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                                <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                                  <FaGitlab className="text-2xl text-orange-600" />
+                                </div>
+                                <h3 className="text-base font-medium mb-1">Connect GitLab Account</h3>
+                                <p className="text-xs opacity-60 max-w-[200px] mb-4">
+                                  You need to connect your GitLab account to access repositories.
+                                </p>
+                                <a
+                                  href="/profile/auth"
+                                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition"
+                                >
+                                  <FaLink /> Connect GitLab
+                                </a>
                               </>
-                            )}
+                            )
+                              : (
+                                <>
+                                  <FaCodeBranch className="icon-sm mb-2 opacity-50" />
+                                  <p className="opacity-50">No repositories found.</p>
+                                  <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                                </>
+                              )}
 
                       </div>
                     )}
@@ -665,13 +746,15 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                      <Toggle
-                        label="Sprint"
-                        checked={config.sprint}
-                        onChange={(v) => setConfig({ ...config, sprint: v })}
-                      />
-                    </div>
+                    {isSprintActive && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                        <Toggle
+                          label="Sprint"
+                          checked={config.sprint}
+                          onChange={(v) => setConfig({ ...config, sprint: v })}
+                        />
+                      </div>
+                    )}
 
                     <div className="flex gap-3 pt-4">
                       <button
@@ -776,18 +859,16 @@ export default function AddModelPage() {
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {config.sprint ? (
+                      {config.sprint && (
+                        <div>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
+                          <div className="flex flex-wrap gap-2 mt-2">
                             <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800">
                               Sprint
                             </span>
-                          ) : (
-                            <span className="text-xs text-gray-400 italic">No additional features selected</span>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                     </div>
                   </div>

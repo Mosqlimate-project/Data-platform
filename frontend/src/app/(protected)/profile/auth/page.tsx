@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab, FaKey, FaCopy, FaSync, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash, FaLink } from 'react-icons/fa';
 import clsx from 'clsx';
@@ -33,9 +32,15 @@ export default function AuthSettingsPage() {
 
   const checkGithubAppStatus = async () => {
     try {
-      const repos = await apiFetch('/user/repositories/github/', { auth: true });
-      if (Array.isArray(repos) && repos.length > 0) {
-        setGithubAppStatus('connected');
+      const res = await fetch('/api/user/oauth/repositories/github');
+
+      if (res.ok) {
+        const repos = await res.json();
+        if (Array.isArray(repos) && repos.length > 0) {
+          setGithubAppStatus('connected');
+        } else {
+          setGithubAppStatus('missing');
+        }
       } else {
         setGithubAppStatus('missing');
       }
@@ -46,8 +51,13 @@ export default function AuthSettingsPage() {
 
   const fetchApiKey = async () => {
     try {
-      const data = await apiFetch('/user/api-key/');
-      setApiKey(data.api_key);
+      const res = await fetch('/api/user/api-key');
+      if (res.ok) {
+        const data = await res.json();
+        setApiKey(data.api_key);
+      } else {
+        console.error("Failed to fetch user api-key");
+      }
     } catch (err) {
       console.error("Failed to fetch API key");
     }
@@ -55,10 +65,15 @@ export default function AuthSettingsPage() {
 
   const fetchConnectedProviders = async () => {
     try {
-      const connectedProviders = await apiFetch("/user/oauth/connections/", { auth: true });
-      setConnectedProviders(connectedProviders);
+      const res = await fetch("/api/user/oauth/connections");
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedProviders(data);
+      } else {
+        console.error("Failed to fetch connections");
+      }
     } catch (err) {
-      console.error("Failed to fetch connections");
+      console.error("Network error:", err);
     }
   };
 
@@ -67,9 +82,14 @@ export default function AuthSettingsPage() {
 
     setLoadingKey(true);
     try {
-      const data = await apiFetch('/user/api-key/rotate/', { method: 'POST' });
-      setApiKey(data.key);
+      const res = await fetch('/api/user/api-key/refresh', { method: 'POST' });
+
+      if (res.ok) {
+        const data = await res.json();
+        setApiKey(data.api_key);
+      }
     } catch (err) {
+      console.error(err);
     } finally {
       setLoadingKey(false);
     }
@@ -128,6 +148,60 @@ export default function AuthSettingsPage() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Manage your connected accounts and developer credentials.
         </p>
+      </div>
+
+      <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <FaKey size={20} className="text-amber-600 dark:text-amber-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Personal API Key</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Use this key to authenticate CLI tools or external scripts.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-4 flex items-center gap-4 border border-gray-200 dark:border-neutral-700">
+          <div className="flex-1 font-mono text-sm text-gray-600 dark:text-gray-300 break-all">
+            {apiKey ? (showKey ? apiKey : "••••••••••••••••••••••••••••••••") : "Loading..."}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowKey(!showKey)}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
+              title={showKey ? "Hide" : "Show"}
+            >
+              {showKey ? <FaEyeSlash /> : <FaEye />}
+            </button>
+            <button
+              onClick={copyToClipboard}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
+              title="Copy to clipboard"
+            >
+              <FaCopy />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <FaExclamationTriangle className="text-amber-500" />
+            <span>Pass this header: <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded">X-UID-Key: {apiKey ? apiKey.split(':')[0] + ':...' : '...'}</code></span>
+          </div>
+
+          <button
+            onClick={rotateKey}
+            disabled={loadingKey}
+            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition font-medium disabled:opacity-50"
+          >
+            <FaSync className={clsx(loadingKey && "animate-spin")} /> Regenerate Key
+          </button>
+        </div>
       </div>
 
       <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
@@ -199,60 +273,6 @@ export default function AuthSettingsPage() {
             </a>
           </div>
         )}
-      </div>
-
-      <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <FaKey size={20} className="text-amber-600 dark:text-amber-500" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Personal API Key</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Use this key to authenticate CLI tools or external scripts.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-4 flex items-center gap-4 border border-gray-200 dark:border-neutral-700">
-          <div className="flex-1 font-mono text-sm text-gray-600 dark:text-gray-300 break-all">
-            {apiKey ? (showKey ? apiKey : "••••••••••••••••••••••••••••••••") : "Loading..."}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setShowKey(!showKey)}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
-              title={showKey ? "Hide" : "Show"}
-            >
-              {showKey ? <FaEyeSlash /> : <FaEye />}
-            </button>
-            <button
-              onClick={copyToClipboard}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
-              title="Copy to clipboard"
-            >
-              <FaCopy />
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <FaExclamationTriangle className="text-amber-500" />
-            <span>Pass this header: <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded">X-UID-Key: {apiKey ? apiKey.split(':')[0] + ':...' : '...'}</code></span>
-          </div>
-
-          <button
-            onClick={rotateKey}
-            disabled={loadingKey}
-            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition font-medium disabled:opacity-50"
-          >
-            <FaSync className={clsx(loadingKey && "animate-spin")} /> Regenerate Key
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { apiFetch } from "@/lib/api";
+import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Highlight } from "prism-react-renderer";
+import ChatbotIcon from "@/components/chatbot/Icon";
 
 interface Message {
   msg: string;
@@ -55,16 +55,23 @@ export default function Chatbot() {
     initializedRef.current = true;
 
     async function init() {
-      const res = await apiFetch("/session_key/");
-      const sessionKey = res.session_key;
-      const backend_url = process.env.NODE_ENV === "production" ? "api.mosqlimate.org" : "localhost:8042";
+      const response = await fetch(`/api/session-key`);
+
+      if (!response.ok) {
+        console.error("Failed to get session key");
+        return;
+      }
+
+      const data = await response.json();
+      const sessionKey = data.session_key;
+      const backend_url = new URL(NEXT_PUBLIC_BACKEND_URL).host;
       const protocol = window.location.protocol === "https:" ? "wss" : "ws";
       const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
       socketRef.current = ws;
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.text?.msg && data.text?.source === "bot") {
+        if (data.text?.msg) {
           setMessages((prev) => {
             const cleaned = prev.filter((m) => m.source !== "waiting");
             return [...cleaned, data.text];
@@ -91,9 +98,19 @@ export default function Chatbot() {
     return () => socketRef.current?.close();
   }, []);
 
+  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-scroll when opening the chat
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [open]);
 
   const sendMessage = () => {
     if (socketRef.current && input.trim() !== "") {
@@ -142,32 +159,31 @@ export default function Chatbot() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-4 right-4 w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg hover:bg-blue-700 transition"
-      >
-        <Image
-          src="/mosquito.svg"
-          alt="Chatbot"
-          width={24}
-          height={24}
-          className="invert"
-        />
-      </button>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="z-50 fixed bottom-6 right-6 w-16 h-16 rounded-full bg-accent flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform hover:scale-105"
+        >
+          <ChatbotIcon />
+        </button>
+      )}
 
       {open && (
         <div
-          className={`fixed bottom-20 right-4 bg-[var(--color-bg)] border rounded-xl shadow-lg flex flex-col transition-all ${expanded ? "w-[28rem] h-[36rem]" : "w-80 h-96"
+          className={`fixed z-50 bottom-6 right-6 bg-[var(--color-bg)] border rounded-xl shadow-2xl flex flex-col transition-all duration-300 ease-in-out ${expanded ? "w-[45rem] h-[36rem]" : "w-80 h-96"
             }`}
         >
-          <div className="flex items-center justify-between px-3 py-2 border-b bg-[var(--color-bg)] rounded-t-xl">
-            <span className="font-medium text-[var(--color-text)] text-sm">
-              Mosqlimate Assistant
-            </span>
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-[var(--color-bg)] rounded-t-xl">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="font-medium text-[var(--color-text)] text-sm">
+                Mosqlimate Assistant
+              </span>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="text-[var(--color-text)] hover:opacity-80 transition"
+                className="text-[var(--color-text)] hover:bg-[var(--color-accent)]/10 p-1 rounded transition"
                 title={expanded ? "Shrink" : "Expand"}
               >
                 {expanded ? (
@@ -193,7 +209,7 @@ export default function Chatbot() {
 
               <button
                 onClick={() => setOpen(false)}
-                className="text-[var(--color-text)] hover:opacity-80 transition"
+                className="text-[var(--color-text)] hover:bg-[var(--color-accent)]/10 p-1 rounded transition"
                 title="Close"
               >
                 <svg
@@ -216,23 +232,20 @@ export default function Chatbot() {
             </div>
           </div>
 
-          <div className="flex-1 p-2 overflow-y-auto text-sm flex flex-col gap-1">
+          <div className="flex-1 p-4 overflow-y-auto text-sm flex flex-col gap-2">
             {messages.map((m, i) => {
               const isUser = m.source === "user";
               const isBot = m.source === "bot";
-              const isSystem = m.source === "system";
               const isWaiting = m.source === "waiting";
 
               return (
                 <div
                   key={i}
-                  className={`inline-block max-w-[90%] px-3 py-2 rounded-lg break-words ${isUser
-                    ? "bg-[var(--color-accent)] text-[var(--color-text)] ml-auto text-right"
+                  className={`inline-block max-w-[85%] px-4 py-2.5 rounded-2xl break-words shadow-sm ${isUser
+                    ? "bg-blue-600 text-white ml-auto text-right rounded-br-none"
                     : isBot
-                      ? "bg-[var(--color-accent)]/10 text-[var(--color-text)] mr-auto text-left"
-                      : isWaiting
-                        ? "bg-gray-200 dark:bg-gray-700 text-gray-500 italic mx-auto text-center"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-500 italic mx-auto text-center"
+                      ? "bg-[var(--color-accent)]/10 text-[var(--color-text)] mr-auto text-left rounded-bl-none border border-[var(--color-border)]"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 italic mx-auto text-center py-1.5 px-3 rounded-full text-xs"
                     }`}
                 >
                   {isBot ? (
@@ -251,19 +264,22 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-2 flex gap-2 border-t dark:border-gray-700">
+          <div className="p-3 border-t bg-[var(--color-bg)] dark:border-gray-700 flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 border rounded px-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
               onKeyUp={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type your message..."
+              placeholder="Type a message..."
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-500 text-white px-3 rounded text-sm hover:bg-blue-600"
+              disabled={!input.trim() || !socketRef.current}
+              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shrink-0"
             >
-              Send
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 translate-x-0.5">
+                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+              </svg>
             </button>
           </div>
         </div>

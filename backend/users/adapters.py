@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, Optional
 
 from django.http import HttpRequest
 from django.core.cache import cache
@@ -35,7 +35,7 @@ class OAuthAdapter(ABC):
 
     @property
     @abstractmethod
-    def email(self) -> str: ...
+    def email(self) -> Optional[str]: ...
 
     @property
     @abstractmethod
@@ -63,11 +63,8 @@ class GoogleAdapter(OAuthAdapter):
         return str(_id)
 
     @property
-    def email(self) -> str:
-        email = self.data.get("email")
-        if not email:
-            raise ValueError("User info must include a public email")
-        return email
+    def email(self) -> Optional[str]:
+        return self.data.get("email")
 
     @property
     def username(self) -> str:
@@ -98,11 +95,8 @@ class GithubAdapter(OAuthAdapter):
         return str(_id)
 
     @property
-    def email(self) -> str:
-        email = self.data.get("email") or self.data.get("notification_email")
-        if not email:
-            raise ValueError("User info must include a public email")
-        return email
+    def email(self) -> Optional[str]:
+        return self.data.get("email") or self.data.get("notification_email")
 
     @property
     def username(self) -> str:
@@ -110,11 +104,18 @@ class GithubAdapter(OAuthAdapter):
 
     @property
     def first_name(self) -> str:
-        return self.data.get("name", "").split(" ")[0]
+        name = self.data.get("name")
+        if not name:
+            return ""
+        return str(name).split(" ")[0]
 
     @property
     def last_name(self) -> str:
-        return " ".join(self.data.get("name", "").split(" ")[1:])
+        name = self.data.get("name")
+        if not name:
+            return ""
+        parts = str(name).split(" ")
+        return " ".join(parts[1:]) if len(parts) > 1 else ""
 
     @property
     def avatar_url(self) -> str:
@@ -127,11 +128,8 @@ class GitlabAdapter(OAuthAdapter):
         return str(self.data.get("id"))
 
     @property
-    def email(self) -> str:
-        email = self.data.get("email")
-        if not email:
-            raise ValueError("GitLab account has no public email")
-        return email
+    def email(self) -> Optional[str]:
+        return self.data.get("email")
 
     @property
     def username(self) -> str:
@@ -139,17 +137,17 @@ class GitlabAdapter(OAuthAdapter):
 
     @property
     def first_name(self) -> str:
-        name = self.data.get("name", "").strip()
+        name = self.data.get("name", "")
         if not name:
             return ""
-        return name.split()[0]
+        return str(name).strip().split()[0]
 
     @property
     def last_name(self) -> str:
-        name = self.data.get("name", "").strip()
+        name = self.data.get("name", "")
         if not name:
             return ""
-        parts = name.split()
+        parts = str(name).strip().split()
         if len(parts) > 1:
             return " ".join(parts[1:])
         return ""

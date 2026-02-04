@@ -1,8 +1,10 @@
 backend: compose
 env-file: .env
+
 defaults:
   profile: "${{ env.ENV }}"
-  project-name: mosqlimate
+  project-name: "mosqlimate-${{ env.VERSION }}"
+
 profiles:
   dev:
     env-file: .env
@@ -11,11 +13,12 @@ profiles:
       - containers/compose-dev.yaml
     services:
       available:
+        - name: frontend
         - name: backend
         - name: worker
         - name: postgres
         - name: documentation
-        - name: redis
+        - name: broker
         - name: ollama
 
   prod:
@@ -30,5 +33,5 @@ profiles:
         - name: worker
         - name: postgres
         - name: documentation
-        - name: redis
+        - name: broker
         - name: ollama

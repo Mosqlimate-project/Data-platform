@@ -2,24 +2,29 @@ services:
   frontend:
     environment:
         NODE_ENV: development
+        WATCHPACK_POLLING: "true"
+    volumes:
+      - ../frontend/:/app
+      - frontend_data:/app/node_modules
+    command: npm run dev
 
   backend:
-    ports:
-      - ${BACKEND_PORT}:8042
     volumes:
       - ../backend/:/opt/services/mosqlimate
       - backend_data:/opt/services/storage
     networks:
-      - infodengue-dev_infodengue
+      - infodengue
     command: python manage.py runserver 0.0.0.0:8042
 
   worker:
     networks:
-      - infodengue-dev_infodengue
+      - infodengue
 
 volumes:
   backend_data:
+  frontend_data:
 
 networks:
-  infodengue-dev_infodengue:
+  infodengue:
+    name: infodengue-dev_infodengue
     external: true

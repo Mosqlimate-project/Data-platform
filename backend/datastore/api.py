@@ -14,7 +14,6 @@ from django.db.utils import OperationalError
 from django.db.models import F, Avg, Sum
 from django.db.models.functions import Round
 from django.conf import settings
-from django.utils.translation import gettext as _
 
 from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
@@ -39,259 +38,34 @@ paginator.max_per_page = 300
 uidkey_auth = UidKeyAuth()
 
 
-@router.get(
-    "/endpoints/",
-    response=List[schema.EndpointDetails],
-    include_in_schema=False,
-)
-def get_endpoints(request):
-    def var(var: str, typ: str, desc: str) -> schema.EndpointDataVar:
-        return schema.EndpointDataVar(variable=var, type=typ, description=desc)
+def get_infodengue_queryset(
+    disease: Literal["dengue", "chikungunya", "zika"], uf: str = None
+):
+    disease = disease.lower()
 
-    def opt(option: str, typ: str) -> schema.EndpointChartOption:
-        return schema.EndpointChartOption(option=option, type=typ)
+    if disease in ["chik", "chikungunya"]:
+        qs = HistoricoAlertaChik.objects.using("infodengue").all()
+    elif disease in ["deng", "dengue"]:
+        qs = HistoricoAlerta.objects.using("infodengue").all()
+    elif disease == "zika":
+        qs = HistoricoAlertaZika.objects.using("infodengue").all()
+    else:
+        return None
 
-    infodengue = {
-        "endpoint": "/infodengue/",
-        "name": _("Mosquito-borne Diseases"),
-        "description": _(
-            "This endpoint gives access to data from the Infodengue project, "
-            "which provide a number of epidemiological variables for all the "
-            "Brazilian municipalities on a weekly time scale. The request "
-            "parameters and data variables are described below."
-        ),
-        "more_info_link": (
-            "https://api.mosqlimate.org/docs/datastore/GET/infodengue/"
-        ),
-        "tags": [_("dengue"), _("municipal"), _("weekly")],
-        "data_variables": [
-            var("data_iniSE", "str", _("Start date of epidemiological week")),
-            var("SE", "int", _("Epidemiological week")),
-            var(
-                "casos_est",
-                "float",
-                _(
-                    "Estimated number of cases per week using the nowcasting model"
-                ),
-            ),
-            var(
-                "casos_est_min",
-                "int",
-                _("95% credibility interval of the estimated number of cases"),
-            ),
-            var(
-                "casos",
-                "int",
-                _(
-                    "Number of notified cases per week (values are retrospectively"
-                    "updated every week)"
-                ),
-            ),
-            var("municipio_geocodigo", "int", _("IBGE's municipality code")),
-            var("p_rt1", "float", _("Probability (Rt > 1)")),
-            var(
-                "p_inc100k",
-                "float",
-                _("Estimated incidence rate (cases per pop x 100.00)"),
-            ),
-            var("Localidade_id", "int", "Sub-municipality division"),
-            var(
-                "nivel",
-                "int",
-                _("Alert level (1 = green, 2 = yellow, 3 = orange, 4 = red)"),
-            ),
-            var("id", "int", _("Numeric index")),
-            var("versao_modelo", "str", _("Model version")),
-            var(
-                "Rt",
-                "float",
-                _("Point estimate of the reproductive number of cases"),
-            ),
-            var("municipio_nome", "str", _("Municipality's name")),
-            var("pop", "float", _("Population (IBGE)")),
-            var(
-                "receptivo",
-                "int",
-                _(
-                    "Indicates climate receptivity, i.e., conditions for high "
-                    "vectorial capacity. 0 = unfavorable, 1 = favorable, 2 = "
-                    "favorable this week and last week, 3 = favorable for at "
-                    "least three weeks"
-                ),
-            ),
-            var(
-                "transmissao",
-                "int",
-                _(
-                    "Evidence of sustained transmission: 0 = no evidence, 1 = "
-                    "possible, 2 = likely, 3 = highly likely"
-                ),
-            ),
-            var(
-                "nivel_inc",
-                "int",
-                _(
-                    "Estimated incidence below pre-epidemic threshold, "
-                    "1 = above pre-epidemic threshold but below epidemic threshold"
-                    ", 2 = above epidemic threshold"
-                ),
-            ),
-            var(
-                "umidmax",
-                "float",
-                _("Average daily maximum humidity percentages along the week"),
-            ),
-            var(
-                "umidmed",
-                "float",
-                _("Average daily humidity percentages along the week"),
-            ),
-            var(
-                "umidmin",
-                "float",
-                _("Average daily minimum humidity percentages along the week"),
-            ),
-            var(
-                "tempmax",
-                "float",
-                _("Average daily maximum temperatures along the week"),
-            ),
-            var(
-                "tempmed",
-                "float",
-                _("Average daily temperatures along the week"),
-            ),
-            var(
-                "tempmin",
-                "float",
-                _("Average daily minimum temperatures along the week"),
-            ),
-            var(
-                "casprov",
-                "int",
-                _(
-                    "Probable number of cases per week (cases - discarded cases)"
-                ),
-            ),
-            var(
-                "casprov_est",
-                "float",
-                _("Probable number of estimated cases per week"),
-            ),
-            var(
-                "casprov_est_min",
-                "int",
-                _("Credibility interval of the probable number of cases"),
-            ),
-            var(
-                "casprov_est_max",
-                "int",
-                _("Credibility interval of the probable number of cases"),
-            ),
-            var(
-                "casconf",
-                "int",
-                _("Cases effectively confirmed with laboratory testing"),
-            ),
-        ],
-        "chart_options": [
-            opt("disease", "str"),
-            opt("geocode", "int"),
-            opt("start", "date"),
-            opt("end", "date"),
-        ],
-    }
+    if uf:
+        uf = uf.upper()
+        if uf in UFs:
+            uf_name = UFs[uf]
+            geocodes = (
+                Municipio.objects.using("infodengue")
+                .filter(uf=uf_name)
+                .values_list("geocodigo", flat=True)
+            )
+            qs = qs.filter(municipio_geocodigo__in=geocodes)
+        else:
+            raise ValueError("Invalid UF")
 
-    climate = {
-        "endpoint": "/climate/",
-        "name": _("Climate data"),
-        "description": _(
-            "Through this API endpoint, you can fetch several climate "
-            "variables that have been extracted for all brazilian "
-            "municipalities from the satellite-based reanalysis data provided "
-            "by Copernicus ERA5."
-        ),
-        "more_info_link": (
-            "https://api.mosqlimate.org/docs/datastore/GET/climate/"
-        ),
-        "tags": [_("temperature"), _("municipal"), _("daily")],
-        "data_variables": [
-            var("date", "date (YYYY-mm-dd)", _("Day of the year")),
-            var("geocodigo", "int", _("IBGE's municipality code")),
-            var("temp_min", "float (°C)", _("Minimum daily temperature")),
-            var("temp_med", "float (°C)", _("Average daily temperature")),
-            var("temp_max", "float (°C)", _("Maximum daily temperature")),
-            var("precip_min", "float (mm)", _("Minimum daily precipitation")),
-            var("precip_med", "float (mm)", _("Average daily precipitation")),
-            var("precip_max", "float (mm)", _("Maximum daily precipitation")),
-            var("precip_tot", "float (mm)", _("Total daily precipitation")),
-            var(
-                "pressao_min",
-                "float (atm)",
-                _("Minimum daily sea level pressure"),
-            ),
-            var(
-                "pressao_med",
-                "float (atm)",
-                _("Average daily sea level pressure"),
-            ),
-            var(
-                "pressao_max",
-                "float (atm)",
-                _("Maximum daily sea level pressure"),
-            ),
-            var("umid_min", "float (%)", _("Minimum daily relative humidity")),
-            var("umid_med", "float (%)", _("Average daily relative humidity")),
-            var("umid_max", "float (%)", _("Maximum daily relative humidity")),
-        ],
-        "chart_options": [
-            opt("geocode", "int"),
-            opt("start", "date"),
-            opt("end", "date"),
-        ],
-    }
-
-    mosquito = {
-        "endpoint": "/mosquito/",
-        "name": _("Mosquito Egg Count"),
-        "description": _(
-            "Here you get access to mosquito abundance data from the Contaovos"
-            " project, co-developed by the Mosqlimate project. These data, "
-            "described below, are based on eggtraps distributed throughout "
-            "Brasil according to a monitoring design specified by the Ministry"
-            " of Health."
-        ),
-        "more_info_link": (
-            "https://api.mosqlimate.org/docs/datastore/GET/mosquito/"
-        ),
-        "tags": [_("ContaOvos"), _("municipal"), _("daily")],
-        "data_variables": [
-            var("counting_id", "int", ""),
-            var("date", "str", ""),
-            var("date_collect", "str", ""),
-            var("eggs", "int", _("Eggs count")),
-            var("latitude", "float", _("Ovitrap latitude")),
-            var("longitude", "float", _("Ovitrap longitude")),
-            var("municipality", "str", _("Municipality name")),
-            var("municipality_code", "str", _("Geocode. Example: 3304557")),
-            var("ovitrap_id", "str", "Ovitrap ID"),
-            var("ovitrap_website_id", "int", ""),
-            var("state_code", "str", _("Geocode. Example: 33")),
-            var("state_name", "str", ""),
-            var("time", "str (date)", _("RFC 1123 date format")),
-            var("week", "int", _("Epidemiological week")),
-            var("year", "int", _("Year")),
-        ],
-        "chart_options": [
-            opt("geocode", "int"),
-            opt("start", "date"),
-            opt("end", "date"),
-        ],
-    }
-
-    endpoints = [infodengue, climate, mosquito]
-
-    return [schema.EndpointDetails(**e) for e in endpoints]
+    return qs
 
 
 @router.get(
@@ -349,32 +123,17 @@ def get_infodengue(
     disease = disease.lower()
 
     try:
-        if disease in ["chik", "chikungunya"]:
-            data = HistoricoAlertaChik.objects.using("infodengue").all()
-        elif disease in ["deng", "dengue"]:
-            data = HistoricoAlerta.objects.using("infodengue").all()
-        elif disease == "zika":
-            data = HistoricoAlertaZika.objects.using("infodengue").all()
-        else:
-            return 404, {
-                "message": "Unknown disease. Options: dengue, zika, chikungunya"
-            }
+        data = get_infodengue_queryset(disease, uf)
+    except ValueError:
+        return 404, {"message": f"Unknown UF '{uf}'"}
     except OperationalError:
         return 500, {"message": "Server error. Please contact the moderation"}
 
-    if uf:
-        uf = uf.upper()
-        if uf not in list(UFs):
-            return 404, {"message": "Unkown UF. Format: SP"}
-        uf_name = UFs[uf]
-        geocodes = (
-            Municipio.objects.using("infodengue")
-            .filter(uf=uf_name)
-            .values_list("geocodigo", flat=True)
-        )
-        data = data.filter(municipio_geocodigo__in=geocodes)
+    if data is None:
+        return 404, {"message": f"Unknown disease '{disease}'"}
 
     data = filters.filter(data)
+
     return data
 
 
@@ -679,13 +438,7 @@ def get_episcanner(
         db.close()
 
     if df.empty:
-        return 404, {
-            "message": (
-                f"No data for specific query (disease={disease}, uf={uf}, year={
-                    year
-                })"
-            )
-        }
+        return 200, []
 
     # if geocode:
     #     df = df[df['geocode'].isin(geocode)]
@@ -706,13 +459,71 @@ def get_episcanner(
 
 
 @router.get(
-    "/charts/municipality/temperature/",
+    "/charts/infodengue/rt/",
+    auth=UidKeyAuth(),
+    tags=["datastore", "infodengue", "charts"],
+    include_in_schema=False,
+)
+def charts_infodengue_rt(
+    request,
+    disease: str,
+    geocode: int,
+    start: datetime.date,
+    end: datetime.date,
+):
+    qs = get_infodengue_queryset(disease)
+
+    if qs is None:
+        return 404, {"message": "Unknown disease"}
+
+    data = (
+        qs.filter(
+            municipio_geocodigo=geocode,
+            data_iniSE__gte=start,
+            data_iniSE__lte=end,
+        )
+        .values("data_iniSE", "Rt")
+        .order_by("data_iniSE")
+    )
+
+    return list(data)
+
+
+@router.get(
+    "/charts/infodengue/total-cases/",
+    auth=UidKeyAuth(),
+    tags=["datastore", "infodengue", "charts"],
+    include_in_schema=False,
+)
+def charts_infodengue_total_cases(
+    request,
+    disease: str,
+    geocode: int,
+    start: datetime.date,
+    end: datetime.date,
+):
+    qs = get_infodengue_queryset(disease)
+
+    if qs is None:
+        return 404, {"message": "Unknown disease"}
+
+    qs = qs.filter(
+        municipio_geocodigo=geocode, data_iniSE__gte=start, data_iniSE__lte=end
+    )
+
+    total = qs.aggregate(total=Sum("casos"))["total"] or 0
+
+    return {"total_cases": total}
+
+
+@router.get(
+    "/charts/climate/temperature/",
     response=List[schema.MunTempOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )
-def municipality_daily_temperature(
+def charts_climate_daily_temperature(
     request, geocode: int, start: datetime.date, end: datetime.date
 ):
     return (
@@ -730,13 +541,13 @@ def municipality_daily_temperature(
 
 
 @router.get(
-    "/charts/municipality/accumulated-waterfall/",
+    "/charts/climate/accumulated-waterfall/",
     response=List[schema.MunAccWaterfallOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )
-def municipality_daily_accumulated_waterfall(
+def charts_climate_daily_accumulated_waterfall(
     request, geocode: int, start: datetime.date, end: datetime.date
 ):
     return (
@@ -753,13 +564,13 @@ def municipality_daily_accumulated_waterfall(
 
 
 @router.get(
-    "/charts/municipality/umid-pressao-med/",
+    "/charts/climate/umid-pressao-med/",
     response=List[schema.MunUmidPressMedOut],
-    auth=None,
+    auth=UidKeyAuth(),
     tags=["datastore", "charts"],
     include_in_schema=False,
 )
-def municipality_daily_umid_press_med(
+def charts_climate_daily_umid_press_med(
     request, geocode: int, start: datetime.date, end: datetime.date
 ):
     return (
@@ -780,12 +591,40 @@ def municipality_daily_umid_press_med(
     response=List[schema.DiseaseOut],
     auth=uidkey_auth,
     tags=["datastore"],
+    include_in_schema=False,
 )
-def list_diseases(
+def disease_search(
     request,
     icd: Literal["ICD-10", "ICD-11"],
     version: str,
     filters: filters.DiseaseFilterSchema = Query(...),
 ):
-    qs = models.Disease.objects.filter(icd__system=icd, icd__version=version)
+    available = ["A90", "A92.0", "A92.5"]
+    qs = models.Disease.objects.filter(
+        icd__system=icd,
+        icd__version=version,
+        code__in=available,
+    )
     return filters.filter(qs)
+
+
+@router.get(
+    "/cities/",
+    response=List[schema.CityOut],
+    auth=uidkey_auth,
+    tags=["datastore"],
+    include_in_schema=False,
+)
+def city_search(
+    request,
+    adm_0: Optional[str] = "BRA",
+    filters: filters.Adm2FilterSchema = Query(...),
+):
+    qs = models.Adm2.objects.select_related("adm1", "adm1__country")
+
+    if adm_0:
+        qs = qs.filter(adm1__country__geocode=adm_0)
+
+    qs = filters.filter(qs)
+
+    return qs

@@ -108,7 +108,7 @@ dj_port = var_in(
 )
 
 frontend_port = var_in(
-    "FRONTEND_PORT", input_text="  Frontend port [3000]: ", default=3000
+    "FRONTEND_PORT", input_text="  Frontend port [8041]: ", default=8041
 )
 
 frontend_url = var_in(
@@ -130,6 +130,11 @@ dj_cont_data = var_in(
         "  Django data storage dir on container [/opt/services/storage/django]: "
     ),
     default="/opt/services/storage/django",
+)
+
+print("\nMkDocs:")
+docs_port = var_in(
+    "MKDOCS_PORT", input_text="  Documentation port [8043]: ", default=8043
 )
 
 print("\nRedis:")
@@ -301,25 +306,29 @@ dotenv_template = templates.get_template("env.tpl")
 dotenv_file = project_dir / ".env"
 
 variables = {
-    # [Frontend]
-    "FRONTEND_PORT": frontend_port,
-    "FRONTEND_URL": frontend_url,
-    # [Django Core]
+    # [Core]
     "ENV": env,
-    "SECRET_KEY": secret_key,
-    "ALLOWED_HOSTS": allowed_hosts,
-    "DJANGO_SETTINGS_MODULE": dj_settings,
-    # [Django Image]
+    "VERSION": "2",
     "HOST_UID": uid,
     "HOST_GID": gid,
+    "FRONTEND_URL": frontend_url,
+    "BACKEND_URL": "http://0.0.0.0:$BACKEND_PORT",
+    "DOCS_URL": "http://0.0.0.0:$MKDOCS_PORT/docs",
+    # [Frontend]
+    "FRONTEND_PORT": frontend_port,
+    "NODE_ENV": "development",
+    "ADMIN_UIDKEY": admin_uidkey,
+    # [Backend]
     "BACKEND_PORT": dj_port,
+    "ALLOWED_HOSTS": allowed_hosts,
+    "SECRET_KEY": secret_key,
+    "DJANGO_SETTINGS_MODULE": dj_settings,
+    "DJANGO_LOG_LEVEL": "INFO",
     "BACKEND_HOST_DATA_PATH": str(dj_host_data),
     "BACKEND_CONTAINER_DATA_PATH": str(dj_cont_data),
     # [Django Worker]
     "WORKER_PORT": worker_port,
     # [Django Oauth]
-    "SITE_DOMAIN": site_domain,
-    "SITE_NAME": site_name,
     "GITHUB_CLIENT_ID": github_id,
     "GITHUB_SECRET": github_secret,
     "GITHUB_APP": github_app,
@@ -350,9 +359,8 @@ variables = {
     "EMAIL_HOST_USER": dj_email_host_user,
     "EMAIL_HOST_PASSWORD": dj_email_host_pass,
     "EMAIL_USE_TLS": dj_email_use_tls,
-    # [Mkdocs]
-    "MKDOCS_PORT": 8043,
-    # [Redis]
+    # [Containers]
+    "MKDOCS_PORT": docs_port,
     "REDIS_PORT": redis_port,
     # [EpiScanner]
     "EPISCANNER_HOST_DATA_DIR": os.path.join(
@@ -360,7 +368,7 @@ variables = {
         "episcanner",
     ),
     # [Mosqlient]
-    "MOSQLIENT_API_URL": "http://localhost:8042/api/",
+    "MOSQLIENT_API_URL": "http://localhost:$BACKEND_PORT/api/",
 }
 
 if not CI:

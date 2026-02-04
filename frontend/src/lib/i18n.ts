@@ -1,25 +1,30 @@
-'use client';
-
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import HttpBackend from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
-if (!i18n.isInitialized) {
-  i18n
-    .use(HttpBackend)
-    .use(LanguageDetector)
-    .use(initReactI18next)
-    .init({
-      fallbackLng: 'en',
-      supportedLngs: ['en', 'pt', 'es'],
-      ns: ['common'],
-      defaultNS: 'common',
-      interpolation: { escapeValue: false },
-      backend: { loadPath: '/locales/{{lng}}/{{ns}}.json' },
-      detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'] },
-      react: { useSuspense: false },
-    });
-}
+import commonEn from '../../public/locales/en/common.json';
+import commonPt from '../../public/locales/pt/common.json';
+import commonEs from '../../public/locales/es/common.json';
+
+const resources = {
+  en: { common: commonEn },
+  pt: { common: commonPt },
+  es: { common: commonEs },
+};
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    load: 'languageOnly',
+    fallbackLng: 'en',
+    ns: ['common'],
+    defaultNS: 'common',
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false
+    }
+  });
 
 export default i18n;

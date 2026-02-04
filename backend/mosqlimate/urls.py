@@ -11,12 +11,5 @@ if not settings.DEBUG:
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("main.urls")),
-    path("vis/", include("vis.urls")),
-    path("registry/", include("registry.urls")),
-    path("datastore/", include("datastore.urls")),
-    path("maps/", include("maps.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-handler404 = "main.views.error_404"
-handler500 = "main.views.error_500"

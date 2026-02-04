@@ -5,6 +5,71 @@ from django.contrib.postgres.indexes import GinIndex
 from .utils.fetch_icd import get_diseases
 
 
+class Adm0(models.Model):
+    geocode = models.CharField(primary_key=True, max_length=3, unique=True)
+    name = models.CharField(null=False, max_length=100)
+
+    def __str__(self):
+        return f"{self.name} ({self.geocode})"
+
+    class Meta:
+        verbose_name = "Country"
+        verbose_name_plural = "Countries"
+
+
+class Adm1(models.Model):
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
+    name = models.CharField(null=False, max_length=100)
+    country = models.ForeignKey(
+        Adm0, on_delete=models.PROTECT, related_name="states"
+    )
+
+    def __str__(self):
+        return f"{self.name}"
+
+    class Meta:
+        verbose_name = "State"
+        verbose_name_plural = "States"
+
+
+class Adm2(models.Model):
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
+    name = models.CharField(null=False, max_length=100)
+    adm1 = models.ForeignKey(
+        Adm1, on_delete=models.PROTECT, related_name="cities"
+    )
+
+    def __str__(self):
+        return f"{self.name}"
+
+    @property
+    def country(self):
+        return self.adm1.country
+
+    class Meta:
+        verbose_name = "City"
+        verbose_name_plural = "Cities"
+
+
+class Adm3(models.Model):
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
+    name = models.CharField(null=False, max_length=100)
+    adm2 = models.ForeignKey(
+        Adm2, on_delete=models.PROTECT, related_name="districts"
+    )
+
+    def __str__(self):
+        return f"{self.name}"
+
+    @property
+    def state(self):
+        return self.adm2.adm1
+
+    class Meta:
+        verbose_name = "District"
+        verbose_name_plural = "Districts"
+
+
 class ICD(models.Model):
     class ICDSystems(models.TextChoices):
         ICD10 = "ICD-10", _("ICD-10")
@@ -98,7 +163,7 @@ class Disease(models.Model):
         ]
 
     def __str__(self):
-        return f"[{self.icd}] {self.code} - {self.name}"
+        return self.name
 
 
 class Municipio(models.Model):
@@ -326,30 +391,3 @@ class CopernicusBrasil(models.Model):
                 fields=["date", "geocodigo"], name="composite_primary_key"
             )
         ]
-
-
-class Sprint202425(models.Model):
-    """
-    Obsolete. Up for removal
-    """
-
-    date = models.DateField(db_column="date")
-    year = models.BigIntegerField(db_column="year")
-    epiweek = models.BigIntegerField(db_column="epiweek")
-    casos = models.BigIntegerField(db_column="casos")
-    geocode = models.BigIntegerField(db_column="geocode")
-    regional = models.CharField(db_column="regional")
-    regional_geocode = models.IntegerField(db_column="regional_geocode")
-    macroregional = models.IntegerField(db_column="macroregional")
-    macroregional_geocode = models.IntegerField(
-        db_column="macroregional_geocode"
-    )
-    uf = models.CharField(db_column="uf")
-    train_1 = models.BooleanField(db_column="train_1")
-    train_2 = models.BooleanField(db_column="train_2")
-    target_1 = models.BooleanField(db_column="target_1")
-    target_2 = models.BooleanField(db_column="target_2")
-
-    class Meta:
-        managed = False
-        db_table = "sprint202425"

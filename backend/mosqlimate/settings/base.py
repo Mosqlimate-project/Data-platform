@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -12,6 +11,8 @@ load_dotenv()
 env = environ.Env()
 
 ENV = env("ENV", default="dev")  # or "prod"
+
+VERSION = env("VERSION")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -138,7 +139,7 @@ DATABASES = {
         "NAME": DEFAULT_URI.path.replace("/", ""),
         "USER": DEFAULT_URI.username,
         "PASSWORD": DEFAULT_URI.password,
-        "HOST": os.environ.get("POSTGRES_HOST", "mosqlimate-postgres"),
+        "HOST": DEFAULT_URI.hostname,
         "PORT": DEFAULT_URI.port,
     },
     "infodengue": {
@@ -159,15 +160,11 @@ DATABASE_ROUTERS = (
     "datastore.routers.WeatherRouter",
 )
 
-BACKEND_PORT = env("BACKEND_PORT", default=8042)
-BACKEND_URL = (
-    "https://api.mosqlimate.org"
-    if ENV == "prod"
-    else f"http://0.0.0.0:{BACKEND_PORT}"
-)
+BACKEND_PORT = env("BACKEND_PORT")
+BACKEND_URL = env("BACKEND_URL")
 
 FRONTEND_PORT = env("FRONTEND_PORT")
-FRONTEND_URL = env("FRONTEND_URL", default=f"http://localhost:{FRONTEND_PORT}")
+FRONTEND_URL = env("FRONTEND_URL")
 
 # Login & JWT
 JWT_TOKEN_EXPIRE_MINUTES = int(env("JWT_TOKEN_EXPIRE_MINUTES", default=30))
@@ -228,9 +225,13 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 2  # select * from django_site;
 
+REDIS_PORT = env("REDIS_PORT")
+
+DOCS_PORT = env("MKDOCS_PORT")
+DOCS_URL = env("DOCS_URL")
+
 AUTH_USER_MODEL = "users.CustomUser"
 FRONTEND_PORT = env("FRONTEND_PORT")
-FRONTEND_URL = env("FRONTEND_URL", default=f"http://0.0.0.0:{FRONTEND_PORT}/")
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_LOGOUT_REDIRECT_URL = FRONTEND_URL
@@ -312,7 +313,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                ("mosqlimate-redis", 6379),
+                ("broker", REDIS_PORT),
             ],
         },
     },

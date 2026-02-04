@@ -1,11 +1,19 @@
+export const BACKEND_PORT = process.env.BACKEND_PORT;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  output: 'standalone',
 
   experimental: {
-    optimizePackageImports: ['@tanstack/react-query', 'axios'],
+    optimizePackageImports: [
+      '@tanstack/react-query',
+      'axios',
+      'lucide-react',
+      'date-fns',
+      'lodash'
+    ],
   },
 
   compress: true,
@@ -33,6 +41,35 @@ const nextConfig = {
     }
 
     return config;
+  },
+
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "https://api.mosqlimate.org/docs/",
+        permanent: false,
+      },
+      {
+        source: "/contaovos",
+        destination: "https://contaovos.com/pt-br/",
+        permanent: false,
+      },
+      {
+        source: "/IMDC",
+        destination: "https://sprint.mosqlimate.org/",
+        permanent: false,
+      },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/media/:path*',
+        destination: `http://backend:${BACKEND_PORT}/media/:path*`,
+      },
+    ]
   },
 
   async headers() {

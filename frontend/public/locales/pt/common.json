@@ -1,13 +1,244 @@
 {
-  "Home": "Início",
-  "Models": "Modelos",
-  "Dashboard": "Dashboard",
-  "Datastore": "Acervo de Dados",
-  "Docs": "Documentação",
-  "Login": "Entrar",
-  "Profile": "Perfil",
-  "About": "Sobre Nós",
-  "Discord": "Discord",
-  "Forum": "Fórum",
-  "Papers": "Artigos"
+  "datastore": {
+    "infodengue": {
+      "title": "Doenças transmitidas por mosquitos",
+      "description": "Este endpoint fornece acesso a dados do projeto Infodengue, que disponibiliza diversas variáveis epidemiológicas para todos os municípios brasileiros em escala semanal. Os parâmetros da requisição e as variáveis de dados estão descritos abaixo.",
+      "variables": {
+        "data_iniSE": "Data de início da semana epidemiológica",
+        "SE": "Semana epidemiológica",
+        "casos_est": "Número estimado de casos por semana usando o modelo de nowcasting",
+        "casos_est_min": "Intervalo de credibilidade de 95% do número estimado de casos",
+        "casos": "Número de casos notificados por semana (valores atualizados retrospectivamente a cada semana)",
+        "municipio_geocodigo": "Código do município (IBGE)",
+        "p_rt1": "Probabilidade (Rt > 1)",
+        "p_inc100k": "Taxa de incidência estimada (casos por pop x 100.000)",
+        "Localidade_id": "Divisão submunicipal",
+        "nivel": "Nível de alerta (1 = verde, 2 = amarelo, 3 = laranja, 4 = vermelho)",
+        "id": "Índice numérico",
+        "versao_modelo": "Versão do modelo",
+        "Rt": "Estimativa pontual do número reprodutivo de casos",
+        "municipio_nome": "Nome do município",
+        "pop": "População (IBGE)",
+        "receptivo": "Indica receptividade climática, ou seja, condições para alta capacidade vetorial. 0 = desfavorável, 1 = favorável, 2 = favorável nesta semana e na passada, 3 = favorável por pelo menos três semanas",
+        "transmissao": "Evidência de transmissão sustentada: 0 = sem evidência, 1 = possível, 2 = provável, 3 = altamente provável",
+        "nivel_inc": "Incidência estimada abaixo do limiar pré-epidêmico, 1 = acima do limiar pré-epidêmico mas abaixo do limiar epidêmico, 2 = acima do limiar epidêmico",
+        "umidmax": "Média das porcentagens diárias de umidade máxima ao longo da semana",
+        "umidmed": "Média das porcentagens diárias de umidade ao longo da semana",
+        "umidmin": "Média das porcentagens diárias de umidade mínima ao longo da semana",
+        "tempmax": "Média das temperaturas diárias máximas ao longo da semana",
+        "tempmed": "Média das temperaturas diárias ao longo da semana",
+        "tempmin": "Média das temperaturas diárias mínimas ao longo da semana",
+        "casprov": "Número provável de casos por semana (casos - casos descartados)",
+        "casprov_est": "Número provável de casos estimados por semana",
+        "casprov_est_min": "Intervalo de credibilidade do número provável de casos",
+        "casprov_est_max": "Intervalo de credibilidade do número provável de casos",
+        "casconf": "Casos efetivamente confirmados por teste laboratorial"
+      }
+    },
+    "climate": {
+      "title": "Dados climáticos",
+      "description": "Através deste endpoint, você pode buscar diversas variáveis climáticas extraídas para todos os municípios brasileiros a partir de dados de reanálise via satélite fornecidos pelo Copernicus ERA5.",
+      "variables": {
+        "date": "Dia do ano",
+        "geocodigo": "Código do município (IBGE)",
+        "temp_min": "Temperatura mínima diária",
+        "temp_med": "Temperatura média diária",
+        "temp_max": "Temperatura máxima diária",
+        "precip_min": "Precipitação mínima diária",
+        "precip_med": "Precipitação média diária",
+        "precip_max": "Precipitação máxima diária",
+        "precip_tot": "Precipitação total diária",
+        "pressao_min": "Pressão mínima diária ao nível do mar",
+        "pressao_med": "Pressão média diária ao nível do mar",
+        "pressao_max": "Pressão máxima diária ao nível do mar",
+        "umid_min": "Umidade relativa mínima diária",
+        "umid_med": "Umidade relativa média diária",
+        "umid_max": "Umidade relativa máxima diária"
+      }
+    },
+    "mosquito": {
+      "title": "Contagem de Ovos de Mosquito",
+      "description": "Aqui você tem acesso aos dados de abundância de mosquitos do projeto Contaovos, co-desenvolvido pelo projeto Mosqlimate. Estes dados, descritos abaixo, são baseados em armadilhas de ovos (ovitrampas) distribuídas pelo Brasil de acordo com um desenho de monitoramento especificado pelo Ministério da Saúde.",
+      "variables": {
+        "counting_id": "",
+        "date": "",
+        "date_collect": "",
+        "eggs": "Contagem de ovos",
+        "latitude": "Latitude da ovitrampa",
+        "longitude": "Longitude da ovitrampa",
+        "municipality": "Nome do município",
+        "municipality_code": "Geocódigo. Exemplo: 3304557",
+        "ovitrap_id": "ID da ovitrampa",
+        "ovitrap_website_id": "",
+        "state_code": "Geocódigo. Exemplo: 33",
+        "state_name": "",
+        "time": "Formato de data RFC 1123",
+        "week": "Semana epidemiológica",
+        "year": "Ano"
+      }
+    }
+  },
+  "publications": {
+    "title": "Produção Científica",
+    "subtitle": "Uma coleção de nossas contribuições acadêmicas, relatórios técnicos, conjuntos de dados e desenvolvimentos de software.",
+    "youtube_channel": "Canal do YouTube",
+    "view_source": "Ver Fonte",
+    "type": {
+      "article": "Artigo de Periódico",
+      "preprint": "Preprint",
+      "report": "Relatório Técnico",
+      "thesis": "Tese/Dissertação",
+      "presentation": "Apresentação",
+      "abstract": "Resumo em Congresso"
+    },
+    "datasets": {
+      "title": "Conjuntos de Dados"
+    },
+    "software": {
+      "title": "Softwares"
+    },
+    "seminars": {
+      "title": "Seminários e Webinários",
+      "webinar": {
+        "title": "Webinários do IMDC",
+        "link_text": "Assistir Gravação"
+      },
+      "series_title": "Ciclo de Seminários 2025"
+    },
+    "items": {
+      "araujo_cnmac_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Evaluating transfer learning for forecasting chikungunya cases. In: XLII CNMAC, 2023, Bonito - MS. Proceeding Series of the Brazilian Society of Computational and Applied Mathematics, 2023. v. 10.",
+      "araujo_evigilancia_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Forecasting dengue burden using machine learning. In: E-Vigilância 2023, 2023, Rio de Janeiro. Livro de Resumos, 2023.",
+      "almeida_epi_2024": "ALMEIDA, I. F.; LANA, R. M. ; COELHO, F. C. ; CODECO, C. T. . PERFIS DE TRANSMISSÃO DE DENGUE: ANÁLISE DOS MUNICÍPIOS BRASILEIROS (2010-2022). In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "araujo_epi_2024": "ARAUJO, E. C.; CARVALHO, L. M. ; VACARO, L. B. ; BASTOS, M. M. ; BASTOS, L. S. ; LANA, R. M. ; CODECO, C. T. ; ALMEIDA, I. F. ; FREITAS, L. P. ; SEGUNDO, Z. R. C. ; COELHO, F. C. . MOSQLIMATE: A PLATFORM FOR COMPARING ARBOVIRAL DISEASES FORECASTING MODELS. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "segundo_epi_2024": "SEGUNDO, Zuilho Rodrigues Castro , 2025, MODELOS DE DECISÃO PARA TESTAGEM DE CASOS SUSPEITOS DE ARBOVIROSES POR RL. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "magalhaes_eid_2024": "Magalhaes, T., Coelho, F. C., Souza, W. V., Viana, I. F., Jaenisch, T., Marques, E. T., ... & Braga, C. (2024). Effect of Sexual Partnerships on Zika Virus Transmission in Virus-Endemic Region, Northeast Brazil. Emerging Infectious Diseases, 30(12), 2559.",
+      "araujo_rsos_2025": "ARAUJO, E. C.; CODEÇO, C. T.; LOCH, S.; VACARO, L. B.; FREITAS, L. P.; LANA, R. M.; et al.; COELHO, F. C. Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, v. 12, n. 5, p. 241261, 2025.",
+      "ganem_arxiv_2024": "GANEM, F.; VACARO, L. B.; ARAUJO, E. C.; ALVES, L. D.; BASTOS, L.; CARVALHO, L. M.; et al.; COELHO, F. C. Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv, 2024.",
+      "bastos_arxiv_2024": "BASTOS, M. M.; CARVALHO, L. M.; ARAUJO, E. C.; COELHO, F. C. Long-term predictive models for mosquito borne diseases: a narrative review. arXiv, 2024.",
+      "araujo_medrxiv_2025": "ARAUJO, E. C.; CARVALHO, L. M.; GANEM, F.; VACARO, L. B.; BASTOS, L. S.; FREITAS, L. P.; et al.; COELHO, F. C. Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil. medRxiv, 2025.",
+      "freitas_idm_2025": "FREITAS, L. P.; CRUZ FERREIRA, D. A.; LANA, R. M. CÂMARA, D. C. P.; PORTELLA, T. P.; CARVALHO, M. S.; et al.; BASTOS, L. S. A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. Infectious Disease Modelling, 2025.",
+      "santos_thesis_2024": "Santos, J. P. S. dos. (2024). Analyzing dengue epidemic dynamics using physics informed neural networks [Doctoral dissertation, Fundação Getulio Vargas]. Fundação Getulio Vargas EMAp.",
+      "coelho_imdc_report_2025": "COELHO, F. C.; CODEÇO, C. T.; ARAUJO, E. C.; GANEM, F. S. et al. Relatório IMDC 2025. Zenodo, 2025.",
+      "codeco_infodengue_2024": "CODEÇO, C. T.; COELHO, F. C.; GANEM, F. S.; ARAUJO, E. C. Relatório Técnico Infodengue. Zenodo, 2024.",
+      "almeida_thesis_2025": "ALMEIDA, Iasmim Ferreira de. Dengue e chikungunya nos municípios brasileiros: padrões de transmissão e seus determinantes, 2010-2024. 2025. 174 f. Tese (Doutorado em Epidemiologia em Saúde Pública) - Escola Nacional de Saúde Pública Sergio Arouca, Fundação Oswaldo Cruz, Rio de Janeiro, 2025.",
+      "carvalho_pres_2025": "CARVALHO, Luiz Max. Data integration and predictive ensembles for arbovirus surveillance in Brazil. Apresentação no âmbito de projeto internacional em colaboração com a University of Oxford, coordenação do WP2, 2025.",
+      "coelho_pres_2025": "COELHO, Flávio C. Integração de dados e modelagem estatística para vigilância epidemiológica. Seminário apresentado no Seminário de Estatística da Universidade Federal do Rio de Janeiro (UFRJ), Rio de Janeiro, abr. 2025.",
+      "laiate_cnmac_2025": "LAIATE, Beatriz; COELHO, Flávio Codeço; SOUZA, Julie. A computational approach to Bayesian inference of interval-valued probabilities: application to dengue fever cases prediction. In: PROCEEDING SERIES OF THE BRAZILIAN SOCIETY OF COMPUTATIONAL AND APPLIED MATHEMATICS, 2025.",
+      "coelho_evigilancia_2023": "COELHO, Flávio C. Mosqlimate: plataforma de vigilância climática aplicada à saúde. Apresentação realizada no E-Vigilância, nov. 2023.",
+      "araujo_episcanner_2024": "ARAUJO, E. C.; CARVALHO, L. M.; CODEÇO, C. T.; LANA, R. M.; ALMEIDA, I. F.; FREITAS, L. P.; VACARO, L. B.; BASTOS, L. S.; BASTOS, M. M.; SEGUNDO, Z. R. C.; COELHO, F. C. EPISCANNER: real-time epidemic scanner. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
+      "araujo_mosqlimate_2024": "ARAUJO, E. C.; CARVALHO, L. M.; VACARO, L. B.; BASTOS, M. M.; BASTOS, L. S.; LANA, R. M.; CODEÇO, C. T.; ALMEIDA, I. F.; FREITAS, L. P.; SEGUNDO, Z. R. C.; COELHO, F. C. Mosqlimate: a platform for comparing arboviral diseases forecasting models. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
+      "dataset_egg": "Aedes aegypti Egg Image Data Set",
+      "dataset_sprint": "Sprint-dataset 2024",
+      "dataset_dengue": "Dengue: padrões de dinâmica de transmissão nos municípios do Brasil, 2010–2023",
+      "dataset_sprint_template": "Dengue Forecasting Sprint template",
+      "soft_platform": "Mosqlimate data platform",
+      "soft_mosqlient": "Mosqlimate Client library",
+      "soft_episcanner": "Episcanner: Real-time Epidemic Scanner",
+      "sem_julie": "Analyzing dengue epidemic dynamics using physics-informed neural networks",
+      "sem_caio": "Modelando os mosquitos e a dinâmica da dengue em Foz do Iguaçu",
+      "sem_davide": "Data-driven modelling of vector-borne diseases",
+      "sem_megan": "Social vulnerability in epidemic mathematical modelling",
+      "sem_eduardo": "Investigação numérica da propagação de doenças transmitidas por vetores via modelo matemático espaço-tempo contínuo com difusão fracionária",
+      "sem_paulo": "Current and future directions in dengue modeling: a renewal equation for Aedes aegypti abundance",
+      "sem_chloe": "Compound and cascading effects of climatic extremes on dengue risk: an interaction modelling framework for epidemic preparedness in Barbados and Brazil",
+      "web_tghn": "Preparación para la temporada de dengue 2025: perspectivas de los modelos predictivos",
+      "web_imdc_res1": "Webinar for the official announcement of the results of the validation of the second IMDC",
+      "web_imdc_res2": "Webinar with the official results and predictions for the upcoming season",
+      "web_imdc_2026": "Dengue forecasts for 2026: results of the 2nd InfoDengue–Mosqlimate Challenge"
+    }
+  },
+  "about": {
+    "title": "Nossa equipe",
+    "roles": {
+      "coordination": "Coordenação",
+      "data_scientist": "Cientista de Dados",
+      "developer_data_scientist": "Desenvolvedor e Cientista de Dados",
+      "postdoc": "Pesquisador de pós-doutorado",
+      "undergrad": "Aluno de graduação",
+      "grad": "Aluno de pós-graduação",
+      "associated": "Pesquisador associado"
+    },
+    "team": {
+      "flavio": "Investigador Principal do Mosqlimate e professor associado na Escola de Matemática Aplicada da FGV, Rio de Janeiro, Brasil. Também faço parte da rede GRAPH, sediada na Universidade de Genebra, onde sou coordenador de análise de dados. No Brasil, sou um dos coordenadores do projeto Infodengue. Meus interesses de pesquisa giram em torno da epidemiologia de doenças infecciosas sob o ponto de vista da matemática, estatística e ciência de dados.",
+      "leonardo": "Pesquisador em saúde pública no Programa de Computação Científica (PROCC), Fundação Oswaldo Cruz (Fiocruz). É bolsista de pesquisa da FAPERJ e CNPq. Sua principal pesquisa é no desenvolvimento e aplicação de métodos estatísticos (Bayesianos) para epidemiologia de doenças infecciosas. Ele é co-líder no WP2.",
+      "luiz": "Professor Assistente na Escola de Matemática Aplicada, Fundação Getulio Vargas. Seus interesses são em Bioestatística, particularmente Monte Carlo via cadeias de Markov, filogenética estatística e combinação de modelos. Ele co-liderou o WP2, esperando trazer técnicas de ponta de comparação e combinação de modelos para prever doenças arbovirais.",
+      "leon": "Professor no CEFET, Rio de Janeiro, Brasil. Desenvolvedor do aplicativo Conta Ovos, que visa monitorar a densidade de ovos de Aedes aegypti no espaço e no tempo. Meus interesses são em processamento de imagens e design de aplicativos. Coordenador do WP1.",
+      "eduardo": "Bacharel em engenharia de controle e automação na UTFPR. Tem experiência na análise de dados de saúde pública e desenvolvimento de modelos de aprendizado de máquina aplicados a contextos epidemiológicos. Seus interesses incluem ciência de dados aplicada à saúde, modelagem matemática e computacional de doenças, desenvolvimento de ferramentas em Python e colaboração interdisciplinar em projetos de impacto social. Atua como cientista de dados no WP2 do projeto Mosqlimate. Também é gerente do projeto Mosqlimate.",
+      "iasmim": "Pós-doutoranda na FGV EMAp. Doutora e Mestre em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Pesquisadora no projeto Infodengue e Mosqlimate, atua no WP2 com modelos envolvendo padrões de transmissão de arboviroses e seus determinantes epidemiológicos e climáticos. É também Gerente de Engajamento Comunitário do Mosqlimate e pesquisadora líder no WP3. Seus interesses de pesquisa focam em doenças transmissíveis e sua epidemiologia.",
+      "lua": "Estudante de Ciência da Computação e entusiasta de Código Aberto. Desenvolvedor de Software na Fundação Getulio Vargas, responsável pelo desenvolvimento, implantação e manutenção do Projeto Mosqlimate.",
+      "lucas": "Estatístico e cientista de dados, com doutorado em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Minha experiência profissional inclui a aplicação de metodologias estatísticas e de aprendizado de máquina em diversos campos como agricultura e saúde, além de contribuir para iniciativas de saúde pública e análise de dados para organizações internacionais.",
+      "fabiana": "Mestre e doutora em Epidemiologia e Saúde Pública pela Universidade de Brasília e Universitat Autònoma de Barcelona. É pesquisadora de pós-doutorado na FGV EMAp e membro da Equipe Mosqlimate, pesquisando estratégias de vigilância da dengue e a relação entre fatores socioeconômicos, climáticos e ambientais com doenças arbovirais. Fabiana é coordenadora do Forecast Sprint do Mosqlimate, gerenciando nossas competições internacionais anuais de previsão.",
+      "beatriz": "Pós-doutoranda na FGV EMAp e membro da Equipe Mosqlimate, realizando pesquisas sobre inferência Bayesiana, modelagem matemática da Dengue e Teoria da Possibilidade. Mestre e Doutora em Matemática Aplicada pela UNICAMP. Tem curiosidade por modelos híbridos de doenças infecciosas envolvendo sistemas dinâmicos fuzzy, redes neurais e métodos estatísticos de quantificação de incerteza.",
+      "marcio": "Doutorando em Física, possui profunda afinidade com sistemas dinâmicos, mecânica estatística, inferência Bayesiana e aprendizado de máquina. Atualmente contribui com seus insights como pesquisador colaborativo no projeto Mosqlimate.",
+      "davi": "Pós-doutorando na FGV EMAp e membro da Equipe Mosqlimate, onde foca na previsão de dengue usando aprendizado de máquina e métodos de transporte ótimo dentro da modelagem espaço-temporal. Doutor em Matemática Aplicada e Ciência de Dados pela FGV EMAp.",
+      "julie": "Pós-doutoranda na FGV EMAp. É matemática aplicada, física e cientista de dados com doutorado em Matemática Aplicada e Ciência de Dados. Possui mestrado e bacharelado em Física. Sua pesquisa foca na modelagem matemática de epidemias, enfatizando o uso de redes neurais informadas por modelos epidemiológicos (PINNs) para capturar a dinâmica complexa da dengue. Também tem experiência em aprendizado de máquina, inferência causal e desenvolvimento de pipelines de dados para análise epidemiológica. Seu trabalho busca integrar computação avançada e métodos de inteligência artificial para entender e controlar doenças infecciosas.",
+      "ana": "Aluna de graduação em Ciência de Dados e Inteligência Artificial na FGV-EMAp. Atua como desenvolvedora e cientista de dados no projeto de pesquisa Mosqlimate. Bolsista de iniciação científica da FAPERJ em projeto realizado por pesquisadores da Fiocruz com 15 meninas de escolas públicas do Rio de Janeiro. Interesse em ciência de dados aplicada à saúde, aprendizado de máquina e projetos sociais, especialmente os relacionados à educação.",
+      "ezequiel": "Mestrando em Matemática Aplicada e Ciência de Dados na FGV EMAp. Seu trabalho foca em modelagem Bayesiana, particularmente em power priors. Atualmente atua como assistente de pesquisa no projeto do pacote R hdbayes e no Mosqlimate. Seus principais interesses de pesquisa estão em bioestatística, especialmente em estatística Bayesiana e computacional.",
+      "zuilho": "Aluno de graduação em Ciência de Dados e Inteligência Artificial na FGV EMAp. Tenho interesse particular em Aprendizado de Máquina e Aprendizado por Reforço. Atualmente, estou trabalhando em modelos de aprendizado por reforço onde agentes são projetados para otimizar a distribuição de testes para doenças arbovirais como dengue e chikungunya em diferentes regiões.",
+      "sillas": "Aluno de graduação em Ciência de Dados e Inteligência Artificial na FGV-EMAp. Atualmente trabalha na integração de um assistente de IA na plataforma Mosqlimate. Seus interesses focam em Aprendizado de Máquina, particularmente modelos de Deep Learning.",
+      "raquel": "Bolsista Marie Curie no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global. Sua formação é em epidemiologia quantitativa e sua pesquisa foca na dinâmica de doenças infecciosas e sua associação com fatores ambientais, climáticos e sociais. É colaboradora no projeto Mosqlimate.",
+      "thais": "Bióloga com mestrado e doutorado em Zoologia. Tenho interesse em estudos sobre ecologia e dinâmica populacional de vetores de arboviroses e seu impacto na dinâmica de transmissão de doenças. Atualmente trabalho como analista no Centro de Inteligência Epidemiológica da Secretaria de Saúde da Cidade do Rio de Janeiro e como pesquisadora colaboradora no sistema Infodengue.",
+      "lais": "Pesquisadora no Programa de Computação Científica (PROCC/Fiocruz), com mestrado e doutorado em Epidemiologia pela ENSP/Fiocruz. Realizou pós-doutorado no PROCC e CReSP, Université de Montréal. Seu trabalho foca em modelagem Bayesiana de doenças infecciosas, especialmente arboviroses, analisando padrões espaciais e determinantes socioambientais.",
+      "bruno": "Pós-doutorando no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global, onde desenvolve modelos de doenças infecciosas para alerta precoce e suporte à decisão. Constrói indicadores para rastrear os impactos das mudanças climáticas na saúde usando kits de ferramentas digitais de acesso aberto e reproduzíveis. É biólogo, Doutor em Ecologia e Evolução e Mestre em Parasitologia. Como colaborador no Mosqlimate, Bruno está desenvolvendo modelos de aprendizado profundo para prever dengue no Brasil usando dados do sistema Infodengue."
+    }
+  },
+  "navbar": {
+    "home": "Início",
+    "models": "Modelos",
+    "dashboard": "Dashboard",
+    "datastore": "Conjuntos de Dados",
+    "docs": "Documentação",
+    "login": "Entrar",
+    "profile": "Perfil",
+    "about": "Sobre Nós",
+    "discord": "Discord",
+    "forum": "Fórum",
+    "publications": "Publicações",
+    "eggscounter": "ContaOvos"
+  },
+  "home": {
+    "scroll": "rolar",
+    "hero": {
+      "title": "Mosqlimate",
+      "subtitle": "Vigilância Inteligente de Arboviroses e Clima"
+    },
+    "project": {
+      "title": "Conheça o projeto",
+      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a arboviroses (doenças transmitidas por mosquitos) no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como dengue, chikungunya e Zika.",
+      "products": "Nossos dois principais produtos são:",
+      "btn_data": "Dados",
+      "btn_models": "Modelos Preditivos"
+    },
+    "data": {
+      "title": "Explore nossos dados",
+      "cases_title": "Casos",
+      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "climate_title": "Clima",
+      "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
+      "mosquito_title": "Mosquito",
+      "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
+      "epi_title": "Epi-Scanner",
+      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
+    },
+    "models": {
+      "title": "Analise nossos modelos",
+      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue."
+    },
+    "differentials": {
+      "title": "Descubra os diferenciais do Mosqlimate",
+      "integration_title": "Integração completa de dados",
+      "integration_desc": "Reúne, em um só lugar, informações epidemiológicas, climáticas e entomológicas.",
+      "comparison_title": "Comparação inteligente de modelos",
+      "comparison_desc": "Visualizações dinâmicas que permitem comparar previsões de diferentes modelos.",
+      "team_title": "Equipe multidisciplinar de excelência",
+      "team_desc": "Epidemiologistas, cientistas de dados, biólogos, estatísticos e físicos garantindo análises inovadoras.",
+      "quality_title": "Compromisso com a qualidade",
+      "quality_desc": "Conteúdo atualizado, sustentado por publicações científicas e resultados validados.",
+      "community_title": "Comunidade ativa e colaborativa",
+      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
+    },
+    "team": {
+      "title": "Conheça a nossa equipe"
+    }
+  }
 }

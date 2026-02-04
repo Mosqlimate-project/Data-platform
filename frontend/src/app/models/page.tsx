@@ -1,23 +1,29 @@
-import { FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import Models from "./Models";
-import NetworkBackground from "@/components/NetworkBackground";
 
-export default async function Page() {
-  const res = await fetch(`${FRONTEND_URL}/api/registry/models/`, {
-    cache: "no-store",
-  });
+async function getData() {
+  const [modelsRes, tagsRes] = await Promise.all([
+    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/thumbnails/`, { cache: "no-store" }),
+    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/tags/`, { cache: "no-store" })
+  ]);
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch models: ${res.status}`);
+  if (!modelsRes.ok || !tagsRes.ok) {
+    throw new Error("Failed to fetch data");
   }
 
-  const models = await res.json();
+  const models = await modelsRes.json();
+  const tags = await tagsRes.json();
+
+  return { models, tags };
+}
+
+export default async function Page() {
+  const { models, tags } = await getData();
 
   return (
     <>
-      <NetworkBackground />
       <div className="relative z-10">
-        <Models models={models} />
+        <Models models={models} tags={tags} />
       </div>
     </>
   );

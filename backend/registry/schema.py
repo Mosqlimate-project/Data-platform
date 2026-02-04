@@ -1,253 +1,13 @@
-import requests
-from typing_extensions import Annotated
+import re
 from datetime import date as dt
+from datetime import datetime
 from typing import Optional, Literal, List
-from pydantic import validator, model_validator, field_validator
+from pydantic import model_validator, field_validator
 
-import pandas as pd
-from ninja import Field, FilterSchema
+from ninja import Field
 from ninja.errors import HttpError
 
 from main.schema import Schema
-from users.schema import UserSchema
-from vis.brasil.models import State, City
-from .models import Model
-
-
-class ImplementationLanguageSchema(Schema):
-    language: Annotated[
-        str,
-        Field(
-            default="python",
-            max_length=50,
-            description="Implementation Language",
-        ),
-    ]
-
-
-class AuthorSchema(Schema):
-    user: UserSchema
-    institution: Annotated[
-        Optional[str],
-        Field(default="", max_length=100, description="Author's association"),
-    ]
-
-
-class AuthorFilterSchema(FilterSchema):
-    """url/?paremeters to search for Authors"""
-
-    name: Annotated[
-        str,
-        Field(
-            None, q="user__name__icontains", description="Author's full name"
-        ),
-    ]
-    institution: Annotated[
-        str,
-        Field(
-            default=None,
-            q="institution__icontains",
-            max_length=100,
-            description="Author's association",
-        ),
-    ]
-    username: Annotated[
-        str,
-        Field(
-            default=None,
-            q="user__username__icontains",
-            description="Author's username",
-        ),
-    ]
-
-
-class TagSchema(Schema):
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            description="Tag ID",
-            gt=0,
-        ),
-    ]
-    name: str
-    color: str
-
-    @validator("id", pre=True, always=True)
-    def convert_id(cls, value):
-        if value is not None:
-            try:
-                return int(value)
-            except ValueError:
-                raise ValueError("Tag ID must be an integer")
-        return value
-
-
-class ModelSchema(Schema):
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            description="Model ID",
-            gt=0,
-        ),
-    ]
-    name: Annotated[str, Field(description="Model name")]
-    description: Annotated[
-        str,
-        Field(
-            description="Model description",
-            max_length=500,
-        ),
-    ]
-    author: AuthorSchema
-    repository: Annotated[
-        str,
-        Field(
-            default="https://github.com/",
-            description="Model git repository",
-        ),
-    ]
-    implementation_language: ImplementationLanguageSchema
-    disease: Annotated[
-        Literal["dengue", "chikungunya", "zika"],
-        Field(default="dengue", description="Model for disease"),
-    ]
-    categorical: bool | None = None
-    spatial: bool | None = None
-    temporal: bool | None = None
-    adm_level: Annotated[
-        Literal[0, 1, 2, 3],
-        Field(
-            default=0,
-            description=(
-                "Administrative level. Country, State, Municipality and "
-                "SubMunicipality respectively"
-            ),
-        ),
-    ]
-    time_resolution: Annotated[
-        Literal["day", "week", "month", "year"],
-        Field(
-            default="week",
-            description=(
-                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
-            ),
-        ),
-    ]
-    sprint: Annotated[
-        bool,
-        Field(
-            default=False,
-            description="Model for Sprint 2024/25",
-        ),
-    ]
-
-
-class ModelFilterSchema(FilterSchema):
-    """url/?paremeters to search for Models"""
-
-    id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="id__exact",
-            description="Model ID",
-            gt=0,
-        ),
-    ]
-    name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="name__icontains",
-            description="Model name",
-        ),
-    ]
-    author_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__user__name__icontains",
-            description="Model's Author full name",
-        ),
-    ]
-    author_username: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__user__username__icontains",
-            description="Model's Author username",
-        ),
-    ]
-    author_institution: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="author__institution__icontains",
-            description="Model's Author association",
-        ),
-    ]
-    repository: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="repository__icontains",
-            description="Model git repository",
-        ),
-    ]
-    implementation_language: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="implementation_language__language__iexact",
-            description="Model implementation language",
-        ),
-    ]
-    disease: Annotated[
-        Optional[Literal["dengue", "zika", "chikungunya"]],
-        Field(
-            default=None, q="disease__iexact", description="Model for disease"
-        ),
-    ]
-    adm_level: Annotated[
-        Optional[Literal[0, 1, 2, 3]],
-        Field(
-            default=None,
-            q="adm_level",
-            description=(
-                "Administrative level. Country, State, Municipality and "
-                "SubMunicipality respectively"
-            ),
-        ),
-    ]
-    temporal: Optional[bool] = Field(None, q="temporal")
-    spatial: Optional[bool] = Field(None, q="spatial")
-    categorical: Optional[bool] = Field(None, q="categorical")
-    time_resolution: Annotated[
-        Optional[Literal["day", "week", "month", "year"]],
-        Field(
-            default=None,
-            q="time_resolution__iexact",
-            description=(
-                "Time resolution. Options: 'day', 'week', 'month' or 'year'"
-            ),
-        ),
-    ]
-    tags: Annotated[
-        Optional[List[int]],
-        Field(
-            default=None,
-            q="tags__id__in",
-            description="List of Model tags",
-        ),
-    ]
-    sprint: Annotated[
-        Optional[bool],
-        Field(
-            default=None, q="sprint", description="Model for Sprint 2024/25"
-        ),
-    ]
 
 
 class PredictionDataRowSchema(Schema):
@@ -275,290 +35,87 @@ class PredictionDataRowSchema(Schema):
             <= values.upper_90
             <= values.upper_95
         ):
-            raise ValueError("Prediction bounds are not in the correct order")
+            raise HttpError(
+                422, "Prediction bounds are not in the correct order"
+            )
         return values
 
 
-class PredictionDataRowOut(Schema):
-    date: dt
-    pred: float
-    lower_95: Optional[float] = None
-    lower_90: float
-    lower_80: Optional[float] = None
-    lower_50: Optional[float] = None
-    upper_50: Optional[float] = None
-    upper_80: Optional[float] = None
-    upper_90: float
-    upper_95: Optional[float] = None
-
-
-class PredictionSchema(Schema):
-    id: int
-    model: ModelSchema
-    description: str = ""
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    published: bool
-    adm_0: str = "BRA"
-    adm_1: Optional[str] = None
-    adm_2: Optional[int] = None
-    adm_3: Optional[int] = None
-    data: List[PredictionDataRowSchema]
-
-
-class PredictionOut(Schema):
-    message: Optional[str] = None
-    id: Optional[int] = None
-    model: ModelSchema | int
-    description: str
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    # adm_0: str = "BRA"
-    adm_1: str = Field(None, alias="adm_1.uf")
-    adm_2: int = Field(None, alias="adm_2.geocode")
-    # adm_3: Optional[int] = None
-    data: List[PredictionDataRowOut]
-    mae: Optional[float] = None
-    mse: Optional[float] = None
-    crps: Optional[float] = None
-    log_score: Optional[float] = None
-    interval_score: Optional[float] = None
-    wis: Optional[float] = None
-
-
 class PredictionIn(Schema):
-    model: int
-    description: str = ""
-    commit: str
-    predict_date: dt  # YYYY-mm-dd
-    published: bool = True
-    # adm_0: str = "BRA"
-    adm_1: Optional[str] = None
-    adm_2: Optional[int] = None
-    # adm_3: Optional[int] = None
+    """
+    test
+    """
+
+    repository: str = Field(
+        ...,
+        description="The full repository name in 'owner/name' format.",
+        examples="owner/repository-name",
+    )
+    description: str = Field(
+        "",
+        description="A brief description of this specific prediction.",
+    )
+    commit: str = Field(
+        ...,
+        description="The full 40-character commit hash",
+        examples="8843d7f92416211de9ebb963ff4ce28125932878",
+        pattern=r"^[0-9a-fA-F]{40}$",
+    )
+    predict_date: dt = Field(
+        ...,
+        description="The reference date for this prediction (YYYY-MM-DD).",
+        example="2023-10-25",
+    )
+    published: bool = Field(
+        True, description="Whether this prediction is visible to the public."
+    )
+    adm_0: str = Field("BRA", description="Country ISO code", examples="BRA")
+    adm_1: Optional[int] = Field(
+        None, description="State geocode", examples="33"
+    )
+    adm_2: Optional[int] = Field(
+        None, description="Municipality geocode", examples="3304557"
+    )
+    adm_3: Optional[int] = Field(None, description="Sub-municipality geocode")
     prediction: List[PredictionDataRowSchema]
 
-    @field_validator("model")
+    @field_validator("repository")
     @classmethod
-    def validate_model(cls, v):
-        try:
-            Model.objects.get(pk=v)
-            return v
-        except Model.DoesNotExist:
-            raise HttpError(404, f"Model '{v}' not found")
+    def validate_repository(cls, v):
+        if "/" not in v:
+            raise HttpError(422, "`repository` format: 'owner/repository'")
+        return v
 
     @field_validator("description")
     @classmethod
     def validate_description(cls, v):
         if len(v) == 0:
-            raise HttpError(422, "Description too short")
+            raise HttpError(422, "`description` too short")
         if len(v) > 500:
-            raise HttpError(422, "Description too long. Max: 500 characters")
+            raise HttpError(422, "`description` too long. Max: 500 characters")
         return v
 
     @field_validator("commit")
     @classmethod
     def validate_commit(cls, v, values):
-        repository = Model.objects.get(pk=values.data.get("model")).repository
-        url = (
-            repository + f"commit/{v}"
-            if repository.endswith("/")
-            else repository + f"/commit/{v}"
-        )
-        try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 404:
-                raise HttpError(422, f"Failed to fetch commit: {url}")
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise HttpError(422, e)
-        return v
-
-    @field_validator("prediction")
-    @classmethod
-    def validate_prediction(cls, v):
-        if not v:
-            raise HttpError(422, "Empty prediction data")
-        try:
-            data = [row.dict() for row in v]
-            pd.DataFrame(data=data)
-        except Exception as e:
-            raise HttpError(422, f"Unprocessable prediction data. Error: {e}")
-        return v
+        if not re.fullmatch(r"^[0-9a-fA-F]{40}$", v):
+            raise HttpError(422, "`commit` must be a full 40-character hash.")
+        return v.lower()
 
     @model_validator(mode="before")
     def validate_adm_levels(cls, values):
-        try:
-            model = Model.objects.get(pk=values.model)
-        except Model.DoesNotExist:
-            raise HttpError(404, f"Model '{values.model}' not found")
-        adm_1 = values.adm_1
-        adm_2 = values.adm_2
-        # adm_3 = values.adm_3
-
-        if sum(list(map(bool, [adm_1, adm_2]))) != 1:
-            raise ValueError(
-                "[only] one of `adm_1`, `adm_2` or `adm_3` param is required"
-            )
-
-        if adm_1:
-            adm_1 = adm_1.upper()
-            if adm_1 not in list(
-                State.objects.all().values_list("uf", flat=True)
-            ):
-                raise ValueError(f"unkown UF '{adm_1}'. Format: 'RJ'")
-
-        if adm_2:
-            if model.adm_level == 1:
-                raise ValueError(f"Model {model.id} ADM Level is 1")
-            try:
-                City.objects.get(geocode=adm_2)
-            except City.DoesNotExist:
-                raise ValueError(f"unkown geocode '{adm_2}'. Format: 3304557")
-
-        # if adm_3:
-        #     raise NotImplementedError(
-        #         "ADM 3 (Submunicipality) is not yet implemented. "
-        #         "Please contact the moderation"
-        #     )
-
         return values
 
 
-class PredictionFilterSchema(FilterSchema):
-    """url/?paremeters to search for Predictions"""
+class ModelSummary(Schema):
+    id: int
 
-    id: Annotated[
-        Optional[int],
-        Field(default=None, q="id__exact", description="Prediction ID"),
-    ]
-    model_id: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="model__id__exact",
-            description="Model ID",
-        ),
-    ]
-    model_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__name__icontains",
-            description="Model name",
-        ),
-    ]
-    model_adm_level: Annotated[
-        Optional[int],
-        Field(
-            default=None,
-            q="model__adm_level",
-            description="Model administrative level",
-        ),
-    ]
-    model_time_resolution: Annotated[
-        Optional[Literal["day", "week", "month", "year"]],
-        Field(
-            default=None,
-            q="model__time_resolution__iexact",
-            description="Model time resolution",
-        ),
-    ]
-    model_disease: Annotated[
-        Optional[Literal["dengue", "zika", "chikungunya"]],
-        Field(
-            default=None,
-            q="model__disease__iexact",
-            description="Model disease.",
-        ),
-    ]
-    author_name: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__user__name__icontains",
-            description="Author name",
-        ),
-    ]
-    author_username: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__user__username__icontains",
-            description="Author username",
-        ),
-    ]
-    author_institution: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__author__institution__icontains",
-            description="Author institution",
-        ),
-    ]
-    repository: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__repository__icontains",
-            description="Model repository",
-        ),
-    ]
-    implementation_language: Annotated[
-        Optional[str],
-        Field(
-            default=None,
-            q="model__implementation_language__language__iexact",
-            description="Model implementation language. Example: 'python'",
-        ),
-    ]
-    temporal: Optional[bool] = Field(None, q="model__temporal")
-    spatial: Optional[bool] = Field(None, q="model__spatial")
-    categorical: Optional[bool] = Field(None, q="model__categorical")
-    commit: Annotated[
-        Optional[str],
-        Field(default=None, q="commit", description="Repository commit hash"),
-    ]
-    predict_date: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date",
-            description="Prediction's predict date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    start: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date__gte",
-            description="Prediction start date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    end: Annotated[
-        Optional[dt],
-        Field(
-            default=None,
-            q="predict_date__lte",
-            description="Prediction end date. Format: 'YYYY-mm-dd'",
-        ),
-    ]
-    tags: Annotated[
-        Optional[List[int]],
-        Field(
-            default=None,
-            q="model__tags__id__in",
-            description="List of Tag IDs",
-        ),
-    ]
-    sprint: Annotated[
-        Optional[bool],
-        Field(
-            default=None,
-            q="model__sprint",
-            description="Prediction for Sprint 2024/25",
-        ),
-    ]
+
+class ModelTags(Schema):
+    id: str
+    name: str
+    category: str
+    models: List[ModelSummary]
 
 
 class ModelThumbs(Schema):
@@ -598,7 +155,7 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_predictions(obj):
-        return 0
+        return getattr(obj, "predictions_count", 0)
 
     @staticmethod
     def resolve_last_update(obj):
@@ -623,4 +180,158 @@ class ModelIncludeInit(Schema):
         "spatio_temporal_quantitative",
         "spatio_temporal_categorical",
     ]
-    sprint: bool
+    sprint: int
+
+
+class ContributorOut(Schema):
+    username: str
+    avatar_url: str | None
+
+
+class ModelOut(Schema):
+    owner: str
+    repository: str
+    description: str | None
+    disease: str
+    category: str
+    adm_level: int
+    time_resolution: str
+    predictions: int
+    contributors: list[ContributorOut]
+
+    @staticmethod
+    def resolve_owner(obj):
+        if obj.repository.organization:
+            return obj.repository.organization.name
+        if obj.repository.owner:
+            return obj.repository.owner.username
+        raise ValueError("Owner not found")
+
+    @staticmethod
+    def resolve_repository(obj):
+        return obj.repository.name
+
+    @staticmethod
+    def resolve_disease(obj):
+        return obj.disease.name
+
+    @staticmethod
+    def resolve_contributors(obj):
+        users_map = {}
+        repo = obj.repository
+
+        for contributor in repo.repository_contributors.all():
+            users_map[contributor.user.id] = contributor.user
+
+        if repo.owner:
+            users_map[repo.owner.id] = repo.owner
+
+        return [
+            {
+                "username": user.username,
+                "avatar_url": getattr(user, "avatar_url", None)
+                or (
+                    user.avatar.url
+                    if hasattr(user, "avatar") and user.avatar
+                    else None
+                ),
+            }
+            for user in users_map.values()
+        ]
+
+
+class ModelDescriptionIn(Schema):
+    description: str
+
+
+class PredictionPublishUpdateIn(Schema):
+    published: bool
+
+
+class ModelPredictionOut(Schema):
+    id: int
+    date: dt
+    commit: str
+    description: str | None
+    start: dt | None
+    end: dt | None
+    scores: list[dict]
+    published: bool
+    created_at: datetime
+    disease_code: str = Field(alias="model.disease.code")
+    category: str = Field(alias="model.category")
+    adm_level: int = Field(alias="model.adm_level")
+    sprint: int | None
+    adm_0_name: str | None
+    adm_0_code: str | None
+    adm_1_name: str | None
+    adm_1_code: int | None
+    adm_2_name: str | None
+    adm_2_code: int | None
+    adm_3_name: str | None
+    adm_3_code: int | None
+
+    @staticmethod
+    def resolve_date(obj):
+        return obj.predict_date
+
+    @staticmethod
+    def resolve_sprint(obj):
+        return obj.model.sprint.year if obj.model.sprint else None
+
+    @staticmethod
+    def resolve_adm_0_name(obj):
+        return obj.adm0.name if obj.adm0 else None
+
+    @staticmethod
+    def resolve_adm_0_code(obj):
+        return obj.adm0.geocode if obj.adm0 else None
+
+    @staticmethod
+    def resolve_adm_1_name(obj):
+        return obj.adm1.name if obj.adm1 else None
+
+    @staticmethod
+    def resolve_adm_1_code(obj):
+        return obj.adm1.geocode if obj.adm1 else None
+
+    @staticmethod
+    def resolve_adm_2_name(obj):
+        return obj.adm2.name if obj.adm2 else None
+
+    @staticmethod
+    def resolve_adm_2_code(obj):
+        return obj.adm2.geocode if obj.adm2 else None
+
+    @staticmethod
+    def resolve_adm_3_name(obj):
+        return obj.adm3.name if obj.adm3 else None
+
+    @staticmethod
+    def resolve_adm_3_code(obj):
+        return obj.adm3.geocode if obj.adm3 else None
+
+    @staticmethod
+    def resolve_scores(obj):
+        score_fields = [
+            "mae_score",
+            "mse_score",
+            "crps_score",
+            "log_score",
+            "interval_score",
+            "wis_score",
+        ]
+        return [
+            {"name": field, "score": getattr(obj, field, None)}
+            for field in score_fields
+            if getattr(obj, field, None) is not None
+        ]
+
+
+class RepositoryPermissions(Schema):
+    is_owner: bool
+    can_manage: bool
+
+
+class CreatePredictionOut(Schema):
+    id: int

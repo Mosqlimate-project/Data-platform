@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, cloneElement, isValidElement, ReactNode } from "react";
+import { useState, ReactNode } from "react";
 
 export function AccordionCard({
   title,
@@ -14,159 +14,136 @@ export function AccordionCard({
   children: ReactNode;
 }) {
   return (
-    <div className="border rounded-md overflow-hidden transition-all">
+    <div
+      className={`border rounded-md transition-all bg-card relative ${isOpen ? "z-20" : "z-0"
+        }`}
+    >
       <button
         onClick={onClick}
-        className={`w-full text-left px-4 py-3 font-medium border-b border-[var(--color-border)] transition-colors ${isOpen
-          ? "bg-[var(--color-accent)] text-white"
-          : "bg-[var(--color-bg)] text-[var(--color-text)] hover:bg-[var(--color-border)]"
+        className={`w-full text-left px-4 py-3 font-medium border-b border-border transition-colors flex justify-between items-center ${isOpen
+          ? "bg-muted/50 text-foreground"
+          : "bg-card text-muted-foreground hover:bg-muted/30"
           }`}
       >
-        {title}
+        <span>{title}</span>
+        <span className="text-xs opacity-50">{isOpen ? "▲" : "▼"}</span>
       </button>
-      {isOpen && <div className="p-4 text-sm bg-[var(--color-bg)]">{children}</div>}
+      {isOpen && <div className="p-4 text-sm bg-card text-card-foreground">{children}</div>}
     </div>
   );
+}
+
+interface EndpointLayoutProps {
+  title: string;
+  endpoint: string;
+  description: string;
+  dataVariables?: { variable: string; type: string; description: string }[];
+  children?: ReactNode;
+  controls?: ReactNode;
+  apiBuilder?: ReactNode;
 }
 
 export function EndpointLayout({
   title,
   description,
   dataVariables,
-  chartOptions,
   endpoint,
   children,
-}: {
-  title: string;
-  endpoint: string;
-  description: string;
-  dataVariables?: { variable: string; type: string; description: string }[];
-  chartOptions?: { option: string; type: string }[];
-  children?: ReactNode;
-}) {
-  const [openCard, setOpenCard] = useState<string | null>("Description");
-  const toggleCard = (key: string) => setOpenCard((prev) => (prev === key ? null : key));
+  controls,
+  apiBuilder,
+}: EndpointLayoutProps) {
+  const [openCard, setOpenCard] = useState<string | null>("Visualization Controls");
 
-  const [geocode, setGeocode] = useState<number>(3304557);
-  const [startDate, setStartDate] = useState("2023-01-01");
-  const [endDate, setEndDate] = useState("2023-03-03");
-  const [selectedDisease, setSelectedDisease] = useState("dengue");
-
-  const handleStartDateChange = (v: string) => {
-    if (endDate && v > endDate) return;
-    setStartDate(v);
+  const toggleCard = (key: string) => {
+    setOpenCard((prev) => (prev === key ? null : key));
   };
-  const handleEndDateChange = (v: string) => {
-    if (startDate && v < startDate) return;
-    setEndDate(v);
-  };
-
-  const injectedChildren = isValidElement(children)
-    ? cloneElement(children, {
-      geocode: String(geocode),
-      start: startDate,
-      end: endDate,
-      disease: selectedDisease,
-    })
-    : children;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="border rounded-md p-4 flex flex-col items-center justify-center text-sm font-medium w-full bg-[var(--color-bg)]">
-        {injectedChildren || (
-          <p className="opacity-60 text-center">
-            No chart visualization defined for this endpoint.
-          </p>
-        )}
+    <div className="flex flex-col xl:flex-row gap-8">
+      <div className="flex-1 min-w-0">
+        <div className="border rounded-md p-6 bg-card text-card-foreground shadow-sm">
+          <div className="mb-6 border-b pb-4">
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+            <code className="text-xs bg-muted px-2 py-1 rounded mt-2 inline-block text-muted-foreground">
+              GET /api/datastore{endpoint}
+            </code>
+          </div>
+
+          {children || (
+            <div className="py-12 text-center text-muted-foreground opacity-60">
+              No visualization content available.
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3 w-full md:w-2/5">
+      <div className="flex flex-col gap-4 w-full xl:w-[400px] shrink-0">
+
+        {controls && (
+          <AccordionCard
+            title="Charts / Visualization"
+            isOpen={openCard === "Visualization Controls"}
+            onClick={() => toggleCard("Visualization Controls")}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center text-xs text-muted-foreground mb-2">
+                <span>Adjust the parameters below to update the charts.</span>
+              </div>
+              <div className="flex flex-col gap-4 p-2 bg-muted/20 rounded-md border border-border/50">
+                {controls}
+              </div>
+            </div>
+          </AccordionCard>
+        )}
+
+        {apiBuilder && (
+          <AccordionCard
+            title="API Request Builder"
+            isOpen={openCard === "API Request Builder"}
+            onClick={() => toggleCard("API Request Builder")}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="text-xs text-muted-foreground mb-2">
+                Construct a raw API query with all available parameters.
+              </div>
+              {apiBuilder}
+            </div>
+          </AccordionCard>
+        )}
+
         <AccordionCard
           title="Description"
           isOpen={openCard === "Description"}
           onClick={() => toggleCard("Description")}
         >
-          <p className="opacity-80">{description}</p>
+          <p className="opacity-90 leading-relaxed">{description}</p>
         </AccordionCard>
 
-        {dataVariables && (
+        {dataVariables && dataVariables.length > 0 && (
           <AccordionCard
             title="Data Dictionary"
             isOpen={openCard === "Data Dictionary"}
             onClick={() => toggleCard("Data Dictionary")}
           >
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-border)]">
-                  <th className="px-3 py-1">Variable</th>
-                  <th className="px-3 py-1">Type</th>
-                  <th className="px-3 py-1">Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataVariables.map((v) => (
-                  <tr key={v.variable} className="border-b border-[var(--color-border)]">
-                    <td className="px-3 py-1">{v.variable}</td>
-                    <td className="px-3 py-1">{v.type}</td>
-                    <td className="px-3 py-1">{v.description}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-border text-muted-foreground">
+                    <th className="px-2 py-2 font-semibold">Variable</th>
+                    <th className="px-2 py-2 font-semibold">Type</th>
+                    <th className="px-2 py-2 font-semibold">Description</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </AccordionCard>
-        )}
-
-        {chartOptions && chartOptions.length > 0 && (
-          <AccordionCard
-            title="Charts / Visualization"
-            isOpen={openCard === "Charts"}
-            onClick={() => toggleCard("Charts")}
-          >
-            <div className="flex flex-col gap-4">
-              {endpoint === "/infodengue/" && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium">Disease</label>
-                  <select
-                    value={selectedDisease}
-                    onChange={(e) => setSelectedDisease(e.target.value)}
-                    className="border rounded-md px-2 py-1"
-                  >
-                    <option value="dengue">Dengue</option>
-                    <option value="chikungunya">Chikungunya</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Geocode</label>
-                <input
-                  type="number"
-                  value={geocode || ""}
-                  onChange={(e) => setGeocode(Number(e.target.value))}
-                  className="border rounded-md px-2 py-1"
-                />
-              </div>
-
-              <div className="flex gap-2 items-end">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-medium">Start Date</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    className="border rounded-md px-2 py-1"
-                  />
-                </div>
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-medium">End Date</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => handleEndDateChange(e.target.value)}
-                    className="border rounded-md px-2 py-1"
-                  />
-                </div>
-              </div>
+                </thead>
+                <tbody>
+                  {dataVariables.map((v) => (
+                    <tr key={v.variable} className="border-b border-border/50 last:border-0">
+                      <td className="px-2 py-2 font-mono text-primary">{v.variable}</td>
+                      <td className="px-2 py-2 opacity-70">{v.type}</td>
+                      <td className="px-2 py-2 opacity-90">{v.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </AccordionCard>
         )}

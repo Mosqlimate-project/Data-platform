@@ -12,7 +12,6 @@ interface ThumbnailProps {
 }
 
 function timeAgo(timestamp: number): string | null {
-  console.log(timestamp)
   if (!timestamp) return null;
 
   const dateValue = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
@@ -91,7 +90,7 @@ export default function Thumbnail({
         <span>•</span>
 
         <span className="truncate">
-          {predictions > 0 ? predictions.toLocaleString() : 0} preds
+          {predictions > 0 ? predictions.toLocaleString() : 0} predictions
         </span>
 
         <span>•</span>

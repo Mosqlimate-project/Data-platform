@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from main.utils import UF_CODES
 from main.models import TimestampModel
-from vis.dash import errors
+from datastore.models import Adm0, Adm1, Adm2, Adm3
 from vis.brasil.models import State, City
 from datastore.models import Disease
 
@@ -26,6 +26,10 @@ def random_rgb() -> str:
 
 
 class Tag(models.Model):
+    """
+    Up for removal
+    """
+
     name = models.CharField(max_length=30, unique=True)
     group = models.CharField(unique=False, null=True)
     color = models.CharField(
@@ -130,6 +134,10 @@ class Tag(models.Model):
 
 
 class ImplementationLanguage(models.Model):
+    """
+    Up for removal
+    """
+
     language = models.CharField(
         max_length=100, null=False, blank=False, unique=True
     )
@@ -148,6 +156,10 @@ class ImplementationLanguage(models.Model):
 
 
 class Author(models.Model):
+    """
+    Up for removal
+    """
+
     user = models.OneToOneField(
         "users.CustomUser",
         on_delete=models.CASCADE,
@@ -167,6 +179,10 @@ class Author(models.Model):
 
 
 class Model(models.Model):
+    """
+    Up for removal
+    """
+
     class Diseases(models.TextChoices):
         CHIKUNGUNYA = "chikungunya", _("Chikungunya")
         DENGUE = "dengue", _("Dengue")
@@ -230,6 +246,10 @@ class Model(models.Model):
 
 
 class Prediction(models.Model):
+    """
+    Up for removal
+    """
+
     model = models.ForeignKey(
         Model, on_delete=models.CASCADE, null=False, related_name="predictions"
     )
@@ -345,21 +365,19 @@ class Prediction(models.Model):
             end_date = max(self.to_dataframe()["date"])
         except KeyError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError("date column not found")
+            raise ValueError("date column not found")
 
         try:
             self.date_ini_prediction = datetime.fromisoformat(str(ini_date))
             self.date_end_prediction = datetime.fromisoformat(str(end_date))
         except ValueError:
             # TODO: Improve error handling -> InsertionError
-            raise errors.VisualizationError(
-                "Incorrect date format on column date"
-            )
+            raise ValueError("Incorrect date format on column date")
 
     def _parse_uf_geocode(self, uf: str):
         uf = uf.upper()
         if uf not in UF_CODES:
-            raise errors.VisualizationError(f"Unkown UF '{uf}'")
+            raise ValueError(f"Unkown UF '{uf}'")
         return UF_CODES[uf]
 
     class Meta:
@@ -368,6 +386,10 @@ class Prediction(models.Model):
 
 
 class PredictionDataRow(models.Model):
+    """
+    Up for removal
+    """
+
     predict = models.ForeignKey(
         Prediction, on_delete=models.CASCADE, related_name="data", null=True
     )
@@ -412,6 +434,19 @@ def _get_tag_ids_from_model_id(model_id: int) -> list[int | None]:
 
 
 # ---- Frontend new models:
+#
+
+
+class Sprint(models.Model):
+    year = models.IntegerField()
+    start_date = models.DateField(help_text="Start submission date")
+    end_date = models.DateField(help_text="End submission date")
+
+    class Meta:
+        ordering = ["-start_date"]
+
+    def __str__(self):
+        return f"Sprint {self.year}"
 
 
 class Organization(TimestampModel):
@@ -556,9 +591,10 @@ class RepositoryModel(TimestampModel):
         @property
         def help_text(self):
             m = self.meta
-            return f"Domain: {m['domain']} | Output: {m['output']} | Ex: {
-                m['example']
-            }"
+            return (
+                f"Domain: {m['domain']} | Output: {m['output']} | "
+                f"Ex: {m['example']}"
+            )
 
     Category.CategoryMeta = {
         Category.QUANTITATIVE: {
@@ -621,7 +657,9 @@ class RepositoryModel(TimestampModel):
     time_resolution = models.CharField(
         max_length=10, choices=Periodicity.choices
     )
-    sprint = models.BooleanField(default=False)
+    sprint = models.ForeignKey(
+        Sprint, null=True, on_delete=models.PROTECT, default=None
+    )
 
     def __str__(self):
         return f"{self.repository.name} ({self.get_category_display()})"
@@ -629,3 +667,154 @@ class RepositoryModel(TimestampModel):
     class Meta:
         verbose_name = _("Model")
         verbose_name_plural = _("Models")
+
+
+class ModelPrediction(models.Model):
+    model = models.ForeignKey(
+        RepositoryModel,
+        on_delete=models.CASCADE,
+        related_name="predicts",
+    )
+    adm0 = models.ForeignKey(
+        Adm0, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm1 = models.ForeignKey(
+        Adm1, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm2 = models.ForeignKey(
+        Adm2, null=True, blank=True, on_delete=models.PROTECT
+    )
+    adm3 = models.ForeignKey(
+        Adm3, null=True, blank=True, on_delete=models.PROTECT
+    )
+    commit = models.CharField(max_length=100)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    predict_date = models.DateField()
+    published = models.BooleanField(null=False, default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class QuantitativePrediction(ModelPrediction):
+    mae_score = models.FloatField(null=True, default=None)
+    mse_score = models.FloatField(null=True, default=None)
+    crps_score = models.FloatField(null=True, default=None)
+    log_score = models.FloatField(null=True, default=None)
+    interval_score = models.FloatField(null=True, default=None)
+    wis_score = models.FloatField(null=True, default=None)
+
+    @property
+    def scores(self) -> dict:
+        return {
+            "mae": round(self.mae_score, 2) if self.mae_score else None,
+            "mse": round(self.mse_score, 2) if self.mse_score else None,
+            "crps": round(self.crps_score, 2) if self.crps_score else None,
+            "log_score": round(self.log_score, 2) if self.log_score else None,
+            "interval_score": (
+                round(self.interval_score, 2) if self.interval_score else None
+            ),
+            "wis": round(self.wis_score, 2) if self.wis_score else None,
+        }
+
+
+class QuantitativePredictionRow(models.Model):
+    prediction = models.ForeignKey(
+        QuantitativePrediction, on_delete=models.CASCADE, related_name="data"
+    )
+    date = models.DateField(null=False)
+    pred = models.FloatField(null=False)
+    lower_95 = models.FloatField(null=True)
+    lower_90 = models.FloatField(null=False)
+    lower_80 = models.FloatField(null=True)
+    lower_50 = models.FloatField(null=True)
+    upper_50 = models.FloatField(null=True)
+    upper_80 = models.FloatField(null=True)
+    upper_90 = models.FloatField(null=False)
+    upper_95 = models.FloatField(null=True)
+
+    class Meta:
+        ordering = ["date"]
+        indexes = [
+            models.Index(fields=["prediction", "date"]),
+        ]
+
+
+class Publication(TimestampModel):
+    class Type(models.TextChoices):
+        CONFERENCE = "conference", _("Conference Proceeding")
+        JOURNAL = "journal", _("Journal Article")
+        PREPRINT = "preprint", _("Preprint")
+        THESIS = "thesis", _("Thesis/Dissertation")
+        REPORT = "report", _("Technical Report")
+        OTHER = "other", _("Other")
+
+    title = models.CharField(
+        max_length=500,
+        help_text=_("The full title of the publication."),
+    )
+    authors_list = models.TextField(
+        help_text=_(
+            "Full list of authors as they appear in the citation "
+            "(e.g., 'Silva, J.; Doe, J.')."
+        )
+    )
+    publication_type = models.CharField(
+        max_length=20, choices=Type.choices, default=Type.JOURNAL
+    )
+    year = models.IntegerField(help_text=_("Year of publication"))
+    date = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_(
+            "Specific publication date if available (e.g. for preprints)."
+        ),
+    )
+    venue = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Name of the Journal, Conference, or Institution (for theses)."
+        ),
+    )
+    volume = models.CharField(max_length=50, null=True, blank=True)
+    issue = models.CharField(max_length=50, null=True, blank=True)
+    pages = models.CharField(max_length=50, null=True, blank=True)
+    doi = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name="DOI",
+        help_text=_("Digital Object Identifier (e.g., 10.1098/rsos.241261)"),
+    )
+    url = models.URLField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text=_("Link to the paper or PDF."),
+    )
+    related_models = models.ManyToManyField(
+        RepositoryModel,
+        blank=True,
+        related_name="publications",
+        help_text=_("Models discussed or used in this publication."),
+    )
+    related_sprints = models.ManyToManyField(
+        Sprint,
+        blank=True,
+        related_name="publications",
+        help_text=_("Sprints associated with this publication."),
+    )
+
+    class Meta:
+        ordering = ["-year", "-date", "title"]
+        verbose_name = _("Publication")
+        verbose_name_plural = _("Publications")
+
+    def __str__(self):
+        return f"{self.title} ({self.year})"
+
+    @property
+    def citation_preview(self):
+        return (
+            f"{self.authors_list} ({self.year}). {self.title}. {self.venue}."
+        )

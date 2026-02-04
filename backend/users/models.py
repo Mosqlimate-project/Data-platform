@@ -2,10 +2,6 @@ import uuid
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from registry.models import Author
 
 
 class CustomUserManager(BaseUserManager):
@@ -45,6 +41,10 @@ class CustomUser(AbstractUser):
     def api_key(self):
         return f"{self.username}:{self.uuid}"
 
+    def refresh_api_key(self):
+        self.uuid = uuid.uuid4()
+        self.save()
+
     def get_avatar(self):
         if self.avatar:
             return self.avatar.url
@@ -82,10 +82,3 @@ class OAuthAccount(models.Model):
 
     class Meta:
         unique_together = ("provider", "provider_id")
-
-
-@receiver(post_save, sender=CustomUser)
-def create_author(sender, instance, created, **kwargs):
-    """Creates Author when User is created"""
-    if created and not instance.is_superuser:
-        Author.objects.create(user=instance)

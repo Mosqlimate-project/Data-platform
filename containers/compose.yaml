@@ -1,22 +1,38 @@
 services:
   frontend:
-    container_name: mosqlimate-frontend
+    hostname: mosqlimate-${VERSION}-frontend
+    command: npm run start
     build:
       context: ..
       dockerfile: containers/frontend/Dockerfile
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
+        - PORT=${FRONTEND_PORT}
+        - NEXT_PUBLIC_BACKEND_URL=${BACKEND_URL}
+        - NEXT_PUBLIC_DOCS_URL=${DOCS_URL}
+    environment:
+        PORT: ${FRONTEND_PORT}
+        NEXT_PUBLIC_FRONTEND_URL: ${FRONTEND_URL}
+        NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+        NEXT_PUBLIC_DOCS_URL: ${DOCS_URL}
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
     env_file:
       - ../.env
-    ports:
-      - ${FRONTEND_PORT}:3000
+    user: "mosqlimate:mosqlimate"
     restart: unless-stopped
-
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${FRONTEND_PORT}"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - default
 
   backend:
-    hostname: mosqlimate-backend
-    restart: unless-stopped
+    hostname: mosqlimate-${VERSION}-backend
     environment:
       RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
@@ -24,18 +40,19 @@ services:
       context: ..
       dockerfile: containers/mosqlimate/Dockerfile
       args:
-        # note: if you want to use a specific UID and GID, ensure to add it to
-        #       the .env file
         - UID=${HOST_UID}
         - GID=${HOST_GID}
         - BACKEND_CONTAINER_DATA_PATH=${BACKEND_CONTAINER_DATA_PATH}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
     env_file:
       - ../.env
     user: "mosqlimate:mosqlimate"
     volumes:
       - ${EPISCANNER_HOST_DATA_DIR}:${BACKEND_CONTAINER_DATA_PATH}/episcanner
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/status"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}/api/status/"]
       interval: 60s
       timeout: 10s
       retries: 5
@@ -43,12 +60,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: daphne -b localhost -p ${BACKEND_PORT} mosqlimate.asgi:application
+    command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
     networks:
-      - mosqlimate
+      - default
 
   worker:
-    hostname: mosqlimate-worker
+    hostname: mosqlimate-${VERSION}-worker
     restart: unless-stopped
     build:
       context: ..
@@ -73,10 +90,10 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - mosqlimate
+      - default
 
   postgres:
-    hostname: mosqlimate-postgres
+    hostname: mosqlimate-${VERSION}-postgres
     restart: unless-stopped
     build:
       context: ..
@@ -105,10 +122,10 @@ services:
       retries: 10
     command: ["-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     networks:
-      - mosqlimate
+      - default
 
   documentation:
-    hostname: mosqlimate-docs
+    hostname: mosqlimate-${VERSION}-docs
     restart: unless-stopped
     build:
       context: ..
@@ -126,21 +143,18 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - mosqlimate
+      - default
 
-  redis:
+  broker:
     platform: linux/amd64
     image: redis:alpine
-    hostname: mosqlimate-redis
+    hostname: mosqlimate-${VERSION}-redis
     restart: unless-stopped
-    # environment:
-      # DISABLE_COMMANDS: "FLUSHDB,FLUSHALL,CONFIG"
-      # ALLOW_EMPTY_PASSWORD: "no"
-      # REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    command: redis-server --port ${REDIS_PORT}
     ports:
-      - ${REDIS_PORT}:6379
+      - ${REDIS_PORT}:${REDIS_PORT}
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT}", "ping"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -148,22 +162,18 @@ services:
     volumes:
       - redis:/data
     networks:
-      - mosqlimate
+      - default
 
   ollama:
     image: ollama/ollama
-    hostname: mosqlimate-ollama
+    hostname: mosqlimate-${VERSION}-ollama
     ports:
       - 11434:11434
     volumes:
       - ollama:/root/.ollama
-    networks:
-      - mosqlimate
     restart: unless-stopped
-
-networks:
-  mosqlimate:
-    driver: bridge
+    networks:
+      - default
 
 volumes:
   redis:

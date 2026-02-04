@@ -21,6 +21,8 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
   if (!open) return null;
 
+  const protectedRoutes = ['/model/add', '/profile'];
+
   const handleRegister = () => {
     onClose();
     openRegister();
@@ -29,7 +31,12 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
   const handleCancel = () => {
     Cookies.remove("requires_auth", { path: "/" });
     onClose();
-    window.location.href = "/";
+    const isProtected = protectedRoutes.some(route =>
+      pathname?.startsWith(route)
+    );
+    if (isProtected) {
+      window.location.href = "/";
+    }
   };
 
   const handleOAuth = (provider: "google" | "github" | "gitlab") => {
@@ -110,7 +117,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 const username = dataForm.get("username") as string;
                 const password = dataForm.get("password") as string;
 
-                const resp = await fetch("/api/auth/set-session", {
+                const resp = await fetch(`/api/auth/set-session`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ identifier: username, password }),

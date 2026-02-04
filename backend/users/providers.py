@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Literal, Optional
+from typing import Literal, Optional, TYPE_CHECKING
+import urllib.parse
+import base64
 
 import httpx
 from jose import jwt
@@ -8,6 +10,9 @@ from django.http import HttpRequest
 from django.core import signing
 from django.utils import timezone
 from google_auth_oauthlib.flow import Flow
+
+if TYPE_CHECKING:
+    from registry.models import Repository
 
 
 class OAuthProvider(ABC):
@@ -24,7 +29,6 @@ class OAuthProvider(ABC):
         self.request = request
         self.extra_state = extra_state
         if self.provider == "google":
-            # Google doesn't allow 0.0.0.0
             self.redirect_url = self.redirect_url.replace(
                 "0.0.0.0",
                 "localhost",
@@ -89,6 +93,11 @@ class OAuthProvider(ABC):
             res.raise_for_status()
             return res.json()
 
+    @abstractmethod
+    def get_readme(
+        self, repository: "Repository", access_token: Optional[str] = None
+    ) -> str: ...
+
 
 class GoogleProvider(OAuthProvider):
     provider = "google"
@@ -137,6 +146,11 @@ class GoogleProvider(OAuthProvider):
             resp.raise_for_status()
             return resp.json()
 
+    def get_readme(
+        self, repository: "Repository", access_token: Optional[str] = None
+    ) -> str:
+        return None
+
 
 class GithubProvider(OAuthProvider):
     provider = "github"
@@ -174,13 +188,7 @@ class GithubProvider(OAuthProvider):
             )
 
         resp.raise_for_status()
-
-        user_data = resp.json()
-
-        if not user_data.get("email"):
-            raise ValueError("GitHub account has no public email")
-
-        return user_data
+        return resp.json()
 
     def has_installations(self, access_token: str) -> bool:
         headers = {
@@ -213,9 +221,10 @@ class GithubProvider(OAuthProvider):
             "Authorization": f"Bearer {encoded_jwt}",
             "Accept": "application/vnd.github.v3+json",
         }
-        url = f"https://api.github.com/app/installations/{
-            installation_id
-        }/access_tokens"
+        url = (
+            "https://api.github.com"
+            f"/app/installations/{installation_id}/access_tokens"
+        )
         with httpx.Client() as client:
             res = client.post(url, headers=headers)
             res.raise_for_status()
@@ -242,9 +251,10 @@ class GithubProvider(OAuthProvider):
             for install in installations:
                 install_id = install["id"]
                 repo_resp = client.get(
-                    f"https://api.github.com/user/installations/{
-                        install_id
-                    }/repositories",
+                    (
+                        "https://api.github.com/user/installations/"
+                        f"{install_id}/repositories"
+                    ),
                     headers=headers,
                     params={"per_page": 100},
                 )
@@ -291,6 +301,34 @@ class GithubProvider(OAuthProvider):
                 )
 
             return data
+
+    def get_readme(
+        self, repository: "Repository", access_token: Optional[str] = None
+    ) -> str:
+        owner = (
+            repository.organization.name
+            if repository.organization
+            else repository.owner.username
+        )
+        name = repository.name
+
+        headers = {"Accept": "application/vnd.github.raw"}
+
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+
+        with httpx.Client() as client:
+            resp = client.get(
+                f"https://api.github.com/repos/{owner}/{name}/readme",
+                headers=headers,
+                follow_redirects=True,
+            )
+
+            if resp.status_code == 404:
+                return None
+
+            resp.raise_for_status()
+            return resp.text
 
 
 class GitlabProvider(OAuthProvider):
@@ -377,3 +415,41 @@ class GitlabProvider(OAuthProvider):
             resp = client.post(self.token_url, data=payload)
             resp.raise_for_status()
             return resp.json()
+
+    def get_readme(
+        self, repository: "Repository", access_token: Optional[str] = None
+    ) -> str:
+        headers = {}
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+
+        owner = (
+            repository.owner.username
+            if repository.owner
+            else repository.organization.name
+        )
+
+        project_id = repository.repo_id or f"{owner}/{repository.name}"
+
+        if "/" in str(project_id):
+            project_id = urllib.parse.quote(str(project_id), safe="")
+
+        with httpx.Client() as client:
+            resp = client.get(
+                f"https://gitlab.com/api/v4/projects/{project_id}/readme",
+                headers=headers,
+            )
+
+            if resp.status_code == 404:
+                return None
+
+            resp.raise_for_status()
+            data = resp.json()
+
+            file_content = data.get("content")
+            if file_content:
+                if data.get("encoding") == "base64":
+                    return base64.b64decode(file_content).decode("utf-8")
+                return file_content
+
+            return None

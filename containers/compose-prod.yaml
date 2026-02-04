@@ -2,19 +2,19 @@ services:
   frontend:
     environment:
         NODE_ENV: production
+    command: node server.js
 
   backend:
-    ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ${BACKEND_HOST_DATA_PATH}:${BACKEND_CONTAINER_DATA_PATH}
     networks:
-      - infodengue-prod_infodengue
+      - infodengue
 
   worker:
     networks:
-      - infodengue-prod_infodengue
+      - infodengue
 
 networks:
-  infodengue-prod_infodengue:
+  infodengue:
+    name: infodengue-prod_infodengue
     external: true

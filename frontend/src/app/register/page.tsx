@@ -42,8 +42,12 @@ function RegisterPageContent() {
 
   const [agree, setAgree] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const ran = useRef(false);
+
+  const isEmailLocked = !!initialEmail || !!oauthDecoded?.email;
+  const isUsernameLocked = !!initialUsername || !!oauthDecoded?.username;
 
   useEffect(() => {
     if (!data || ran.current) return;
@@ -120,6 +124,9 @@ function RegisterPageContent() {
     if (!agree) return;
     if (usernameError) return;
 
+    setEmailError('');
+    setPasswordError('');
+
     if (passwordScore !== null && passwordScore < 2) {
       setPasswordError('Password is too weak');
       return;
@@ -135,18 +142,30 @@ function RegisterPageContent() {
     if (data) form.append('oauth_data', data);
     if (avatar) form.append('avatar_file', avatar);
 
-    const res = await fetch('/api/user/register', {
-      method: 'POST',
-      body: form,
-    });
+    try {
+      const res = await fetch('/api/user/register', {
+        method: 'POST',
+        body: form,
+      });
 
-    if (!res.ok) {
-      toast.error('Could not create account');
-      return;
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        if (responseData.message === "Username already registered") {
+          setUsernameError("Username taken. If this is you, insert your registered email to link accounts, or choose a different username.");
+        } else if (responseData.message === "Email already registered") {
+          setEmailError("Email already registered. Please login to link your account.");
+        } else {
+          toast.error(responseData.message || 'Could not create account');
+        }
+        return;
+      }
+
+      toast.success('Account created!');
+      window.location.href = "/";
+    } catch (error) {
+      toast.error('An error occurred. Please try again.');
     }
-
-    toast.success('Account created!');
-    window.location.href = "/";
   }
 
   return (
@@ -212,6 +231,17 @@ function RegisterPageContent() {
             value={username}
             onChange={handleUsernameChange}
             error={usernameError}
+            required
+            className="md:col-span-2"
+          />
+
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isEmailLocked}
+            error={emailError}
             required
             className="md:col-span-2"
           />
@@ -324,7 +354,8 @@ function Input({
         {...props}
         className="w-full border border-gray-300 dark:border-neutral-700 rounded-md 
                    px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 
-                   text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                   text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none
+                   disabled:opacity-50 disabled:cursor-not-allowed"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>

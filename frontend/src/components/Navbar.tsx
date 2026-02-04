@@ -9,16 +9,17 @@ import LanguageSelector from "../components/Language";
 import { useTranslation } from "react-i18next";
 import { useAuth } from './AuthProvider';
 import { HiMenu } from "react-icons/hi";
-import { FaRegBell } from "react-icons/fa";
+import { FaRegBell, FaBraille } from "react-icons/fa";
 
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/models', label: 'Models' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/datastore', label: 'Datastore' },
-  { href: '/about', label: 'About Us' },
-  { href: '/papers', label: 'Papers' },
-  { href: '/docs', label: 'Docs' },
+  { href: '/', label: 'navbar.home' },
+  { href: '/models', label: 'navbar.models' },
+  { href: '/dashboard', label: 'navbar.dashboard' },
+  { href: '/datastore', label: 'navbar.datastore' },
+  { href: '/about', label: 'navbar.about' },
+  { href: '/publications', label: 'navbar.publications' },
+  { href: '/docs', label: 'navbar.docs' },
+  { href: '/IMDC', label: 'IMDC' },
 ];
 
 export default function Navbar() {
@@ -58,8 +59,7 @@ export default function Navbar() {
   return (
     <nav
       className={clsx(
-        "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors",
-        pathname === '/' ? "bg-[var(--color-bg-home)]" : "bg-bg"
+        "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors bg-bg",
       )}
     >
 
@@ -71,10 +71,13 @@ export default function Navbar() {
         <div className="hidden md:flex gap-6">
           {links.map((link) => {
             const active = isActive(link.href);
+            const isExternal = ['/docs', '/IMDC'].includes(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
                 className={clsx(
                   'text-sm transition-all duration-200',
                   active
@@ -106,7 +109,7 @@ export default function Navbar() {
               onClick={openLogin}
               className="text-sm font-medium hover:text-text/80 px-3 py-2 transition-colors"
             >
-              {t("Login")}
+              {t("navbar.login")}
             </button>
           )}
         </div>
@@ -146,7 +149,7 @@ export default function Navbar() {
                           <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
                           <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
                         </svg>
-                        Profile
+                        {t("navbar.profile")}
                       </Link>
                     </li>
                   </>
@@ -168,7 +171,7 @@ export default function Navbar() {
                       <path d="M4 7v10l8 4V11L4 7z" />
                       <path d="M12 11v10l8-4V7l-8 4z" />
                     </svg>
-                    Models
+                    {t("navbar.models")}
                   </Link>
                 </li>
 
@@ -188,7 +191,7 @@ export default function Navbar() {
                       <rect x="14" y="3" width="7" height="7" rx="1" />
                       <rect x="3" y="14" width="7" height="7" rx="1" />
                     </svg>
-                    Dashboard
+                    {t("navbar.dashboard")}
                   </Link>
                 </li>
 
@@ -209,7 +212,7 @@ export default function Navbar() {
                       <path d="M2 9.161V10c0 1.007.875 1.755 1.904 2.223C4.978 12.711 6.427 13 8 13s3.022-.289 4.096-.777C13.125 11.755 14 11.007 14 10v-.839c-.457.432-1.004.751-1.49.972-1.232.56-2.828.867-4.51.867s-3.278-.307-4.51-.867c-.486-.22-1.033-.54-1.49-.972" />
                       <path d="M2 12.161V13c0 1.007.875 1.755 1.904 2.223C4.978 15.711 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13v-.839c-.457.432-1.004.751-1.49.972-1.232.56-2.828.867-4.51.867s-3.278-.307-4.51-.867c-.486-.22-1.033-.54-1.49-.972" />
                     </svg>
-                    Datastore
+                    {t("navbar.datastore")}
                   </Link>
                 </li>
 
@@ -223,12 +226,32 @@ export default function Navbar() {
                         : "text-text/70 hover:bg-hover hover:text-text font-medium"
                     )}
                     onClick={() => setDropdownOpen(false)}
+                    target='_blank'
+                    rel='noopener noreferrer'
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/docs') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
                       <path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1z" />
                       <path d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
                     </svg>
-                    Documentation
+                    {t("navbar.docs")}
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    href="/contaovos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={clsx(
+                      "flex items-center px-4 py-2 transition-colors",
+                      isActive('/contaovos')
+                        ? "bg-hover text-text font-bold"
+                        : "text-text/70 hover:bg-hover hover:text-text font-medium"
+                    )}
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <FaBraille className={clsx("w-4 h-4 mr-3", isActive('/contaovos') ? "text-text" : "text-text/70")} />
+                    {t("navbar.eggscounter")}
                   </Link>
                 </li>
 
@@ -250,25 +273,25 @@ export default function Navbar() {
                       <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
                       <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
                     </svg>
-                    Forum
+                    {t("navbar.forum")}
                   </Link>
                 </li>
 
                 <li>
                   <Link
-                    href="/papers"
+                    href="/publications"
                     className={clsx(
                       "flex items-center px-4 py-2 transition-colors",
-                      isActive('/papers')
+                      isActive('/publications')
                         ? "bg-hover text-text font-bold"
                         : "text-text/70 hover:bg-hover hover:text-text font-medium"
                     )}
                     onClick={() => setDropdownOpen(false)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/papers') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/publications') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
                       <path d="M1.4 1.7c.217.289.65.84 1.725 1.274 1.093.44 2.885.774 5.834.528 2.02-.168 3.431.51 4.326 1.556C14.161 6.082 14.5 7.41 14.5 8.5q0 .344-.027.734C13.387 8.252 11.877 7.76 10.39 7.5c-2.016-.288-4.188-.445-5.59-2.045-.142-.162-.402-.102-.379.112.108.985 1.104 1.82 1.844 2.308 2.37 1.566 5.772-.118 7.6 3.071.505.8 1.374 2.7 1.75 4.292.07.298-.066.611-.354.715a.7.7 0 0 1-.161.042 1 1 0 0 1-1.08-.794c-.13-.97-.396-1.913-.868-2.77C12.173 13.386 10.565 14 8 14c-1.854 0-3.32-.544-4.45-1.435-1.124-.887-1.889-2.095-2.39-3.383-1-2.562-1-5.536-.65-7.28L.73.806z" />
                     </svg>
-                    Papers
+                    {t("navbar.publications")}
                   </Link>
                 </li>
 
@@ -286,27 +309,27 @@ export default function Navbar() {
                     <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/about') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
                       <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
                     </svg>
-                    About Us
+                    {t("navbar.about")}
                   </Link>
                 </li>
 
-                <li>
-                  <Link
-                    href="/discord"
-                    className={clsx(
-                      "flex items-center px-4 py-2 transition-colors",
-                      isActive('/discord')
-                        ? "bg-hover text-text font-bold"
-                        : "text-text/70 hover:bg-hover hover:text-text font-medium"
-                    )}
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/discord') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612" />
-                    </svg>
-                    Discord
-                  </Link>
-                </li>
+                {/* <li> */}
+                {/*   <Link */}
+                {/*     href="/discord" */}
+                {/*     className={clsx( */}
+                {/*       "flex items-center px-4 py-2 transition-colors", */}
+                {/*       isActive('/discord') */}
+                {/*         ? "bg-hover text-text font-bold" */}
+                {/*         : "text-text/70 hover:bg-hover hover:text-text font-medium" */}
+                {/*     )} */}
+                {/*     onClick={() => setDropdownOpen(false)} */}
+                {/*   > */}
+                {/*     <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/discord') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16"> */}
+                {/*       <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612" /> */}
+                {/*     </svg> */}
+                {/*     {t("navbar.discord")} */}
+                {/*   </Link> */}
+                {/* </li> */}
 
                 <li>
                   <Link

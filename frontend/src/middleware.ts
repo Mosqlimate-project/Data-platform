@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyUser } from "@/app/api/auth/verify";
+import { FRONTEND_PREFIX } from "./lib/env";
 
 const publicPaths = [
   "/oauth/login",
@@ -13,6 +14,8 @@ const publicPaths = [
   "/api/registry/models",
   "/api/registry/model",
   "/api/datastore/charts",
+  "/api/datastore/cities",
+  "/api/vis/dashboard",
   "/_next",
   "/favicon.ico",
   "/public",
@@ -23,6 +26,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublic =
+    pathname === FRONTEND_PREFIX ||
     pathname === "/" ||
     publicPaths.some((path) => pathname.startsWith(path));
 
