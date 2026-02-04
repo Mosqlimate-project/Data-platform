@@ -1,22 +1,29 @@
+import os
 from typing import Literal, Optional
 from datetime import timedelta
 
 import httpx
-from ninja import Router
+from ninja import Router, File
+from ninja.files import UploadedFile
 from ninja.decorators import decorate_view
-from django.core import signing
+from django.core import signing, files
 from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, models
 from django.utils.dateparse import parse_datetime
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
-from registry.models import Repository
+from registry.models import (
+    Repository,
+    RepositoryModel,
+    RepositoryContributor,
+    OrganizationMembership,
+)
 from .models import OAuthAccount
 from .auth import JWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
@@ -27,6 +34,26 @@ from . import schema as s
 router = Router(tags=["user"])
 
 User = get_user_model()
+
+
+def download_image(user, url):
+    if not url:
+        return
+
+    try:
+        with httpx.Client() as client:
+            response = client.get(url, timeout=10)
+            if response.status_code == 200:
+                filename = f"avatar_{user.pk}.jpg"
+                user.avatar.save(
+                    filename,
+                    files.base.ContentFile(response.content),
+                    save=True,
+                )
+                user.avatar_url = user.avatar.url
+                user.save(update_fields=["avatar_url"])
+    except Exception:
+        pass
 
 
 def get_client_ip(request):
@@ -142,6 +169,9 @@ def oauth_callback(
                 pass
 
     if user:
+        if not user.avatar and adapter.avatar_url:
+            download_image(user, adapter.avatar_url)
+
         OAuthAccount.objects.update_or_create(
             user=user,
             provider=provider,
@@ -161,6 +191,9 @@ def oauth_callback(
             provider_id=provider_id,
         )
         user = account.user
+
+        if not user.avatar and adapter.avatar_url:
+            download_image(user, adapter.avatar_url)
 
         account.access_token = access_token
         if refresh_token:
@@ -193,6 +226,9 @@ def oauth_callback(
             ).first()
 
         if existing_user:
+            if not existing_user.avatar and adapter.avatar_url:
+                download_image(existing_user, adapter.avatar_url)
+
             OAuthAccount.objects.create(
                 user=existing_user,
                 provider=provider,
@@ -503,6 +539,9 @@ def register(request, payload: s.RegisterIn):
                     oauth_info["access_token_expires_at"]
                 )
 
+            if not existing_user.avatar and oauth_info.get("avatar_url"):
+                download_image(existing_user, oauth_info.get("avatar_url"))
+
             OAuthAccount.objects.update_or_create(
                 user=existing_user,
                 provider=oauth_info["provider"],
@@ -529,14 +568,19 @@ def register(request, payload: s.RegisterIn):
     if User.objects.filter(username__iexact=payload.username).exists():
         return 400, {"message": "Username already registered"}
 
-    user = User.objects.create_user(
-        first_name=payload.first_name,
-        last_name=payload.last_name,
-        username=payload.username,
-        email=payload.email,
-        password=payload.password,
-        is_staff=False,
-    )
+    user_kwargs = {
+        "first_name": payload.first_name,
+        "last_name": payload.last_name,
+        "username": payload.username,
+        "email": payload.email,
+        "password": payload.password,
+        "is_staff": False,
+    }
+
+    user = User.objects.create_user(**user_kwargs)
+
+    if oauth_info and oauth_info.get("avatar_url"):
+        download_image(user, oauth_info.get("avatar_url"))
 
     if oauth_info:
         expires_at = None
@@ -687,28 +731,161 @@ def list_repositories(request, provider: Literal["github", "gitlab"]):
         raise e
 
 
-@router.put(
-    "/{username}",
-    response={201: s.UserSchema, 403: ForbiddenSchema, 404: NotFoundSchema},
+@router.get(
+    "/profile/",
+    auth=JWTAuth(),
+    response={
+        200: s.ProfileOut,
+        403: ForbiddenSchema,
+    },
     include_in_schema=False,
 )
-def update_user(request, username: str, payload: s.UserInPost):
-    """
-    Updates User. It is not possible to change User's username nor email.
-    To change a User's name, updates its first_name and last_name, which
-    were inherit from a 3rd party OAuth User
-    """
-    try:
-        user = User.objects.get(username=username)
+@decorate_view(never_cache)
+def profile(request):
+    user = request.auth
 
-        if request.user != user:  # TODO: Enable admins here
-            return 403, {
-                "message": "You are not authorized to update this user."
+    if not user:
+        return 403, {"Unauthorized"}
+
+    return 200, {
+        "username": user.username,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "homepage": user.homepage,
+        "avatar_url": user.get_avatar(),
+    }
+
+
+@router.post(
+    "/profile/",
+    auth=JWTAuth(),
+    response={
+        200: dict,
+        403: ForbiddenSchema,
+    },
+    include_in_schema=False,
+)
+def update_profile(request, payload: s.ProfileIn):
+    user = request.auth
+
+    if not user:
+        return 403, {"Unauthorized"}
+
+    for attr, value in payload.dict(exclude_unset=True).items():
+        setattr(user, attr, value)
+
+    user.save()
+
+    return 200, {"message": "Profile updated successfully"}
+
+
+@router.post(
+    "/profile/avatar/",
+    response={200: dict, 400: BadRequestSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+def upload_avatar(request, file: UploadedFile = File(...)):
+    user = request.auth
+
+    if not file.content_type.startswith("image/"):
+        return 400, {"message": "File must be an image"}
+
+    if file.size > 5 * 1024 * 1024:
+        return 400, {"message": "Image too large (max 5MB)"}
+
+    if user.avatar:
+        try:
+            if os.path.isfile(user.avatar.path):
+                os.remove(user.avatar.path)
+        except Exception:
+            pass
+
+    user.avatar.save(f"avatar_{user.pk}_{file.name}", file)
+    user.avatar_url = user.avatar.url
+    user.save(update_fields=["avatar_url", "avatar"])
+
+    return 200, {"avatar_url": user.get_avatar()}
+
+
+@router.get(
+    "/profile/models/",
+    auth=JWTAuth(),
+    response={
+        200: list[s.ProfileModelOut],
+        403: ForbiddenSchema,
+    },
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def profile_models(request):
+    user = request.auth
+
+    manageable_org_ids = set(
+        OrganizationMembership.objects.filter(
+            user=user,
+            role__in=[
+                OrganizationMembership.Roles.OWNER,
+                OrganizationMembership.Roles.MAINTAINER,
+            ],
+        ).values_list("organization_id", flat=True)
+    )
+
+    manageable_repo_ids = set(
+        RepositoryContributor.objects.filter(
+            user=user,
+            permission__in=[
+                RepositoryContributor.Permissions.ADMIN,
+                RepositoryContributor.Permissions.WRITE,
+            ],
+        ).values_list("repository_id", flat=True)
+    )
+
+    models_qs = (
+        RepositoryModel.objects.filter(
+            models.Q(repository__owner=user)
+            | models.Q(repository__organization__members=user)
+            | models.Q(repository__repository_contributors__user=user)
+        )
+        .select_related(
+            "repository",
+            "repository__owner",
+            "repository__organization",
+            "disease",
+        )
+        .distinct()
+    )
+
+    result = []
+    for model in models_qs:
+        repo = model.repository
+        can_manage = False
+
+        if repo.owner_id == user.id:
+            can_manage = True
+        elif (
+            repo.organization_id and repo.organization_id in manageable_org_ids
+        ):
+            can_manage = True
+        elif repo.id in manageable_repo_ids:
+            can_manage = True
+
+        owner_name = (
+            repo.owner.username if repo.owner else repo.organization.name
+        )
+
+        result.append(
+            {
+                "id": model.id,
+                "name": repo.name,
+                "owner": owner_name,
+                "provider": repo.provider,
+                "category": model.get_category_display(),
+                "disease": str(model.disease),
+                "can_manage": can_manage,
+                "active": repo.active,
             }
+        )
 
-        user.first_name = payload.first_name
-        user.last_name = payload.last_name
-        user.save()
-        return 201, user
-    except User.DoesNotExist:
-        return 404, {"message": "Author not found"}
+    return 200, result

@@ -1,30 +1,35 @@
-from typing_extensions import Annotated
 from typing import Optional, Literal
 from pydantic import BaseModel, EmailStr, field_validator
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
-from ninja import Schema, Field
+from ninja import Schema
 
 
-class OauthUser(Schema):
-    name: Optional[str]
-    last_name: Optional[str]
+class ProfileModelOut(Schema):
+    id: int
+    name: str
+    owner: str
+    provider: str
+    category: str
+    disease: str
+    can_manage: bool
+    active: bool
 
 
-class UserSchema(Schema):
-    name: Annotated[Optional[str], Field(None, description="User's full name")]
-    username: Annotated[
-        str,
-        Field(description="User's username. Fetched via GitHub integration"),
-    ]
+class ProfileIn(Schema):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    homepage: Optional[str] = None
 
 
-class UserInPost(Schema):
-    """Input for POST update request's body"""
-
-    first_name: str
-    last_name: str
+class ProfileOut(Schema):
+    username: str
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    homepage: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class LoginIn(BaseModel):

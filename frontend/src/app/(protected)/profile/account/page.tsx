@@ -20,7 +20,7 @@ export default function AccountPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Update the password associated with your account.
           </p>
-          <button className="px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+          <button disabled className="px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
             Update password
           </button>
         </div>
@@ -32,7 +32,7 @@ export default function AccountPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Permanently remove your account and all associated data. This action cannot be undone.
           </p>
-          <button className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors">
+          <button disabled className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors">
             Delete account
           </button>
         </div>

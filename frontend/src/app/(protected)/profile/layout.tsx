@@ -5,8 +5,26 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { FaUser, FaCog, FaShieldAlt } from 'react-icons/fa';
 
+const CubeIcon = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 22 22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M4 7l8-4 8 4-8 4-8-4z" />
+    <path d="M4 7v10l8 4V11L4 7z" />
+    <path d="M12 11v10l8-4V7l-8 4z" />
+  </svg>
+);
+
 const sidebar = [
-  { name: 'Public Profile', href: '/profile', icon: FaUser },
+  { name: 'Profile', href: '/profile', icon: FaUser },
+  { name: 'Models', href: '/profile/models', icon: CubeIcon },
   { name: 'Account', href: '/profile/account', icon: FaCog },
   { name: 'Auth', href: '/profile/auth', icon: FaShieldAlt },
 ];
