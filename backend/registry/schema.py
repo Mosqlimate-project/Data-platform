@@ -10,6 +10,13 @@ from ninja.errors import HttpError
 from main.schema import Schema
 
 
+class SprintOut(Schema):
+    id: int
+    year: int
+    start_date: dt
+    end_date: dt
+
+
 class PredictionDataRowSchema(Schema):
     date: dt
     pred: float

@@ -72,6 +72,7 @@ const PredictionCard = memo(function PredictionCard({
   formatDate,
   formatScoreName,
   getDashboardLink,
+  t,
 }: {
   pred: ModelPrediction;
   canManage: boolean;
@@ -83,6 +84,7 @@ const PredictionCard = memo(function PredictionCard({
   formatDate: (d: string) => string;
   formatScoreName: (s: string) => string;
   getDashboardLink: (pred: ModelPrediction) => string;
+  t: (key: string, options?: any) => string;
 }) {
   const activeScore = pred.scores?.find((s) => s.name === selectedMetric);
   const dashboardUrl = getDashboardLink(pred);
@@ -94,7 +96,9 @@ const PredictionCard = memo(function PredictionCard({
         } ${canManage && !pred.published ? "opacity-75 border-dashed border-yellow-400/50" : ""}`}
     >
       <div className="px-4 py-2 bg-muted/20 border-b flex items-center justify-between">
-        <span className="font-mono text-xs text-muted-foreground">#{pred.id}</span>
+        <span className="font-mono text-xs text-muted-foreground">
+          #{pred.id}
+        </span>
 
         <div className="flex items-center gap-3">
           {canManage && (
@@ -115,7 +119,7 @@ const PredictionCard = memo(function PredictionCard({
                 className={`text-[10px] uppercase font-semibold text-muted-foreground cursor-pointer select-none ${isUpdating ? "opacity-50" : ""
                   }`}
               >
-                {isUpdating ? "Saving..." : "Published"}
+                {isUpdating ? t("model_predictions.saving") : t("model_predictions.published")}
               </label>
             </div>
           )}
@@ -126,7 +130,7 @@ const PredictionCard = memo(function PredictionCard({
             href={dashboardUrl}
             onClick={(e) => e.stopPropagation()}
             className="text-muted-foreground hover:text-primary transition-colors"
-            title="View Full Dashboard"
+            title={t("model_predictions.view_dashboard")}
           >
             <LayoutDashboard size={16} />
           </Link>
@@ -189,7 +193,7 @@ export default function PredictionsList({
   owner = "owner",
   modelName = "model"
 }: PredictionsListProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('common');
   const router = useRouter();
 
   const [localPredictions, setLocalPredictions] = useState<ModelPrediction[]>(predictions || []);
@@ -332,23 +336,22 @@ export default function PredictionsList({
   }, [localPredictions, debouncedSearchQuery, canManage]);
 
   const emptyStateMarkdown = useMemo(() => `
-## No predictions published yet
+## ${t("model_predictions.empty_title")}
 
-This model doesn't have any predictions associated with it. Use the [Mosqlient Python library](https://pypi.org/project/mosqlient/) to upload your first forecast.
+${t("model_predictions.empty_desc")}
 
-### 1. Install the client
+### ${t("model_predictions.python_rec")}
 
 \`\`\`bash
 pip install mosqlient
 \`\`\`
 
-### 2. Upload your prediction
-
 \`\`\`python
 import mosqlient
 
-api_key = "usename:<api-key>" # your API Key can be found in the profile page
+api_key = "YOUR_API_KEY"
 
+# Example of prediction format
 prediction = [{
   "date": str,
   "lower_95": float,
@@ -362,6 +365,9 @@ prediction = [{
   "upper_95": float
 }]
 
+# can also be a dataframe
+prediction = pd.DataFrame(prediction)
+
 mosqlient.upload_prediction(
   api_key=api_key,
   model="${owner}/${modelName}",
@@ -370,14 +376,66 @@ mosqlient.upload_prediction(
   predict_date="2025-01-01",
   prediction=prediction,
   adm_0="BRA",
-  adm_1=33,
-  adm_2=3304557,
-  adm_3=...,
+  adm_1=33
 )
 \`\`\`
 
-Need an API Key? Go to your [Profile](/profile/auth) to generate one.
-  `, [owner, modelName]);
+### 2. R
+
+\`\`\`r
+library(httr)
+library(jsonlite)
+
+api_key <- "YOUR_API_KEY"
+url <- "https://api.mosqlimate.org/api/registry/prediction/"
+
+payload <- list(
+  model = "${owner}/${modelName}",
+  description = ...,
+  commit = ...,
+  predict_date = "2025-01-01",
+  adm_0 = "BRA",
+  adm_1 = 33,
+  prediction = list(
+    list(date = "2025-01-01", pred = 150.5, ...)
+  )
+)
+
+response <- POST(
+  url,
+  add_headers(Authorization = paste("Bearer", api_key), "Content-Type" = "application/json"),
+  body = toJSON(payload, auto_unbox = TRUE)
+)
+
+print(content(response))
+\`\`\`
+
+### 3. cURL
+
+\`\`\`bash
+curl -X POST https://api.mosqlimate.org/api/registry/prediction/ \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${owner}/${modelName}",
+    "description": ...,
+    "commit": ...,
+    "predict_date": "2025-01-01",
+    "adm_0": "BRA",
+    "adm_1": 33,
+    "prediction": [
+      {
+        "date": "2025-01-01",
+        "pred": 150.5,
+        "lower_50": 140.0,
+        "upper_50": 160.0
+      }
+    ]
+  }'
+\`\`\`
+
+${t("model_predictions.need_api_key")}
+  `, [owner, modelName, t]);
 
   if (!predictions || predictions.length === 0) {
     return (
@@ -397,7 +455,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
         <div className="h-full w-full bg-white border rounded-xl shadow-sm p-4 relative flex flex-col">
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <h3 className="font-semibold text-sm text-gray-700">
-              {activeChartId ? `Prediction #${activeChartId}` : "Select a Prediction"}
+              {activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}
             </h3>
           </div>
 
@@ -417,7 +475,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
               />
             ) : !isChartLoading && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                {activeChartId ? "Unable to load chart data" : "Select a prediction from the list below"}
+                {activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}
               </div>
             )}
           </div>
@@ -429,7 +487,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search predictions..."
+            placeholder={t("model_predictions.search_placeholder")}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
@@ -445,7 +503,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
         </div>
 
         <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
-          <span className="text-sm font-medium text-muted-foreground pl-2">Metric:</span>
+          <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
           <select
             value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
@@ -463,7 +521,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredPredictions.length === 0 ? (
           <div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">
-            {debouncedSearchQuery ? "No predictions match your search." : "No predictions found."}
+            {debouncedSearchQuery ? t("model_predictions.no_matches") : t("model_predictions.no_found")}
           </div>
         ) : (
           filteredPredictions.map((pred) => (
@@ -479,6 +537,7 @@ Need an API Key? Go to your [Profile](/profile/auth) to generate one.
               formatDate={formatDate}
               formatScoreName={formatScoreName}
               getDashboardLink={getDashboardLink}
+              t={t}
             />
           ))
         )}

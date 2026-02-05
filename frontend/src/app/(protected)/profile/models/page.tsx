@@ -11,6 +11,7 @@ import {
   Gitlab,
   Box,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileModel {
   id: number;
@@ -24,6 +25,7 @@ interface ProfileModel {
 }
 
 export default function ModelsPage() {
+  const { t } = useTranslation('common');
   const [models, setModels] = useState<ProfileModel[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,10 +62,10 @@ export default function ModelsPage() {
     <div className="space-y-6">
       <div className="border-b border-gray-200 dark:border-neutral-700 pb-5">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Models
+          {t('profile_models.title')}
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Models you own, contribute to, or maintain within an organization.
+          {t('profile_models.description')}
         </p>
       </div>
 
@@ -75,9 +77,9 @@ export default function ModelsPage() {
         ) : models.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <Box className="w-12 h-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">No models found</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('profile_models.empty_title')}</h3>
             <p className="text-sm text-gray-500 max-w-sm mt-2">
-              You haven't linked any models yet. Connect a repository to get started.
+              {t('profile_models.empty_desc')}
             </p>
           </div>
         ) : (
@@ -85,11 +87,11 @@ export default function ModelsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700">
                 <tr>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">Name</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">Disease</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">Category</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-center">Status</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-right">Actions</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.name')}</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.disease')}</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.category')}</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-center">{t('profile_models.table.status')}</th>
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-right">{t('profile_models.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -125,12 +127,12 @@ export default function ModelsPage() {
                       {model.active ? (
                         <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
                           <CheckCircle2 size={12} />
-                          Active
+                          {t('profile_models.status.active')}
                         </div>
                       ) : (
                         <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400 border border-gray-200 dark:border-neutral-700">
                           <XCircle size={12} />
-                          Inactive
+                          {t('profile_models.status.inactive')}
                         </div>
                       )}
                     </td>
@@ -138,15 +140,15 @@ export default function ModelsPage() {
                       {model.can_manage ? (
                         <button
                           disabled
-                          title="Management dashboard coming soon"
+                          title={t('profile_models.manage_soon')}
                           className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed dark:bg-neutral-900 dark:text-gray-600 dark:border-neutral-800"
                         >
                           <Settings size={14} />
-                          Manage
+                          {t('profile_models.manage')}
                         </button>
                       ) : (
                         <span className="text-xs text-gray-400 italic flex items-center justify-end gap-1">
-                          View Only
+                          {t('profile_models.view_only')}
                         </span>
                       )}
                     </td>

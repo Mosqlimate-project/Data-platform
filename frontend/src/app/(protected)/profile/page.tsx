@@ -3,6 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { Loader2, Upload } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileData {
   username: string;
@@ -14,6 +15,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation('common');
   const { user: authUser } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [formData, setFormData] = useState({
@@ -76,11 +78,11 @@ export default function ProfilePage() {
         setProfile((prev) => prev ? { ...prev, ...formData } : null);
       } else {
         const err = await res.json();
-        alert(err.message || "Failed to update profile");
+        alert(err.message || t("profile.alerts.update_fail"));
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred while updating profile");
+      alert(t("profile.alerts.update_error"));
     } finally {
       setUpdating(false);
     }
@@ -97,7 +99,7 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB");
+      alert(t("profile.alerts.size_limit"));
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -117,11 +119,11 @@ export default function ProfilePage() {
         setProfile((prev) => prev ? { ...prev, avatar_url: data.avatar_url } : null);
       } else {
         const err = await res.json();
-        alert(err.message || "Failed to upload avatar");
+        alert(err.message || t("profile.alerts.upload_fail"));
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred while uploading");
+      alert(t("profile.alerts.upload_error"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -135,10 +137,10 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <div className="border-b border-gray-200 dark:border-neutral-700 pb-5">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Profile
+          {t('profile.title')}
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Manage your personal information.
+          {t('profile.description')}
         </p>
       </div>
 
@@ -150,19 +152,19 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Username
+                  {t('profile.username')}
                 </label>
                 <div className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md bg-gray-100 dark:bg-neutral-800 text-gray-500 cursor-not-allowed text-sm">
-                  {isLoading ? 'Loading...' : displayUser?.username}
+                  {isLoading ? t('profile.loading') : displayUser?.username}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  {t('profile.email')}
                 </label>
                 <div className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md bg-gray-100 dark:bg-neutral-800 text-gray-500 cursor-not-allowed text-sm">
-                  {isLoading ? 'Loading...' : displayUser?.email}
+                  {isLoading ? t('profile.loading') : displayUser?.email}
                 </div>
               </div>
             </div>
@@ -170,7 +172,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  First Name
+                  {t('profile.first_name')}
                 </label>
                 <input
                   type="text"
@@ -184,7 +186,7 @@ export default function ProfilePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Last Name
+                  {t('profile.last_name')}
                 </label>
                 <input
                   type="text"
@@ -199,7 +201,7 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Homepage URL
+                {t('profile.homepage')}
               </label>
               <input
                 type="url"
@@ -214,7 +216,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col items-center gap-4 md:w-auto w-full">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 md:self-center self-start">
-              Profile picture
+              {t('profile.profile_picture')}
             </label>
 
             <input
@@ -252,12 +254,12 @@ export default function ProfilePage() {
               {!uploading && (
                 <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <Upload className="w-6 h-6 text-white mb-1" />
-                  <span className="text-white text-xs font-medium uppercase tracking-wide">Change</span>
+                  <span className="text-white text-xs font-medium uppercase tracking-wide">{t('profile.change')}</span>
                 </div>
               )}
             </div>
             <p className="text-xs text-gray-500 text-center max-w-[160px]">
-              Click to upload. Max size 5MB.
+              {t('profile.upload_hint')}
             </p>
           </div>
 
@@ -270,7 +272,7 @@ export default function ProfilePage() {
             className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-md transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {updating && <Loader2 className="w-4 h-4 animate-spin" />}
-            Update profile
+            {t('profile.update_btn')}
           </button>
         </div>
       </div>

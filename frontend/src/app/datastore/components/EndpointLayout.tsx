@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 export function AccordionCard({
   title,
@@ -52,6 +53,7 @@ export function EndpointLayout({
   controls,
   apiBuilder,
 }: EndpointLayoutProps) {
+  const { t } = useTranslation('common');
   const [openCard, setOpenCard] = useState<string | null>("Visualization Controls");
 
   const toggleCard = (key: string) => {
@@ -71,7 +73,7 @@ export function EndpointLayout({
 
           {children || (
             <div className="py-12 text-center text-muted-foreground opacity-60">
-              No visualization content available.
+              {t('endpoint_layout.accordion.no_content')}
             </div>
           )}
         </div>
@@ -81,13 +83,13 @@ export function EndpointLayout({
 
         {controls && (
           <AccordionCard
-            title="Charts / Visualization"
+            title={t('endpoint_layout.accordion.charts_title')}
             isOpen={openCard === "Visualization Controls"}
             onClick={() => toggleCard("Visualization Controls")}
           >
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center text-xs text-muted-foreground mb-2">
-                <span>Adjust the parameters below to update the charts.</span>
+                <span>{t('endpoint_layout.accordion.charts_desc')}</span>
               </div>
               <div className="flex flex-col gap-4 p-2 bg-muted/20 rounded-md border border-border/50">
                 {controls}
@@ -98,13 +100,13 @@ export function EndpointLayout({
 
         {apiBuilder && (
           <AccordionCard
-            title="API Request Builder"
+            title={t('endpoint_layout.accordion.api_builder_title')}
             isOpen={openCard === "API Request Builder"}
             onClick={() => toggleCard("API Request Builder")}
           >
             <div className="flex flex-col gap-4">
               <div className="text-xs text-muted-foreground mb-2">
-                Construct a raw API query with all available parameters.
+                {t('endpoint_layout.accordion.api_builder_desc')}
               </div>
               {apiBuilder}
             </div>
@@ -112,7 +114,7 @@ export function EndpointLayout({
         )}
 
         <AccordionCard
-          title="Description"
+          title={t('endpoint_layout.accordion.description_title')}
           isOpen={openCard === "Description"}
           onClick={() => toggleCard("Description")}
         >
@@ -121,7 +123,7 @@ export function EndpointLayout({
 
         {dataVariables && dataVariables.length > 0 && (
           <AccordionCard
-            title="Data Dictionary"
+            title={t('endpoint_layout.accordion.dictionary_title')}
             isOpen={openCard === "Data Dictionary"}
             onClick={() => toggleCard("Data Dictionary")}
           >
@@ -129,9 +131,9 @@ export function EndpointLayout({
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-border text-muted-foreground">
-                    <th className="px-2 py-2 font-semibold">Variable</th>
-                    <th className="px-2 py-2 font-semibold">Type</th>
-                    <th className="px-2 py-2 font-semibold">Description</th>
+                    <th className="px-2 py-2 font-semibold">{t('endpoint_layout.dictionary.variable')}</th>
+                    <th className="px-2 py-2 font-semibold">{t('endpoint_layout.dictionary.type')}</th>
+                    <th className="px-2 py-2 font-semibold">{t('endpoint_layout.dictionary.description')}</th>
                   </tr>
                 </thead>
                 <tbody>
