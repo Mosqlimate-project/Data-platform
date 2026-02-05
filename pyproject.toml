@@ -80,6 +80,7 @@ containers-sugar = "^1.17.0"
 makim = ">=1.15.2"
 pygments = "^2.15.1"
 virtualenv = "20.26.6"
+wavedrom = "^2.0.3.post3"
 
 
 [tool.poetry.group.docs.dependencies]

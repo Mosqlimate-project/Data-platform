@@ -1,6 +1,5 @@
 import os
 import sys
-import shutil
 from pathlib import Path
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
@@ -13,25 +12,16 @@ def generate_postgres_configs():
 
     project_dir = Path(__file__).parent.parent.parent
     template_dir = project_dir / "contrib" / "templates"
-
-    if not template_dir.exists():
-        print(f"Error: Template directory not found at {template_dir}")
-        sys.exit(1)
-
     templates = Environment(loader=FileSystemLoader(template_dir))
-
-    listen_addresses = "*"
     psql_port = os.environ.get("POSTGRES_PORT", "5432")
-
-    psql_data_dir_host = os.environ.get(
-        "POSTGRES_DATA_DIR_HOST", "../storage2/psql/pgdata/"
+    psql_conf_host_dir = os.environ.get(
+        "POSTGRES_CONF_DIR_HOST", "../storage2/psql/"
     )
-
     pgdata_container = "/var/lib/postgresql/data"
+    config_mount_point = "/etc/postgresql"
 
-    target_dir = Path(psql_data_dir_host).resolve()
-
-    print(f"Target Directory: {target_dir}")
+    target_dir = Path(psql_conf_host_dir).resolve()
+    print(f"Target Directory (Host): {target_dir}")
 
     try:
         target_dir.mkdir(exist_ok=True, parents=True)
@@ -45,9 +35,9 @@ def generate_postgres_configs():
             "output": "postgresql.conf",
             "context": {
                 "PGDATA": pgdata_container,
-                "LISTEN_ADDRESSES": listen_addresses,
+                "LISTEN_ADDRESSES": "*",
                 "PORT": psql_port,
-                "HBA_FILE": f"{pgdata_container}/pg_hba.conf",
+                "HBA_FILE": f"{config_mount_point}/pg_hba.conf",
             },
         },
         {"template": "pg_hba.conf", "output": "pg_hba.conf", "context": {}},
@@ -57,25 +47,16 @@ def generate_postgres_configs():
         try:
             tmpl = templates.get_template(config["template"])
             rendered_content = tmpl.render(config["context"])
-
             target_file = target_dir / config["output"]
-
-            if target_file.exists():
-                backup = target_file.with_suffix(".bak")
-                shutil.copy(target_file, backup)
 
             print(f"Writing {config['output']}...")
             with open(target_file, "w") as f:
                 f.write(rendered_content)
-
         except Exception as e:
-            print(f"Failed to generate {config['output']}: {e}")
+            print(f"Failed: {e}")
             sys.exit(1)
 
     print("------ Configuration Generated Successfully ------")
-    print(
-        "NOTE: You must restart the Postgres container for changes to take effect."
-    )
 
 
 if __name__ == "__main__":

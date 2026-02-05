@@ -4,7 +4,6 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from 'next/link';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
@@ -20,9 +19,7 @@ export default function Footer() {
 
   return (
     <footer
-      className={clsx(
-        "z-20 border-t border-border w-full text-[var(--color-text)] transition-colors bg-bg",
-      )}
+      className="z-20 border-t border-border w-full text-[var(--color-text)] transition-colors bg-bg"
     >
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
