@@ -1,45 +1,63 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
-
 from jinja2 import Environment, FileSystemLoader
 
 load_dotenv()
 
-print("------ postgres.conf ------")
 
-project_dir = Path(__file__).parent.parent.parent
-templates = Environment(
-    loader=FileSystemLoader(project_dir / "contrib" / "templates")
-)
+def generate_postgres_configs():
+    print("------ Generating Postgres Configuration ------")
 
-# Environment variables:
-allowed_hosts = os.environ.get("ALLOWED_HOSTS")
-psql_port = os.environ.get("POSTGRES_PORT")
-psql_data = os.environ.get("POSTGRES_DATA_DIR_HOST")
-psql_conf = os.environ.get("POSTGRES_CONF_DIR_HOST")
+    project_dir = Path(__file__).parent.parent.parent
+    template_dir = project_dir / "contrib" / "templates"
+    templates = Environment(loader=FileSystemLoader(template_dir))
+    psql_port = os.environ.get("POSTGRES_PORT", "5432")
+    psql_conf_host_dir = os.environ.get(
+        "POSTGRES_CONF_DIR_HOST", "../storage2/psql/"
+    )
+    pgdata_container = "/var/lib/postgresql/data"
+    config_mount_point = "/etc/postgresql"
 
-psql_template = templates.get_template("postgresql.conf")
-variables = {
-    "PGDATA": "/var/lib/postgresql/data",  # INSIDE CONTAINER
-    "ALLOWED_HOSTS": allowed_hosts,
-    "PORT": psql_port,
-}
+    target_dir = Path(psql_conf_host_dir).resolve()
+    print(f"Target Directory (Host): {target_dir}")
 
-output = psql_template.render(variables)
+    try:
+        target_dir.mkdir(exist_ok=True, parents=True)
+    except PermissionError:
+        print(f"Error: Permission denied creating {target_dir}")
+        sys.exit(1)
 
-data_dir, conf_dir = map(Path, (str(psql_data), str(psql_conf)))
+    configs = [
+        {
+            "template": "postgresql.conf",
+            "output": "postgresql.conf",
+            "context": {
+                "PGDATA": pgdata_container,
+                "LISTEN_ADDRESSES": "*",
+                "PORT": psql_port,
+                "HBA_FILE": f"{config_mount_point}/pg_hba.conf",
+            },
+        },
+        {"template": "pg_hba.conf", "output": "pg_hba.conf", "context": {}},
+    ]
 
-data_dir.mkdir(exist_ok=True, parents=True)
+    for config in configs:
+        try:
+            tmpl = templates.get_template(config["template"])
+            rendered_content = tmpl.render(config["context"])
+            target_file = target_dir / config["output"]
 
-file = conf_dir / "postgresql.conf"
+            print(f"Writing {config['output']}...")
+            with open(target_file, "w") as f:
+                f.write(rendered_content)
+        except Exception as e:
+            print(f"Failed: {e}")
+            sys.exit(1)
 
-if file.exists():
-    answer = input(f"postgresql.conf found at {data_dir}, replace it? [y/n] ")
-    if answer.lower() == "y":
-        file.unlink()
+    print("------ Configuration Generated Successfully ------")
 
-if not file.exists():
-    file.touch()
-    with open(file, "w") as f:
-        f.write(output)
+
+if __name__ == "__main__":
+    generate_postgres_configs()

@@ -1,7 +1,6 @@
 services:
   frontend:
     hostname: mosqlimate-${VERSION}-frontend
-    command: npm run start
     build:
       context: ..
       dockerfile: containers/frontend/Dockerfile
@@ -113,7 +112,7 @@ services:
     user: "${POSTGRES_HOST_UID}:${POSTGRES_HOST_GID}"
     volumes:
       - ../containers/postgres/scripts:/docker-entrypoint-initdb.d/
-      - ${POSTGRES_CONF_DIR_HOST}/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ${POSTGRES_CONF_DIR_HOST}:/etc/postgresql/
       - ${POSTGRES_DATA_DIR_HOST}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER}"]

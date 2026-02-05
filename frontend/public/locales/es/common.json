@@ -338,36 +338,36 @@
     }
   },
   "charts_climate": {
-    "loading_error": "Failed to load data",
-    "precip_title": "Daily Precipitation - {{location}}",
-    "precip_total": "Total Precipitation",
-    "precip_avg": "Average Precipitation",
-    "date": "Date",
-    "precip_axis": "Precipitation (mm)",
-    "temp_title": "Temperature on {{location}}",
-    "temp_max": "Max",
+    "loading_error": "Error al cargar datos",
+    "precip_title": "Precipitación Diaria - {{location}}",
+    "precip_total": "Precipitación Total",
+    "precip_avg": "Precipitación Promedio",
+    "date": "Fecha",
+    "precip_axis": "Precipitación (mm)",
+    "temp_title": "Temperatura en {{location}}",
+    "temp_max": "Máx",
     "temp_med": "Med",
-    "temp_min": "Min",
-    "temp_axis": "Temperature (°C)",
-    "air_title": "Average Relative Humidity and Pressure on {{location}}",
-    "air_humidity": "Average Relative Humidity",
-    "air_pressure": "Average Air Pressure",
-    "pressure_axis": "Pressure (atm)",
-    "humidity_axis": "Humidity (%)"
+    "temp_min": "Mín",
+    "temp_axis": "Temperatura (°C)",
+    "air_title": "Humedad Relativa y Presión Promedio en {{location}}",
+    "air_humidity": "Humedad Relativa Promedio",
+    "air_pressure": "Presión Atmosférica Promedio",
+    "pressure_axis": "Presión (atm)",
+    "humidity_axis": "Humedad (%)"
   },
   "charts_contaovos": {
-    "unavailable": "Visualization not available"
+    "unavailable": "Visualización no disponible"
   },
   "charts_infodengue": {
-    "total_cases_label": "Total Reported Cases",
-    "daily_cases_title": "Daily Cases",
-    "cases_axis": "Cases",
-    "fetch_error": "Failed to fetch",
-    "no_data": "No data available for this period.",
-    "rt_title": "Effective Reproductive Number (Rt)",
+    "total_cases_label": "Total de Casos Notificados",
+    "daily_cases_title": "Casos Diarios",
+    "cases_axis": "Casos",
+    "fetch_error": "Error al buscar",
+    "no_data": "No hay datos disponibles para este período.",
+    "rt_title": "Número Reproductivo Efectivo (Rt)",
     "rt_tooltip": "Rt",
-    "threshold": "Threshold (1.0)",
-    "no_rt_data": "No Rt data available for this period."
+    "threshold": "Umbral (1.0)",
+    "no_rt_data": "No hay datos de Rt disponibles para este período."
   },
   "footer": {
     "theme": "Tema",
