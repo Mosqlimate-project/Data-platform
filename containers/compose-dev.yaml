@@ -1,11 +1,16 @@
 services:
   frontend:
+    build:
+      context: ..
+      dockerfile: containers/frontend/Dockerfile
+      target: deps
     environment:
         NODE_ENV: development
         WATCHPACK_POLLING: "true"
     volumes:
       - ../frontend/:/app
-      - frontend_data:/app/node_modules
+      - /app/node_modules
+      - /app/.next
     command: npm run dev
 
   backend:
@@ -14,15 +19,16 @@ services:
       - backend_data:/opt/services/storage
     networks:
       - infodengue
+      - default
     command: python manage.py runserver 0.0.0.0:8042
 
   worker:
     networks:
       - infodengue
+      - default
 
 volumes:
   backend_data:
-  frontend_data:
 
 networks:
   infodengue:

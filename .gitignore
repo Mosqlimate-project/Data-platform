@@ -173,7 +173,6 @@ dist/
 mkdocs/docs/swagger.json
 docs/_build/
 docs/locale/
-node_modules/
 tests/coverage_html/
 tests/.coverage*
 build/
@@ -183,6 +182,11 @@ data/
 */media/
 *cache/
 !macro_health_geocodes.json
-.next
 .pylintrc
 mkdocs/.wget-hsts
+
+frontend/node_modules/*
+!frontend/node_modules/.keep
+
+frontend/.next/*
+!frontend/.next/.keep

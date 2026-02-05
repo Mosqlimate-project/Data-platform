@@ -20,6 +20,8 @@ FROM base AS deps
 COPY frontend/package*.json ./
 RUN npm ci --ignore-scripts
 
+RUN mkdir -p .next && chown -R mosqlimate:mosqlimate .next node_modules
+
 FROM base AS builder
 ARG NEXT_PUBLIC_BACKEND_URL
 ARG NEXT_PUBLIC_DOCS_URL
@@ -28,8 +30,10 @@ ENV PORT=${PORT}
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 ENV NEXT_PUBLIC_DOCS_URL=${NEXT_PUBLIC_DOCS_URL}
 
-COPY --from=deps /app/node_modules ./node_modules
+USER mosqlimate
+
 COPY --chown=mosqlimate:mosqlimate frontend/ .
+COPY --chown=mosqlimate:mosqlimate --from=deps /app/node_modules ./node_modules
 
 RUN npm run build
 

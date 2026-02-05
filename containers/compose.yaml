@@ -1,7 +1,6 @@
 services:
   frontend:
     hostname: mosqlimate-${VERSION}-frontend
-    command: npm run start
     build:
       context: ..
       dockerfile: containers/frontend/Dockerfile

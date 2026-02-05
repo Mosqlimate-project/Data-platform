@@ -10,8 +10,6 @@ RUN usermod -u ${UID} postgres \
 
 RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql
 
-RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql
-
 ENV DEBIAN_FRONTEND=noninteractive
 ENV POSTGIS_MAJOR 3
 
