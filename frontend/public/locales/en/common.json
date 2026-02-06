@@ -240,5 +240,163 @@
     "team": {
       "title": "Meet our team"
     }
+  },
+  "model_predictions": {
+    "empty_title": "No predictions published yet",
+    "empty_desc": "This model doesn't have any predictions associated with it. You can upload forecasts using Python, R, or directly via the API.",
+    "python_rec": "1. Python (Recommended)",
+    "need_api_key": "Need an API Key? Go to your [Profile](/profile/auth) to generate one.",
+    "select_prediction": "Select a Prediction",
+    "prediction_id": "Prediction #{{id}}",
+    "unable_load": "Unable to load chart data",
+    "select_below": "Select a prediction from the list below",
+    "search_placeholder": "Search predictions...",
+    "metric_label": "Metric:",
+    "no_matches": "No predictions match your search.",
+    "no_found": "No predictions found.",
+    "saving": "Saving...",
+    "published": "Published",
+    "view_dashboard": "View Full Dashboard"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your personal information.",
+    "username": "Username",
+    "email": "Email",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "homepage": "Homepage URL",
+    "profile_picture": "Profile picture",
+    "upload_hint": "Click to upload. Max size 5MB.",
+    "change": "Change",
+    "update_btn": "Update profile",
+    "loading": "Loading...",
+    "alerts": {
+      "size_limit": "Image size must be less than 5MB",
+      "update_fail": "Failed to update profile",
+      "update_error": "An error occurred while updating profile",
+      "upload_fail": "Failed to upload avatar",
+      "upload_error": "An error occurred while uploading"
+    }
+  },
+  "profile_auth": {
+    "title": "Authentication & API",
+    "description": "Manage your connected accounts and developer credentials.",
+    "api_key_title": "Personal API Key",
+    "api_key_desc": "Use this key to authenticate CLI tools or external scripts.",
+    "header_hint": "Pass this header:",
+    "regenerate": "Regenerate Key",
+    "connected_accounts": "Connected Accounts",
+    "connected_desc": "Log in to Mosqlimate using these providers.",
+    "connected_to": "Connected to {{name}}",
+    "link_account": "Link your {{name}} account",
+    "connect": "Connect",
+    "connected": "Connected",
+    "github_app_title": "GitHub App Integration",
+    "github_app_desc": "Grant permission to import repositories and track models.",
+    "github_link_warning": "You must link your GitHub account above before installing.",
+    "checking": "Checking...",
+    "installed": "Installed",
+    "install_app": "Install App",
+    "configure_github": "Configure repository access on GitHub",
+    "alerts": {
+      "confirm_regenerate": "Are you sure?",
+      "copied": "Copied to clipboard!"
+    }
+  },
+  "profile_models": {
+    "title": "Models",
+    "description": "Models you own, contribute to, or maintain within an organization.",
+    "empty_title": "No models found",
+    "empty_desc": "You haven't linked any models yet. Connect a repository to get started.",
+    "table": {
+      "name": "Name",
+      "disease": "Disease",
+      "category": "Category",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "manage": "Manage",
+    "view_only": "View Only",
+    "manage_soon": "Management dashboard coming soon"
+  },
+  "profile_account": {
+    "title": "Account Settings",
+    "description": "Manage your login methods and delete your account.",
+    "password_title": "Change Password",
+    "password_desc": "Update the password associated with your account.",
+    "password_btn": "Update password",
+    "delete_title": "Delete Account",
+    "delete_desc": "Permanently remove your account and all associated data. This action cannot be undone.",
+    "delete_btn": "Delete account"
+  },
+  "endpoint_layout": {
+    "accordion": {
+      "charts_title": "Charts / Visualization",
+      "charts_desc": "Adjust the parameters below to update the charts.",
+      "api_builder_title": "API Request Builder",
+      "api_builder_desc": "Construct a raw API query with all available parameters.",
+      "description_title": "Description",
+      "dictionary_title": "Data Dictionary",
+      "no_content": "No visualization content available."
+    },
+    "dictionary": {
+      "variable": "Variable",
+      "type": "Type",
+      "description": "Description"
+    }
+  },
+  "charts_climate": {
+    "loading_error": "Failed to load data",
+    "precip_title": "Daily Precipitation - {{location}}",
+    "precip_total": "Total Precipitation",
+    "precip_avg": "Average Precipitation",
+    "date": "Date",
+    "precip_axis": "Precipitation (mm)",
+    "temp_title": "Temperature on {{location}}",
+    "temp_max": "Max",
+    "temp_med": "Med",
+    "temp_min": "Min",
+    "temp_axis": "Temperature (°C)",
+    "air_title": "Average Relative Humidity and Pressure on {{location}}",
+    "air_humidity": "Average Relative Humidity",
+    "air_pressure": "Average Air Pressure",
+    "pressure_axis": "Pressure (atm)",
+    "humidity_axis": "Humidity (%)"
+  },
+  "charts_contaovos": {
+    "unavailable": "Visualization not available"
+  },
+  "charts_infodengue": {
+    "total_cases_label": "Total Reported Cases",
+    "daily_cases_title": "Daily Cases",
+    "cases_axis": "Cases",
+    "fetch_error": "Failed to fetch",
+    "no_data": "No data available for this period.",
+    "rt_title": "Effective Reproductive Number (Rt)",
+    "rt_tooltip": "Rt",
+    "threshold": "Threshold (1.0)",
+    "no_rt_data": "No Rt data available for this period."
+  },
+  "footer": {
+    "theme": "Theme",
+    "cite_title": "How to cite",
+    "cite_show": "Show citation",
+    "cite_hide": "Hide citation",
+    "cite_text": "Ganem, Fabiana, et al. \"Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease.\" arXiv preprint arXiv:2410.18945 (2024).",
+    "cite_link": "View on arXiv",
+    "funding_title": "Funding",
+    "funding_agency": "Wellcome Trust",
+    "connect_title": "Connect",
+    "connect_email": "Email Contact",
+    "connect_youtube": "YouTube Channel",
+    "project_name": "Mosqlimate Project",
+    "rights": "All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   }
 }

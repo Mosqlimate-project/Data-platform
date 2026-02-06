@@ -19,7 +19,7 @@ profiles:
         - name: postgres
         - name: documentation
         - name: broker
-        - name: ollama
+        # - name: ollama
 
   prod:
     env-file: .env
@@ -34,4 +34,4 @@ profiles:
         - name: postgres
         - name: documentation
         - name: broker
-        - name: ollama
+        # - name: ollama

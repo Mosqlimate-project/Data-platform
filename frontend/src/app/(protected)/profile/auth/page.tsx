@@ -6,8 +6,10 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab, FaKey, FaCopy, FaSync, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash, FaLink } from 'react-icons/fa';
 import clsx from 'clsx';
 import { oauthLogin } from '@/lib/api/auth';
+import { useTranslation } from 'react-i18next';
 
 export default function AuthSettingsPage() {
+  const { t } = useTranslation('common');
   const pathname = usePathname();
 
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export default function AuthSettingsPage() {
   };
 
   const rotateKey = async () => {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm(t('profile_auth.alerts.confirm_regenerate'))) return;
 
     setLoadingKey(true);
     try {
@@ -98,7 +100,7 @@ export default function AuthSettingsPage() {
   const copyToClipboard = () => {
     if (apiKey) {
       navigator.clipboard.writeText(apiKey);
-      alert("Copied to clipboard!");
+      alert(t('profile_auth.alerts.copied'));
     }
   };
 
@@ -118,21 +120,21 @@ export default function AuthSettingsPage() {
           <div>
             <h4 className="font-medium text-sm text-gray-900 dark:text-white">{name}</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isConnected ? `Connected to ${name}` : `Link your ${name} account`}
+              {isConnected ? t('profile_auth.connected_to', { name }) : t('profile_auth.link_account', { name })}
             </p>
           </div>
         </div>
 
         {isConnected ? (
           <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full text-xs font-medium">
-            <FaCheckCircle /> Connected
+            <FaCheckCircle /> {t('profile_auth.connected')}
           </div>
         ) : (
           <button
             onClick={() => handleOAuth(provider as "google" | "github" | "gitlab")}
             className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-neutral-700 rounded-md text-xs font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
           >
-            <FaLink /> Connect
+            <FaLink /> {t('profile_auth.connect')}
           </button>
         )}
       </div>
@@ -143,10 +145,10 @@ export default function AuthSettingsPage() {
     <div className="space-y-8">
       <div className="border-b border-gray-200 dark:border-neutral-700 pb-5">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Authentication & API
+          {t('profile_auth.title')}
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Manage your connected accounts and developer credentials.
+          {t('profile_auth.description')}
         </p>
       </div>
 
@@ -157,9 +159,9 @@ export default function AuthSettingsPage() {
               <FaKey size={20} className="text-amber-600 dark:text-amber-500" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Personal API Key</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('profile_auth.api_key_title')}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Use this key to authenticate CLI tools or external scripts.
+                {t('profile_auth.api_key_desc')}
               </p>
             </div>
           </div>
@@ -167,7 +169,7 @@ export default function AuthSettingsPage() {
 
         <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-4 flex items-center gap-4 border border-gray-200 dark:border-neutral-700">
           <div className="flex-1 font-mono text-sm text-gray-600 dark:text-gray-300 break-all">
-            {apiKey ? (showKey ? apiKey : "••••••••••••••••••••••••••••••••") : "Loading..."}
+            {apiKey ? (showKey ? apiKey : "••••••••••••••••••••••••••••••••") : t('profile.loading')}
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -191,7 +193,7 @@ export default function AuthSettingsPage() {
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <FaExclamationTriangle className="text-amber-500" />
-            <span>Pass this header: <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded">X-UID-Key: {apiKey ? apiKey.split(':')[0] + ':...' : '...'}</code></span>
+            <span>{t('profile_auth.header_hint')} <code className="bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded">X-UID-Key: {apiKey ? apiKey.split(':')[0] + ':...' : '...'}</code></span>
           </div>
 
           <button
@@ -199,16 +201,16 @@ export default function AuthSettingsPage() {
             disabled={loadingKey}
             className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition font-medium disabled:opacity-50"
           >
-            <FaSync className={clsx(loadingKey && "animate-spin")} /> Regenerate Key
+            <FaSync className={clsx(loadingKey && "animate-spin")} /> {t('profile_auth.regenerate')}
           </button>
         </div>
       </div>
 
       <div className="bg-[var(--color-bg)] rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
         <div className="mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Connected Accounts</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('profile_auth.connected_accounts')}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Log in to Mosqlimate using these providers.
+            {t('profile_auth.connected_desc')}
           </p>
         </div>
 
@@ -226,13 +228,13 @@ export default function AuthSettingsPage() {
               <FaGithub size={24} className="text-gray-900 dark:text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">GitHub App Integration</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('profile_auth.github_app_title')}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Grant permission to import repositories and track models.
+                {t('profile_auth.github_app_desc')}
               </p>
               {!connectedProviders.includes('github') && (
                 <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-                  You must link your GitHub account above before installing.
+                  {t('profile_auth.github_link_warning')}
                 </p>
               )}
             </div>
@@ -240,24 +242,24 @@ export default function AuthSettingsPage() {
 
           <div>
             {githubAppStatus === 'loading' ? (
-              <span className="text-sm text-gray-500">Checking...</span>
+              <span className="text-sm text-gray-500">{t('profile_auth.checking')}</span>
             ) : githubAppStatus === 'connected' ? (
               <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full text-sm font-medium">
-                <FaCheckCircle /> Installed
+                <FaCheckCircle /> {t('profile_auth.installed')}
               </div>
             ) : connectedProviders.includes('github') ? (
               <a
                 href={installUrl}
                 className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition text-sm font-medium"
               >
-                <FaGithub /> Install App
+                <FaGithub /> {t('profile_auth.install_app')}
               </a>
             ) : (
               <button
                 disabled
                 className="flex items-center gap-2 bg-gray-200 dark:bg-neutral-800 text-gray-400 px-4 py-2 rounded-lg cursor-not-allowed text-sm font-medium"
               >
-                <FaGithub /> Install App
+                <FaGithub /> {t('profile_auth.install_app')}
               </button>
             )}
           </div>
@@ -269,7 +271,7 @@ export default function AuthSettingsPage() {
               href={installUrl}
               className="text-sm text-blue-600 hover:underline"
             >
-              Configure repository access on GitHub &rarr;
+              {t('profile_auth.configure_github')} &rarr;
             </a>
           </div>
         )}

@@ -10,7 +10,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     permissions:
       issues: write
@@ -20,10 +20,6 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,26 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 24
-
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniforge-version: latest
-          environment-file: conda/base.yaml
-          channels: conda-forge,nodefaults
-          activate-environment: mosqlimate
-          auto-update-conda: true
-          conda-solver: libmamba
-
-      - name: Create file with environment variables
-        run: touch .env
-
-      - name: Install dependencies
-        run: |
-          # # https://github.com/yaml/pyyaml/issues/724
-          # pip install "cython<3.0.0" 
-          # pip install --no-build-isolation "pyyaml<6.0"
-          poetry install --only dev --no-root
+          node-version: 20
 
       - name: Run semantic release (for tests)
         if: ${{ github.event_name != 'workflow_dispatch' }}

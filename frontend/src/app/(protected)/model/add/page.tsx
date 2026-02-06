@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaGithub, FaGitlab, FaLink, FaArrowRight,
   FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
-  FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup
+  FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup, FaRunning
 } from 'react-icons/fa';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
@@ -26,6 +26,13 @@ interface Disease {
   id: number;
   code: string;
   name: string;
+}
+
+interface Sprint {
+  id: number;
+  year: number;
+  start_date: string;
+  end_date: string;
 }
 
 const MODEL_CATEGORIES = [
@@ -63,7 +70,16 @@ export default function AddModelPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
-  const [isSprintActive, setIsSprintActive] = useState(false);
+
+  const [activeSprints, setActiveSprints] = useState<Sprint[]>([]);
+
+  const [config, setConfig] = useState({
+    disease: "",
+    timeResolution: "",
+    adminLevel: "",
+    category: "",
+    sprint: "",
+  });
 
   const performDiseaseSearch = async () => {
     if (config.disease) return;
@@ -126,14 +142,6 @@ export default function AddModelPage() {
     setIsDiseaseOpen(false);
   };
 
-  const [config, setConfig] = useState({
-    disease: "",
-    timeResolution: "",
-    adminLevel: "",
-    category: "",
-    sprint: false,
-  })
-
   function getModelName(url: string) {
     try {
       const parsedUrl = new URL(url);
@@ -170,12 +178,12 @@ export default function AddModelPage() {
 
       const results: Repository[] = [];
 
-      const checkSprintStatus = async () => {
+      const fetchSprints = async () => {
         try {
-          const res = await fetch("/api/registry/model/add/sprint/active");
+          const res = await fetch("/api/registry/model/add/sprint/actives");
           if (res.ok) {
-            const active = await res.json();
-            setIsSprintActive(active);
+            const data = await res.json();
+            setActiveSprints(data);
           }
         } catch (err) {
           console.error(err);
@@ -209,7 +217,7 @@ export default function AddModelPage() {
       await Promise.all([
         fetchProvider('github'),
         fetchProvider('gitlab'),
-        checkSprintStatus(),
+        fetchSprints(),
       ]);
 
       setRepos(results);
@@ -317,7 +325,7 @@ export default function AddModelPage() {
       time_resolution: config.timeResolution,
       adm_level: parseInt(config.adminLevel),
       category: config.category,
-      sprint: config.sprint,
+      sprint: config.sprint ? parseInt(config.sprint) : null,
     };
 
     try {
@@ -345,27 +353,6 @@ export default function AddModelPage() {
       setLoading(false);
     }
   };
-
-  const Toggle = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (v: boolean) => void }) => (
-    <div className="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)]">
-      <span className="text-sm font-medium text-[var(--color-text)]">{label}</span>
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        className={clsx(
-          "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          checked ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-700"
-        )}
-      >
-        <span
-          className={clsx(
-            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-            checked ? "translate-x-6" : "translate-x-1"
-          )}
-        />
-      </button>
-    </div>
-  );
 
   return (
     <>
@@ -746,13 +733,31 @@ export default function AddModelPage() {
                       </div>
                     </div>
 
-                    {isSprintActive && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                        <Toggle
-                          label="Sprint"
-                          checked={config.sprint}
-                          onChange={(v) => setConfig({ ...config, sprint: v })}
-                        />
+                    {activeSprints.length > 0 && (
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold uppercase text-gray-500">
+                          IMDC
+                        </label>
+                        <div className="relative">
+                          <FaRunning className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <select
+                            className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                            value={config.sprint}
+                            onChange={(e) => setConfig({ ...config, sprint: e.target.value })}
+                          >
+                            <option value="">
+                              Not for IMDC
+                            </option>
+                            {activeSprints.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.year}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <p className="text-xs text-[var(--color-text)] opacity-50 mt-1">
+                          Select a IMDC if this model is participating in a Sprint.
+                        </p>
                       </div>
                     )}
 
@@ -863,8 +868,9 @@ export default function AddModelPage() {
                         <div>
                           <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
                           <div className="flex flex-wrap gap-2 mt-2">
-                            <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800">
-                              Sprint
+                            <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                              <FaRunning size={10} />
+                              IMDC {activeSprints.find(s => String(s.id) === config.sprint)?.year || "Unknown"}
                             </span>
                           </div>
                         </div>

@@ -2,6 +2,8 @@ services:
   frontend:
     environment:
         NODE_ENV: production
+    volumes:
+      - ${BACKEND_HOST_DATA_PATH}/media:/app/public/media
     command: node server.js
 
   backend:

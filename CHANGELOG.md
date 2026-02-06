@@ -1,6 +1,20 @@
 Release Notes
 ---
 
+## [2.0.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.4...2.0.5) (2026-02-05)
+
+
+### Bug Fixes
+
+* some bugfixes on frontend container's volumes for dev ([#391](https://github.com/Mosqlimate-project/Data-platform/issues/391)) ([0184177](https://github.com/Mosqlimate-project/Data-platform/commit/01841776ac19f290fed5998c66a966f1e7ede5b5))
+
+## [2.0.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.3...2.0.4) (2026-02-05)
+
+
+### Bug Fixes
+
+* include translations; add curl and R examples on non-predictions models page & more ([#390](https://github.com/Mosqlimate-project/Data-platform/issues/390)) ([5ec1877](https://github.com/Mosqlimate-project/Data-platform/commit/5ec187760415faeedf5563d228d00437236c1c4e))
+
 ## [2.0.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.2...2.0.3) (2026-02-03)
 
 
