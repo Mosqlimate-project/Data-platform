@@ -4,34 +4,66 @@ from typing import Optional, Literal
 from ninja import FilterSchema, Field
 
 
+class ModelFilterSchema(FilterSchema):
+    id: Optional[int] = Field(None, q="id__exact")
+    repository_owner: Optional[str] = Field(
+        None, q="repository__owner__username__icontains"
+    )
+    repository_organization: Optional[str] = Field(
+        None, q="repository__organization__name__icontains"
+    )
+    repository_name: Optional[str] = Field(
+        None, q="repository__name__icontains"
+    )
+    disease: Optional[Literal["A90", "A92.0", "A92.5"]] = Field(
+        None, q="disease__code__iexact"
+    )
+    adm_level: Optional[Literal[0, 1, 2, 3]] = Field(None, q="adm_level")
+    time_resolution: Optional[Literal["day", "week", "month", "year"]] = Field(
+        None, q="time_resolution__iexact"
+    )
+    category: Optional[
+        Literal[
+            "quantitative",
+            "categorical",
+            "spatial_quantitative",
+            "spatial_categorical",
+            "spatio_temporal_quantitative",
+            "spatio_temporal_categorical",
+        ]
+    ] = Field(None, q="category__icontains")
+    sprint: Optional[int] = Field(None, q="sprint__year__exact")
+
+
 class PredictionFilterSchema(FilterSchema):
-    id: Optional[int] = Field(q="id__exact")
-    model_id: Optional[int] = Field(q="model__id__exact")
-    model_name: Optional[str] = Field(q="model__name__icontains")
-    model_ADM_level: Optional[int] = Field(q="model__ADM_level")
+    id: Optional[int] = Field(None, q="id__exact")
+    model_id: Optional[int] = Field(None, q="model__id__exact")
+    model_owner: Optional[str] = Field(
+        None, q="model__repository__owner__username__icontains"
+    )
+    model_organization: Optional[str] = Field(
+        None, q="model__repository__organization__name__icontains"
+    )
+    model_name: Optional[str] = Field(
+        None, q="model__repository__name__icontains"
+    )
+    model_adm_level: Optional[int] = Field(None, q="model__adm_level")
     model_time_resolution: Optional[
         Literal["day", "week", "month", "year"]
-    ] = Field(q="model__time_resolution__iexact")
-    model_disease: Optional[Literal["dengue", "zika", "chikungunya"]] = Field(
-        q="model__disease__iexact"
+    ] = Field(None, q="model__time_resolution__iexact")
+    model_disease: Optional[Literal["A90", "A92.0", "A92.5"]] = Field(
+        None, q="model__disease__code__iexact"
     )
-    author_name: Optional[str] = Field(
-        q="model__author__user__name__icontains"
-    )
-    author_username: Optional[str] = Field(
-        q="model__author__user__username__icontains"
-    )
-    author_institution: Optional[str] = Field(
-        q="model__author__institution__icontains"
-    )
-    repository: Optional[str] = Field(q="model__repository__icontains")
-    implementation_language: Optional[str] = Field(
-        q="model__implementation_language__language__iexact"
-    )
-    temporal: Optional[bool] = Field(q="model__temporal")
-    spatial: Optional[bool] = Field(q="model__spatial")
-    categorical: Optional[bool] = Field(q="model__categorical")
-    commit: Optional[str] = Field(q="commit")
-    predict_date: Optional[date] = Field(q="predict_date")
-    start: Optional[date] = Field(q="predict_date__gte")
-    end: Optional[date] = Field(q="predict_date__lte")
+    model_category: Optional[
+        Literal[
+            "quantitative",
+            "categorical",
+            "spatial_quantitative",
+            "spatial_categorical",
+            "spatio_temporal_quantitative",
+            "spatio_temporal_categorical",
+        ]
+    ] = Field(None, q="model__category__icontains")
+    model_sprint: Optional[int] = Field(None, q="model__sprint__year__exact")
+    start: Optional[date] = Field(None, q="data__date__gte")
+    end: Optional[date] = Field(None, q="data__date__lte")

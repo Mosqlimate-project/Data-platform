@@ -6,8 +6,140 @@ from pydantic import model_validator, field_validator
 
 from ninja import Field
 from ninja.errors import HttpError
+from django.db.models import Min, Max
 
 from main.schema import Schema
+
+
+class Model(Schema):
+    id: int
+    repository: str
+    disease: str
+    category: str
+    adm_level: int
+    time_resolution: str
+    sprint: Optional[int] = None
+    predictions_count: int
+    active: bool
+    created_at: dt
+    last_update: dt
+
+    @staticmethod
+    def resolve_repository(obj):
+        if obj.repository.organization:
+            owner = obj.repository.organization.name
+        elif obj.repository.owner:
+            owner = obj.repository.owner.username
+        else:
+            raise ValueError("Owner not found")
+
+        return f"{owner}/{obj.repository.name}"
+
+    @staticmethod
+    def resolve_disease(obj):
+        return obj.disease.code
+
+    @staticmethod
+    def resolve_sprint(obj):
+        return obj.sprint.year if obj.sprint else None
+
+    @staticmethod
+    def resolve_predictions_count(obj):
+        return getattr(obj, "predictions_count", None) or obj.predicts.count()
+
+    @staticmethod
+    def resolve_active(obj):
+        return obj.repository.active
+
+    @staticmethod
+    def resolve_created_at(obj):
+        return obj.created.date()
+
+    @staticmethod
+    def resolve_last_update(obj):
+        return obj.updated.date()
+
+
+class Prediction(Schema):
+    id: int
+    model: Model
+    predict_date: dt
+    commit: str
+    description: str | None = ""
+    start: dt | None = None
+    end: dt | None = None
+    scores: list[dict]
+    published: bool
+    created_at: datetime
+    adm_0: str | None
+    adm_1: int | None = None
+    adm_2: int | None = None
+    adm_3: int | None = None
+
+    @staticmethod
+    def resolve_start(obj):
+        return (
+            getattr(obj, "start_date", None)
+            or obj.data.aggregate(d=Min("date"))["d"]
+        )
+
+    @staticmethod
+    def resolve_end(obj):
+        return (
+            getattr(obj, "end_date", None)
+            or obj.data.aggregate(d=Max("date"))["d"]
+        )
+
+    @staticmethod
+    def resolve_adm_0(obj):
+        return obj.adm0.geocode if obj.adm0 else None
+
+    @staticmethod
+    def resolve_adm_1(obj):
+        return obj.adm1.geocode if obj.adm1 else None
+
+    @staticmethod
+    def resolve_adm_2(obj):
+        return obj.adm2.geocode if obj.adm2 else None
+
+    @staticmethod
+    def resolve_adm_3(obj):
+        return obj.adm3.geocode if obj.adm3 else None
+
+    @staticmethod
+    def resolve_scores(obj):
+        child = getattr(obj, "quantitativeprediction", None)
+
+        if not child:
+            return []
+
+        score_fields = [
+            "mae_score",
+            "mse_score",
+            "crps_score",
+            "log_score",
+            "interval_score",
+            "wis_score",
+        ]
+
+        return [
+            {"name": field, "score": getattr(child, field, None)}
+            for field in score_fields
+            if getattr(child, field, None) is not None
+        ]
+
+
+class PredictionData(Schema):
+    date: dt
+    lower_95: float | None = None
+    lower_90: float
+    lower_80: float | None = None
+    lower_50: float | None = None
+    pred: float
+    upper_50: float | None = None
+    upper_80: float | None = None
+    upper_90: float
+    upper_95: float | None = None
 
 
 class SprintOut(Schema):
@@ -49,10 +181,6 @@ class PredictionDataRowSchema(Schema):
 
 
 class PredictionIn(Schema):
-    """
-    test
-    """
-
     repository: str = Field(
         ...,
         description="The full repository name in 'owner/name' format.",
