@@ -24,7 +24,7 @@ from .utils import calling_via_swagger
 from . import schema as s
 from . import models as m
 
-router = Router()
+router = Router(tags=["registry"])
 User = get_user_model()
 
 
@@ -505,7 +505,7 @@ def update_prediction_published(
         500: InternalErrorSchema,
     },
     auth=UidKeyAuth(),
-    tags=["registry", "predictions"],
+    include_in_schema=True,
 )
 @decorate_view(csrf_exempt)
 def create_prediction(request, payload: s.PredictionIn):

@@ -34,7 +34,6 @@ from datastore import schema, filters, models
 router = Router(tags=["datastore"])
 
 paginator = PagesPagination
-paginator.max_per_page = 300
 uidkey_auth = UidKeyAuth()
 
 
@@ -76,7 +75,6 @@ def get_infodengue_queryset(
         500: InternalErrorSchema,
     },
     auth=uidkey_auth,
-    tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
 @csrf_exempt
@@ -145,7 +143,6 @@ def get_infodengue(
         500: InternalErrorSchema,
     },
     auth=uidkey_auth,
-    tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
 @csrf_exempt
@@ -218,7 +215,6 @@ def get_copernicus_brasil(
         500: InternalErrorSchema,
     },
     auth=uidkey_auth,
-    tags=["datastore", "infodengue"],
 )
 @paginate(paginator)
 @csrf_exempt
@@ -321,7 +317,6 @@ def get_copernicus_brasil_weekly(
         500: InternalErrorSchema,
     },
     auth=uidkey_auth,
-    tags=["datastore", "contaovos"],
 )
 @csrf_exempt
 def get_contaovos(
@@ -359,7 +354,6 @@ def get_contaovos(
         500: InternalErrorSchema,
     },
     auth=uidkey_auth,
-    tags=["datastore", "episcanner"],
 )
 @csrf_exempt
 def get_episcanner(
@@ -461,7 +455,6 @@ def get_episcanner(
 @router.get(
     "/charts/infodengue/rt/",
     auth=UidKeyAuth(),
-    tags=["datastore", "infodengue", "charts"],
     include_in_schema=False,
 )
 def charts_infodengue_rt(
@@ -492,7 +485,6 @@ def charts_infodengue_rt(
 @router.get(
     "/charts/infodengue/total-cases/",
     auth=UidKeyAuth(),
-    tags=["datastore", "infodengue", "charts"],
     include_in_schema=False,
 )
 def charts_infodengue_total_cases(
@@ -520,7 +512,6 @@ def charts_infodengue_total_cases(
     "/charts/climate/temperature/",
     response=List[schema.MunTempOut],
     auth=UidKeyAuth(),
-    tags=["datastore", "charts"],
     include_in_schema=False,
 )
 def charts_climate_daily_temperature(
@@ -544,7 +535,6 @@ def charts_climate_daily_temperature(
     "/charts/climate/accumulated-waterfall/",
     response=List[schema.MunAccWaterfallOut],
     auth=UidKeyAuth(),
-    tags=["datastore", "charts"],
     include_in_schema=False,
 )
 def charts_climate_daily_accumulated_waterfall(
@@ -567,7 +557,6 @@ def charts_climate_daily_accumulated_waterfall(
     "/charts/climate/umid-pressao-med/",
     response=List[schema.MunUmidPressMedOut],
     auth=UidKeyAuth(),
-    tags=["datastore", "charts"],
     include_in_schema=False,
 )
 def charts_climate_daily_umid_press_med(
@@ -590,7 +579,6 @@ def charts_climate_daily_umid_press_med(
     "/diseases/",
     response=List[schema.DiseaseOut],
     auth=uidkey_auth,
-    tags=["datastore"],
     include_in_schema=False,
 )
 def disease_search(
@@ -612,7 +600,6 @@ def disease_search(
     "/cities/",
     response=List[schema.CityOut],
     auth=uidkey_auth,
-    tags=["datastore"],
     include_in_schema=False,
 )
 def city_search(
