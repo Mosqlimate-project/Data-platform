@@ -16,6 +16,7 @@ from main.schema import (
     InternalErrorSchema,
 )
 from ninja import Router, Query
+from ninja.pagination import paginate
 from ninja.decorators import decorate_view
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
@@ -23,8 +24,11 @@ from users.providers import GithubProvider, GitlabProvider
 from .utils import calling_via_swagger
 from . import schema as s
 from . import models as m
+from .pagination import PagesPagination
+from .filters import PredictionFilterSchema, ModelFilterSchema
 
-router = Router()
+
+router = Router(tags=["registry"])
 User = get_user_model()
 
 
@@ -495,6 +499,72 @@ def update_prediction_published(
     return 201, "ok"
 
 
+@router.get(
+    "/models/",
+    response=List[s.Model],
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+@paginate(PagesPagination)
+@decorate_view(never_cache)
+def list_models(
+    request,
+    filters: ModelFilterSchema = Query(...),
+):
+    user = request.auth
+    qs = m.RepositoryModel.objects.annotate(
+        predictions_count=models.Count("predicts")
+    ).all()
+    qs = filters.filter(qs)
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(repository__active=True)
+            | models.Q(repository__repository_contributors__user=user)
+        ).distinct()
+    else:
+        qs = qs.filter(repository__active=True)
+    return list(qs.order_by("-updated"))
+
+
+@router.get(
+    "/predictions/",
+    response=List[s.Prediction],
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+@paginate(PagesPagination)
+@decorate_view(never_cache)
+def list_prediction(
+    request,
+    filters: PredictionFilterSchema = Query(...),
+):
+    user = request.auth
+    qs = m.ModelPrediction.objects.all()
+    qs = filters.filter(qs)
+    qs = qs.annotate(
+        start_date=models.Min("quantitativeprediction__data__date"),
+        end_date=models.Max("quantitativeprediction__data__date"),
+    )
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(model__repository__repository_contributors__user=user)
+            | (
+                models.Q(published=True)
+                & models.Q(model__repository__active=True)
+            )
+        ).distinct()
+    else:
+        qs = qs.filter(published=True, model__repository__active=True)
+
+    return qs
+
+
 @router.post(
     "/predictions/",
     response={
@@ -505,7 +575,7 @@ def update_prediction_published(
         500: InternalErrorSchema,
     },
     auth=UidKeyAuth(),
-    tags=["registry", "predictions"],
+    include_in_schema=True,
 )
 @decorate_view(csrf_exempt)
 def create_prediction(request, payload: s.PredictionIn):
@@ -653,3 +723,33 @@ def create_prediction(request, payload: s.PredictionIn):
         prediction.id = 0
 
     return 201, {"id": prediction.id}
+
+
+@router.get(
+    "/predictions/{id}/data/",
+    response={200: list[s.PredictionData], 404: NotFoundSchema},
+    auth=UidKeyAuth(),
+)
+def get_prediction_data(request, id: int):
+    user = request.auth
+    qs = m.QuantitativePrediction.objects.filter(id=id)
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(model__repository__repository_contributors__user=user)
+            | (
+                models.Q(published=True)
+                & models.Q(model__repository__active=True)
+            )
+        )
+    else:
+        qs = qs.filter(published=True, model__repository__active=True)
+
+    prediction = qs.first()
+
+    if not prediction:
+        return 404, {"message": f"Prediction '{id}' not found"}
+
+    return prediction.data.all().order_by("date")
