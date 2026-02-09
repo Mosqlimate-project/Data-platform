@@ -69,6 +69,7 @@ class Prediction(Schema):
     start: dt | None = None
     end: dt | None = None
     scores: list[dict]
+    case_definition: str
     published: bool
     created_at: datetime
     adm_0: str | None
@@ -200,6 +201,10 @@ class PredictionIn(Schema):
         ...,
         description="The reference date for this prediction (YYYY-MM-DD).",
         example="2023-10-25",
+    )
+    case_definition: Literal["reported", "probable"] = Field(
+        "probable",
+        description="The case definition used for the prediction data.",
     )
     published: bool = Field(
         True, description="Whether this prediction is visible to the public."
