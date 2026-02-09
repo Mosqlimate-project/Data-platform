@@ -599,6 +599,11 @@ def create_prediction(request, payload: s.PredictionIn):
             "message": f"Repository '{payload.repository}' not found."
         }
 
+    if model.sprint and payload.case_definition == "reported":
+        return 422, {
+            "message": "Predictions for IMDC Sprint must use probable cases"
+        }
+
     repo = model.repository
     has_permission = False
 
