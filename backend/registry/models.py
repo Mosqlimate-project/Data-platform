@@ -239,6 +239,10 @@ class RepositoryModel(TimestampModel):
 
 
 class ModelPrediction(models.Model):
+    class CaseDefinition(models.TextChoices):
+        REPORTED = "reported", _("Reported")
+        PROBABLE = "probable", _("Probable")
+
     model = models.ForeignKey(
         RepositoryModel,
         on_delete=models.CASCADE,
@@ -259,6 +263,11 @@ class ModelPrediction(models.Model):
     commit = models.CharField(max_length=100)
     description = models.TextField(max_length=500, null=True, blank=True)
     predict_date = models.DateField()
+    case_definition = models.CharField(
+        max_length=20,
+        default=CaseDefinition.REPORTED,
+        choices=CaseDefinition.choices,
+    )
     published = models.BooleanField(null=False, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
