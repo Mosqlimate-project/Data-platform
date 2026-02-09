@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.1.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.0...2.1.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* reinclude google gtag on the frontend ([#395](https://github.com/Mosqlimate-project/Data-platform/issues/395)) ([552941a](https://github.com/Mosqlimate-project/Data-platform/commit/552941a925f35a0ea8ae5e9266bb390bbbe90ece))
+
 # [2.1.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.5...2.1.0) (2026-02-09)
 
 
