@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
 import I18nProvider from '@/components/I18nProvider';
+import GlobalLoading from '@/components/GlobalLoading';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} min-h-screen flex flex-col transition-colors`}>
         <I18nProvider>
           <ClientProviders>
+            <GlobalLoading />
             <div className="flex min-h-screen flex-col">
               <Navbar />
               <main className="flex-1 md:items-center bg-bg">{children}</main>
