@@ -36,6 +36,7 @@ class DashboardPredictionOut(Schema):
     repository: str
     start: Optional[dt] = None
     end: Optional[dt] = None
+    case_definition: Literal["reported", "probable"]
     sprint: Optional[int] = None
     scores: list[PredictionScore]
 
@@ -114,6 +115,7 @@ class HistoricoAlertaCases(Schema):
 
 class HistoricoAlertaCasesIn(Schema):
     sprint: Annotated[bool, Field(False)]
+    case_definition: Literal["reported", "probable"]
     disease: str = "A90"
     start: dt
     end: dt

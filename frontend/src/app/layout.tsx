@@ -10,6 +10,7 @@ import I18nProvider from '@/components/I18nProvider';
 import GlobalLoading from '@/components/GlobalLoading';
 
 const inter = Inter({ subsets: ['latin'] });
+const isProd = process.env.NODE_ENV === 'production';
 
 export const metadata: Metadata = {
   title: "Mosqlimate",
@@ -21,19 +22,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen flex flex-col transition-colors`}>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-S3L0RNJZ0Z"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+        {isProd && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-S3L0RNJZ0Z"
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-S3L0RNJZ0Z');
+              `}
+            </Script>
+          </>
+        )}
 
-            gtag('config', 'G-S3L0RNJZ0Z');
-          `}
-        </Script>
         <I18nProvider>
           <ClientProviders>
             <GlobalLoading />

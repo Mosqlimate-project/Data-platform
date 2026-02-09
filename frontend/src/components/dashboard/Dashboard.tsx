@@ -52,6 +52,7 @@ interface Prediction {
   start: string;
   end: string;
   sprint: number | null;
+  case_definition: string;
   scores: PredictionScore[];
 }
 
@@ -121,6 +122,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     adm_1: searchParams.get("adm_1") || "",
     adm_2: searchParams.get("adm_2") || "",
     sprint: searchParams.get("sprint") === "true",
+    case_definition: searchParams.get("case_definition") || "reported",
   });
 
   const [loading, setLoading] = useState(false);
@@ -172,6 +174,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (merged.adm_2) params.set("adm_2", merged.adm_2);
 
       params.set("sprint", merged.sprint ? "true" : "false");
+
+      if (!merged.sprint) {
+        params.set("case_definition", merged.case_definition);
+      }
 
       if (activePredictionMeta) {
         const sprintMatches = merged.sprint === (activePredictionMeta.sprint !== null && activePredictionMeta.sprint !== undefined);
@@ -233,6 +239,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     const adm_1 = searchParams.get("adm_1") || "";
     const adm_2 = searchParams.get("adm_2") || "";
     const sprint = searchParams.get("sprint") === "true";
+    const case_definition = searchParams.get("case_definition") || "reported";
 
     if (!isRestoringParams) {
       setInputs((prev) => {
@@ -242,9 +249,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           prev.adm_0 !== adm_0 ||
           prev.adm_1 !== adm_1 ||
           prev.adm_2 !== adm_2 ||
-          prev.sprint !== sprint
+          prev.sprint !== sprint ||
+          prev.case_definition !== case_definition
         ) {
-          return { disease, adm_level, adm_0, adm_1, adm_2, sprint };
+          return { disease, adm_level, adm_0, adm_1, adm_2, sprint, case_definition };
         }
         return prev;
       });
@@ -434,6 +442,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     try {
       const params = new URLSearchParams({
         category: category,
+        case_definition: inputs.case_definition,
         adm_level: inputs.adm_level.toString(),
         disease: inputs.disease,
         sprint: inputs.sprint.toString(),
@@ -460,7 +469,17 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setPredictionsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint, isRestoringParams]);
+  }, [
+    category,
+    inputs.adm_level,
+    inputs.disease,
+    inputs.adm_0,
+    inputs.adm_1,
+    inputs.adm_2,
+    inputs.sprint,
+    inputs.case_definition,
+    isRestoringParams
+  ]);
 
   const fetchData = useCallback(async () => {
     if (isRestoringParams) return;
@@ -492,7 +511,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         sprint: inputs.sprint.toString(),
         adm_0: inputs.adm_0,
         start: startStr,
-        end: endStr
+        end: endStr,
+        case_definition: inputs.case_definition
       });
 
       if (inputs.adm_1) params.append("adm_1", inputs.adm_1);
@@ -546,7 +566,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     if (inputs.disease) {
       fetchPredictions();
     }
-  }, [fetchPredictions, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2]);
+  }, [
+    fetchPredictions,
+    inputs.disease,
+    inputs.adm_0,
+    inputs.adm_1,
+    inputs.adm_2,
+    inputs.case_definition
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -583,6 +610,11 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     }
 
     updateURL(updates);
+  };
+
+  const handleCaseDefinitionChange = (def: string) => {
+    setInputs(prev => ({ ...prev, case_definition: def }));
+    updateURL({ case_definition: def });
   };
 
   const toggleSprint = (sprintYear: number) => {
@@ -708,6 +740,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       result = result.filter((p) => p.sprint && selectedSprints.includes(p.sprint));
     }
 
+    if (!inputs.sprint) {
+      result = result.filter((p) => p.case_definition === inputs.case_definition);
+    }
+
     if (selectedModels.length > 0) {
       result = result.filter((p) => selectedModels.includes(p.repository));
     }
@@ -747,7 +783,16 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
 
     return result;
-  }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions, predictionSearch]);
+  }, [
+    predictions,
+    selectedSprints,
+    selectedModels,
+    sortConfig,
+    chartPredictions,
+    predictionSearch,
+    inputs.sprint,
+    inputs.case_definition
+  ]);
 
   const paginatedPredictions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -895,28 +940,56 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             )}
           </div>
 
-          {sprintOptions.length > 0 && (
-            <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
-              <h3 className="text-sm font-semibold mb-1">IMDC</h3>
-              <div className="flex flex-wrap gap-2">
-                {sprintOptions.map((sprint) => {
-                  const isSelected = selectedSprints.includes(sprint.year);
-                  return (
-                    <button
-                      key={sprint.id}
-                      onClick={() => toggleSprint(sprint.year)}
-                      className={`px-2 py-1 rounded text-xs border transition-colors ${isSelected
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
-                        }`}
-                    >
-                      {sprint.year}
-                    </button>
-                  );
-                })}
+          <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
+            {!inputs.sprint ? (
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-semibold mb-1">Case Definition</h3>
+                <div className="flex bg-gray-100 p-1 rounded-lg w-full">
+                  <button
+                    onClick={() => handleCaseDefinitionChange("reported")}
+                    className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === "reported"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                      }`}
+                  >
+                    Reported
+                  </button>
+                  <button
+                    onClick={() => handleCaseDefinitionChange("probable")}
+                    className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === "probable"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                      }`}
+                  >
+                    Probable
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              sprintOptions.length > 0 && (
+                <>
+                  <h3 className="text-sm font-semibold mb-1">IMDC Sprint Year</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {sprintOptions.map((sprint) => {
+                      const isSelected = selectedSprints.includes(sprint.year);
+                      return (
+                        <button
+                          key={sprint.id}
+                          onClick={() => toggleSprint(sprint.year)}
+                          className={`px-2 py-1 rounded text-xs border transition-colors ${isSelected
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                            }`}
+                        >
+                          {sprint.year}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )
+            )}
+          </div>
         </div>
       </div>
 
@@ -927,7 +1000,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             predictions={chartPredictions}
             activeIntervals={activeIntervals}
             height="100%"
-            dataSeriesName={inputs.sprint ? "Probable cases" : "Reported cases"}
+            dataSeriesName={inputs.sprint ? "Probable cases" : `${inputs.case_definition === "probable" ? "Probable" : "Reported"} cases`}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
