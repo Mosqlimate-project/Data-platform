@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from main.schema import NotFoundSchema
 from users.auth import UidKeyAuth
@@ -427,6 +427,7 @@ def dashboard_predictions(
     category: str,
     adm_level: int,
     disease: str,
+    case_definition: Literal["reported", "probable"],
     country: Optional[str] = None,
     state: Optional[str] = None,
     city: Optional[str] = None,
@@ -455,9 +456,11 @@ def dashboard_predictions(
     )
 
     if sprint:
-        qs = qs.filter(model__sprint__isnull=False)
+        qs = qs.filter(model__sprint__isnull=False, case_definition="probable")
     else:
-        qs = qs.filter(model__sprint__isnull=True)
+        qs = qs.filter(
+            model__sprint__isnull=True, case_definition=case_definition
+        )
 
     if adm_level == 0 and country:
         qs = qs.filter(adm0__geocode=country)
@@ -539,8 +542,13 @@ def dashboard_cases(
     if not disease:
         return list()
 
+    case_definition = payload.case_definition
+
+    if payload.sprint:
+        case_definition = "probable"
+
     df = hist_alerta_data(
-        sprint=payload.sprint,
+        case_definition=case_definition,
         disease=disease,
         start_window_date=payload.start,
         end_window_date=payload.end,

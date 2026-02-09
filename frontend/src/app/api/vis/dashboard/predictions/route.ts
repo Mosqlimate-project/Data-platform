@@ -5,7 +5,7 @@ import { ADMIN_UIDKEY } from "@/lib/env";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = new URLSearchParams();
-  const params = ["sprint", "category", "adm_level", "disease", "country", "state", "city"];
+  const params = ["case_definition", "sprint", "category", "adm_level", "disease", "country", "state", "city"];
 
   params.forEach((key) => {
     const values = searchParams.getAll(key);
