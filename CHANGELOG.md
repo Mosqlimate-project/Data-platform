@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.1.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.5...2.1.0) (2026-02-09)
+
+
+### Features
+
+* **predictions:** include case_definition field on Predictions & first loading screen ([#394](https://github.com/Mosqlimate-project/Data-platform/issues/394)) ([b08b96c](https://github.com/Mosqlimate-project/Data-platform/commit/b08b96cf54fa62f287d1b9678f0ebb35f4da9751))
+
 ## [2.0.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.4...2.0.5) (2026-02-05)
 
 
