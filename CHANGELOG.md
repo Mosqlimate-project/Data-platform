@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.1.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.1...2.1.2) (2026-02-10)
+
+
+### Bug Fixes
+
+* reinclude some registry endpoints to work on mosqlient ([#396](https://github.com/Mosqlimate-project/Data-platform/issues/396)) ([4e8d1fa](https://github.com/Mosqlimate-project/Data-platform/commit/4e8d1faa3ba57729852c300a92ff28474f626a95))
+
 ## [2.1.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.0...2.1.1) (2026-02-09)
 
 
