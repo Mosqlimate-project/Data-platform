@@ -500,6 +500,48 @@ def update_prediction_published(
 
 
 @router.get(
+    "/models/{owner}/{repository}/",
+    response={
+        200: s.Model,
+        404: NotFoundSchema,
+    },
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+@decorate_view(never_cache)
+def get_model(request, owner: str, repository: str):
+    user = request.auth
+    qs = m.RepositoryModel.objects.annotate(
+        predictions_count=models.Count("predicts")
+    ).filter(
+        models.Q(repository__owner__username=owner)
+        | models.Q(repository__organization__name=owner),
+        repository__name=repository,
+    )
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(repository__active=True)
+            | models.Q(repository__repository_contributors__user=user)
+        ).distinct()
+    else:
+        qs = qs.filter(repository__active=True)
+
+    model = qs.first()
+
+    if not model:
+        return 404, {
+            "message": (
+                f"Model '{owner}/{repository}' not found or missing permissions"
+            )
+        }
+
+    return model
+
+
+@router.get(
     "/models/",
     response=List[s.Model],
     auth=UidKeyAuth(),
@@ -537,7 +579,7 @@ def list_models(
 )
 @paginate(PagesPagination)
 @decorate_view(never_cache)
-def list_prediction(
+def list_predictions(
     request,
     filters: PredictionFilterSchema = Query(...),
 ):
@@ -729,6 +771,105 @@ def create_prediction(request, payload: s.PredictionIn):
         prediction.id = 0
 
     return 201, {"id": prediction.id}
+
+
+@router.get(
+    "/predictions/{id}/",
+    response={200: s.PredictionDetail, 404: NotFoundSchema},
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+def get_prediction(request, id: int):
+    user = request.auth
+
+    qs = (
+        m.QuantitativePrediction.objects.filter(id=id)
+        .select_related(
+            "model", "model__repository", "adm0", "adm1", "adm2", "adm3"
+        )
+        .prefetch_related("data")
+    )
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(model__repository__repository_contributors__user=user)
+            | (
+                models.Q(published=True)
+                & models.Q(model__repository__active=True)
+            )
+        ).distinct()
+    else:
+        qs = qs.filter(published=True, model__repository__active=True)
+
+    prediction = qs.first()
+
+    if not prediction:
+        return 404, {"message": f"Prediction '{id}' not found"}
+
+    return prediction
+
+
+@router.delete(
+    "/predictions/{id}/",
+    response={
+        200: dict,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+    },
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+@decorate_view(csrf_exempt)
+def delete_prediction(request, id: int):
+    user = request.auth
+
+    try:
+        prediction = m.ModelPrediction.objects.get(id=id)
+    except m.ModelPrediction.DoesNotExist:
+        return 404, {"message": f"Prediction '{id}' not found"}
+
+    repo = prediction.model.repository
+    has_permission = False
+
+    if user.is_superuser:
+        has_permission = True
+
+    if repo.owner == user:
+        has_permission = True
+
+    elif repo.organization:
+        is_org_admin = m.OrganizationMembership.objects.filter(
+            organization=repo.organization,
+            user=user,
+            role__in=[
+                m.OrganizationMembership.Roles.OWNER,
+                m.OrganizationMembership.Roles.MAINTAINER,
+            ],
+        ).exists()
+        if is_org_admin:
+            has_permission = True
+
+    if not has_permission:
+        is_contributor = m.RepositoryContributor.objects.filter(
+            repository=repo,
+            user=user,
+            permission__in=[
+                m.RepositoryContributor.Permissions.ADMIN,
+                m.RepositoryContributor.Permissions.WRITE,
+            ],
+        ).exists()
+        if is_contributor:
+            has_permission = True
+
+    if not has_permission:
+        return 403, {
+            "message": "You do not have permission to delete this prediction."
+        }
+
+    prediction.delete()
+    return 200, {"message": f"Prediction {id} deleted successfully."}
 
 
 @router.get(
