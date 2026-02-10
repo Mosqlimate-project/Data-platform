@@ -143,6 +143,10 @@ class PredictionData(Schema):
     upper_95: float | None = None
 
 
+class PredictionDetail(Prediction):
+    data: List[PredictionData]
+
+
 class SprintOut(Schema):
     id: int
     year: int
