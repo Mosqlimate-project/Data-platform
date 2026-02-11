@@ -7,6 +7,7 @@ import {
   Loader2, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
   Search, X, Eye, EyeOff
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const dynamic = "force-dynamic";
 
@@ -83,14 +84,6 @@ interface PredictionMetadata {
   sprint?: number | null;
 }
 
-const SCORE_COLUMNS = [
-  { key: "mae_score", label: "MAE" },
-  { key: "mse_score", label: "MSE" },
-  { key: "crps_score", label: "CRPS" },
-  { key: "interval_score", label: "Interval" },
-  { key: "wis_score", label: "WIS" },
-];
-
 const ITEMS_PER_PAGE = 15;
 
 const CHART_COLORS = [
@@ -105,9 +98,18 @@ const CHART_COLORS = [
 ];
 
 export default function DashboardClient({ category }: DashboardClientProps) {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const SCORE_COLUMNS = [
+    { key: "mae_score", label: t('dashboard.score_columns.mae') },
+    { key: "mse_score", label: t('dashboard.score_columns.mse') },
+    { key: "crps_score", label: t('dashboard.score_columns.crps') },
+    { key: "interval_score", label: t('dashboard.score_columns.interval') },
+    { key: "wis_score", label: t('dashboard.score_columns.wis') },
+  ];
 
   const [isRestoringParams, setIsRestoringParams] = useState(
     !!searchParams.get("prediction_id")
@@ -669,7 +671,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         },
       };
 
-      setChartPredictions((prev) => [...prev, newPrediction]);
+      setChartPredictions((prev) => {
+        if (prev.some((p) => p.id === newPrediction.id)) {
+          return prev;
+        }
+        return [...prev, newPrediction];
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -843,7 +850,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       );
 
       const validResults = results.filter((r): r is QuantitativePrediction => r !== null);
-      setChartPredictions(prev => [...prev, ...validResults]);
+      setChartPredictions(prev => {
+        const uniqueNew = validResults.filter(newPred => !prev.some(p => p.id === newPred.id));
+        return [...prev, ...uniqueNew];
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -857,24 +867,24 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   };
 
   return (
-    <div className="relative space-y-6 min-h-[500px] max-w-full">
+    <div className="p-4 relative space-y-6 min-h-[500px] max-w-full">
       {isConfigLoading && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-lg">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/60 backdrop-blur-[1px] rounded-lg">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         </div>
       )}
 
-      <div className="bg-white rounded shadow">
+      <div className="bg-bg border border-border rounded-lg shadow-sm">
         <div className="flex flex-wrap gap-4 p-4">
           <div className="flex-1 flex flex-wrap gap-4 min-w-[300px]">
             {diseaseOptions.length > 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
-                <label className="text-sm font-semibold mb-1">Disease</label>
+                <label className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.disease')}</label>
                 <select
                   name="disease"
                   value={inputs.disease}
                   onChange={handleChange}
-                  className="border p-2 rounded disabled:bg-gray-100"
+                  className="border border-border bg-bg text-text p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {diseaseOptions.map((d) => (
                     <option key={d.code} value={d.code}>
@@ -887,12 +897,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
             {countryOptions.length > 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
-                <label className="text-sm font-semibold mb-1">Country</label>
+                <label className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.country')}</label>
                 <select
                   name="adm_0"
                   value={inputs.adm_0}
                   onChange={handleChange}
-                  className="border p-2 rounded disabled:bg-gray-100"
+                  className="border border-border bg-bg text-text p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {countryOptions.map((c) => (
                     <option key={c.geocode} value={c.geocode}>
@@ -905,12 +915,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
             {inputs.adm_level >= 1 && stateOptions.length > 1 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
-                <label className="text-sm font-semibold mb-1">State</label>
+                <label className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.state')}</label>
                 <select
                   name="adm_1"
                   value={inputs.adm_1}
                   onChange={handleChange}
-                  className="border p-2 rounded disabled:bg-gray-100"
+                  className="border border-border bg-bg text-text p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {stateOptions.map((s) => (
                     <option key={s.geocode} value={s.geocode}>
@@ -923,12 +933,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
             {inputs.adm_level >= 2 && (
               <div className="flex flex-col flex-1 min-w-[150px]">
-                <label className="text-sm font-semibold mb-1">City</label>
+                <label className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.city')}</label>
                 <select
                   name="adm_2"
                   value={inputs.adm_2}
                   onChange={handleChange}
-                  className="border p-2 rounded disabled:bg-gray-100"
+                  className="border border-border bg-bg text-text p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {cityOptions.map((c) => (
                     <option key={c.geocode} value={c.geocode}>
@@ -940,35 +950,35 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             )}
           </div>
 
-          <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
+          <div className="w-full md:w-auto md:w-72 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-4 flex flex-col gap-2">
             {!inputs.sprint ? (
               <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold mb-1">Case Definition</h3>
-                <div className="flex bg-gray-100 p-1 rounded-lg w-full">
+                <h3 className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.case_definition')}</h3>
+                <div className="flex bg-hover p-1 rounded-lg w-full">
                   <button
                     onClick={() => handleCaseDefinitionChange("reported")}
                     className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === "reported"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? "bg-bg text-blue-600 shadow-sm border border-border"
+                      : "text-secondary hover:text-text"
                       }`}
                   >
-                    Reported
+                    {t('dashboard.filters.reported')}
                   </button>
                   <button
                     onClick={() => handleCaseDefinitionChange("probable")}
                     className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === "probable"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? "bg-bg text-blue-600 shadow-sm border border-border"
+                      : "text-secondary hover:text-text"
                       }`}
                   >
-                    Probable
+                    {t('dashboard.filters.probable')}
                   </button>
                 </div>
               </div>
             ) : (
               sprintOptions.length > 0 && (
                 <>
-                  <h3 className="text-sm font-semibold mb-1">IMDC Sprint Year</h3>
+                  <h3 className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.imdc_sprint')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {sprintOptions.map((sprint) => {
                       const isSelected = selectedSprints.includes(sprint.year);
@@ -978,7 +988,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                           onClick={() => toggleSprint(sprint.year)}
                           className={`px-2 py-1 rounded text-xs border transition-colors ${isSelected
                             ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                            : "bg-bg text-secondary border-border hover:bg-hover"
                             }`}
                         >
                           {sprint.year}
@@ -993,41 +1003,41 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded shadow h-[500px]">
+      <div className="bg-bg border border-border rounded-lg shadow-sm p-4 h-[500px]">
         {inputs.disease ? (
           <LineChart
             data={chartData}
             predictions={chartPredictions}
             activeIntervals={activeIntervals}
             height="100%"
-            dataSeriesName={inputs.sprint ? "Probable cases" : `${inputs.case_definition === "probable" ? "Probable" : "Reported"} cases`}
+            dataSeriesName={inputs.sprint ? t('dashboard.chart.probable_cases') : `${inputs.case_definition === "probable" ? t('dashboard.filters.probable') : t('dashboard.filters.reported')} ${t('dashboard.chart.cases')}`}
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Please select a disease to view data.
+          <div className="flex items-center justify-center h-full text-secondary">
+            {t('dashboard.chart.select_disease')}
           </div>
         )}
       </div>
 
-      <div className="bg-white p-4 rounded shadow">
+      <div className="bg-bg border border-border rounded-lg shadow-sm p-4">
         <div className="flex flex-col md:flex-row gap-6">
 
-          <div className="w-full md:w-64 flex-shrink-0 border-r pr-4">
-            <h3 className="text-lg font-bold mb-4">Models</h3>
+          <div className="w-full md:w-64 flex-shrink-0 border-r border-border pr-4">
+            <h3 className="text-lg font-bold mb-4 text-text">{t('dashboard.panels.models')}</h3>
 
             <div className="relative mb-3">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-secondary" />
               <input
                 type="text"
-                placeholder="Search models..."
+                placeholder={t('dashboard.search.models')}
                 value={modelSearch}
                 onChange={(e) => setModelSearch(e.target.value)}
-                className="w-full pl-8 pr-8 py-2 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-8 pr-8 py-2 text-xs border border-border bg-bg text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {modelSearch && (
                 <button
                   onClick={() => setModelSearch("")}
-                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-2.5 text-secondary hover:text-text"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -1035,7 +1045,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             </div>
 
             {uniqueModels.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">No models available</p>
+              <p className="text-xs text-secondary italic">{t('dashboard.panels.no_models')}</p>
             ) : (
               <div className="flex flex-col gap-2 overflow-y-auto">
                 {uniqueModels.map((model) => {
@@ -1045,8 +1055,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                       key={model}
                       onClick={() => toggleModel(model)}
                       className={`text-left text-xs px-3 py-2 rounded transition-colors border ${isSelected
-                        ? "bg-blue-50 text-blue-700 border-blue-200 font-medium"
-                        : "bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100"
+                        ? "bg-blue-500/10 text-blue-600 border-blue-500/30 font-medium"
+                        : "bg-hover text-secondary border-transparent hover:bg-accent"
                         }`}
                     >
                       {model}
@@ -1059,37 +1069,37 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Predictions</h3>
+              <h3 className="text-lg font-bold text-text">{t('dashboard.panels.predictions')}</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
-                  title="Select 10 predictions"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-500/10 border border-blue-500/30 rounded hover:bg-blue-500/20 transition-colors"
+                  title={t('dashboard.actions.select_10')}
                 >
-                  Select 10
+                  {t('dashboard.actions.select_10')}
                 </button>
                 <button
                   onClick={handleClearAll}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-                  title="Clear all selections"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-secondary bg-bg border border-border rounded hover:bg-hover transition-colors"
+                  title={t('dashboard.actions.clear')}
                 >
-                  Clear
+                  {t('dashboard.actions.clear')}
                 </button>
               </div>
             </div>
             <div className="relative mb-4">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-secondary" />
               <input
                 type="text"
-                placeholder="Search predictions by ID, Owner, Model or Year..."
+                placeholder={t('dashboard.search.predictions')}
                 value={predictionSearch}
                 onChange={(e) => setPredictionSearch(e.target.value)}
-                className="w-full pl-9 pr-9 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-9 py-2 text-sm border border-border bg-bg text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {predictionSearch && (
                 <button
                   onClick={() => setPredictionSearch("")}
-                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-2 text-secondary hover:text-text"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1097,21 +1107,21 @@ export default function DashboardClient({ category }: DashboardClientProps) {
             </div>
 
             {predictionsLoading ? (
-              <div className="text-sm text-gray-500">Loading predictions...</div>
+              <div className="text-sm text-secondary">{t('dashboard.status.loading')}</div>
             ) : filteredAndSortedPredictions.length === 0 ? (
-              <div className="text-sm text-gray-500">No predictions found.</div>
+              <div className="text-sm text-secondary">{t('dashboard.status.no_predictions')}</div>
             ) : (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                    <thead className="text-xs text-secondary uppercase bg-hover border-b border-border">
                       <tr>
-                        <th className="px-3 py-2 w-[40%]">Model</th>
-                        <th className="px-3 py-2 text-center w-[10%]">Interval Bounds</th>
+                        <th className="px-3 py-2 w-[40%]">{t('dashboard.table.model')}</th>
+                        <th className="px-3 py-2 text-center w-[10%]">{t('dashboard.table.interval_bounds')}</th>
                         {SCORE_COLUMNS.map((col) => (
                           <th
                             key={col.key}
-                            className="px-3 py-2 text-right cursor-pointer hover:bg-gray-100 select-none"
+                            className="px-3 py-2 text-right cursor-pointer hover:bg-accent select-none"
                             onClick={() => handleSort(col.key)}
                           >
                             <div className="flex items-center justify-end gap-1">
@@ -1119,11 +1129,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                               {sortConfig.key === col.key ? (
                                 sortConfig.direction === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />
                               ) : (
-                                <ArrowUpDown size={14} className="text-gray-300" />
+                                <ArrowUpDown size={14} className="text-secondary opacity-50" />
                               )}
                             </div>
-                          </th>
-                        ))}
+                          </th>))}
                       </tr>
                     </thead>
                     <tbody>
@@ -1136,13 +1145,13 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                         return (
                           <tr
                             key={p.id}
-                            className={`border-b cursor-pointer transition-colors ${!isSelected && 'hover:bg-gray-50'}`}
+                            className={`border-b border-border cursor-pointer transition-colors ${!isSelected && 'hover:bg-hover'}`}
                             onClick={() => togglePrediction(p)}
                             style={rowStyle}
                           >
                             <td className="px-3 py-2">
                               <div className="flex items-start gap-3">
-                                <div className="text-xs font-mono text-gray-500 mt-1 min-w-[30px]">
+                                <div className="text-xs font-mono text-secondary mt-1 min-w-[30px]">
                                   {isLoading ? (
                                     <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
                                   ) : (
@@ -1151,7 +1160,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                   <div className="flex gap-2 items-center">
-                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded border border-blue-200 font-mono">
+                                    <span className="bg-blue-500/10 text-blue-600 text-xs px-2 py-0.5 rounded border border-blue-500/20 font-mono">
                                       {p.owner}
                                     </span>
                                     <a
@@ -1159,15 +1168,15 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       onClick={(e) => e.stopPropagation()}
-                                      className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-200 font-mono hover:bg-gray-200 hover:underline transition-colors"
+                                      className="bg-hover text-text text-xs px-2 py-0.5 rounded border border-border font-mono hover:bg-accent hover:underline transition-colors"
                                     >
                                       {p.repository}
                                     </a>
                                   </div>
-                                  <div className="text-xs text-gray-500 flex gap-2 items-center">
+                                  <div className="text-xs text-secondary flex gap-2 items-center">
                                     <span>{p.start} - {p.end}</span>
                                     {p.sprint && (
-                                      <span className="px-2 py-0.5 bg-gray-200 rounded-full text-[10px]">
+                                      <span className="px-2 py-0.5 bg-accent text-text rounded-full text-[10px]">
                                         IMDC {p.sprint}
                                       </span>
                                     )}
@@ -1181,11 +1190,11 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                 disabled={!isSelected}
                                 className={`p-1 rounded transition-colors ${isSelected
                                   ? activeIntervals.has(p.id)
-                                    ? "text-blue-600 hover:bg-blue-100"
-                                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                                  : "text-gray-200 cursor-not-allowed"
+                                    ? "text-blue-600 hover:bg-blue-500/10"
+                                    : "text-secondary hover:text-text hover:bg-hover"
+                                  : "text-secondary/30 cursor-not-allowed"
                                   }`}
-                                title="Toggle Confidence Intervals"
+                                title={t('dashboard.actions.toggle_ci')}
                               >
                                 {activeIntervals.has(p.id) ? <Eye size={16} /> : <EyeOff size={16} />}
                               </button>
@@ -1193,7 +1202,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                             {SCORE_COLUMNS.map((col) => {
                               const score = p.scores.find((s) => s.name === col.key);
                               return (
-                                <td key={col.key} className="px-3 py-2 text-right font-mono text-gray-700">
+                                <td key={col.key} className="px-3 py-2 text-right font-mono text-text">
                                   {score ? score.score.toFixed(2) : "-"}
                                 </td>
                               );
@@ -1205,25 +1214,29 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                   </table>
                 </div>
 
-                <div className="flex items-center justify-between mt-4 border-t pt-3">
-                  <div className="text-xs text-gray-500">
-                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedPredictions.length)} of {filteredAndSortedPredictions.length}
+                <div className="flex items-center justify-between mt-4 border-t border-border pt-3">
+                  <div className="text-xs text-secondary">
+                    {t('dashboard.pagination.showing', {
+                      start: ((currentPage - 1) * ITEMS_PER_PAGE) + 1,
+                      end: Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedPredictions.length),
+                      total: filteredAndSortedPredictions.length
+                    })}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="p-1 rounded border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1 rounded border border-border hover:bg-hover disabled:opacity-50 disabled:cursor-not-allowed text-text"
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <div className="flex items-center px-2 text-xs font-medium">
-                      Page {currentPage} of {totalPages}
+                    <div className="flex items-center px-2 text-xs font-medium text-text">
+                      {t('dashboard.pagination.page', { current: currentPage, total: totalPages })}
                     </div>
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="p-1 rounded border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1 rounded border border-border hover:bg-hover disabled:opacity-50 disabled:cursor-not-allowed text-text"
                     >
                       <ChevronRight size={16} />
                     </button>

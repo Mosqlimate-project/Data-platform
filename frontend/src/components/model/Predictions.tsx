@@ -20,6 +20,7 @@ export interface ModelPrediction {
   description?: string | null;
   start?: string | null;
   end?: string | null;
+  case_definition: string;
   sprint?: number | null;
   scores: PredictionScore[];
   published?: boolean;
@@ -306,6 +307,7 @@ export default function PredictionsList({
     params.set("adm_level", pred.adm_level.toString());
     params.set("disease", pred.disease_code);
     params.set("prediction_id", pred.id.toString());
+    params.set("case_definition", pred.case_definition);
 
     if (pred.adm_0_code) params.set("adm_0", pred.adm_0_code);
     if (pred.adm_level >= 1 && pred.adm_1_code) params.set("adm_1", pred.adm_1_code);
@@ -373,7 +375,6 @@ mosqlient.upload_prediction(
   model="${owner}/${modelName}",
   description=...,
   commit=...,
-  predict_date="2025-01-01",
   prediction=prediction,
   adm_0="BRA",
   adm_1=33
@@ -393,7 +394,6 @@ payload <- list(
   model = "${owner}/${modelName}",
   description = ...,
   commit = ...,
-  predict_date = "2025-01-01",
   adm_0 = "BRA",
   adm_1 = 33,
   prediction = list(
@@ -420,7 +420,6 @@ curl -X POST https://api.mosqlimate.org/api/registry/prediction/ \\
     "model": "${owner}/${modelName}",
     "description": ...,
     "commit": ...,
-    "predict_date": "2025-01-01",
     "adm_0": "BRA",
     "adm_1": 33,
     "prediction": [

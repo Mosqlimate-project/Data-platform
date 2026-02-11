@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from '@/lib/api/auth';
+import { useTranslation } from 'react-i18next';
 
 interface RegisterModalProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ open, onClose }: RegisterModalProps) {
+  const { t } = useTranslation('common');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -23,9 +25,9 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   if (!open) return null;
 
   const validateUsername = (value: string) => {
-    if (value.length < 4) return 'Username too short';
-    if (value.length > 25) return 'Username too long';
-    if (!/^[a-zA-Z0-9._]+$/.test(value)) return 'Invalid username';
+    if (value.length < 4) return t('register_modal.errors.username_short');
+    if (value.length > 25) return t('register_modal.errors.username_long');
+    if (!/^[a-zA-Z0-9._]+$/.test(value)) return t('register_modal.errors.username_invalid');
     return '';
   };
 
@@ -38,17 +40,17 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
     setEmail(value);
-    setEmailError(e.target.validity.valid ? "" : "Invalid email");
+    setEmailError(e.target.validity.valid ? "" : t('register_modal.errors.email_invalid'));
   };
 
   const checkUsernameAvailable = async (username: string) => {
     const resp = await fetch(`/api/user/check-username/?username=${username}`);
-    return resp.ok ? null : 'Username is already taken';
+    return resp.ok ? null : t('register_modal.errors.username_taken');
   };
 
   const checkEmailAvailable = async (email: string) => {
     const resp = await fetch(`/api/user/check-email/?email=${email}`);
-    return resp.ok ? null : 'Email is already registered';
+    return resp.ok ? null : t('register_modal.errors.email_taken');
   };
 
   const handleOAuth = (provider: "google" | "github" | "gitlab") => {
@@ -61,7 +63,6 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
     const form = e.currentTarget;
     const usernameValue = form.username.value.trim();
     const emailValue = form.email.value.trim();
-
 
     setUsernameError('');
     setEmailError('');
@@ -94,7 +95,7 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl p-8 w-[90%] max-w-md relative border border-gray-200 dark:border-neutral-700"
+            className="bg-[var(--color-bg)] rounded-2xl shadow-xl p-8 w-[90%] max-w-md relative border border-[var(--color-border)]"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -102,19 +103,19 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
           >
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+              className="absolute top-3 right-3 text-[var(--color-text)] opacity-50 hover:opacity-100 transition"
             >
               ✕
             </button>
 
-            <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-gray-100">
-              Create your account
+            <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--color-text)]">
+              {t('register_modal.title')}
             </h2>
 
             <div className="flex justify-center gap-3 mb-6">
               <button
                 onClick={() => handleOAuth('google')}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
                   <FcGoogle size={18} />
@@ -123,16 +124,16 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
               </button>
               <button
                 onClick={() => handleOAuth('github')}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
-                  <FaGithub size={18} className="text-gray-800 dark:text-white" />
+                  <FaGithub size={18} className="text-[var(--color-text)]" />
                 </React.Suspense>
                 <span>GitHub</span>
               </button>
               <button
                 onClick={() => handleOAuth('gitlab')}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
                   <FaGitlab size={18} className="text-orange-600" />
@@ -143,11 +144,11 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-neutral-700" />
+                <div className="w-full border-t border-[var(--color-border)]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-neutral-900 px-3 text-gray-500 dark:text-gray-400">
-                  or register with email
+                <span className="bg-[var(--color-bg)] px-3 text-[var(--color-text)] opacity-60">
+                  {t('register_modal.or_register_with')}
                 </span>
               </div>
             </div>
@@ -158,8 +159,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                   name="username"
                   value={username}
                   onChange={handleUsernameChange}
-                  placeholder="Username"
-                  className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
+                  placeholder={t('register_modal.placeholder_username')}
+                  className="border border-[var(--color-border)] rounded-md px-3 py-2 text-sm bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none w-full"
                   required
                 />
                 {usernameError && (
@@ -173,8 +174,8 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                   name="email"
                   value={email}
                   onChange={handleEmailChange}
-                  placeholder="Email"
-                  className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none w-full"
+                  placeholder={t('register_modal.placeholder_email')}
+                  className="border border-[var(--color-border)] rounded-md px-3 py-2 text-sm bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none w-full"
                   required
                 />
                 {emailError && (
@@ -187,15 +188,15 @@ export default function RegisterModal({ open, onClose }: RegisterModalProps) {
                 disabled={!username || !!usernameError || !!emailError}
                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
               >
-                Continue
+                {t('register_modal.btn_continue')}
               </button>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="text-sm text-gray-500 dark:text-gray-400 underline mt-3"
+                className="text-sm text-[var(--color-text)] opacity-60 hover:opacity-100 underline mt-3"
               >
-                Cancel
+                {t('register_modal.btn_cancel')}
               </button>
             </form>
           </motion.div>
