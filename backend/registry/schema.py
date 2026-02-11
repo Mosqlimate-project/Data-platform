@@ -325,7 +325,7 @@ class ModelIncludeInit(Schema):
         "spatio_temporal_quantitative",
         "spatio_temporal_categorical",
     ]
-    sprint: int
+    sprint: Optional[int] = None
 
 
 class ContributorOut(Schema):
