@@ -64,7 +64,6 @@ class Model(Schema):
 class Prediction(Schema):
     id: int
     model: Model
-    predict_date: dt
     commit: str
     description: str | None = ""
     start: dt | None = None
@@ -201,11 +200,6 @@ class PredictionIn(Schema):
         description="The full 40-character commit hash",
         examples="8843d7f92416211de9ebb963ff4ce28125932878",
         pattern=r"^[0-9a-fA-F]{40}$",
-    )
-    predict_date: dt = Field(
-        ...,
-        description="The reference date for this prediction (YYYY-MM-DD).",
-        example="2023-10-25",
     )
     case_definition: Literal["reported", "probable"] = Field(
         "probable",
@@ -401,6 +395,7 @@ class ModelPredictionOut(Schema):
     start: dt | None
     end: dt | None
     scores: list[dict]
+    case_definition: str
     published: bool
     created_at: datetime
     disease_code: str = Field(alias="model.disease.code")
@@ -418,7 +413,7 @@ class ModelPredictionOut(Schema):
 
     @staticmethod
     def resolve_date(obj):
-        return obj.predict_date
+        return obj.created_at
 
     @staticmethod
     def resolve_sprint(obj):

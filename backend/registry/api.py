@@ -740,7 +740,6 @@ def create_prediction(request, payload: s.PredictionIn):
         model=model,
         commit=payload.commit,
         description=payload.description,
-        predict_date=payload.predict_date,
         case_definition=payload.case_definition,
         published=payload.published,
         **adms,

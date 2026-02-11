@@ -6,12 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaGithub, FaGitlab, FaLink, FaArrowRight,
   FaSpinner, FaArrowLeft, FaSearch, FaCodeBranch, FaExclamationCircle,
-  FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus, FaLayerGroup, FaRunning
+  FaClock, FaMapMarkerAlt, FaCheck, FaTimes, FaGlobeAmericas, FaVirus,
+  FaLayerGroup, FaRunning, FaQuestionCircle
 } from 'react-icons/fa';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { oauthLogin } from '@/lib/api/auth';
 import NetworkBackground from "@/components/NetworkBackground";
+import { useTranslation } from 'react-i18next';
 
 interface Repository {
   id: string;
@@ -35,16 +37,17 @@ interface Sprint {
   end_date: string;
 }
 
-const MODEL_CATEGORIES = [
-  { value: "quantitative", label: "Quantitative" },
-  { value: "categorical", label: "Categorical" },
-  { value: "spatial_quantitative", label: "Spatial Quantitative" },
-  { value: "spatial_categorical", label: "Spatial Categorical" },
-  { value: "spatio_temporal_quantitative", label: "Spatio-temporal Quantitative" },
-  { value: "spatio_temporal_categorical", label: "Spatio-temporal Categorical" },
+const MODEL_CATEGORY_VALUES = [
+  "quantitative",
+  "categorical",
+  "spatial_quantitative",
+  "spatial_categorical",
+  "spatio_temporal_quantitative",
+  "spatio_temporal_categorical",
 ];
 
 export default function AddModelPage() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const pathname = usePathname();
 
@@ -285,7 +288,7 @@ export default function AddModelPage() {
     const matchedRepo = repos.find(r => normalize(r.url) === cleanInput);
 
     if (matchedRepo && matchedRepo.available === false) {
-      setError("This repository has already been imported.");
+      setError(t('add_model.selection.errors.already_imported'));
       return;
     }
 
@@ -298,7 +301,7 @@ export default function AddModelPage() {
     const exists = repos.some(r => normalize(r.url) === cleanInput);
 
     if (!exists) {
-      setError("Please select a valid repository from the list or ensure your account is connected.");
+      setError(t('add_model.selection.errors.invalid_repo'));
       return;
     }
 
@@ -338,7 +341,7 @@ export default function AddModelPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Could not import repository.');
+        throw new Error(data.message || t('add_model.verify.errors.import_failed'));
       }
 
       const modelPath = getModelName(url).replace(/\.git$/, '');
@@ -348,7 +351,7 @@ export default function AddModelPage() {
         router.push('/dashboard');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('add_model.verify.errors.unexpected'));
     } finally {
       setLoading(false);
     }
@@ -385,9 +388,9 @@ export default function AddModelPage() {
                   className="space-y-6"
                 >
                   <div>
-                    <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">Import Model</h1>
+                    <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">{t('add_model.title')}</h1>
                     <p className="text-[var(--color-text)] opacity-60">
-                      Select a repository to import or paste a URL directly.
+                      {t('add_model.selection.description')}
                     </p>
                   </div>
 
@@ -397,7 +400,7 @@ export default function AddModelPage() {
                     </div>
                     <input
                       type="url"
-                      placeholder="https://github.com/username/repository"
+                      placeholder={t('add_model.selection.placeholder_url')}
                       value={url}
                       onChange={(e) => {
                         setUrl(e.target.value);
@@ -411,14 +414,14 @@ export default function AddModelPage() {
                       disabled={!url || loading}
                       className="absolute right-1 top-1 bottom-1 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-sm transition-colors disabled:opacity-0 disabled:pointer-events-none"
                     >
-                      Next
+                      {t('add_model.selection.next')}
                     </button>
                   </form>
 
                   <div className="flex items-center gap-4">
                     <div className="h-px bg-[var(--color-border)] flex-1" />
                     <span className="text-xs text-[var(--color-text)] opacity-40 uppercase font-semibold">
-                      OR SELECT REPOSITORY
+                      {t('add_model.selection.or_select')}
                     </span>
                     <div className="h-px bg-[var(--color-border)] flex-1" />
                   </div>
@@ -436,7 +439,7 @@ export default function AddModelPage() {
                               : "text-[var(--color-text)] opacity-60 hover:opacity-100"
                           )}
                         >
-                          {tab}
+                          {t(`add_model.selection.tabs.${tab}`)}
                         </button>
                       ))}
                     </div>
@@ -444,7 +447,7 @@ export default function AddModelPage() {
                       <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                       <input
                         type="text"
-                        placeholder="Search..."
+                        placeholder={t('add_model.selection.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full sm:w-48 pl-9 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] text-[var(--color-text)] focus:outline-none focus:border-blue-500"
@@ -456,7 +459,7 @@ export default function AddModelPage() {
                     {loadingRepos ? (
                       <div className="h-full flex flex-col items-center justify-center text-[var(--color-text)] opacity-50 gap-2">
                         <FaSpinner className="animate-spin text-xl" />
-                        <span className="text-sm">Loading repositories...</span>
+                        <span className="text-sm">{t('add_model.selection.loading')}</span>
                       </div>
                     ) : filteredRepos.length > 0 ? (
                       <div className="divide-y divide-[var(--color-border)]">
@@ -489,7 +492,7 @@ export default function AddModelPage() {
                                 <FaArrowRight className="text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
                               ) : (
                                 <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded flex items-center gap-1">
-                                  <FaCheck size={10} /> Imported
+                                  <FaCheck size={10} /> {t('add_model.selection.imported')}
                                 </span>
                               )}
                             </button>
@@ -504,15 +507,15 @@ export default function AddModelPage() {
                             <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
                               <FaGithub className="text-2xl" />
                             </div>
-                            <h3 className="text-base font-medium mb-1">Link GitHub Account</h3>
+                            <h3 className="text-base font-medium mb-1">{t('add_model.selection.connect.github_title')}</h3>
                             <p className="text-xs opacity-60 max-w-[200px] mb-4">
-                              You need to link your GitHub account to access repositories.
+                              {t('add_model.selection.connect.github_desc')}
                             </p>
                             <button
                               onClick={() => oauthLogin("github", pathname)}
                               className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition"
                             >
-                              <FaLink /> Connect GitHub
+                              <FaLink /> {t('add_model.selection.connect.github_btn')}
                             </button>
                           </>
                         )
@@ -521,15 +524,15 @@ export default function AddModelPage() {
                               <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
                                 <FaGithub className="text-2xl" />
                               </div>
-                              <h3 className="text-base font-medium mb-1">Install GitHub App</h3>
+                              <h3 className="text-base font-medium mb-1">{t('add_model.selection.connect.github_app_title')}</h3>
                               <p className="text-xs opacity-60 max-w-[250px] mb-4">
-                                Your account is connected, but you need to install the Model Registry App to import repositories.
+                                {t('add_model.selection.connect.github_app_desc')}
                               </p>
                               <a
                                 href={installUrl}
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
                               >
-                                <FaGithub /> Install App
+                                <FaGithub /> {t('add_model.selection.connect.github_app_btn')}
                               </a>
                             </>
                           )
@@ -538,23 +541,23 @@ export default function AddModelPage() {
                                 <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
                                   <FaGitlab className="text-2xl text-orange-600" />
                                 </div>
-                                <h3 className="text-base font-medium mb-1">Connect GitLab Account</h3>
+                                <h3 className="text-base font-medium mb-1">{t('add_model.selection.connect.gitlab_title')}</h3>
                                 <p className="text-xs opacity-60 max-w-[200px] mb-4">
-                                  You need to connect your GitLab account to access repositories.
+                                  {t('add_model.selection.connect.gitlab_desc')}
                                 </p>
                                 <a
                                   href="/profile/auth"
                                   className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition"
                                 >
-                                  <FaLink /> Connect GitLab
+                                  <FaLink /> {t('add_model.selection.connect.gitlab_btn')}
                                 </a>
                               </>
                             )
                               : (
                                 <>
                                   <FaCodeBranch className="icon-sm mb-2 opacity-50" />
-                                  <p className="opacity-50">No repositories found.</p>
-                                  <p className="text-xs mt-1 opacity-40">Make sure your account is connected in Settings.</p>
+                                  <p className="opacity-50">{t('add_model.selection.empty.title')}</p>
+                                  <p className="text-xs mt-1 opacity-40">{t('add_model.selection.empty.subtitle')}</p>
                                 </>
                               )}
 
@@ -583,7 +586,7 @@ export default function AddModelPage() {
                   <div>
                     <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">{getModelName(url)}</h1>
                     <p className="text-[var(--color-text)] opacity-60">
-                      Provide details about the model in this repository.
+                      {t('add_model.config.description')}
                     </p>
                   </div>
                   <form onSubmit={handleConfigSubmit} className="space-y-5">
@@ -598,7 +601,7 @@ export default function AddModelPage() {
 
                       <div className="space-y-1 relative group">
                         <label className="text-xs font-semibold uppercase text-gray-500">
-                          Disease
+                          {t('add_model.config.disease_label')}
                         </label>
 
                         {isDiseaseOpen && (
@@ -611,7 +614,7 @@ export default function AddModelPage() {
                           <input
                             type="text"
                             className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Enter to search"
+                            placeholder={t('add_model.config.disease_placeholder')}
                             value={diseaseSearch}
                             onKeyDown={handleDiseaseKeyDown}
                             onBlur={performDiseaseSearch}
@@ -653,7 +656,7 @@ export default function AddModelPage() {
                                   </button>
                                 ))
                               ) : (
-                                <div className="px-4 py-2 text-sm text-gray-500">No diseases found</div>
+                                <div className="px-4 py-2 text-sm text-gray-500">{t('add_model.config.no_diseases')}</div>
                               )}
                             </div>
                           )}
@@ -662,7 +665,7 @@ export default function AddModelPage() {
 
                       <div className="space-y-1">
                         <label className="text-xs font-semibold uppercase text-gray-500">
-                          Time Resolution
+                          {t('add_model.config.time_res_label')}
                         </label>
                         <div className="relative">
                           <FaClock className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -675,21 +678,20 @@ export default function AddModelPage() {
                             required
                           >
                             <option value="" disabled>
-                              Select
+                              {t('add_model.config.options.select')}
                             </option>
-                            <option value="day">Daily</option>
-                            <option value="week">Weekly</option>
-                            <option value="month">Monthly</option>
-                            <option value="year">Yearly</option>
+                            <option value="day">{t('add_model.config.options.day')}</option>
+                            <option value="week">{t('add_model.config.options.week')}</option>
+                            <option value="month">{t('add_model.config.options.month')}</option>
+                            <option value="year">{t('add_model.config.options.year')}</option>
                           </select>
                         </div>
                       </div>
 
                       <div className="space-y-1">
                         <label className="text-xs font-semibold uppercase text-gray-500">
-                          Admin Level
-                        </label>
-                        <div className="relative">
+                          {t('add_model.config.admin_level_label')}
+                        </label>                        <div className="relative">
                           <FaMapMarkerAlt className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                           <select
                             className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
@@ -698,19 +700,19 @@ export default function AddModelPage() {
                             required
                           >
                             <option value="" disabled>
-                              Select
+                              {t('add_model.config.options.select')}
                             </option>
-                            <option value="0">Country</option>
-                            <option value="1">State</option>
-                            <option value="2">Municipality</option>
-                            <option value="3">Sub-Municipal</option>
+                            <option value="0">{t('add_model.config.options.adm0')}</option>
+                            <option value="1">{t('add_model.config.options.adm1')}</option>
+                            <option value="2">{t('add_model.config.options.adm2')}</option>
+                            <option value="3">{t('add_model.config.options.adm3')}</option>
                           </select>
                         </div>
                       </div>
 
                       <div className="space-y-1">
                         <label className="text-xs font-semibold uppercase text-gray-500">
-                          Model Category
+                          {t('add_model.config.category_label')}
                         </label>
                         <div className="relative">
                           <FaLayerGroup className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -721,11 +723,11 @@ export default function AddModelPage() {
                             required
                           >
                             <option value="" disabled>
-                              Select
+                              {t('add_model.config.options.select')}
                             </option>
-                            {MODEL_CATEGORIES.map((cat) => (
-                              <option key={cat.value} value={cat.value}>
-                                {cat.label}
+                            {MODEL_CATEGORY_VALUES.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {t(`add_model.config.options.${cat}`)}
                               </option>
                             ))}
                           </select>
@@ -735,9 +737,21 @@ export default function AddModelPage() {
 
                     {activeSprints.length > 0 && (
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold uppercase text-gray-500">
-                          IMDC
-                        </label>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-semibold uppercase text-gray-500">
+                            {t('add_model.config.sprint_label')}
+                          </label>
+                          <a
+                            href="https://sprint.mosqlimate.org/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-blue-500 transition-colors"
+                            title={t('add_model.config.sprint_full_name')}
+                          >
+                            <FaQuestionCircle className="w-4 h-4" />
+                          </a>
+                        </div>
+
                         <div className="relative">
                           <FaRunning className="icon-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                           <select
@@ -746,7 +760,7 @@ export default function AddModelPage() {
                             onChange={(e) => setConfig({ ...config, sprint: e.target.value })}
                           >
                             <option value="">
-                              Not for IMDC
+                              {t('add_model.config.sprint_placeholder')}
                             </option>
                             {activeSprints.map((s) => (
                               <option key={s.id} value={s.id}>
@@ -756,7 +770,7 @@ export default function AddModelPage() {
                           </select>
                         </div>
                         <p className="text-xs text-[var(--color-text)] opacity-50 mt-1">
-                          Select a IMDC if this model is participating in a Sprint.
+                          {t('add_model.config.sprint_hint')}
                         </p>
                       </div>
                     )}
@@ -767,7 +781,7 @@ export default function AddModelPage() {
                         onClick={() => setStep("selection")}
                         className="flex-1 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-hover)] transition-colors"
                       >
-                        Back
+                        {t('add_model.config.back')}
                       </button>
                       <button
                         type="submit"
@@ -777,7 +791,7 @@ export default function AddModelPage() {
                         {loading ? (
                           <FaSpinner className="animate-spin" />
                         ) : (
-                          "Continue"
+                          t('add_model.config.continue')
                         )}
                       </button>
                     </div>
@@ -798,10 +812,10 @@ export default function AddModelPage() {
                 >
                   <div>
                     <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">
-                      Final Review
+                      {t('add_model.verify.title')}
                     </h1>
                     <p className="text-[var(--color-text)] opacity-60">
-                      Please review the model configuration before confirming the import.
+                      {t('add_model.verify.description')}
                     </p>
                   </div>
 
@@ -824,32 +838,32 @@ export default function AddModelPage() {
                     <div className="p-5 space-y-6">
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Target Disease</label>
+                        <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">{t('add_model.verify.target_disease')}</label>
                         <div className="flex items-center gap-2 text-lg font-medium text-[var(--color-text)]">
                           <FaVirus className="text-gray-400 text-sm" />
-                          {diseases.find(d => String(d.id) === config.disease)?.name || "Unknown Disease"}
+                          {diseases.find(d => String(d.id) === config.disease)?.name || t('add_model.verify.unknown_disease')}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-y-5 gap-x-4">
                         <div>
-                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Time Resolution</label>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">{t('add_model.config.time_res_label')}</label>
                           <div className="flex items-center gap-2 mt-1 text-[var(--color-text)] capitalize">
                             <FaClock className="text-gray-400 text-xs" />
-                            {config.timeResolution}
+                            {config.timeResolution ? t(`add_model.config.options.${config.timeResolution}`) : ''}
                           </div>
                         </div>
 
                         <div>
-                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Admin Level</label>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">{t('add_model.config.admin_level_label')}</label>
                           <div className="flex items-center gap-2 mt-1 text-[var(--color-text)]">
                             <FaGlobeAmericas className="text-gray-400 text-xs" />
                             {(() => {
                               switch (config.adminLevel) {
-                                case "0": return "Country";
-                                case "1": return "State";
-                                case "2": return "Municipality";
-                                case "3": return "Sub-Municipal";
+                                case "0": return t('add_model.config.options.adm0');
+                                case "1": return t('add_model.config.options.adm1');
+                                case "2": return t('add_model.config.options.adm2');
+                                case "3": return t('add_model.config.options.adm3');
                                 default: return config.adminLevel;
                               }
                             })()}
@@ -857,16 +871,16 @@ export default function AddModelPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Model Category</label>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">{t('add_model.config.category_label')}</label>
                           <div className="mt-1 text-[var(--color-text)]">
-                            {MODEL_CATEGORIES.find(c => c.value === config.category)?.label || config.category}
+                            {config.category ? t(`add_model.config.options.${config.category}`) : ''}
                           </div>
                         </div>
                       </div>
 
                       {config.sprint && (
                         <div>
-                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Features</label>
+                          <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">{t('add_model.verify.features')}</label>
                           <div className="flex flex-wrap gap-2 mt-2">
                             <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-200 dark:border-purple-800 flex items-center gap-1">
                               <FaRunning size={10} />
@@ -885,7 +899,7 @@ export default function AddModelPage() {
                       onClick={() => setStep("config")}
                       className="flex-1 py-3 border border-[var(--color-border)] rounded-lg text-[var(--color-text)] hover:bg-[var(--color-hover)] transition-colors flex justify-center items-center gap-2"
                     >
-                      <FaArrowLeft size={12} /> Back
+                      <FaArrowLeft size={12} /> {t('add_model.config.back')}
                     </button>
                     <button
                       onClick={handleImportConfirm}
@@ -895,7 +909,7 @@ export default function AddModelPage() {
                       {loading ? (
                         <FaSpinner className="animate-spin" />
                       ) : (
-                        "Confirm"
+                        t('add_model.verify.confirm')
                       )}
                     </button>
                   </div>

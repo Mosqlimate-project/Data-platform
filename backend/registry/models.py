@@ -262,7 +262,6 @@ class ModelPrediction(models.Model):
     )
     commit = models.CharField(max_length=100)
     description = models.TextField(max_length=500, null=True, blank=True)
-    predict_date = models.DateField()
     case_definition = models.CharField(
         max_length=20,
         default=CaseDefinition.REPORTED,

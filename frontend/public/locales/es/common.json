@@ -1,4 +1,209 @@
 {
+  "dashboard": {
+    "score_columns": {
+      "mae": "MAE",
+      "mse": "MSE",
+      "crps": "CRPS",
+      "interval": "Intervalo",
+      "wis": "WIS"
+    },
+    "filters": {
+      "disease": "Enfermedad",
+      "country": "País",
+      "state": "Estado",
+      "city": "Municipio",
+      "case_definition": "Definición de Caso",
+      "reported": "Notificados",
+      "probable": "Probables",
+      "imdc_sprint": "Año del Sprint IMDC"
+    },
+    "chart": {
+      "probable_cases": "Casos probables",
+      "cases": "casos",
+      "select_disease": "Seleccione una enfermedad para ver datos."
+    },
+    "panels": {
+      "models": "Modelos",
+      "no_models": "No hay modelos disponibles",
+      "predictions": "Predicciones"
+    },
+    "search": {
+      "models": "Buscar modelos...",
+      "predictions": "Buscar por ID, Autor, Modelo o Año..."
+    },
+    "actions": {
+      "select_10": "Seleccionar 10",
+      "clear": "Limpiar",
+      "toggle_ci": "Alternar Intervalos de Confianza"
+    },
+    "status": {
+      "loading": "Cargando predicciones...",
+      "no_predictions": "No se encontraron predicciones."
+    },
+    "table": {
+      "model": "Modelo",
+      "interval_bounds": "Límites de Intervalo"
+    },
+    "pagination": {
+      "showing": "Mostrando {{start}} a {{end}} de {{total}}",
+      "page": "Página {{current}} de {{total}}"
+    }
+  },
+  "register_page": {
+    "title": "Completa tu perfil",
+    "subtitle": "Completa tu información para registrarte",
+    "no_avatar": "Sin avatar",
+    "labels": {
+      "username": "Nombre de usuario",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "homepage": "Página web (opcional)"
+    },
+    "placeholders": {
+      "homepage": "https://ejemplo.com"
+    },
+    "terms": {
+      "accept": "Acepto los",
+      "tos": "Términos de Servicio",
+      "and": "y el",
+      "coc": "Código de Conducta"
+    },
+    "btn_create": "Crear Cuenta",
+    "errors": {
+      "username_short": "Nombre de usuario muy corto",
+      "username_long": "Nombre de usuario muy largo",
+      "username_invalid": "Nombre de usuario inválido",
+      "username_taken": "El nombre de usuario ya está en uso",
+      "username_check_fail": "No se pudo verificar el nombre de usuario",
+      "password_weak": "La contraseña es muy débil",
+      "auth_expired": "La sesión OAuth ha expirado",
+      "generic_error": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+      "create_fail": "No se pudo crear la cuenta",
+      "username_taken_api": "Nombre de usuario en uso. Si eres tú, inserta tu correo registrado para vincular cuentas o elige otro nombre de usuario.",
+      "email_taken_api": "El correo ya está registrado. Por favor, inicia sesión para vincular tu cuenta."
+    },
+    "password_strength": {
+      "very_weak": "Muy débil",
+      "weak": "Débil",
+      "fair": "Razonable",
+      "good": "Buena",
+      "strong": "Fuerte"
+    },
+    "success": "¡Cuenta creada!"
+  },
+  "register_modal": {
+    "title": "Crea tu cuenta",
+    "or_register_with": "o regístrate con correo",
+    "placeholder_username": "Nombre de usuario",
+    "placeholder_email": "Correo electrónico",
+    "btn_continue": "Continuar",
+    "btn_cancel": "Cancelar",
+    "errors": {
+      "username_short": "Nombre de usuario muy corto",
+      "username_long": "Nombre de usuario muy largo",
+      "username_invalid": "Nombre de usuario inválido",
+      "email_invalid": "Correo inválido",
+      "username_taken": "El nombre de usuario ya está en uso",
+      "email_taken": "El correo ya está registrado"
+    }
+  },
+  "login_modal": {
+    "title": "Iniciar Sesión",
+    "or_login_with": "o inicia sesión con tu cuenta",
+    "placeholder_username": "Nombre de usuario o Correo",
+    "placeholder_password": "Contraseña",
+    "btn_signin": "Iniciar sesión",
+    "register_prompt": "¿No tienes una cuenta? Regístrate",
+    "btn_cancel": "Cancelar",
+    "alert_invalid": "Nombre de usuario o contraseña inválidos"
+  },
+  "add_model": {
+    "title": "Importar Modelo",
+    "steps": {
+      "selection": "Selección",
+      "config": "Configuración",
+      "verify": "Verificación"
+    },
+    "selection": {
+      "description": "Seleccione un repositorio para importar o pegue una URL directamente.",
+      "placeholder_url": "https://github.com/usuario/repositorio",
+      "next": "Siguiente",
+      "or_select": "O SELECCIONE REPOSITORIO",
+      "tabs": {
+        "all": "Todos",
+        "github": "GitHub",
+        "gitlab": "GitLab"
+      },
+      "search_placeholder": "Buscar...",
+      "loading": "Cargando repositorios...",
+      "imported": "Importado",
+      "empty": {
+        "title": "No se encontraron repositorios.",
+        "subtitle": "Asegúrese de que su cuenta esté conectada en la Configuración."
+      },
+      "connect": {
+        "github_title": "Vincular cuenta de GitHub",
+        "github_desc": "Necesita vincular su cuenta de GitHub para acceder a los repositorios.",
+        "github_btn": "Conectar GitHub",
+        "github_app_title": "Instalar GitHub App",
+        "github_app_desc": "Su cuenta está conectada, pero necesita instalar la App del Registro de Modelos para importar repositorios.",
+        "github_app_btn": "Instalar App",
+        "gitlab_title": "Conectar cuenta de GitLab",
+        "gitlab_desc": "Necesita conectar su cuenta de GitLab para acceder a los repositorios.",
+        "gitlab_btn": "Conectar GitLab"
+      },
+      "errors": {
+        "already_imported": "Este repositorio ya ha sido importado.",
+        "invalid_repo": "Seleccione un repositorio válido de la lista o asegúrese de que su cuenta esté conectada."
+      }
+    },
+    "config": {
+      "description": "Proporcione detalles sobre el modelo en este repositorio.",
+      "disease_label": "Enfermedad",
+      "disease_placeholder": "Escriba para buscar",
+      "no_diseases": "No se encontraron enfermedades",
+      "time_res_label": "Resolución Temporal",
+      "admin_level_label": "Nivel Administrativo",
+      "category_label": "Categoría del Modelo",
+      "sprint_label": "IMDC",
+      "sprint_full_name": "Infodengue-Mosqlimate Dengue Challenge",
+      "sprint_placeholder": "No es para IMDC",
+      "sprint_hint": "Seleccione un IMDC solo si ese modelo está participando en el desafío.",
+      "back": "Atrás",
+      "continue": "Continuar",
+      "options": {
+        "select": "Seleccione",
+        "day": "Diario",
+        "week": "Semanal",
+        "month": "Mensual",
+        "year": "Anual",
+        "adm0": "País",
+        "adm1": "Estado",
+        "adm2": "Municipio",
+        "adm3": "Submunicipal",
+        "quantitative": "Cuantitativo",
+        "categorical": "Categórico",
+        "spatial_quantitative": "Espacial Cuantitativo",
+        "spatial_categorical": "Espacial Categórico",
+        "spatio_temporal_quantitative": "Espacio-temporal Cuantitativo",
+        "spatio_temporal_categorical": "Espacio-temporal Categórico"
+      }
+    },
+    "verify": {
+      "title": "Revisión Final",
+      "description": "Por favor, revise la configuración del modelo antes de confirmar la importación.",
+      "target_disease": "Enfermedad Objetivo",
+      "unknown_disease": "Enfermedad Desconocida",
+      "features": "Características",
+      "confirm": "Confirmar",
+      "errors": {
+        "import_failed": "No se pudo importar el repositorio.",
+        "unexpected": "Ocurrió un error inesperado"
+      }
+    }
+  },
   "common": {
     "cancel": "Cancelar"
   },

@@ -389,4 +389,4 @@ export const LineChart: React.FC<ChartProps> = ({
   }, [data, predictions, mainLabels, resolvedTheme, activeIntervals, dataSeriesName, hasObservedData]);
 
   return <div ref={chartRef} style={{ width, height }} />;
-};;
+};

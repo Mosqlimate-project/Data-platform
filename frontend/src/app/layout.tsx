@@ -39,9 +39,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         )}
 
+        <GlobalLoading />
         <I18nProvider>
           <ClientProviders>
-            <GlobalLoading />
             <div className="flex min-h-screen flex-col">
               <Navbar />
               <main className="flex-1 md:items-center bg-bg">{children}</main>

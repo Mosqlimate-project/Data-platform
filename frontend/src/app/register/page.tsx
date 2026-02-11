@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import debounce from 'lodash.debounce';
+import { useTranslation } from 'react-i18next';
 
 export default function RegisterPage() {
   return (
@@ -15,6 +16,7 @@ export default function RegisterPage() {
 }
 
 function RegisterPageContent() {
+  const { t } = useTranslation('common');
   const params = useSearchParams();
   const router = useRouter();
 
@@ -65,14 +67,14 @@ function RegisterPageContent() {
         setEmail(decoded.email ?? initialEmail);
         setUsername(decoded.username ?? initialUsername);
       } catch {
-        toast.error('OAuth session expired');
+        toast.error(t('register_page.errors.auth_expired'));
       } finally {
         setLoading(false);
       }
     }
 
     fetchDecoded(data);
-  }, [data]);
+  }, [data, t, initialEmail, initialUsername]);
 
   function handleAvatarChange(file: File | null) {
     setAvatar(file);
@@ -90,11 +92,11 @@ function RegisterPageContent() {
   }
 
   const validateUsername = debounce(async (value: string) => {
-    if (value.length < 4) return setUsernameError('Username too short');
-    if (value.length > 25) return setUsernameError('Username too long');
+    if (value.length < 4) return setUsernameError(t('register_page.errors.username_short'));
+    if (value.length > 25) return setUsernameError(t('register_page.errors.username_long'));
 
     const pattern = /^[a-zA-Z0-9._]+$/;
-    if (!pattern.test(value)) return setUsernameError('Invalid username');
+    if (!pattern.test(value)) return setUsernameError(t('register_page.errors.username_invalid'));
 
     try {
       const res = await fetch(
@@ -102,13 +104,13 @@ function RegisterPageContent() {
       );
 
       if (!res.ok) {
-        setUsernameError('Username is already taken');
+        setUsernameError(t('register_page.errors.username_taken'));
         return;
       }
 
       setUsernameError('');
     } catch {
-      setUsernameError('Could not verify username');
+      setUsernameError(t('register_page.errors.username_check_fail'));
     }
   }, 1000);
 
@@ -128,7 +130,7 @@ function RegisterPageContent() {
     setPasswordError('');
 
     if (passwordScore !== null && passwordScore < 2) {
-      setPasswordError('Password is too weak');
+      setPasswordError(t('register_page.errors.password_weak'));
       return;
     }
 
@@ -152,32 +154,40 @@ function RegisterPageContent() {
 
       if (!res.ok) {
         if (responseData.message === "Username already registered") {
-          setUsernameError("Username taken. If this is you, insert your registered email to link accounts, or choose a different username.");
+          setUsernameError(t('register_page.errors.username_taken_api'));
         } else if (responseData.message === "Email already registered") {
-          setEmailError("Email already registered. Please login to link your account.");
+          setEmailError(t('register_page.errors.email_taken_api'));
         } else {
-          toast.error(responseData.message || 'Could not create account');
+          toast.error(responseData.message || t('register_page.errors.create_fail'));
         }
         return;
       }
 
-      toast.success('Account created!');
+      toast.success(t('register_page.success'));
       window.location.href = "/";
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('register_page.errors.generic_error'));
     }
   }
+
+  const strengthLabels = [
+    t('register_page.password_strength.very_weak'),
+    t('register_page.password_strength.weak'),
+    t('register_page.password_strength.fair'),
+    t('register_page.password_strength.good'),
+    t('register_page.password_strength.strong')
+  ];
 
   return (
     <div className="flex justify-center p-6 relative">
       <form
         onSubmit={handleSubmit}
         className="relative w-full max-w-3xl bg-[var(--color-bg)] rounded-2xl shadow-xl 
-                   border border-gray-200 dark:border-neutral-700 p-8 flex flex-col items-center"
+                   border border-[var(--color-border)] p-8 flex flex-col items-center"
       >
         {loading && (
           <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 
-                          flex items-center justify-center rounded-2xl">
+                          flex items-center justify-center rounded-2xl z-10">
             <div className="animate-spin h-6 w-6 border-2 border-blue-500 
                             border-t-transparent rounded-full"></div>
           </div>
@@ -188,9 +198,9 @@ function RegisterPageContent() {
             {avatarUrl ? (
               <img src={avatarUrl} className="object-cover w-full h-full" />
             ) : (
-              <div className="bg-gray-200 dark:bg-neutral-800 w-full h-full 
-                              flex items-center justify-center text-gray-500 text-sm">
-                No avatar
+              <div className="bg-[var(--color-hover)] w-full h-full 
+                              flex items-center justify-center text-[var(--color-text)] opacity-50 text-sm">
+                {t('register_page.no_avatar')}
               </div>
             )}
           </div>
@@ -220,14 +230,16 @@ function RegisterPageContent() {
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-center mb-1">Finish your profile</h1>
-        <p className="text-center text-gray-500 dark:text-gray-400 mb-8">
-          Complete with your information to register
+        <h1 className="text-2xl font-bold text-center mb-1 text-[var(--color-text)]">
+          {t('register_page.title')}
+        </h1>
+        <p className="text-center text-[var(--color-text)] opacity-60 mb-8">
+          {t('register_page.subtitle')}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <Input
-            label="Username"
+            label={t('register_page.labels.username')}
             value={username}
             onChange={handleUsernameChange}
             error={usernameError}
@@ -236,7 +248,7 @@ function RegisterPageContent() {
           />
 
           <Input
-            label="Email"
+            label={t('register_page.labels.email')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -248,7 +260,7 @@ function RegisterPageContent() {
 
           <div className="md:col-span-2">
             <Input
-              label="Password"
+              label={t('register_page.labels.password')}
               type="password"
               value={password}
               onChange={handlePasswordChange}
@@ -266,32 +278,31 @@ function RegisterPageContent() {
                   }`}
               >
                 {passwordScore < 2
-                  ? 'Password is too weak'
-                  : passwordFeedback ||
-                  ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][passwordScore]}
+                  ? t('register_page.errors.password_weak')
+                  : passwordFeedback || strengthLabels[passwordScore]}
               </p>
             )}
           </div>
 
           <Input
-            label="First name"
+            label={t('register_page.labels.first_name')}
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
           />
 
           <Input
-            label="Last name"
+            label={t('register_page.labels.last_name')}
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
           />
 
           <Input
-            label="Homepage (optional)"
+            label={t('register_page.labels.homepage')}
             value={homepage}
             onChange={(e) => setHomepage(e.target.value)}
-            placeholder="https://example.com"
+            placeholder={t('register_page.placeholders.homepage')}
             className="md:col-span-2"
           />
         </div>
@@ -303,14 +314,14 @@ function RegisterPageContent() {
             onChange={(e) => setAgree(e.target.checked)}
             className="mr-2 accent-blue-600"
           />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            I accept the{' '}
+          <span className="text-sm text-[var(--color-text)] opacity-80">
+            {t('register_page.terms.accept')}{' '}
             <a href="#" className="text-blue-600 hover:underline">
-              Terms of Service
+              {t('register_page.terms.tos')}
             </a>{' '}
-            and the{' '}
+            {t('register_page.terms.and')}{' '}
             <a href="#" className="text-blue-600 hover:underline">
-              Code of Conduct
+              {t('register_page.terms.coc')}
             </a>
           </span>
         </div>
@@ -328,7 +339,7 @@ function RegisterPageContent() {
           className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 
                      text-white font-medium rounded-md py-2 transition-all shadow-sm hover:shadow-md"
         >
-          Create Account
+          {t('register_page.btn_create')}
         </button>
       </form>
     </div>
@@ -347,14 +358,14 @@ function Input({
 }) {
   return (
     <div className={className}>
-      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+      <label className="block text-sm text-[var(--color-text)] opacity-80 mb-1">
         {label}
       </label>
       <input
         {...props}
-        className="w-full border border-gray-300 dark:border-neutral-700 rounded-md 
-                   px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 
-                   text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none
+        className="w-full border border-[var(--color-border)] rounded-md 
+                   px-3 py-2 text-sm bg-[var(--color-bg)] 
+                   text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none
                    disabled:opacity-50 disabled:cursor-not-allowed"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
