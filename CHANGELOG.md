@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.1.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.3...2.1.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* **models:** fix bug on submitting model without sprint ([#400](https://github.com/Mosqlimate-project/Data-platform/issues/400)) ([687d7c7](https://github.com/Mosqlimate-project/Data-platform/commit/687d7c78a797d93f19a81668449c361d4daace20))
+
 ## [2.1.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.2...2.1.3) (2026-02-11)
 
 
