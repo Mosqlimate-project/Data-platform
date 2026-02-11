@@ -14,6 +14,7 @@ from main.schema import Schema
 class Model(Schema):
     id: int
     repository: str
+    description: Optional[str] = ""
     disease: str
     category: str
     adm_level: int
@@ -68,7 +69,7 @@ class Prediction(Schema):
     description: str | None = ""
     start: dt | None = None
     end: dt | None = None
-    scores: list[dict]
+    scores: dict
     case_definition: str
     published: bool
     created_at: datetime
@@ -112,7 +113,7 @@ class Prediction(Schema):
         child = getattr(obj, "quantitativeprediction", None)
 
         if not child:
-            return []
+            return {}
 
         score_fields = [
             "mae_score",
@@ -123,11 +124,11 @@ class Prediction(Schema):
             "wis_score",
         ]
 
-        return [
-            {"name": field, "score": getattr(child, field, None)}
+        return {
+            field: round(getattr(child, field), 2)
             for field in score_fields
             if getattr(child, field, None) is not None
-        ]
+        }
 
 
 class PredictionData(Schema):
