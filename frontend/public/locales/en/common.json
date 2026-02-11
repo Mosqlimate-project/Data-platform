@@ -1,4 +1,7 @@
 {
+  "common": {
+    "cancel": "Cancel"
+  },
   "datastore": {
     "infodengue": {
       "title": "Mosquito-borne Diseases",
@@ -286,6 +289,7 @@
     "api_key_desc": "Use this key to authenticate CLI tools or external scripts.",
     "header_hint": "Pass this header:",
     "regenerate": "Regenerate Key",
+    "confirm_regenerate": "Regenerate",
     "connected_accounts": "Connected Accounts",
     "connected_desc": "Log in to Mosqlimate using these providers.",
     "connected_to": "Connected to {{name}}",
@@ -299,8 +303,9 @@
     "installed": "Installed",
     "install_app": "Install App",
     "configure_github": "Configure repository access on GitHub",
+    "regenerate_key": "Regenerate API Key",
     "alerts": {
-      "confirm_regenerate": "Are you sure?",
+      "confirm_regenerate": "The previous API Key will stop working. Are you sure?",
       "copied": "Copied to clipboard!"
     }
   },

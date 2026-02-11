@@ -65,5 +65,9 @@ class PredictionFilterSchema(FilterSchema):
         ]
     ] = Field(None, q="model__category__icontains")
     model_sprint: Optional[int] = Field(None, q="model__sprint__year__exact")
-    start: Optional[date] = Field(None, q="data__date__gte")
-    end: Optional[date] = Field(None, q="data__date__lte")
+    start: Optional[date] = Field(
+        None, q="quantitativeprediction__data__date__gte"
+    )
+    end: Optional[date] = Field(
+        None, q="quantitativeprediction__data__date__lte"
+    )

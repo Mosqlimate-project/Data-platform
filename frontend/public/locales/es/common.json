@@ -1,4 +1,7 @@
 {
+  "common": {
+    "cancel": "Cancelar"
+  },
   "datastore": {
     "infodengue": {
       "title": "Enfermedades transmitidas por mosquitos",
@@ -273,6 +276,8 @@
     "api_key_desc": "Usa esta clave para autenticar herramientas CLI o scripts externos.",
     "header_hint": "Pasa este encabezado:",
     "regenerate": "Regenerar Clave",
+    "regenerate_key": "Regenerar Clave API",
+    "confirm_regenerate": "Regenerar",
     "connected_accounts": "Cuentas Conectadas",
     "connected_desc": "Inicia sesión en Mosqlimate usando estos proveedores.",
     "connected_to": "Conectado a {{name}}",
@@ -287,7 +292,7 @@
     "install_app": "Instalar App",
     "configure_github": "Configurar acceso al repositorio en GitHub",
     "alerts": {
-      "confirm_regenerate": "¿Estás seguro?",
+      "confirm_regenerate": "La clave anterior dejará de funcionar. ¿Estás seguro?",
       "copied": "¡Copiado al portapapeles!"
     }
   },

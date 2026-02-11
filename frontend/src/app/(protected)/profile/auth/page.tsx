@@ -16,6 +16,8 @@ export default function AuthSettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [githubAppStatus, setGithubAppStatus] = useState<'loading' | 'connected' | 'missing'>('loading');
   const [loadingKey, setLoadingKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showRegenerateModal, setShowRegenerateModal] = useState(false);
 
   const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
 
@@ -79,9 +81,12 @@ export default function AuthSettingsPage() {
     }
   };
 
-  const rotateKey = async () => {
-    if (!confirm(t('profile_auth.alerts.confirm_regenerate'))) return;
+  const rotateKey = () => {
+    setShowRegenerateModal(true);
+  };
 
+  const confirmRegenerateKey = async () => {
+    setShowRegenerateModal(false);
     setLoadingKey(true);
     try {
       const res = await fetch('/api/user/api-key/refresh', { method: 'POST' });
@@ -100,7 +105,8 @@ export default function AuthSettingsPage() {
   const copyToClipboard = () => {
     if (apiKey) {
       navigator.clipboard.writeText(apiKey);
-      alert(t('profile_auth.alerts.copied'));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
     }
   };
 
@@ -180,13 +186,22 @@ export default function AuthSettingsPage() {
             >
               {showKey ? <FaEyeSlash /> : <FaEye />}
             </button>
-            <button
-              onClick={copyToClipboard}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
-              title="Copy to clipboard"
-            >
-              <FaCopy />
-            </button>
+
+            <div className="relative">
+              {copied && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap animate-in fade-in zoom-in duration-200">
+                  {t('profile_auth.alerts.copied')}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              )}
+              <button
+                onClick={copyToClipboard}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition"
+                title="Copy to clipboard"
+              >
+                {copied ? <FaCheckCircle /> : <FaCopy />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -276,6 +291,42 @@ export default function AuthSettingsPage() {
           </div>
         )}
       </div>
+
+      {showRegenerateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-800 max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <FaExclamationTriangle className="text-red-600 dark:text-red-500 text-xl" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {t('profile_auth.regenerate_key')}
+                </h3>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
+                {t('profile_auth.alerts.confirm_regenerate')}
+              </p>
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowRegenerateModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={confirmRegenerateKey}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+                >
+                  {t('profile_auth.confirm_regenerate')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

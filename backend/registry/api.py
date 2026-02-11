@@ -764,7 +764,6 @@ def create_prediction(request, payload: s.PredictionIn):
     ]
 
     if not calling_via_swagger(request):
-        prediction.parse_metadata()
         prediction.save()
         m.QuantitativePredictionRow.objects.bulk_create(rows)
     else:
