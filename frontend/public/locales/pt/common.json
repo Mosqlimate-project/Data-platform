@@ -47,6 +47,55 @@
     "pagination": {
       "showing": "Exibindo {{start}} a {{end}} de {{total}}",
       "page": "Página {{current}} de {{total}}"
+    },
+    "overview": {
+      "title": "Dashboard Mosqlimate",
+      "subtitle": "Explore, compare e avalie previsões geradas por diferentes modelos de previsão registrados na plataforma Mosqlimate.",
+      "overview": "Visão Geral",
+
+      "general": {
+        "title": "Geral",
+        "description": "Área geral de exploração do dashboard, onde é possível visualizar e comparar previsões produzidas por diferentes modelos disponíveis na plataforma.",
+        "what_is_displayed": "O que é exibido: ",
+        "what_is_displayed_description": "Previsões, dados observados e métricas de erro que comparam valores previstos com dados observados.",
+        "models": "Modelos: ",
+        "models_description": "todos os modelos registrados no Mosqlimate.",
+        "diseases": "Doenças: ",
+        "diseases_description": "dengue, Zika e chikungunya (quando disponíveis).",
+        "scale": "Escala: ",
+        "scale_description": "municipal, estadual ou nacional, dependendo dos modelos submetidos.",
+        "goal": "Objetivo: ",
+        "goal_description": "comparar o desempenho e o comportamento dos modelos utilizando as seguintes métricas de erro: Erro Absoluto Médio (MAE), Erro Quadrático Médio (MSE), Pontuação de Probabilidade Classificada Contínua (CRPS), pontuação de intervalo e Pontuação de Intervalo Ponderada (WIS).",
+        "typical_questions": "Perguntas típicas: ",
+        "questions": [
+          "Quão próximas as previsões estão dos dados observados?",
+          "Como o comportamento varia entre as regiões?"
+        ],
+        "button": "Dashboard Geral"
+      },
+
+      "imdc": {
+        "title": "IMDC",
+        "description": "Visualização dedicada às previsões produzidas no contexto do ",
+        "link_name": "Desafio de Dengue InfoDengue–Mosqlimate",
+        "what_is_displayed": "O que é exibido: ",
+        "what_is_displayed_description": "previsões de dengue submetidas ao IMDC.",
+        "models": "Modelos: ",
+        "models_description": "apenas modelos participantes do desafio.",
+        "diseases": "Doença: ",
+        "diseases_description": "dengue.",
+        "scale": "Escala: ",
+        "scale_description": "estadual.",
+        "goal": "Objetivo: ",
+        "goal_description": "avaliar e comparar as previsões do desafio utilizando as seguintes métricas de erro: Erro Absoluto Médio (MAE), Erro Quadrático Médio (MSE), Pontuação de Probabilidade Classificada Contínua (CRPS), pontuação de intervalo e Pontuação de Intervalo Ponderada (WIS).",
+        "typical_questions": "Perguntas típicas: ",
+        "questions": [
+          "Como os modelos do IMDC se comparam entre si?",
+          "Quais previsões antecipam melhor os picos de casos?",
+          "Como os modelos performam ao longo da temporada?"
+        ],
+        "button": "Dashboard IMDC"
+      }
     }
   },
   "register_page": {
@@ -420,17 +469,18 @@
     "data": {
       "title": "Explore nossos dados",
       "cases_title": "Casos",
-      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>Zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
       "mosquito_title": "Mosquito",
       "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
       "epi_title": "Epi-Scanner",
-      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
+      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, Zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
     },
     "models": {
       "title": "Analise nossos modelos",
-      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue."
+      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e Zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue.",
+      "image_message": "Clique para ser direcionado à aba Modelos."
     },
     "differentials": {
       "title": "Descubra os diferenciais do Mosqlimate",
@@ -446,7 +496,8 @@
       "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
     },
     "team": {
-      "title": "Conheça a nossa equipe"
+      "title": "Conheça a nossa equipe",
+      "image_message": "Clique para ser direcionado à aba 'Sobre Nós'."
     }
   },
   "model_predictions": {

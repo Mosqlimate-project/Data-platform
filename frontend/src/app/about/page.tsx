@@ -28,6 +28,45 @@ function FadeInSection({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+function ScrollIndicator({ label }: { label: string }) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    function handleScroll() {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+
+      setIsVisible(scrollTop + windowHeight < docHeight - 20);
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <div
+      onClick={() =>
+        window.scrollBy({
+          top: window.innerHeight * 0.7,
+          behavior: "smooth",
+        })
+      }
+      className="fixed bottom-6 left-8 w-14 h-14 bg-accent text-white rounded-full
+                 flex flex-col items-center justify-center shadow-xl cursor-pointer
+                 animate-bounce hover:scale-110 transition z-50"
+    >
+      <span className="text-[10px] font-semibold leading-none -mb-1">
+        {label}
+      </span>
+      <span className="text-xl leading-none">⌄</span>
+    </div>
+  );
+}
+
 
 const roleColorMap: Record<string, string> = {
   "coordination": "bg-emerald-500",
@@ -284,8 +323,10 @@ export default function AboutPage() {
                   </div>
 
                 </div>
+                
               </FadeInSection>
             ))}
+            <ScrollIndicator label={t("home.scroll")} />
           </div>
         </div>
       </section>
