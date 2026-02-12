@@ -112,8 +112,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
   };
 
   const SECTION_LABEL_MAP: Record<string, string> = {
-    default: "dashboard.general.title",
-    sprint: "dashboard.imdc.title",
+    default: "dashboard.overview.general.title",
+    sprint: "dashboard.overview.imdc.title",
   };
 
   return (
@@ -149,7 +149,7 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                 : "hover:bg-primary/5 hover:text-text"
               }`}
           >
-            {t("dashboard.overview")}
+            {t("dashboard.overview.overview")}
           </Link>
 
           {(sections || []).map((section) => (
