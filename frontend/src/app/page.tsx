@@ -70,9 +70,22 @@ function ScrollIndicator({ label }: { label: string }) {
 
   return (
     <div
-      onClick={() =>
-        window.scrollTo({ top: window.innerHeight, behavior: "smooth" })
-      }
+      onClick={() => {
+        const sections = Array.from(
+          document.querySelectorAll<HTMLElement>("[data-scroll-section]")
+        );
+
+        const currentScroll = window.scrollY + 10;
+
+        const nextSection = sections.find(
+          (section) => section.offsetTop > currentScroll
+        );
+
+        if (nextSection) {
+          nextSection.scrollIntoView({ behavior: "smooth" });
+        }
+      }}
+      
       className="fixed bottom-6 left-8 w-14 h-14 bg-accent text-white rounded-full flex flex-col items-center justify-center shadow-xl cursor-pointer animate-bounce hover:scale-110 transition z-50"
     >
       <span className="text-[10px] font-semibold leading-none -mb-1">
@@ -89,7 +102,7 @@ export default function HomePage() {
   return (
     <div className="relative w-full min-h-screen bg-[var(--color-bg)] text-text transition-colors duration-300">
       <div className="relative">
-        <section className="py-32 px-6 text-center bg-[var(--color-bg)] min-h-[90vh] flex flex-col justify-center">
+        <section data-scroll-section className="py-32 px-6 text-center bg-[var(--color-bg)] min-h-[90vh] flex flex-col justify-center">
           <Image
             src="/mosquito.svg"
             alt="Logo"
@@ -110,7 +123,7 @@ export default function HomePage() {
           <ScrollIndicator label={t("home.scroll")} />
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg)]">
+        <section data-scroll-section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">
@@ -165,7 +178,7 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg)]">
+        <section data-scroll-section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-6xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-10 text-text">
@@ -265,31 +278,39 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg)]">
+        <section data-scroll-section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-5xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">
                 {t("home.models.title")}
               </h2>
-              <p className="text-xl text-text/80 max-w-5xl leading-relaxed">
+              <p className="text-xl text-text/80 max-w-5xl mb-8 leading-relaxed">
                 {t("home.models.description")}
               </p>
 
-              <a href="/models" className="inline-block">
+              <a href="/models" className="group relative inline-block">
                 <Image
                   src="/models.png"
                   alt="Models"
                   width={1600}
                   height={1200}
-                  className="mx-auto w-full max-w-6xl h-auto mt-8"
+                  className="mx-auto transition group-hover:opacity-80"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                 />
+
+                <div className="absolute inset-0 flex items-center justify-center
+                                bg-black/40 opacity-0 group-hover:opacity-100
+                                transition-opacity">
+                  <span className="text-white text-lg font-medium px-4 text-center">
+                    {t("home.models.image_message")}
+                  </span>
+                </div>
               </a>
             </div>
           </FadeInSection>
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg)]">
+        <section data-scroll-section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-[1400px] mx-auto text-center">
               <h2 className="text-5xl font-bold mb-16 text-text">
@@ -361,21 +382,28 @@ export default function HomePage() {
           </FadeInSection>
         </section>
 
-        <section className="py-32 px-6 bg-[var(--color-bg)]">
+        <section data-scroll-section className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="w-full mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">
                 {t("home.team.title")}
               </h2>
-              <a href="/about" className="inline-block">
+              <a href="/about" className="group relative inline-block">
                 <Image
                   src="/team.svg"
                   alt="Team"
                   width={650}
                   height={100}
-                  className="mx-auto"
+                  className="mx-auto transition group-hover:opacity-80"
                   sizes="(max-width: 768px) 300px, 650px"
                 />
+                <div className="absolute inset-0 flex items-center justify-center
+                                bg-black/40 opacity-0 group-hover:opacity-100
+                                transition-opacity">
+                  <span className="text-white text-lg font-medium px-4 text-center">
+                    {t("home.team.image_message")}
+                  </span>
+                </div>
               </a>
             </div>
           </FadeInSection>

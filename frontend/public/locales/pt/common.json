@@ -420,17 +420,18 @@
     "data": {
       "title": "Explore nossos dados",
       "cases_title": "Casos",
-      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>Zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
       "mosquito_title": "Mosquito",
       "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
       "epi_title": "Epi-Scanner",
-      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
+      "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, Zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
     },
     "models": {
       "title": "Analise nossos modelos",
-      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue."
+      "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e Zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue.",
+      "image_message": "Clique para ser direcionado à aba Modelos."
     },
     "differentials": {
       "title": "Descubra os diferenciais do Mosqlimate",
@@ -446,7 +447,8 @@
       "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
     },
     "team": {
-      "title": "Conheça a nossa equipe"
+      "title": "Conheça a nossa equipe",
+      "image_message": "Clique para ser direcionado à aba 'Sobre Nós'."
     }
   },
   "dashboard": {

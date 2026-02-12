@@ -420,17 +420,18 @@
     "data": {
       "title": "Explore our data",
       "cases_title": "Cases",
-      "cases_desc": "Weekly data on <b>dengue</b>, <b>zika</b>, and <b>chikungunya</b> for all Brazilian municipalities to track trends and seasonality for disease control.",
+      "cases_desc": "Weekly data on <b>dengue</b>, <b>Zika</b>, and <b>chikungunya</b> for all Brazilian municipalities to track trends and seasonality for disease control.",
       "climate_title": "Climate",
       "climate_desc": "Daily climate variables extracted from satellite reanalysis data, such as <b>temperature</b> and <b>precipitation</b>, to predict the proliferation dynamics of vector mosquitoes.",
       "mosquito_title": "Mosquito",
       "mosquito_desc": "Data from the <b>Contaovos</b> project, obtained through traps for Aedes aegypti eggs to monitor vector density in real-time in Brazil.",
       "epi_title": "Epi-Scanner",
-      "epi_desc": "Analyzes and presents updated data on the <b>expansion of dengue, zika, and chikungunya</b> in the national territory, focusing on spatial and temporal transmission patterns."
+      "epi_desc": "Analyzes and presents updated data on the <b>expansion of dengue, Zika, and chikungunya</b> in the national territory, focusing on spatial and temporal transmission patterns."
     },
     "models": {
       "title": "Analyze our models",
-      "description": "Mosqlimate provides and registers forecasting models for dengue, chikungunya, and zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of expansion signs or outbreaks, including new arboviruses, integrating with the Infodengue early warning system."
+      "description": "Mosqlimate provides and registers forecasting models for dengue, chikungunya, and Zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of expansion signs or outbreaks, including new arboviruses, integrating with the Infodengue early warning system.",
+      "image_message": "Click to be redirected to the Models tab."
     },
     "differentials": {
       "title": "Discover Mosqlimate's differentials",
@@ -446,7 +447,8 @@
       "community_desc": "Holds prominent events such as the biannual E-Vigilância and the annual Sprint, in addition to continuous seminars."
     },
     "team": {
-      "title": "Meet our team"
+      "title": "Meet our team",
+      "image_message": "Click to be redirected to the 'About Us' tab."
     }
   },
   "dashboard": {
