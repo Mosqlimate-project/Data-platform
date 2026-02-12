@@ -1,4 +1,212 @@
 {
+  "dashboard": {
+    "score_columns": {
+      "mae": "MAE",
+      "mse": "MSE",
+      "crps": "CRPS",
+      "interval": "Intervalo",
+      "wis": "WIS"
+    },
+    "filters": {
+      "disease": "Agravo",
+      "country": "País",
+      "state": "Estado",
+      "city": "Município",
+      "case_definition": "Definição de Caso",
+      "reported": "Notificados",
+      "probable": "Prováveis",
+      "imdc_sprint": "Ano do Sprint IMDC"
+    },
+    "chart": {
+      "probable_cases": "Casos prováveis",
+      "cases": "casos",
+      "select_disease": "Selecione um agravo para visualizar os dados."
+    },
+    "panels": {
+      "models": "Modelos",
+      "no_models": "Nenhum modelo disponível",
+      "predictions": "Previsões"
+    },
+    "search": {
+      "models": "Buscar modelos...",
+      "predictions": "Buscar por ID, Autor, Modelo ou Ano..."
+    },
+    "actions": {
+      "select_10": "Selecionar 10",
+      "clear": "Limpar",
+      "toggle_ci": "Alternar Intervalos de Confiança"
+    },
+    "status": {
+      "loading": "Carregando previsões...",
+      "no_predictions": "Nenhuma previsão encontrada."
+    },
+    "table": {
+      "model": "Modelo",
+      "interval_bounds": "Limites de Intervalo"
+    },
+    "pagination": {
+      "showing": "Exibindo {{start}} a {{end}} de {{total}}",
+      "page": "Página {{current}} de {{total}}"
+    }
+  },
+  "register_page": {
+    "title": "Complete seu perfil",
+    "subtitle": "Preencha suas informações para se registrar",
+    "no_avatar": "Sem avatar",
+    "labels": {
+      "username": "Nome de usuário",
+      "email": "E-mail",
+      "password": "Senha",
+      "first_name": "Nome",
+      "last_name": "Sobrenome",
+      "homepage": "Homepage (opcional)"
+    },
+    "placeholders": {
+      "homepage": "https://exemplo.com"
+    },
+    "terms": {
+      "accept": "Eu aceito os",
+      "tos": "Termos de Serviço",
+      "and": "e o",
+      "coc": "Código de Conduta"
+    },
+    "btn_create": "Criar Conta",
+    "errors": {
+      "username_short": "Nome de usuário muito curto",
+      "username_long": "Nome de usuário muito longo",
+      "username_invalid": "Nome de usuário inválido",
+      "username_taken": "Nome de usuário já está em uso",
+      "username_check_fail": "Não foi possível verificar o nome de usuário",
+      "password_weak": "A senha é muito fraca",
+      "auth_expired": "Sessão OAuth expirada",
+      "generic_error": "Ocorreu um erro. Por favor, tente novamente.",
+      "create_fail": "Não foi possível criar a conta",
+      "username_taken_api": "Nome de usuário em uso. Se for você, insira seu e-mail cadastrado para vincular contas ou escolha outro nome de usuário.",
+      "email_taken_api": "E-mail já registrado. Por favor, faça login para vincular sua conta."
+    },
+    "password_strength": {
+      "very_weak": "Muito fraca",
+      "weak": "Fraca",
+      "fair": "Razoável",
+      "good": "Boa",
+      "strong": "Forte"
+    },
+    "success": "Conta criada!"
+  },
+  "register_modal": {
+    "title": "Crie sua conta",
+    "or_register_with": "ou cadastre-se com e-mail",
+    "placeholder_username": "Nome de usuário",
+    "placeholder_email": "E-mail",
+    "btn_continue": "Continuar",
+    "btn_cancel": "Cancelar",
+    "errors": {
+      "username_short": "Nome de usuário muito curto",
+      "username_long": "Nome de usuário muito longo",
+      "username_invalid": "Nome de usuário inválido",
+      "email_invalid": "E-mail inválido",
+      "username_taken": "Nome de usuário já está em uso",
+      "email_taken": "E-mail já registrado"
+    }
+  },
+  "login_modal": {
+    "title": "Entrar",
+    "or_login_with": "ou entre com sua conta",
+    "placeholder_username": "Nome de usuário ou E-mail",
+    "placeholder_password": "Senha",
+    "btn_signin": "Entrar",
+    "register_prompt": "Não tem uma conta? Registre-se",
+    "btn_cancel": "Cancelar",
+    "alert_invalid": "Nome de usuário ou senha inválidos"
+  },
+  "add_model": {
+    "title": "Importar Modelo",
+    "steps": {
+      "selection": "Seleção",
+      "config": "Configuração",
+      "verify": "Verificação"
+    },
+    "selection": {
+      "description": "Selecione um repositório para importar ou cole uma URL diretamente.",
+      "placeholder_url": "https://github.com/usuario/repositorio",
+      "next": "Próximo",
+      "or_select": "OU SELECIONE REPOSITÓRIO",
+      "tabs": {
+        "all": "Todos",
+        "github": "GitHub",
+        "gitlab": "GitLab"
+      },
+      "search_placeholder": "Buscar...",
+      "loading": "Carregando repositórios...",
+      "imported": "Importado",
+      "empty": {
+        "title": "Nenhum repositório encontrado.",
+        "subtitle": "Certifique-se de que sua conta está conectada nas Configurações."
+      },
+      "connect": {
+        "github_title": "Vincular conta GitHub",
+        "github_desc": "Você precisa vincular sua conta do GitHub para acessar os repositórios.",
+        "github_btn": "Conectar GitHub",
+        "github_app_title": "Instalar GitHub App",
+        "github_app_desc": "Sua conta está conectada, mas você precisa instalar o App do Registro de Modelos para importar repositórios.",
+        "github_app_btn": "Instalar App",
+        "gitlab_title": "Conectar conta GitLab",
+        "gitlab_desc": "Você precisa conectar sua conta do GitLab para acessar os repositórios.",
+        "gitlab_btn": "Conectar GitLab"
+      },
+      "errors": {
+        "already_imported": "Este repositório já foi importado.",
+        "invalid_repo": "Selecione um repositório válido da lista ou verifique se sua conta está conectada."
+      }
+    },
+    "config": {
+      "description": "Forneça detalhes sobre o modelo neste repositório.",
+      "disease_label": "Agravo",
+      "disease_placeholder": "Digite para buscar",
+      "no_diseases": "Nenhum agravo encontrado",
+      "time_res_label": "Resolução Temporal",
+      "admin_level_label": "Nível Administrativo",
+      "category_label": "Categoria do Modelo",
+      "sprint_label": "IMDC",
+      "sprint_full_name": "Infodengue-Mosqlimate Dengue Challenge",
+      "sprint_placeholder": "Não é para o IMDC",
+      "sprint_hint": "Selecione um IMDC apenas se esse modelo estiver participando do desafio.",
+      "back": "Voltar",
+      "continue": "Continuar",
+      "options": {
+        "select": "Selecione",
+        "day": "Diário",
+        "week": "Semanal",
+        "month": "Mensal",
+        "year": "Anual",
+        "adm0": "País",
+        "adm1": "Estado",
+        "adm2": "Município",
+        "adm3": "Subdistrito",
+        "quantitative": "Quantitativo",
+        "categorical": "Categórico",
+        "spatial_quantitative": "Espacial Quantitativo",
+        "spatial_categorical": "Espacial Categórico",
+        "spatio_temporal_quantitative": "Espaço-temporal Quantitativo",
+        "spatio_temporal_categorical": "Espaço-temporal Categórico"
+      }
+    },
+    "verify": {
+      "title": "Revisão Final",
+      "description": "Por favor, revise a configuração do modelo antes de confirmar a importação.",
+      "target_disease": "Agravo Alvo",
+      "unknown_disease": "Agravo Desconhecido",
+      "features": "Funcionalidades",
+      "confirm": "Confirmar",
+      "errors": {
+        "import_failed": "Não foi possível importar o repositório.",
+        "unexpected": "Ocorreu um erro inesperado"
+      }
+    }
+  },
+  "common": {
+    "cancel": "Cancelar"
+  },
   "datastore": {
     "infodengue": {
       "title": "Doenças transmitidas por mosquitos",
@@ -166,7 +374,7 @@
       "eduardo": "Bacharel em engenharia de controle e automação na UTFPR. Tem experiência na análise de dados de saúde pública e desenvolvimento de modelos de aprendizado de máquina aplicados a contextos epidemiológicos. Seus interesses incluem ciência de dados aplicada à saúde, modelagem matemática e computacional de doenças, desenvolvimento de ferramentas em Python e colaboração interdisciplinar em projetos de impacto social. Atua como cientista de dados no WP2 do projeto Mosqlimate. Também é gerente do projeto Mosqlimate.",
       "iasmim": "Pós-doutoranda na FGV EMAp. Doutora e Mestre em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Pesquisadora no projeto Infodengue e Mosqlimate, atua no WP2 com modelos envolvendo padrões de transmissão de arboviroses e seus determinantes epidemiológicos e climáticos. É também Gerente de Engajamento Comunitário do Mosqlimate e pesquisadora líder no WP3. Seus interesses de pesquisa focam em doenças transmissíveis e sua epidemiologia.",
       "lua": "Estudante de Ciência da Computação e entusiasta de Código Aberto. Desenvolvedor de Software na Fundação Getulio Vargas, responsável pelo desenvolvimento, implantação e manutenção do Projeto Mosqlimate.",
-      "lucas": "Estatístico e cientista de dados, com doutorado em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Minha experiência profissional inclui a aplicação de metodologias estatísticas e de aprendizado de máquina em diversos campos como agricultura e saúde, além de contribuir para iniciativas de saúde pública e análise de dados para organizações internacionais.",
+      "lucas": "Estatístico e cientista de dados, com doutorado em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Minha experiência profissional inclui a aplicação de metodologías estatísticas e de aprendizado de máquina em diversos campos como agricultura e saúde, além de contribuir para iniciativas de saúde pública e análise de dados para organizações internacionais.",
       "fabiana": "Mestre e doutora em Epidemiologia e Saúde Pública pela Universidade de Brasília e Universitat Autònoma de Barcelona. É pesquisadora de pós-doutorado na FGV EMAp e membro da Equipe Mosqlimate, pesquisando estratégias de vigilância da dengue e a relação entre fatores socioeconômicos, climáticos e ambientais com doenças arbovirais. Fabiana é coordenadora do Forecast Sprint do Mosqlimate, gerenciando nossas competições internacionais anuais de previsão.",
       "beatriz": "Pós-doutoranda na FGV EMAp e membro da Equipe Mosqlimate, realizando pesquisas sobre inferência Bayesiana, modelagem matemática da Dengue e Teoria da Possibilidade. Mestre e Doutora em Matemática Aplicada pela UNICAMP. Tem curiosidade por modelos híbridos de doenças infecciosas envolvendo sistemas dinâmicos fuzzy, redes neurais e métodos estatísticos de quantificação de incerteza.",
       "marcio": "Doutorando em Física, possui profunda afinidade com sistemas dinâmicos, mecânica estatística, inferência Bayesiana e aprendizado de máquina. Atualmente contribui com seus insights como pesquisador colaborativo no projeto Mosqlimate.",
@@ -286,6 +494,8 @@
     "api_key_desc": "Use esta chave para autenticar ferramentas CLI ou scripts externos.",
     "header_hint": "Passe este cabeçalho:",
     "regenerate": "Gerar Nova Chave",
+    "regenerate_key": "Gerar Nova Chave de API",
+    "confirm_regenerate": "Gerar Nova Chave",
     "connected_accounts": "Contas Conectadas",
     "connected_desc": "Faça login no Mosqlimate usando estes provedores.",
     "connected_to": "Conectado ao {{name}}",
@@ -300,7 +510,7 @@
     "install_app": "Instalar App",
     "configure_github": "Configurar acesso ao repositório no GitHub",
     "alerts": {
-      "confirm_regenerate": "Tem certeza?",
+      "confirm_regenerate": "A chave anterior deixará de funcionar. Tem certeza?",
       "copied": "Copiado para a área de transferência!"
     }
   },

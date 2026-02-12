@@ -1,6 +1,34 @@
 Release Notes
 ---
 
+## [2.1.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.3...2.1.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* **models:** fix bug on submitting model without sprint ([#400](https://github.com/Mosqlimate-project/Data-platform/issues/400)) ([687d7c7](https://github.com/Mosqlimate-project/Data-platform/commit/687d7c78a797d93f19a81668449c361d4daace20))
+
+## [2.1.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.2...2.1.3) (2026-02-11)
+
+
+### Bug Fixes
+
+* **registry:** minor fixes to work properly with mosqlient ([#397](https://github.com/Mosqlimate-project/Data-platform/issues/397)) ([e5152eb](https://github.com/Mosqlimate-project/Data-platform/commit/e5152eba595cf7e173ce74de9edcd14fd1e88d18))
+
+## [2.1.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.1...2.1.2) (2026-02-10)
+
+
+### Bug Fixes
+
+* reinclude some registry endpoints to work on mosqlient ([#396](https://github.com/Mosqlimate-project/Data-platform/issues/396)) ([4e8d1fa](https://github.com/Mosqlimate-project/Data-platform/commit/4e8d1faa3ba57729852c300a92ff28474f626a95))
+
+## [2.1.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.0...2.1.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* reinclude google gtag on the frontend ([#395](https://github.com/Mosqlimate-project/Data-platform/issues/395)) ([552941a](https://github.com/Mosqlimate-project/Data-platform/commit/552941a925f35a0ea8ae5e9266bb390bbbe90ece))
+
 # [2.1.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.0.5...2.1.0) (2026-02-09)
 
 

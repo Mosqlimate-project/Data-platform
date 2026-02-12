@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useChart } from "../../hooks/useChart";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "next-themes";
 
 interface ChartProps {
   geocode: string;
@@ -12,6 +13,7 @@ interface ChartProps {
 
 export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
   const { t } = useTranslation('common');
+  const { resolvedTheme } = useTheme();
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -53,9 +55,17 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
           title: {
             text: t('charts_climate.precip_title', { location: locationTitle }),
             left: "center",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
           },
           tooltip: {
             trigger: "axis",
+            backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
+            borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827",
+            },
             formatter: (params: any) => {
               let result = params[0].axisValueLabel + "<br/>";
               params.forEach((item: any) => {
@@ -68,7 +78,10 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
           },
           legend: {
             data: [t('charts_climate.precip_total'), t('charts_climate.precip_avg')],
-            top: 40
+            top: 40,
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
           },
           grid: {
             left: '3%',
@@ -81,21 +94,43 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             name: t('charts_climate.date'),
             nameLocation: "middle",
             nameGap: 30,
-            nameTextStyle: { fontSize: 12, fontWeight: "bold" },
+            nameTextStyle: {
+              fontSize: 12,
+              fontWeight: "bold",
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
             type: "category",
             data: dates,
             axisLabel: {
               fontSize: 11,
-              formatter: (value: string) => value
+              formatter: (value: string) => value,
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            axisLine: {
+              lineStyle: {
+                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+              },
             },
           },
           yAxis: {
             name: t('charts_climate.precip_axis'),
             nameLocation: "middle",
             nameGap: 40,
-            nameTextStyle: { fontSize: 12, fontWeight: "bold" },
+            nameTextStyle: {
+              fontSize: 12,
+              fontWeight: "bold",
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
             type: "value",
             splitNumber: 4,
+            axisLabel: {
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            splitLine: {
+              lineStyle: {
+                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+              },
+            },
           },
           series: [
             {
@@ -117,7 +152,18 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
           ],
           dataZoom: [
             { type: "inside", throttle: 50 },
-            { type: "slider", show: true, bottom: 5, height: 15 },
+            {
+              type: "slider",
+              show: true,
+              bottom: 5,
+              height: 15,
+              borderColor: "transparent",
+              backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#f3f4f6",
+              fillerColor: resolvedTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              textStyle: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280",
+              }
+            },
           ],
         });
 
@@ -128,7 +174,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end, t]);
+  }, [geocode, start, end, t, resolvedTheme]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "400px" }} />;
@@ -136,6 +182,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
 
 export function TemperatureChart({ geocode, start, end }: ChartProps) {
   const { t } = useTranslation('common');
+  const { resolvedTheme } = useTheme();
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -175,12 +222,56 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
         const tempMax = data.map((d: any) => d.temp_max);
 
         setOption({
-          title: { text: t('charts_climate.temp_title', { location: locationTitle }), left: "center" },
-          tooltip: { trigger: "axis" },
-          legend: { data: [t('charts_climate.temp_max'), t('charts_climate.temp_med'), t('charts_climate.temp_min')], top: 35 },
+          title: {
+            text: t('charts_climate.temp_title', { location: locationTitle }),
+            left: "center",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
+          },
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
+            borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827",
+            }
+          },
+          legend: {
+            data: [t('charts_climate.temp_max'), t('charts_climate.temp_med'), t('charts_climate.temp_min')],
+            top: 35,
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
+          },
           grid: { left: 50, right: 30, bottom: 50, top: 80 },
-          xAxis: { type: "category", data: dates },
-          yAxis: { name: t('charts_climate.temp_axis'), type: "value" },
+          xAxis: {
+            type: "category",
+            data: dates,
+            axisLabel: {
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            axisLine: {
+              lineStyle: {
+                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+              },
+            },
+          },
+          yAxis: {
+            name: t('charts_climate.temp_axis'),
+            type: "value",
+            axisLabel: {
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            nameTextStyle: {
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            splitLine: {
+              lineStyle: {
+                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+              },
+            },
+          },
           series: [
             {
               name: t('charts_climate.temp_max'),
@@ -206,7 +297,18 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
           ],
           dataZoom: [
             { type: "inside", throttle: 50 },
-            { type: "slider", show: true, bottom: 7, height: 10 },
+            {
+              type: "slider",
+              show: true,
+              bottom: 7,
+              height: 10,
+              borderColor: "transparent",
+              backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#f3f4f6",
+              fillerColor: resolvedTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              textStyle: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280",
+              }
+            },
           ],
         });
 
@@ -217,7 +319,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end, t]);
+  }, [geocode, start, end, t, resolvedTheme]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "500px" }} />;
@@ -225,6 +327,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
 
 export function AirChart({ geocode, start, end }: ChartProps) {
   const { t } = useTranslation('common');
+  const { resolvedTheme } = useTheme();
   const [option, setOption] = useState<echarts.EChartsOption | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -265,15 +368,39 @@ export function AirChart({ geocode, start, end }: ChartProps) {
         setOption({
           title: {
             text: t('charts_climate.air_title', { location: locationTitle }),
-            left: "center"
+            left: "center",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
           },
-          tooltip: { trigger: "axis" },
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
+            borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827",
+            }
+          },
           legend: {
             data: [t('charts_climate.air_humidity'), t('charts_climate.air_pressure')],
-            top: 35
+            top: 35,
+            textStyle: {
+              color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
+            }
           },
           grid: { left: 50, right: 50, bottom: 50, top: 80 },
-          xAxis: { type: "category", data: dates },
+          xAxis: {
+            type: "category",
+            data: dates,
+            axisLabel: {
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
+            axisLine: {
+              lineStyle: {
+                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+              },
+            },
+          },
           yAxis: [
             {
               type: "value",
@@ -281,11 +408,29 @@ export function AirChart({ geocode, start, end }: ChartProps) {
               position: "left",
               min: "dataMin",
               max: (value) => value.max + 0.02,
+              axisLabel: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+              },
+              nameTextStyle: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+              },
+              splitLine: {
+                lineStyle: {
+                  color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+                },
+              },
             },
             {
               type: "value",
               name: t('charts_climate.humidity_axis'),
               position: "right",
+              axisLabel: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+              },
+              nameTextStyle: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+              },
+              splitLine: { show: false }
             },
           ],
           series: [
@@ -307,7 +452,18 @@ export function AirChart({ geocode, start, end }: ChartProps) {
           ],
           dataZoom: [
             { type: "inside", throttle: 50 },
-            { type: "slider", show: true, bottom: 7, height: 10 },
+            {
+              type: "slider",
+              show: true,
+              bottom: 7,
+              height: 10,
+              borderColor: "transparent",
+              backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#f3f4f6",
+              fillerColor: resolvedTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              textStyle: {
+                color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280",
+              }
+            },
           ],
         });
       } catch (error) {
@@ -317,7 +473,7 @@ export function AirChart({ geocode, start, end }: ChartProps) {
       }
     }
     load();
-  }, [geocode, start, end, t]);
+  }, [geocode, start, end, t, resolvedTheme]);
 
   const chartRef = useChart(option, loading);
   return <div ref={chartRef} style={{ width: "100%", height: "500px" }} />;

@@ -21,7 +21,7 @@ User = get_user_model()
 
 
 def hist_alerta_data(
-    sprint: bool,
+    case_definition: Literal["reported", "probable"],
     disease: str,
     start_window_date: date,
     end_window_date: date,
@@ -57,7 +57,9 @@ def hist_alerta_data(
             municipio_geocodigo__in=geocodes,
         )
         .values("data_iniSE")
-        .annotate(casos=Sum("casprov" if sprint else "casos"))
+        .annotate(
+            casos=Sum("casprov" if case_definition == "probable" else "casos")
+        )
         .order_by("data_iniSE")
     )
 

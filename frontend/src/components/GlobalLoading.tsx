@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 
 export default function GlobalLoading() {
   const [isLoading, setIsLoading] = useState(true);
-  const pathname = usePathname();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -15,12 +13,6 @@ export default function GlobalLoading() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, [pathname]);
 
   if (!isLoading) return null;
 

@@ -111,7 +111,7 @@ export function DashboardSidebar({ sections }: SidebarProps) {
 
   return (
     <div
-      className={`flex flex-col flex-shrink-0 h-full bg-bg border-r border-border transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
+      className={`flex flex-col flex-shrink-0 min-h-screen bg-bg border-r border-border transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
         }`}
     >
       <div className="relative flex items-center justify-between h-16 px-4 border-b border-border/50">
@@ -138,8 +138,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors whitespace-nowrap ${pathname === "/dashboard"
-              ? "bg-accent text-white"
-              : "hover:bg-primary/5 hover:text-text"
+                ? "bg-accent text-white"
+                : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             Overview
@@ -171,8 +171,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                           adm_level: LEVEL_TO_INT[level.id] || "1",
                         })}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
-                          ? "bg-accent text-white font-medium"
-                          : "hover:bg-primary/5 hover:text-text"
+                            ? "bg-accent text-white font-medium"
+                            : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
                         {level.label}

@@ -14,6 +14,7 @@ from main.schema import Schema
 class Model(Schema):
     id: int
     repository: str
+    description: Optional[str] = ""
     disease: str
     category: str
     adm_level: int
@@ -63,12 +64,11 @@ class Model(Schema):
 class Prediction(Schema):
     id: int
     model: Model
-    predict_date: dt
     commit: str
     description: str | None = ""
     start: dt | None = None
     end: dt | None = None
-    scores: list[dict]
+    scores: dict
     case_definition: str
     published: bool
     created_at: datetime
@@ -112,7 +112,7 @@ class Prediction(Schema):
         child = getattr(obj, "quantitativeprediction", None)
 
         if not child:
-            return []
+            return {}
 
         score_fields = [
             "mae_score",
@@ -123,11 +123,11 @@ class Prediction(Schema):
             "wis_score",
         ]
 
-        return [
-            {"name": field, "score": getattr(child, field, None)}
+        return {
+            field: round(getattr(child, field), 2)
             for field in score_fields
             if getattr(child, field, None) is not None
-        ]
+        }
 
 
 class PredictionData(Schema):
@@ -141,6 +141,10 @@ class PredictionData(Schema):
     upper_80: float | None = None
     upper_90: float
     upper_95: float | None = None
+
+
+class PredictionDetail(Prediction):
+    data: List[PredictionData]
 
 
 class SprintOut(Schema):
@@ -196,11 +200,6 @@ class PredictionIn(Schema):
         description="The full 40-character commit hash",
         examples="8843d7f92416211de9ebb963ff4ce28125932878",
         pattern=r"^[0-9a-fA-F]{40}$",
-    )
-    predict_date: dt = Field(
-        ...,
-        description="The reference date for this prediction (YYYY-MM-DD).",
-        example="2023-10-25",
     )
     case_definition: Literal["reported", "probable"] = Field(
         "probable",
@@ -320,7 +319,7 @@ class ModelIncludeInit(Schema):
         "spatio_temporal_quantitative",
         "spatio_temporal_categorical",
     ]
-    sprint: int
+    sprint: Optional[int] = None
 
 
 class ContributorOut(Schema):
@@ -396,6 +395,7 @@ class ModelPredictionOut(Schema):
     start: dt | None
     end: dt | None
     scores: list[dict]
+    case_definition: str
     published: bool
     created_at: datetime
     disease_code: str = Field(alias="model.disease.code")
@@ -413,7 +413,7 @@ class ModelPredictionOut(Schema):
 
     @staticmethod
     def resolve_date(obj):
-        return obj.predict_date
+        return obj.created_at
 
     @staticmethod
     def resolve_sprint(obj):

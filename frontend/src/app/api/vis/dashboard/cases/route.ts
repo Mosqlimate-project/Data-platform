@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
 
   const params = [
     "sprint",
+    "case_definition",
     "disease",
     "start",
     "end",

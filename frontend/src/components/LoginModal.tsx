@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaGitlab } from "react-icons/fa";
 import { oauthLogin } from "@/lib/api/auth";
+import { useTranslation } from 'react-i18next';
 
 interface LoginModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ open, onClose, onCancel }: LoginModalProps) {
+  const { t } = useTranslation('common');
   const { openRegister, fetchUser } = useAuth();
   const pathname = usePathname();
 
@@ -53,20 +55,20 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl p-8 w-[90%] max-w-md relative border border-gray-200 dark:border-neutral-700"
+            className="bg-[var(--color-bg)] rounded-2xl shadow-xl p-8 w-[90%] max-w-md relative border border-[var(--color-border)]"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', duration: 0.3 }}
           >
-            <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-gray-100">
-              Login
+            <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--color-text)]">
+              {t('login_modal.title')}
             </h2>
 
             <div className="flex justify-center gap-3 mb-6">
               <button
                 onClick={() => handleOAuth("google")}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
                   <FcGoogle size={18} />
@@ -76,17 +78,17 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
               <button
                 onClick={() => handleOAuth("github")}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
-                  <FaGithub size={18} className="text-gray-800 dark:text-white" />
+                  <FaGithub size={18} className="text-[var(--color-text)]" />
                 </React.Suspense>
                 <span>GitHub</span>
               </button>
 
               <button
                 onClick={() => handleOAuth("gitlab")}
-                className="flex items-center gap-2 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                className="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--color-hover)] text-[var(--color-text)] transition"
               >
                 <React.Suspense fallback={null}>
                   <FaGitlab size={18} className="text-orange-600" />
@@ -97,11 +99,11 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-neutral-700" />
+                <div className="w-full border-t border-[var(--color-border)]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-neutral-900 px-3 text-gray-500 dark:text-gray-400">
-                  or login with your account
+                <span className="bg-[var(--color-bg)] px-3 text-[var(--color-text)] opacity-60">
+                  {t('login_modal.or_login_with')}
                 </span>
               </div>
             </div>
@@ -124,7 +126,7 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 });
 
                 if (!resp.ok) {
-                  alert("Invalid username or password");
+                  alert(t('login_modal.alert_invalid'));
                   return;
                 }
 
@@ -136,16 +138,16 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
               <input
                 name="username"
                 type="text"
-                placeholder="Username or Email"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder={t('login_modal.placeholder_username')}
+                className="border border-[var(--color-border)] rounded-md px-3 py-2 text-sm bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
               <input
                 name="password"
                 type="password"
-                placeholder="Password"
-                className="border border-gray-300 dark:border-neutral-700 rounded-md px-3 py-2 text-sm bg-transparent dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder={t('login_modal.placeholder_password')}
+                className="border border-[var(--color-border)] rounded-md px-3 py-2 text-sm bg-[var(--color-bg)] text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
@@ -153,23 +155,23 @@ export default function LoginModal({ open, onClose, onCancel }: LoginModalProps)
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2 mt-3 transition-all shadow-sm hover:shadow-md"
               >
-                Sign in
+                {t('login_modal.btn_signin')}
               </button>
             </form>
 
-            <div className="flex flex-col items-center mt-5 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col items-center mt-5 text-sm text-[var(--color-text)] opacity-80">
               <button
                 onClick={handleRegister}
-                className="underline hover:text-blue-600 dark:hover:text-blue-400 transition mb-2"
+                className="underline hover:text-blue-500 transition mb-2"
               >
-                Don’t have an account? Register
+                {t('login_modal.register_prompt')}
               </button>
 
               <button
                 onClick={handleCancel}
-                className="underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                className="underline hover:text-blue-500 transition"
               >
-                Cancel
+                {t('login_modal.btn_cancel')}
               </button>
             </div>
           </motion.div>

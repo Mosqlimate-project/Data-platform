@@ -1,4 +1,212 @@
 {
+  "dashboard": {
+    "score_columns": {
+      "mae": "MAE",
+      "mse": "MSE",
+      "crps": "CRPS",
+      "interval": "Interval",
+      "wis": "WIS"
+    },
+    "filters": {
+      "disease": "Disease",
+      "country": "Country",
+      "state": "State",
+      "city": "City",
+      "case_definition": "Case Definition",
+      "reported": "Reported",
+      "probable": "Probable",
+      "imdc_sprint": "IMDC Sprint Year"
+    },
+    "chart": {
+      "probable_cases": "Probable cases",
+      "cases": "cases",
+      "select_disease": "Please select a disease to view data."
+    },
+    "panels": {
+      "models": "Models",
+      "no_models": "No models available",
+      "predictions": "Predictions"
+    },
+    "search": {
+      "models": "Search models...",
+      "predictions": "Search predictions by ID, Owner, Model or Year..."
+    },
+    "actions": {
+      "select_10": "Select 10",
+      "clear": "Clear",
+      "toggle_ci": "Toggle Confidence Intervals"
+    },
+    "status": {
+      "loading": "Loading predictions...",
+      "no_predictions": "No predictions found."
+    },
+    "table": {
+      "model": "Model",
+      "interval_bounds": "Interval Bounds"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}}",
+      "page": "Page {{current}} of {{total}}"
+    }
+  },
+  "register_page": {
+    "title": "Finish your profile",
+    "subtitle": "Complete with your information to register",
+    "no_avatar": "No avatar",
+    "labels": {
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "homepage": "Homepage (optional)"
+    },
+    "placeholders": {
+      "homepage": "https://example.com"
+    },
+    "terms": {
+      "accept": "I accept the",
+      "tos": "Terms of Service",
+      "and": "and the",
+      "coc": "Code of Conduct"
+    },
+    "btn_create": "Create Account",
+    "errors": {
+      "username_short": "Username too short",
+      "username_long": "Username too long",
+      "username_invalid": "Invalid username",
+      "username_taken": "Username is already taken",
+      "username_check_fail": "Could not verify username",
+      "password_weak": "Password is too weak",
+      "auth_expired": "OAuth session expired",
+      "generic_error": "An error occurred. Please try again.",
+      "create_fail": "Could not create account",
+      "username_taken_api": "Username taken. If this is you, insert your registered email to link accounts, or choose a different username.",
+      "email_taken_api": "Email already registered. Please login to link your account."
+    },
+    "password_strength": {
+      "very_weak": "Very weak",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    },
+    "success": "Account created!"
+  },
+  "register_modal": {
+    "title": "Create your account",
+    "or_register_with": "or register with email",
+    "placeholder_username": "Username",
+    "placeholder_email": "Email",
+    "btn_continue": "Continue",
+    "btn_cancel": "Cancel",
+    "errors": {
+      "username_short": "Username too short",
+      "username_long": "Username too long",
+      "username_invalid": "Invalid username",
+      "email_invalid": "Invalid email",
+      "username_taken": "Username is already taken",
+      "email_taken": "Email is already registered"
+    }
+  },
+  "login_modal": {
+    "title": "Login",
+    "or_login_with": "or login with your account",
+    "placeholder_username": "Username or Email",
+    "placeholder_password": "Password",
+    "btn_signin": "Sign in",
+    "register_prompt": "Don’t have an account? Register",
+    "btn_cancel": "Cancel",
+    "alert_invalid": "Invalid username or password"
+  },
+  "add_model": {
+    "title": "Import Model",
+    "steps": {
+      "selection": "Selection",
+      "config": "Configuration",
+      "verify": "Verification"
+    },
+    "selection": {
+      "description": "Select a repository to import or paste a URL directly.",
+      "placeholder_url": "https://github.com/username/repository",
+      "next": "Next",
+      "or_select": "OR SELECT REPOSITORY",
+      "tabs": {
+        "all": "All",
+        "github": "GitHub",
+        "gitlab": "GitLab"
+      },
+      "search_placeholder": "Search...",
+      "loading": "Loading repositories...",
+      "imported": "Imported",
+      "empty": {
+        "title": "No repositories found.",
+        "subtitle": "Make sure your account is connected in Settings."
+      },
+      "connect": {
+        "github_title": "Link GitHub Account",
+        "github_desc": "You need to link your GitHub account to access repositories.",
+        "github_btn": "Connect GitHub",
+        "github_app_title": "Install GitHub App",
+        "github_app_desc": "Your account is connected, but you need to install the Model Registry App to import repositories.",
+        "github_app_btn": "Install App",
+        "gitlab_title": "Connect GitLab Account",
+        "gitlab_desc": "You need to connect your GitLab account to access repositories.",
+        "gitlab_btn": "Connect GitLab"
+      },
+      "errors": {
+        "already_imported": "This repository has already been imported.",
+        "invalid_repo": "Please select a valid repository from the list or ensure your account is connected."
+      }
+    },
+    "config": {
+      "description": "Provide details about the model in this repository.",
+      "disease_label": "Disease",
+      "disease_placeholder": "Enter to search",
+      "no_diseases": "No diseases found",
+      "time_res_label": "Time Resolution",
+      "admin_level_label": "Admin Level",
+      "category_label": "Model Category",
+      "sprint_label": "IMDC",
+      "sprint_full_name": "Infodengue-Mosqlimate Dengue Challenge",
+      "sprint_placeholder": "Not for IMDC",
+      "sprint_hint": "Select an IMDC only if that model is participating in the challenge.",
+      "back": "Back",
+      "continue": "Continue",
+      "options": {
+        "select": "Select",
+        "day": "Daily",
+        "week": "Weekly",
+        "month": "Monthly",
+        "year": "Yearly",
+        "adm0": "Country",
+        "adm1": "State",
+        "adm2": "Municipality",
+        "adm3": "Sub-Municipal",
+        "quantitative": "Quantitative",
+        "categorical": "Categorical",
+        "spatial_quantitative": "Spatial Quantitative",
+        "spatial_categorical": "Spatial Categorical",
+        "spatio_temporal_quantitative": "Spatio-temporal Quantitative",
+        "spatio_temporal_categorical": "Spatio-temporal Categorical"
+      }
+    },
+    "verify": {
+      "title": "Final Review",
+      "description": "Please review the model configuration before confirming the import.",
+      "target_disease": "Target Disease",
+      "unknown_disease": "Unknown Disease",
+      "features": "Features",
+      "confirm": "Confirm",
+      "errors": {
+        "import_failed": "Could not import repository.",
+        "unexpected": "An unexpected error occurred"
+      }
+    }
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
   "datastore": {
     "infodengue": {
       "title": "Mosquito-borne Diseases",
@@ -286,6 +494,7 @@
     "api_key_desc": "Use this key to authenticate CLI tools or external scripts.",
     "header_hint": "Pass this header:",
     "regenerate": "Regenerate Key",
+    "confirm_regenerate": "Regenerate",
     "connected_accounts": "Connected Accounts",
     "connected_desc": "Log in to Mosqlimate using these providers.",
     "connected_to": "Connected to {{name}}",
@@ -299,8 +508,9 @@
     "installed": "Installed",
     "install_app": "Install App",
     "configure_github": "Configure repository access on GitHub",
+    "regenerate_key": "Regenerate API Key",
     "alerts": {
-      "confirm_regenerate": "Are you sure?",
+      "confirm_regenerate": "The previous API Key will stop working. Are you sure?",
       "copied": "Copied to clipboard!"
     }
   },
