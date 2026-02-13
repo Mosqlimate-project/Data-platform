@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { DashboardSidebar } from "@/components/dashboard/Sidebar";
 import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
 

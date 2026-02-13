@@ -90,11 +90,6 @@ export function DashboardSidebar({ sections }: SidebarProps) {
     return effectiveCurrentSprint === targetSprintValue;
   };
 
-  const isCategoryActive = (categoryId: string, sectionId: string) => {
-    if (!pathname.includes(`/dashboard/${categoryId}`)) return false;
-    return isSectionActive(sectionId);
-  };
-
   const isLevelActive = (
     categoryId: string,
     levelSlug: string,
@@ -145,8 +140,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors whitespace-nowrap ${pathname === "/dashboard"
-                ? "bg-accent text-white"
-                : "hover:bg-primary/5 hover:text-text"
+              ? "bg-accent text-white"
+              : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             {t("dashboard.overview.overview")}
@@ -178,8 +173,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                           adm_level: LEVEL_TO_INT[level.id] || "1",
                         })}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
-                            ? "bg-accent text-white font-medium"
-                            : "hover:bg-primary/5 hover:text-text"
+                          ? "bg-accent text-white font-medium"
+                          : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
                         {level.label}
