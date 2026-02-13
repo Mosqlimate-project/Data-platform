@@ -155,7 +155,9 @@ def model_add(request, payload: s.ModelIncludeInit):
 )
 @decorate_view(never_cache)
 def models_thumbnails(request):
-    repo_models = (
+    user = request.auth
+
+    qs = (
         m.RepositoryModel.objects.select_related(
             "repository",
             "repository__organization",
@@ -164,9 +166,19 @@ def models_thumbnails(request):
         )
         .annotate(predictions_count=models.Count("predicts"))
         .filter(predictions_count__gt=0)
-        .all()
     )
-    return repo_models.order_by("-updated")
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(repository__active=True)
+            | models.Q(repository__repository_contributors__user=user)
+        ).distinct()
+    else:
+        qs = qs.filter(repository__active=True)
+
+    return qs.order_by("-updated")
 
 
 @router.get(
@@ -177,12 +189,23 @@ def models_thumbnails(request):
 )
 @decorate_view(never_cache)
 def models_tags(request, ids: List[int] = Query(None)):
+    user = request.auth
+
     qs = (
-        m.RepositoryModel.objects.select_related("disease")
+        m.RepositoryModel.objects.select_related("disease", "repository")
         .annotate(predictions_count=models.Count("predicts"))
         .filter(predictions_count__gt=0)
-        .all()
     )
+
+    if user and (user.is_superuser or user.is_staff):
+        pass
+    elif user:
+        qs = qs.filter(
+            models.Q(repository__active=True)
+            | models.Q(repository__repository_contributors__user=user)
+        ).distinct()
+    else:
+        qs = qs.filter(repository__active=True)
 
     if ids:
         qs = qs.filter(id__in=ids)
@@ -387,6 +410,17 @@ def repository_predictions(request, owner: str, repository: str):
     except m.RepositoryModel.DoesNotExist:
         return 404, {"message": f"Model '{owner}/{repository}' not found"}
 
+    quantitative_types = [
+        m.RepositoryModel.Category.QUANTITATIVE,
+        m.RepositoryModel.Category.SPATIAL_QUANTITATIVE,
+        m.RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE,
+    ]
+    categorical_types = [
+        m.RepositoryModel.Category.CATEGORICAL,
+        m.RepositoryModel.Category.SPATIAL_CATEGORICAL,
+        m.RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL,
+    ]
+
     predictions = (
         m.ModelPrediction.objects.filter(model=model)
         .select_related(
@@ -408,9 +442,24 @@ def repository_predictions(request, owner: str, repository: str):
             log_score=models.F("quantitativeprediction__log_score"),
             interval_score=models.F("quantitativeprediction__interval_score"),
             wis_score=models.F("quantitativeprediction__wis_score"),
+            category_group=models.Case(
+                models.When(
+                    model__category__in=quantitative_types,
+                    then=models.Value("quantitative"),
+                ),
+                models.When(
+                    model__category__in=categorical_types,
+                    then=models.Value("categorical"),
+                ),
+                default=models.F("model__category"),
+                output_field=models.CharField(),
+            ),
         )
         .order_by("-created_at")
     )
+
+    for p in predictions:
+        p.category = p.category_group
 
     return predictions
 

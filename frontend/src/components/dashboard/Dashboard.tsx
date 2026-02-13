@@ -211,15 +211,31 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           const meta: PredictionMetadata = await res.json();
           setActivePredictionMeta(meta);
 
-          setInputs(prev => ({
-            ...prev,
+          const newInputs = {
             disease: meta.disease_code,
             adm_level: meta.adm_level,
             adm_0: meta.adm_0_code,
             adm_1: meta.adm_1_code || "",
             adm_2: meta.adm_2_code || "",
             sprint: meta.sprint !== null && meta.sprint !== undefined,
+            case_definition: inputs.case_definition
+          };
+
+          setInputs(prev => ({
+            ...prev,
+            ...newInputs
           }));
+
+          // Force URL update immediately to prevent race conditions with other hooks
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("disease", newInputs.disease);
+          params.set("adm_level", newInputs.adm_level.toString());
+          params.set("adm_0", newInputs.adm_0);
+          if (newInputs.adm_1) params.set("adm_1", newInputs.adm_1); else params.delete("adm_1");
+          if (newInputs.adm_2) params.set("adm_2", newInputs.adm_2); else params.delete("adm_2");
+          params.set("sprint", newInputs.sprint ? "true" : "false"); params.set("prediction_id", predId); // Ensure ID stays
+
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
 
         } catch (error) {
           console.error("Failed to restore prediction context", error);
@@ -232,7 +248,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } else if (!predId && isRestoringParams) {
       setIsRestoringParams(false);
     }
-  }, [searchParams, isRestoringParams]);
+  }, [searchParams, isRestoringParams, router, pathname, inputs.case_definition]);
 
   useEffect(() => {
     const disease = searchParams.get("disease") || "";
@@ -285,7 +301,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         if (!currentIsValid || !targetDisease) {
           const defaultDisease = data[0].code;
           setInputs(prev => ({ ...prev, disease: defaultDisease }));
-          updateURL({ disease: defaultDisease });
+          // Don't update URL here if we are just loading valid data from meta
+          if (!activePredictionMeta) {
+            updateURL({ disease: defaultDisease });
+          }
         }
       }
     } catch (error) {
@@ -294,7 +313,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setDiseasesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.sprint, inputs.disease, updateURL, isRestoringParams]);
+  }, [category, inputs.adm_level, inputs.sprint, inputs.disease, updateURL, isRestoringParams, activePredictionMeta]);
 
   const fetchCountries = useCallback(async () => {
     if (isRestoringParams || !inputs.disease) return;
@@ -321,7 +340,9 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         if (!currentIsValid || !targetAdm0) {
           const defaultCountry = data[0].geocode;
           setInputs(prev => ({ ...prev, adm_0: defaultCountry }));
-          updateURL({ adm_0: defaultCountry });
+          if (!activePredictionMeta) {
+            updateURL({ adm_0: defaultCountry });
+          }
         }
       }
     } catch (error) {
@@ -330,8 +351,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCountriesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.sprint, inputs.adm_0, updateURL, isRestoringParams]);
-
+  }, [category, inputs.adm_level, inputs.disease, inputs.sprint, inputs.adm_0, updateURL, isRestoringParams, activePredictionMeta]);
   const fetchStates = useCallback(async () => {
     if (isRestoringParams || !inputs.disease || !inputs.adm_0 || inputs.adm_level < 1) return;
 
@@ -358,7 +378,9 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         if (!currentIsValid || !targetAdm1) {
           const defaultState = data[0].geocode;
           setInputs(prev => ({ ...prev, adm_1: defaultState }));
-          updateURL({ adm_1: defaultState });
+          if (!activePredictionMeta) {
+            updateURL({ adm_1: defaultState });
+          }
         }
       }
     } catch (error) {
@@ -367,7 +389,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setStatesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.sprint, inputs.adm_1, updateURL, isRestoringParams]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.sprint, inputs.adm_1, updateURL, isRestoringParams, activePredictionMeta]);
 
   const fetchCities = useCallback(async () => {
     if (isRestoringParams || !inputs.disease || !inputs.adm_0 || !inputs.adm_1 || inputs.adm_level < 2) return;
@@ -396,7 +418,9 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         if (!currentIsValid || !targetAdm2) {
           const defaultCity = data[0].geocode;
           setInputs(prev => ({ ...prev, adm_2: defaultCity }));
-          updateURL({ adm_2: defaultCity });
+          if (!activePredictionMeta) {
+            updateURL({ adm_2: defaultCity });
+          }
         }
       }
     } catch (error) {
@@ -405,7 +429,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       setCitiesLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.sprint, inputs.adm_2, updateURL, isRestoringParams]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.sprint, inputs.adm_2, updateURL, isRestoringParams, activePredictionMeta]);
 
   const fetchSprints = useCallback(async () => {
     if (isRestoringParams || !inputs.disease) return;
@@ -719,8 +743,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     setSortConfig((prev) => {
       if (prev.key === key) {
         return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
-      }
-      return { key, direction: "asc" };
+      } return { key, direction: "asc" };
     });
   };
 
@@ -867,7 +890,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   };
 
   return (
-    <div className="p-4 relative space-y-6 min-h-[500px] max-w-full">
+    <div className="relative space-y-6 min-h-[500px] max-w-full">
       {isConfigLoading && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/60 backdrop-blur-[1px] rounded-lg">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
@@ -1032,12 +1055,12 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                 placeholder={t('dashboard.search.models')}
                 value={modelSearch}
                 onChange={(e) => setModelSearch(e.target.value)}
-                className="w-full pl-8 pr-8 py-2 text-xs border border-border bg-bg text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-8 pr-8 py-2 text-xs border border-border bg-bg hover:text-white text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {modelSearch && (
                 <button
                   onClick={() => setModelSearch("")}
-                  className="absolute right-2 top-2.5 text-secondary hover:text-text"
+                  className="absolute right-2 top-2.5 text-secondary hover:text-white"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -1056,7 +1079,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                       onClick={() => toggleModel(model)}
                       className={`text-left text-xs px-3 py-2 rounded transition-colors border ${isSelected
                         ? "bg-blue-500/10 text-blue-600 border-blue-500/30 font-medium"
-                        : "bg-hover text-secondary border-transparent hover:bg-accent"
+                        : "bg-hover text-secondary border-transparent hover:bg-accent hover:text-white"
                         }`}
                     >
                       {model}
@@ -1132,7 +1155,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                 <ArrowUpDown size={14} className="text-secondary opacity-50" />
                               )}
                             </div>
-                          </th>))}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
@@ -1168,7 +1192,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       onClick={(e) => e.stopPropagation()}
-                                      className="bg-hover text-text text-xs px-2 py-0.5 rounded border border-border font-mono hover:bg-accent hover:underline transition-colors"
+                                      className="bg-hover text-text text-xs px-2 py-0.5 rounded border border-border font-mono hover:bg-accent hover:underline hover:text-white transition-colors"
                                     >
                                       {p.repository}
                                     </a>
@@ -1176,7 +1200,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
                                   <div className="text-xs text-secondary flex gap-2 items-center">
                                     <span>{p.start} - {p.end}</span>
                                     {p.sprint && (
-                                      <span className="px-2 py-0.5 bg-accent text-text rounded-full text-[10px]">
+                                      <span className="px-2 py-0.5 bg-accent text-white rounded-full text-[10px]">
                                         IMDC {p.sprint}
                                       </span>
                                     )}

@@ -413,7 +413,7 @@ class ModelPredictionOut(Schema):
 
     @staticmethod
     def resolve_date(obj):
-        return obj.created_at
+        return obj.created_at.date()
 
     @staticmethod
     def resolve_sprint(obj):

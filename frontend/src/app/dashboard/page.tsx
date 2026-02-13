@@ -9,7 +9,6 @@ export default function DashboardOverview() {
 
   return (
     <section className="max-w-6xl mx-auto px-8 py-8 text-text">
-      {/* Header */}
       <header className="mb-4 text-center">
         <h1 className="text-3xl font-semibold text-violet-400 mb-3">
           {t("dashboard.overview.title")}
@@ -20,9 +19,7 @@ export default function DashboardOverview() {
         </p>
       </header>
 
-      {/* Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* General */}
         <div className="border border-border rounded-2xl p-6 bg-bg shadow-sm flex flex-col">
           <div className="mb-3">
             <h2 className="text-2xl text-center mb-2">
@@ -60,7 +57,6 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* IMDC */}
         <div className="border border-border rounded-2xl p-6 bg-bg shadow-sm flex flex-col">
           <div className="mb-3">
             <h2 className="text-2xl text-center mb-2">

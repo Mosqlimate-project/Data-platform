@@ -141,7 +141,7 @@ const PredictionCard = memo(function PredictionCard({
       <div className="p-5 flex-1 space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <div className="font-semibold" suppressHydrationWarning>
+            <div className="font-semibold text-foreground" suppressHydrationWarning>
               {formatDate(pred.date)}
             </div>
           </div>
@@ -162,9 +162,9 @@ const PredictionCard = memo(function PredictionCard({
         {pred.start && pred.end && (
           <div className="space-y-1">
             <div className="text-sm flex items-center gap-2">
-              <span suppressHydrationWarning>{formatDate(pred.start)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatDate(pred.start)}</span>
               <span className="text-muted-foreground">→</span>
-              <span suppressHydrationWarning>{formatDate(pred.end)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatDate(pred.end)}</span>
             </div>
           </div>
         )}
@@ -314,7 +314,11 @@ export default function PredictionsList({
     if (pred.adm_level >= 2 && pred.adm_2_code) params.set("adm_2", pred.adm_2_code);
     if (pred.adm_level >= 3 && pred.adm_3_code) params.set("adm_3", pred.adm_3_code);
 
-    return `/dashboard/${pred.category}?${params.toString()}`;
+    const cleanCategory = pred.category === "quantitative" || pred.category === "categorical"
+      ? pred.category
+      : "quantitative";
+
+    return `/dashboard/${cleanCategory}?${params.toString()}`;
   }, []);
 
   const filteredPredictions = useMemo(() => {
@@ -372,7 +376,7 @@ prediction = pd.DataFrame(prediction)
 
 mosqlient.upload_prediction(
   api_key=api_key,
-  model="${owner}/${modelName}",
+  repository="${owner}/${modelName}",
   description=...,
   commit=...,
   prediction=prediction,
@@ -391,7 +395,7 @@ api_key <- "YOUR_API_KEY"
 url <- "https://api.mosqlimate.org/api/registry/prediction/"
 
 payload <- list(
-  model = "${owner}/${modelName}",
+  repository = "${owner}/${modelName}",
   description = ...,
   commit = ...,
   adm_0 = "BRA",
@@ -417,7 +421,7 @@ curl -X POST https://api.mosqlimate.org/api/registry/prediction/ \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "${owner}/${modelName}",
+    "repository": "${owner}/${modelName}",
     "description": ...,
     "commit": ...,
     "adm_0": "BRA",
@@ -438,8 +442,8 @@ ${t("model_predictions.need_api_key")}
 
   if (!predictions || predictions.length === 0) {
     return (
-      <div className="w-full bg-bg border rounded-xl shadow-sm p-8 md:p-12">
-        <div className="max-w-3xl mx-auto bg-bg">
+      <div className="w-full bg-card border rounded-xl shadow-sm p-8 md:p-12">
+        <div className="max-w-3xl mx-auto bg-card">
           <div className="flex justify-center mb-6">
             <MarkdownRenderer content={emptyStateMarkdown} />
           </div>
@@ -451,16 +455,16 @@ ${t("model_predictions.need_api_key")}
   return (
     <div className="space-y-6">
       <div className="h-[500px] w-full mb-8">
-        <div className="h-full w-full bg-white border rounded-xl shadow-sm p-4 relative flex flex-col">
+        <div className="h-full w-full bg-card border rounded-xl shadow-sm p-4 relative flex flex-col">
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
-            <h3 className="font-semibold text-sm text-gray-700">
+            <h3 className="font-semibold text-sm text-foreground">
               {activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}
             </h3>
           </div>
 
           <div className="flex-1 w-full relative min-h-0">
             {isChartLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-card/80 z-10">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
@@ -473,7 +477,7 @@ ${t("model_predictions.need_api_key")}
                 height="100%"
               />
             ) : !isChartLoading && (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm bg-bg">
                 {activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}
               </div>
             )}
@@ -489,7 +493,7 @@ ${t("model_predictions.need_api_key")}
             placeholder={t("model_predictions.search_placeholder")}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {inputValue && (
             <button
@@ -506,7 +510,7 @@ ${t("model_predictions.need_api_key")}
           <select
             value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
-            className="h-8 bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+            className="h-8 bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground"
           >
             {availableScores.map((score) => (
               <option key={score} value={score}>
