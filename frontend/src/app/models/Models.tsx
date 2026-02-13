@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Thumbnail from "./components/Model";
 import SearchBar from "./components/SearchBar";
 import { useAuth } from "@/components/AuthProvider";
@@ -29,11 +30,23 @@ type Tag = {
 };
 
 export default function Models({ models, tags }: { models: Model[]; tags: Tag[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [query, setQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuth();
-  const [page, setPage] = useState(1);
+
+  const page = Number(searchParams.get("page")) || 1;
   const itemsPerPage = 30;
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const groupedTags = useMemo(() => {
     const groups: Record<string, Tag[]> = {};
@@ -55,12 +68,10 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
 
       if (selectedTags.length === 0) return true;
 
-      const matchesTags = selectedTags.some((tagId) => {
+      return selectedTags.every((tagId) => {
         const tag = tags.find((t) => t.id === tagId);
         return tag?.models.some((tm) => tm.id === m.model_id);
       });
-
-      return matchesTags;
     });
   }, [models, query, selectedTags, tags]);
 
@@ -114,7 +125,7 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
                 </Link>
               )}
               <div className="flex-1 sm:w-64">
-                <SearchBar onSearch={(q) => { setQuery(q); setPage(1); }} />
+                <SearchBar onSearch={(q) => { setQuery(q); }} />
               </div>
             </div>
           </div>
@@ -134,7 +145,7 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
                 )
               })}
               <button
-                onClick={() => setSelectedTags([])}
+                onClick={() => { setSelectedTags([]); }}
                 className="text-xs text-gray-500 hover:text-gray-700 underline px-2"
               >
                 Clear all
@@ -146,7 +157,7 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
             {paginatedModels.length > 0 ? (
               paginatedModels.map((model, idx) => (
                 <Thumbnail
-                  key={`${model.owner}-${model.repository}-${idx}`}
+                  key={`${model.owner}-${model.repository}-${model.model_id}`}
                   owner={model.owner}
                   repo={model.repository}
                   avatar_url={model.avatar_url}
@@ -166,7 +177,7 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
           {totalPages > 1 && (
             <div className="flex justify-center mt-8 gap-2">
               <button
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                onClick={() => setPage(Math.max(page - 1, 1))}
                 disabled={page === 1}
                 className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
               >
@@ -191,7 +202,7 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
               )}
 
               <button
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() => setPage(Math.min(page + 1, totalPages))}
                 disabled={page === totalPages}
                 className="px-3 py-1 rounded-md border text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
               >
@@ -224,8 +235,8 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
                           key={tag.id}
                           onClick={() => toggleTag(tag.id)}
                           className={`text-xs px-2.5 py-1.5 rounded-md border transition-all duration-200 text-left ${isSelected
-                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                              : "bg-white dark:bg-gray-800 border-[var(--color-border)] text-gray-700 dark:text-gray-300 hover:border-blue-400 hover:text-blue-500"
+                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            : "bg-white dark:bg-gray-800 border-[var(--color-border)] text-gray-700 dark:text-gray-300 hover:border-blue-400 hover:text-blue-500"
                             }`}
                         >
                           <div className="flex items-center justify-between gap-2">

@@ -21,10 +21,8 @@ export default async function Page() {
   const { models, tags } = await getData();
 
   return (
-    <>
-      <div className="relative z-10">
-        <Models models={models} tags={tags} />
-      </div>
-    </>
+    <div className="relative z-10">
+      <Models models={models} tags={tags} />
+    </div>
   );
 }
