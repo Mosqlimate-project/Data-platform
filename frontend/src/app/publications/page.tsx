@@ -78,17 +78,22 @@ export default function PublicationsPage() {
 
   const timeline: YearGroup[] = [
     {
+      year: "2026",
+      items: [
+        {
+          type: 'article',
+          citation: t('publications.items.araujo_pnas_2026'),
+          link: "https://doi.org/10.1073/pnas.2508989123"
+        }
+      ]
+    },
+    {
       year: "2025",
       items: [
         {
           type: 'article',
           citation: t('publications.items.araujo_rsos_2025'),
           link: "https://doi.org/10.1098/rsos.241261"
-        },
-        {
-          type: 'preprint',
-          citation: t('publications.items.araujo_medrxiv_2025'),
-          link: "https://www.medrxiv.org/content/10.1101/2025.05.12.25327419v1"
         },
         {
           type: 'article',
