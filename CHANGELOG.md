@@ -1,6 +1,14 @@
 Release Notes
 ---
 
+## [2.1.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.4...2.1.5) (2026-02-14)
+
+
+### Bug Fixes
+
+* **models:** minor fix on models pagination ([#408](https://github.com/Mosqlimate-project/Data-platform/issues/408)) ([f0702fc](https://github.com/Mosqlimate-project/Data-platform/commit/f0702fca600b1aa466852d285c48dd5f12e52389))
+* some minor fixes on dashboard colors and submit prediction markdown ([eee836d](https://github.com/Mosqlimate-project/Data-platform/commit/eee836d6f3c51cb28e47df37a6a32baee735a0ec))
+
 ## [2.1.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.3...2.1.4) (2026-02-11)
 
 
