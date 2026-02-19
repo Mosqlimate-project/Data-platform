@@ -339,4 +339,93 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
       { option: "end", type: "date" },
     ],
   },
+  {
+    endpoint: "/episcanner/",
+    name: t("datastore.episcanner.title"),
+    description: t("datastore.episcanner.description"),
+    more_info_link: "https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner",
+    tags: ["Epidemiological", "Municipal", "Yearly"],
+    data_variables: [
+      {
+        variable: "disease",
+        type: "str",
+        description: t("datastore.episcanner.variables.disease"),
+      },
+      {
+        variable: "CID10",
+        type: "str",
+        description: t("datastore.episcanner.variables.CID10"),
+      },
+      {
+        variable: "year",
+        type: "int",
+        description: t("datastore.episcanner.variables.year"),
+      },
+      {
+        variable: "geocode",
+        type: "int",
+        description: t("datastore.episcanner.variables.geocode"),
+      },
+      {
+        variable: "muni_name",
+        type: "str",
+        description: t("datastore.episcanner.variables.muni_name"),
+      },
+      {
+        variable: "peak_week",
+        type: "float",
+        description: t("datastore.episcanner.variables.peak_week"),
+      },
+      {
+        variable: "beta",
+        type: "float",
+        description: t("datastore.episcanner.variables.beta"),
+      },
+      {
+        variable: "gamma",
+        type: "float",
+        description: t("datastore.episcanner.variables.gamma"),
+      },
+      {
+        variable: "R0",
+        type: "float",
+        description: t("datastore.episcanner.variables.R0"),
+      },
+      {
+        variable: "total_cases",
+        type: "int",
+        description: t("datastore.episcanner.variables.total_cases"),
+      },
+      {
+        variable: "alpha",
+        type: "float",
+        description: t("datastore.episcanner.variables.alpha"),
+      },
+      {
+        variable: "sum_res",
+        type: "float",
+        description: t("datastore.episcanner.variables.sum_res"),
+      },
+      {
+        variable: "ep_ini",
+        type: "str (YYYYWW)",
+        description: t("datastore.episcanner.variables.ep_ini"),
+      },
+      {
+        variable: "ep_end",
+        type: "str (YYYYWW)",
+        description: t("datastore.episcanner.variables.ep_end"),
+      },
+      {
+        variable: "ep_dur",
+        type: "int",
+        description: t("datastore.episcanner.variables.ep_dur"),
+      },
+    ],
+    chart_options: [
+      { option: "disease", type: "str" },
+      { option: "uf", type: "str" },
+      { option: "year", type: "int" },
+    ],
+  },
 ];

@@ -114,6 +114,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
       end: end,
       adm_level: "2",
       adm_2: geocode,
+      case_definition: "reported"
     });
 
     fetch(`/api/vis/dashboard/cases/?${params}`)

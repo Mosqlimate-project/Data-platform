@@ -333,6 +333,27 @@
         "week": "Epidemiological week",
         "year": "Year"
       }
+    },
+    "episcanner": {
+      "title": "EpiScanner Data",
+      "description": "Real-time Epidemic Scanner data providing estimates of epidemiological parameters for cities in Brazil.",
+      "variables": {
+        "disease": "Specific disease (dengue, zika, chik)",
+        "CID10": "Disease's ICD-10 code",
+        "year": "Year analyzed",
+        "geocode": "City's IBGE geocode",
+        "muni_name": "City's name",
+        "peak_week": "Estimated epidemiological week of the epidemic peak",
+        "beta": "Transmissibility rate",
+        "gamma": "Recovery rate",
+        "R0": "Basic reproduction number",
+        "total_cases": "Annual total number of cases",
+        "alpha": "Parameter of the Richard's model",
+        "sum_res": "Sum of residuals",
+        "ep_ini": "Estimated starting week of the epidemic (YYYYWW)",
+        "ep_end": "Estimated ending week of the epidemic (YYYYWW)",
+        "ep_dur": "Estimated duration of the epidemic in weeks"
+      }
     }
   },
   "publications": {
@@ -631,6 +652,9 @@
   },
   "charts_contaovos": {
     "unavailable": "Visualization not available"
+  },
+  "charts_episcanner": {
+    "unavailable": "Visualization not available. Access https://info.dengue.mat.br/epi-scanner/"
   },
   "charts_infodengue": {
     "total_cases_label": "Total Reported Cases",
