@@ -333,6 +333,27 @@
         "week": "Semana epidemiológica",
         "year": "Ano"
       }
+    },
+    "episcanner": {
+      "title": "Dados EpiScanner",
+      "description": "Dados do Escaneador Epidêmico em tempo real, fornecendo estimativas de parâmetros epidemiológicos para cidades no Brasil.",
+      "variables": {
+        "disease": "Doença específica (dengue, zika, chik)",
+        "CID10": "Código CID-10 da doença",
+        "year": "Ano analisado",
+        "geocode": "Geocódigo IBGE do município",
+        "muni_name": "Nome do município",
+        "peak_week": "Semana epidemiológica estimada do pico da epidemia",
+        "beta": "Taxa de transmissibilidade",
+        "gamma": "Taxa de recuperação",
+        "R0": "Número básico de reprodução",
+        "total_cases": "Número total anual de casos",
+        "alpha": "Parâmetro do modelo de Richard",
+        "sum_res": "Soma dos resíduos",
+        "ep_ini": "Semana estimada de início da epidemia (AAAASS)",
+        "ep_end": "Semana estimada de término da epidemia (AAAASS)",
+        "ep_dur": "Duração estimada da epidemia em semanas"
+      }
     }
   },
   "publications": {
@@ -631,6 +652,9 @@
   },
   "charts_contaovos": {
     "unavailable": "Visualização não disponível"
+  },
+  "charts_episcanner": {
+    "unavailable": "Visualização não disponível. Accesse https://info.dengue.mat.br/epi-scanner/"
   },
   "charts_infodengue": {
     "total_cases_label": "Total de Casos Notificados",

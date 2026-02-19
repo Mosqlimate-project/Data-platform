@@ -7,6 +7,7 @@ import { ClimateView } from "./views/ClimateView";
 import { InfodengueView } from "./views/InfodengueView";
 import { ContaovosView } from "./views/ContaovosView";
 import { NEXT_PUBLIC_DOCS_URL } from "@/lib/env";
+import { EpiScannerView } from "./views/EpiscannerView";
 
 export default function DatastorePage() {
   const { t } = useTranslation();
@@ -24,6 +25,8 @@ export default function DatastorePage() {
         return <InfodengueView config={endpoint} />;
       case "/mosquito/":
         return <ContaovosView config={endpoint} />;
+      case "/episcanner/":
+        return <EpiScannerView config={endpoint} />;
       default:
         return <div>Unknown Endpoint</div>;
     }
