@@ -100,7 +100,7 @@ export function EpiScannerChart() {
   return (
     <div className="w-full h-[400px] flex items-center justify-center border rounded-md bg-card text-card-foreground shadow-sm">
       <p className="text-muted-foreground opacity-70 font-medium">
-        {t('charts_episcanner.unavailable')}
+        {t('charts_episcanner.unavailable')} <a href="https://info.dengue.mat.br/epi-scanner/" className="italic">EpiScanner</a>
       </p>
     </div>
   );

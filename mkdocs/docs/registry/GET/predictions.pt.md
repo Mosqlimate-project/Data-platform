@@ -1,25 +1,20 @@
 ## Tabela de Parâmetros
-| Nome do Parâmetro | Obrigatório | Tipo | Descrição |
-|---|---|---|---|
+| Nome do parâmetro | Obrigatório | Tipo | Descrição |
+|--|--|--|--|
 | *page | sim | int | Página a ser exibida |
-| *per_page | sim | int | Quantas previsões serão exibidas por página |
-| id | não | int | ID da previsão |
+| *per_page | sim | int | Quantidade de predições exibidas por página |
+| id | não | int | ID da predição |
 | model_id | não | int | ID do modelo |
-| model_name | não | str _(icontains)_ | Nome do modelo |
-| model_adm_level | não | int _(0, 1, 2 ou 3)_ | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Submunicipal) |
-| model_time_resolution | não | str _(iexact)_ | Opções: dia, semana, mês ou ano |
-| author_name | não | str _(icontains)_ | Nome do autor |
-| author_username | não | str | Nome de usuário do autor |
-| author_institution | não | str _(icontains)_ | Instituição do autor |
-| repository | não | str (icontains) | Repositório Github |
-| implementation_language | não | str _(icontains)_ | Linguagem de implementação |
-| temporal | não | bool | O modelo da previsão é temporal? |
-| spatial | não | bool | O modelo da previsão é espacial? |
-| categorical | não | bool | O modelo da previsão é categórico? |
-| commit | não | str | Commit git da previsão |
-| predict_date | não | str _(AAAA-mm-dd)_ | Data de modelagem da previsão |
-| start | não | str _(AAAA-mm-dd)_ | Data de modelagem da previsão posterior a |
-| end | não | str _(AAAA-mm-dd)_ | Data de modelagem da previsão anterior a |
+| model_owner | não | str (icontains) | Proprietário do repositório do modelo |
+| model_organization | não | str (icontains) | Organização do repositório do modelo |
+| model_name | não | str (icontains) | Nome do repositório do modelo {proprietário ou org}/{nome} |
+| model_adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
+| model_time_resolution | não | str (iexact) | Opções: day (dia), week (semana), month (mês) ou year (ano) |
+| model_disease | não | str ("A90", "A92.0", "A92.5") | Código da doença do modelo |
+| model_category | não | str (iexact) | Categoria do modelo |
+| model_sprint | não | int/null | Ano IMDC do modelo |
+| start | não | str (AAAA-mm-dd) | Data de modelagem da predição após (maior que) |
+| end | não | str (AAAA-mm-dd) | Data de modelagem da predição antes de (menor que) |
 
 #### Detalhes
 `page` consiste no total de Previsões retornadas pela requisição dividido por `per_page`. A informação de `pagination` é retornada junto com as Previsões. Ex.:

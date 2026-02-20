@@ -14,7 +14,7 @@ and it allows registered users to upload metadata about open-source forecasting
 models that use Mosqlimate data. To register a model, a user needs to:
 
  - Have an account on the platform;
- - Have the code of their model in a GitHub repository.
+ - Have the code of their model in a GitHub or a GitLab repository.
 
 
 ## Predictions

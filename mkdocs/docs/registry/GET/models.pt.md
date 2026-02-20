@@ -1,21 +1,17 @@
-## Tabela de Parâmetros
-| Nome do Parâmetro | Obrigatório | Tipo | Descrição |
-|---|---|---|---|
+## Parameters Table 
+| Nome do parâmetro | Obrigatório | Tipo | Descrição |
+|--|--|--|--|
 | *page | sim | int | Página a ser exibida |
-| *per_page | sim | int | Quantas previsões serão exibidas por página |
+| *per_page | sim | int | Quantidade de predições exibidas por página |
 | id | não | int | ID do modelo |
-| name | não | str _(icontains)_ | Nome do modelo |
-| author_name | não | str _(icontains)_ | Nome do autor |
-| author_username | não | str | Nome de usuário do autor |
-| author_institution | não | str _(icontains)_ | Instituição do autor |
-| repository | não | str (icontains) | Repositório Github |
-| implementation_language | não | str _(icontains)_ | Linguagem de implementação |
-| temporal | não | bool | O modelo é temporal? |
-| spatial | não | bool | O modelo é espacial? |
-| categorical | não | bool | O modelo é categórico? |
-| type | não | str _(icontains)_ | Tipo de modelo. Ex: nowcast / forecast |
-| adm_level | não | int _(0, 1, 2 ou 3)_ | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Submunicipal) |
-| time_resolution | não | str _(iexact)_ | Opções: dia, semana, mês ou ano |
+| repository_owner | não | str (icontains) | Proprietário do repositório do modelo |
+| repository_organization | não | str (icontains) | Organização do repositório do modelo |
+| repository_name | não | str (icontains) | Nome do repositório do modelo {owner ou org}/{nome} |
+| disease | não | str ("A90", "A92.0", "A92.5") | Código da doença |
+| adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
+| time_resolution | não | str (iexact) | Opções: day (dia), week (semana), month (mês) ou year (ano) |
+| category | não | str (iexact) | Categoria do modelo |
+| sprint | não | int/null | Ano IMDC do modelo |
 
 #### Detalhes
 `page` consiste no total de modelos retornados pela requisição dividido por `per_page`. A informação de `pagination` é retornada junto com os modelos. Ex.:
@@ -69,15 +65,6 @@ Os exemplos em Python utilizam o pacote `mosqlient`, especificamente desenvolvid
     response_specific <- GET(paste0(models_api, "1"), headers) # Model id
     specific_model <- content(response_specific, "text") |> fromJSON()
 
-    # Filter by implementation language
-    response_python <- GET(paste0(models_api, pagination, "implementation_language=python"), headers)
-    models_python <- content(response_python, "text") |> fromJSON()
-
-    # Combining filters
-    filters_combined <- paste0("implementation_language=python", "&", "name=test")
-    response_combined <- GET(paste0(models_api, pagination, filters_combined),headers)
-    models_multi_filters <- content(response_combined, "text") |> fromJSON()
-
     # Advanced Usage
     parameters <- list(
       page = 1,
@@ -110,15 +97,9 @@ Os exemplos em Python utilizam o pacote `mosqlient`, especificamente desenvolvid
       -H 'accept: application/json' \
       -H 'X-UID-Key: See X-UID-Key documentation'
 
-    # Filter by implementation language
-    curl -X 'GET' \
-      'https://api.mosqlimate.org/api/registry/models/?implementation_language=python&page=1&per_page=5' \
-      -H 'accept: application/json' \
-      -H 'X-UID-Key: See X-UID-Key documentation'
-
     # Combining filters
     curl -X 'GET' \
-      'https://api.mosqlimate.org/api/registry/models/?id=1&name=test&implementation_language=python&page=1&per_page=5' \
+      'https://api.mosqlimate.org/api/registry/models/?id=1&name=test&page=1&per_page=5' \
       -H 'accept: application/json' \
       -H 'X-UID-Key: See X-UID-Key documentation'
     ```

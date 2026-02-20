@@ -5,19 +5,14 @@
 | *per_page | yes | int | How many predictions will be displayed per page |
 | id | no | int | Prediction ID |
 | model_id | no | int | Model ID |
-| model_name | no | str _(icontains)_ | Model name | 
+| model_owner | no | str _(icontains)_ | Model repo owner | 
+| model_organization | no | str _(icontains)_ | Model repo org | 
+| model_name | no | str _(icontains)_ | Model repo name {owner or org}/{name} | 
 | model_adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | model_time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
-| author_name | no | str _(icontains)_ | Author name |
-| author_username | no | str | Author username |
-| author_institution | no | str _(icontains)_ | Author institution |
-| repository | no | str (icontains) | Github repository |
-| implementation_language | no | str _(icontains)_ | Implementation language |
-| temporal | no | bool | Is the predition's model temporal? |
-| spatial | no | bool | Is the predition's model spatial? |
-| categorical | no | bool | Is the predition's model categorical? |
-| commit | no | str | Prediction git commit |
-| predict_date | no | str _(YYYY-mm-dd)_ | Prediction modeling date |
+| model_disease | no | str ("A90", "A92.0", "A92.5") | Model disease code |
+| model_category | no | str (iexact) | Model category |
+| model_sprint | no | int/null | Model IMDC year |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |
 | end | no | str _(YYYY-mm-dd)_ | Prediction modeling date before than |
 

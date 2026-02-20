@@ -312,6 +312,10 @@ class GithubProvider(OAuthProvider):
         )
         name = repository.name
 
+        for exception in ["D-FENSE", "dengue-oracle"]:
+            if name.startswith(exception + "-"):
+                name = name[:-2]
+
         headers = {"Accept": "application/vnd.github.raw"}
 
         if access_token:

@@ -55,3 +55,14 @@ where
 $$S^{int}_\alpha(l_i, u_i; y_i) = u_i - l_i + \cfrac{2}{\alpha}(l_i - y_i)I\{y_i < l_i\} \\ + \cfrac{2}{\alpha}(y_i - u_i)I\{y_i > u_i\}, $$
 
 in which $I$ is the indicator function (equals 1 if the condition is true, and 0 otherwise), $\alpha$ is the significance level of the interval, $u_i$ is the upper bound of the interval in week $i$, and $l_i$ is the lower bound.
+
+
+## Weighted Interval Score (WIS)
+
+The WIS is calculated using all the available percentiles of the prediction. Its value is obtained from the equation below:
+
+$$
+\text{WIS}(F, y) = \frac{1}{K + 1/2} \left( w_0|y - m| + \sum_{k=1}^K [w_K S^{int}_{\alpha_k} (l_K, u_K; y) ]\right), 
+$$
+
+by default, \( w_k = \frac{\alpha_k}{2} \) and \( w_0 = \frac{1}{2} \). In this equation, \( K \) denotes the number of intervals, and \( l_k \) and \( u_k \) represent the lower and upper bounds of the \( k \)-th confidence interval, respectively. The implementation defines the \( \alpha_k \) values based on the names of the prediction columns.
