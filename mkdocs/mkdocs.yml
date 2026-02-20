@@ -128,7 +128,6 @@ nav:
     - "Authorization": "uid-key.md"
   - "Model Registry":
     - "Registry API": "registry/index.md"
-    - "Fetch Authors": "registry/GET/authors.md"
     - "Fetch Models": "registry/GET/models.md"
     - "Fetch Predictions": "registry/GET/predictions.md"
     - "Inserting Models": "registry/POST/models.md"

@@ -49,3 +49,15 @@ sendo,
 $$S^{int}_\alpha(l_i, u_i; y_i) = u_i - l_i + \cfrac{2}{\alpha}(l_i - y_i)I\{y_i < l_i\} \\ + \cfrac{2}{\alpha}(y_i - u_i)I\{y_i > u_i\}, $$
 
 na qual $I$ é a função indicadora (tem valor 1 se a condição é verdadeira, e 0 caso contrário), $\alpha$ é o nível de significância do intervalo, $u_i$ é o limite superior do intervalo na semana $i$, e $l_i$ o limite inferior.
+
+
+## Weighted Interval Score (WIS)
+
+O WIS é calculado utilizando todos os percentis disponíveis da previsão. Seu valor é obtido a partir da equação abaixo:
+$$
+\text{WIS}(F, y) = \frac{1}{K + 1/2} \left( w_0|y - m| + \sum_{k=1}^K [w_K S^{int}_{\alpha_k} (l_K, u_K; y) ]\right), 
+$$
+
+por padrão, \( w_k = \frac{\alpha_k}{2} \) e \( w_0 = \frac{1}{2} \).  
+Nessa equação, \( K \) representa o número de intervalos, enquanto \( l_k \) e \( u_k \) denotam, respectivamente, os limites inferior e superior do \( k \)-ésimo intervalo de confiança.  
+A implementação define os valores de \( \alpha_k \) com base nos nomes das colunas de previsão.

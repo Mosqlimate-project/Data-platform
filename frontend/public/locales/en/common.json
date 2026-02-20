@@ -654,7 +654,7 @@
     "unavailable": "Visualization not available"
   },
   "charts_episcanner": {
-    "unavailable": "Visualization not available. Access https://info.dengue.mat.br/epi-scanner/"
+    "unavailable": "Visualization not available. Access "
   },
   "charts_infodengue": {
     "total_cases_label": "Total Reported Cases",

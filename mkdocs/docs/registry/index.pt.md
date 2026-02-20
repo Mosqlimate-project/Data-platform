@@ -10,5 +10,5 @@ Assim como tudo em nossa API, o registro de modelos pode ser acessado programati
 
 As previsões publicadas estarão disponíveis para visualização, juntamente com os dados, no painel de controle de nossas plataformas.
 
-## Recuperando modelos e previsões
-Você também pode recuperar modelos e previsões da plataforma. O endpoint de [registro de modelos](https://api.mosqlimate.org/docs/registry/GET/models/) retornará uma lista de todos os modelos registrados na plataforma, enquanto o endpoint de [previsões](https://api.mosqlimate.org/docs/registry/GET/predictions/) retornará uma lista de todas as previsões carregadas na plataforma.
+## Puxando modelos e previsões
+Você também pode puxar modelos e previsões da plataforma. O endpoint de [registro de modelos](https://api.mosqlimate.org/docs/registry/GET/models/) retornará uma lista de todos os modelos inseridos na plataforma, enquanto o endpoint de [previsões](https://api.mosqlimate.org/docs/registry/GET/predictions/) retornará uma lista das previsões.

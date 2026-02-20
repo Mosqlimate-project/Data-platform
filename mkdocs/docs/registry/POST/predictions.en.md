@@ -1,4 +1,4 @@
-In order to register a prediction, you need at least two pieces of information before you can use the code examples below. The first is the `id` number of your model, which you can obtain [here](https://api.mosqlimate.org/models/). The second is the commit id of the exact version of your code (the model must be available on a GitHub repository) that has generated the predictions. In order to find out this you can use the following code in the (Linux or Mac) terminal:
+In order to register a prediction, you need at least two pieces of information before you can use the code examples below. You will need the commit id of the exact version of your code (the model must be available on a GitHub or GitLab repository) that has generated the predictions. In order to find out this you can use the following code in the (Linux or Mac) terminal:
 
 ```bash
 git show | sed -n '1p' | sed 's/commit \(.*\)/\1/'
@@ -57,15 +57,21 @@ Example of the JSON object:
 
 ## Input parameters 
 The table below lists the parameters required to register a forecast. If your model refers to `adm_level = 1`, you only need to fill in the `adm_1` parameter and leave `adm_2` as null. The opposite applies if your model refers to `adm_level = 2`.
+
+
 | Parameter name | Type | Description |
 |--|--|--|
-| model | int | Model ID | 
+| repository | str | Model repository. Format: "{owner or org}/{name}" | 
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
-| predict_date | date _(YYYY-mm-dd)_ | Date when Prediction was generated |
-| adm_1 | str _(UF)_ | State abbreviation. Example: "RJ" |
+| case_definition | str | "reported" or "probable". The case definition used for the prediction data. |
+| published | bool _(True)_ | Whether this prediction is visible to the public. |
+| adm_0 | str _(BRA)_ | Country isocode. Default: "BRA" |
+| adm_1 | int _(UF)_ | State geocode. Example: 33 for RJ |
 | adm_2 | int _(IBGE)_ | City geocode. Example: 3304557 |
+| adm_3 | int _(IBGE)_ | Sub-municipality geocode. |
 | prediction | dict _(JSON)_ | The Prediction data.|
+
 
 ## X-UID-Key
 POST requests require [User API Token](uid-key.en.md) to be called.
@@ -79,39 +85,36 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
     ```py
     from mosqlient import upload_prediction
 
-    upload_prediction(
-      model_id = 0, # Check the ID in models list or profile
-      description = "My Prediction description",
-      commit = "3d1d2cd016fe38b6e7d517f724532de994d77618",
-      predict_date = "2023-10-31",
-      adm_1 = "RJ",
-      prediction = [
-    {
-      "date": "2010-01-03",
-      "pred": 100,
-      "lower_95": 65,
-      "lower_90": 70,
-      "lower_80": 80,
-      "lower_50": 90,
-      "upper_50": 110,
-      "upper_80": 120,
-      "upper_90": 130,
-      "upper_95": 135
-    },
-    {
-      "date": "2010-01-10",
-      "pred": 100,
-      "lower_95": 85,
-      "lower_90": 90,
-      "lower_80": 100,
-      "lower_50": 110,
-      "upper_50": 130,
-      "upper_80": 140,
-      "upper_90": 150,
-      "upper_95": 175
-    }], 
-      api_key = "X-UID-Key"
-      )
+    repository = "luabida/.config" 
+    description = "test client prediction test client prediction"
+    commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d"
+    adm_1 = 33  
+
+    prediction = [
+        {
+            "date": "2024-01-01",
+            "lower_95": 0.1,
+            "lower_90": 0.2,
+            "lower_80": 0.3,
+            "lower_50": 0.4,
+            "pred": 1,
+            "upper_50": 1.1,
+            "upper_80": 1.2,
+            "upper_90": 1.3,
+            "upper_95": 1.4,
+        }
+    ] # Can also be a pandas DataFrame
+
+    pred = upload_prediction(
+        api_key=api_key,
+        repository=repository,
+        description=description,
+        commit=commit,
+        case_definition="probable",
+        published=True,
+        adm_1=adm_1,
+        prediction=prediction
+    )
     ```
 
 === "R"
@@ -119,74 +122,66 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
     library(httr)
     library(jsonlite)
 
-    # Warning: this method generates a real object in the database if called with
-    # the correct UID Key
     post_prediction <- function(
-        model_id,
+        api_key,
+        repository,
         description,
         commit,
-        predict_date,
+        adm_1,
         prediction,
-        adm_1 = NULL
+        case_definition = "probable",
+        published = TRUE
     ) {
       
       url <- "https://api.mosqlimate.org/api/registry/predictions/"
       
       headers <- add_headers(
-        `X-UID-Key` = X-UID-Key)
+        `Authorization` = paste("Bearer", api_key),
+        `Content-Type` = "application/json"
+      )
       
-      predict <- list(
-        model = model_id,
+      body_list <- list(
+        repository = repository,
         description = description,
         commit = commit,
-        predict_date = predict_date,
-        prediction = prediction,
-        adm_1 = adm_1, 
-        adm_2 = NULL,
-        )
+        case_definition = case_definition,
+        published = published,
+        adm_1 = adm_1,
+        prediction = prediction
+      )
       
-      predict_json <- toJSON(predict, auto_unbox = TRUE, null = "null")
+      body_json <- toJSON(body_list, auto_unbox = TRUE, null = "null")
       
-      with_verbose(response <- POST(url, headers, body = predict_json, encode = "json"))
+      response <- POST(url, headers, body = body_json, encode = "json")
       
       if (http_status(response)$category != "Success") {
-      # print(content(response, "text", encoding = "UTF-8"))
-        stop("Request failed: ", http_status(response)$message)
+        stop("Request failed: ", content(response, "text", encoding = "UTF-8"))
       }
       
-      return(content(response, "text"))
+      return(content(response, "parsed"))
     }
 
-    # Example
-    post_prediction(
-      model_id = 16, # Check the ID in models list or profile
-      description = "My prediction description",
-      commit = "9b8d3afd84a5f77ac457c43af31e09be0b6d04af",
-      predict_date = "2023-10-31",
-      adm_1 = "RJ",
-      prediction = list(
-        list(
-          date = "2010-01-03",
-          pred= 100,
-          lower_95= 65,
-          lower_90= 70,
-          lower_80= 80,
-          lower_50= 90,
-          upper_50= 110,
-          upper_80= 120,
-          upper_90= 130,
-          upper_95= 135),
-        list(
-          date="2010-01-10",
-          pred= 120,
-          lower_95=85,
-          lower_90= 90,
-          lower_80= 100,
-          lower_50= 110,
-          upper_50= 130,
-          upper_80= 140,
-          upper_90= 150,
-          upper_95= 175)
+    prediction_data <- list(
+      list(
+        date = "2024-01-01",
+        lower_95 = 0.1,
+        lower_90 = 0.2,
+        lower_80 = 0.3,
+        lower_50 = 0.4,
+        pred = 1,
+        upper_50 = 1.1,
+        upper_80 = 1.2,
+        upper_90 = 1.3,
+        upper_95 = 1.4
       )
+    )
+
+    post_prediction(
+      api_key = "your_api_key_here",
+      repository = "luabida/.config",
+      description = "test client prediction test client prediction",
+      commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d",
+      adm_1 = 33,
+      prediction = prediction_data
     )
     ```

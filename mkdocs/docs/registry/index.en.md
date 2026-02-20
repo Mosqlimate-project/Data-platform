@@ -2,8 +2,9 @@
 `https://api.mosqlimate.org/api/registry/`
 
 The model registry is a tool for interacting with the Mosqlimate's model and prediction database. 
+
 ## Inserting models and predictions
-registering forecasting models that want to share their  predictions in the Mosqlimate platform.
+registering forecasting models that want to share their predictions in the Mosqlimate platform.
 
 As with everything in our API, the model registry can be accessed programatically. You can  [insert new models](https://api.mosqlimate.org/docs/registry/POST/models/) into the platform, or [post predictions](https://api.mosqlimate.org/docs/registry/POST/predictions/) generated from a registered model.
 
