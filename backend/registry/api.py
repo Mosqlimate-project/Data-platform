@@ -548,6 +548,42 @@ def update_prediction_published(
     return 201, "ok"
 
 
+@router.patch(
+    "/prediction/{prediction_id}/publish/",
+    response={201: str, 403: dict, 404: dict},
+    auth=UidKeyAuth(),
+    include_in_schema=True,
+)
+def prediction_published(
+    request,
+    prediction_id: int,
+    payload: s.PredictionPublishUpdateIn,
+):
+    try:
+        prediction = m.ModelPrediction.objects.select_related(
+            "model__repository__owner", "model__repository__organization"
+        ).get(id=prediction_id)
+    except m.ModelPrediction.DoesNotExist:
+        return 404, {"message": "Prediction not found"}
+
+    user = request.auth
+    repo = prediction.model.repository
+
+    is_authorized = (
+        repo.owner == user
+        or repo.repository_contributors.filter(user=user).exists()
+        or user.is_superuser
+    )
+
+    if not is_authorized:
+        return 403, {"message": "Permission denied"}
+
+    prediction.published = payload.published
+    prediction.save()
+
+    return 201, "ok"
+
+
 @router.get(
     "/models/{owner}/{repository}/",
     response={
