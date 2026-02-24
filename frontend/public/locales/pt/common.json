@@ -501,7 +501,7 @@
     "data": {
       "title": "Explore nossos dados",
       "cases_title": "Casos",
-      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>Zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "cases_desc": "Dados semanais sobre <b>Dengue</b>, <b>Zika</b> e <b>Chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
       "mosquito_title": "Mosquito",
