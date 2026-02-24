@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mosqlimate"
-version = "2.1.8"  # changed by semantic-release
+version = "2.1.9"  # changed by semantic-release
 description = "TODO"
 authors = ["Flávio Codeço Coelho <you@example.com>"]
 license = "GNU"

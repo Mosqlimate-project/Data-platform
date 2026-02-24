@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.1.9](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.8...2.1.9) (2026-02-24)
+
+
+### Bug Fixes
+
+* **predictions:** include a prediction delete button on frontend ([#418](https://github.com/Mosqlimate-project/Data-platform/issues/418)) ([60c61c6](https://github.com/Mosqlimate-project/Data-platform/commit/60c61c663015d986dc1fa73f89e9daf1fea5fa92))
+
 ## [2.1.8](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.7...2.1.8) (2026-02-24)
 
 
