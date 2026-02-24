@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { DashboardSidebar } from "@/components/dashboard/Sidebar";
 import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
+import { DashboardProvider } from "@/context/Dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -30,20 +31,22 @@ export default async function DashboardLayout({
   const sections = await getSections();
 
   return (
-    <div className="flex min-h-screen bg-bg">
-      <Suspense
-        fallback={
-          <div className="w-64 h-full border-r border-border bg-bg flex items-center justify-center shrink-0">
-            <Loader2 className="animate-spin text-secondary" />
-          </div>
-        }
-      >
-        <DashboardSidebar sections={sections} />
-      </Suspense>
+    <DashboardProvider>
+      <div className="flex min-h-screen bg-bg">
+        <Suspense
+          fallback={
+            <div className="w-64 h-full border-r border-border bg-bg flex items-center justify-center shrink-0">
+              <Loader2 className="animate-spin text-secondary" />
+            </div>
+          }
+        >
+          <DashboardSidebar sections={sections} />
+        </Suspense>
 
-      <main className="flex-1 overflow-y-auto h-full">
-        {children}
-      </main>
-    </div>
+        <main className="flex-1 overflow-y-auto h-full">
+          {children}
+        </main>
+      </div>
+    </DashboardProvider>
   );
 }

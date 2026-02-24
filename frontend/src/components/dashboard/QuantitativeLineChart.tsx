@@ -71,6 +71,23 @@ export const LineChart: React.FC<ChartProps> = ({
   useEffect(() => {
     if (!chartRef.current) return;
 
+    const chartInstance = echarts.getInstanceByDom(chartRef.current);
+    if (!chartInstance) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      chartInstance.resize();
+    });
+
+    resizeObserver.observe(chartRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
     if (!instanceRef.current) {
       instanceRef.current = echarts.init(chartRef.current);
     }

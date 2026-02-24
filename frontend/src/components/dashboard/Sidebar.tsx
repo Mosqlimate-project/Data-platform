@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDashboard } from "@/context/Dashboard";
+import { AdmLevel } from "@/lib/dashboard/api";
 
 interface Level {
   id: string;
@@ -28,66 +30,38 @@ interface SidebarProps {
   sections: Section[];
 }
 
-const LEVEL_TO_INT: Record<string, string> = {
-  national: "0",
-  state: "1",
-  municipal: "2",
-  sub_municipal: "3",
+const LEVEL_TO_INT: Record<string, AdmLevel> = {
+  national: 0,
+  state: 1,
+  municipal: 2,
+  sub_municipal: 3,
 };
 
 export function DashboardSidebar({ sections }: SidebarProps) {
   const { t } = useTranslation("common");
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { state: dashboardState, updateState } = useDashboard();
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setIsOpen(false);
-    }
-
-    const handleResize = (e: Event) => {
-      if (!e.isTrusted) return;
-
-      if (window.innerWidth < 1024) {
+    const handleResize = () => {
+      if (window.innerWidth <= 1520) {
         setIsOpen(false);
       } else {
         setIsOpen(true);
       }
     };
 
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const createLink = (
-    basePath: string,
-    sectionId: string,
-    extraParams: Record<string, string> = {}
-  ) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (sectionId === "sprint") {
-      params.set("sprint", "true");
-    } else {
-      params.set("sprint", "false");
-    }
-
-    Object.entries(extraParams).forEach(([key, value]) => {
-      params.set(key, value);
+  const handleLevelClick = (levelId: string, isSprint: boolean) => {
+    updateState({
+      adm_level: LEVEL_TO_INT[levelId] ?? 1,
+      sprint: isSprint
     });
-
-    return `${basePath}?${params.toString()}`;
-  };
-
-  const isSectionActive = (sectionId: string) => {
-    const currentSprint = searchParams.get("sprint");
-    const isSprintSection = sectionId === "sprint";
-    const targetSprintValue = isSprintSection ? "true" : "false";
-    const effectiveCurrentSprint =
-      currentSprint === null ? "false" : currentSprint;
-
-    return effectiveCurrentSprint === targetSprintValue;
   };
 
   const isLevelActive = (
@@ -96,14 +70,12 @@ export function DashboardSidebar({ sections }: SidebarProps) {
     sectionId: string
   ) => {
     if (!pathname.includes(`/dashboard/${categoryId}`)) return false;
-    if (!isSectionActive(sectionId)) return false;
 
-    const currentLevel = searchParams.get("adm_level");
+    const isSprintSection = sectionId === "sprint";
+    if (dashboardState.sprint !== isSprintSection) return false;
+
     const targetLevel = LEVEL_TO_INT[levelSlug];
-
-    if (!currentLevel && targetLevel === "1") return true;
-
-    return currentLevel === targetLevel;
+    return dashboardState.adm_level === targetLevel;
   };
 
   const SECTION_LABEL_MAP: Record<string, string> = {
@@ -140,8 +112,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors whitespace-nowrap ${pathname === "/dashboard"
-              ? "bg-accent text-white"
-              : "hover:bg-primary/5 hover:text-text"
+                ? "bg-accent text-white"
+                : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             {t("dashboard.overview.overview")}
@@ -157,9 +129,7 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                 <div key={cat.id} className="mb-4">
                   {section.categories.length > 1 && (
                     <div className="pt-1 pb-2">
-                      <p
-                        className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors`}
-                      >
+                      <p className="text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors">
                         {cat.label}
                       </p>
                     </div>
@@ -169,12 +139,11 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                     {(cat.levels || []).map((level) => (
                       <Link
                         key={level.id}
-                        href={createLink(`/dashboard/${cat.id}`, section.id, {
-                          adm_level: LEVEL_TO_INT[level.id] || "1",
-                        })}
+                        href={`/dashboard/${cat.id}`}
+                        onClick={() => handleLevelClick(level.id, section.id === "sprint")}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
-                          ? "bg-accent text-white font-medium"
-                          : "hover:bg-primary/5 hover:text-text"
+                            ? "bg-accent text-white font-medium"
+                            : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
                         {level.label}
