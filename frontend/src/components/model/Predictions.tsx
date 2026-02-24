@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Search, X, Loader2 } from "lucide-react";
+import { LayoutDashboard, Search, X, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LineChart, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
@@ -69,6 +69,7 @@ const PredictionCard = memo(function PredictionCard({
   isUpdating,
   isActiveChart,
   onToggle,
+  onDeleteRequest,
   onViewChart,
   formatDate,
   formatScoreName,
@@ -81,6 +82,7 @@ const PredictionCard = memo(function PredictionCard({
   isUpdating: boolean;
   isActiveChart: boolean;
   onToggle: (id: number, status: boolean) => void;
+  onDeleteRequest: (id: number) => void;
   onViewChart: (pred: ModelPrediction) => void;
   formatDate: (d: string) => string;
   formatScoreName: (s: string) => string;
@@ -103,25 +105,30 @@ const PredictionCard = memo(function PredictionCard({
 
         <div className="flex items-center gap-3">
           {canManage && (
-            <div
-              className="flex items-center gap-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <input
-                type="checkbox"
-                checked={!!pred.published}
-                disabled={isUpdating}
-                onChange={() => onToggle(pred.id, !!pred.published)}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50"
-                id={`publish-${pred.id}`}
-              />
-              <label
-                htmlFor={`publish-${pred.id}`}
-                className={`text-[10px] uppercase font-semibold text-muted-foreground cursor-pointer select-none ${isUpdating ? "opacity-50" : ""
-                  }`}
+            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={!!pred.published}
+                  disabled={isUpdating}
+                  onChange={() => onToggle(pred.id, !!pred.published)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50"
+                  id={`publish-${pred.id}`}
+                />
+                <label
+                  htmlFor={`publish-${pred.id}`}
+                  className={`text-[10px] uppercase font-semibold text-muted-foreground cursor-pointer select-none ${isUpdating ? "opacity-50" : ""}`}
+                >
+                  {isUpdating ? t("model_predictions.saving") : t("model_predictions.published")}
+                </label>
+              </div>
+              <button
+                onClick={() => onDeleteRequest(pred.id)}
+                className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                title={t("common:actions.delete")}
               >
-                {isUpdating ? t("model_predictions.saving") : t("model_predictions.published")}
-              </label>
+                <Trash2 size={14} color="red" />
+              </button>
             </div>
           )}
 
@@ -193,8 +200,8 @@ const PredictionCard = memo(function PredictionCard({
   );
 });
 
-export default function PredictionsList({ predictions, canManage = false, owner = "owner", modelName = "model" }: PredictionsListProps) {
-  const { t, i18n } = useTranslation('common');
+export default function PredictionsList({ predictions, canManage = false }: PredictionsListProps) {
+  const { t, i18n } = useTranslation(['common', 'models']);
   const router = useRouter();
   const [localPredictions, setLocalPredictions] = useState<ModelPrediction[]>(predictions || []);
   const availableScores = localPredictions.find((p) => p.scores && p.scores.length > 0)?.scores.map((s) => s.name) || [];
@@ -206,6 +213,9 @@ export default function PredictionsList({ predictions, canManage = false, owner 
   const [chartData, setChartData] = useState<QuantitativePrediction | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+
+  const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => { setLocalPredictions(predictions || []); }, [predictions]);
   const formatScoreName = useCallback((name: string) => name.replace("_score", "").toUpperCase(), []);
@@ -223,6 +233,26 @@ export default function PredictionsList({ predictions, canManage = false, owner 
       setLocalPredictions(prev => prev.map(p => p.id === id ? { ...p, published: current } : p));
     } finally { setIsUpdating(null); }
   }, [router]);
+
+  const handleDeletePrediction = async () => {
+    if (!deleteModalId) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/registry/predictions/${deleteModalId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setLocalPredictions(prev => prev.filter(p => p.id !== deleteModalId));
+      if (activeChartId === deleteModalId) {
+        setActiveChartId(null);
+        setChartData(null);
+      }
+      setDeleteModalId(null);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleViewChart = useCallback(async (pred: ModelPrediction) => {
     if (activeChartId === pred.id) return;
@@ -268,6 +298,41 @@ export default function PredictionsList({ predictions, canManage = false, owner 
 
   return (
     <div className="space-y-6">
+      {deleteModalId && (
+        <div className="fixed bg-bg inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-bg border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-destructive">
+                <div className="p-2 bg-destructive/10 rounded-full">
+                  <AlertTriangle size={24} color="orange" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">{t("common:actions.delete")}</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                {t("models:predictions.delete_confirm", { id: deleteModalId })}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 bg-muted/30 border-t">
+              <button
+                disabled={isDeleting}
+                onClick={() => setDeleteModalId(null)}
+                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50"
+              >
+                {t("common:actions.cancel")}
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={handleDeletePrediction}
+                className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} color="red" />}
+                {t("common:actions.delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="h-[500px] w-full bg-card border rounded-xl p-4 relative flex flex-col">
         <h3 className="font-semibold text-sm mb-4">{activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}</h3>
         <div className="flex-1 relative">
@@ -275,11 +340,37 @@ export default function PredictionsList({ predictions, canManage = false, owner 
           {chartData ? (<LineChart data={{ labels: [], data: [] }} predictions={[chartData]} activeIntervals={new Set([chartData.id])} height="100%" />) : !isChartLoading && (<div className="flex items-center justify-center h-full text-muted-foreground text-sm">{activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}</div>)}
         </div>
       </div>
+
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="relative flex-1 max-w-sm"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input type="text" placeholder={t("model_predictions.search_placeholder")} value={inputValue} onChange={e => setInputValue(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary" />{inputValue && (<button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>)}</div>
         <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border"><span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span><select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer">{availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}</select></div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">{filtered.length === 0 ? (<div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">{debouncedSearchQuery ? t("model_predictions.no_matches") : t("model_predictions.no_found")}</div>) : (filtered.map(p => (<PredictionCard key={p.id} pred={p} canManage={canManage} selectedMetric={selectedMetric} isUpdating={isUpdating === p.id} isActiveChart={activeChartId === p.id} onToggle={handlePublishToggle} onViewChart={handleViewChart} formatDate={formatDate} formatScoreName={formatScoreName} getDashboardLink={getDashboardLink} t={t} />)))}</div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filtered.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">
+            {debouncedSearchQuery ? t("model_predictions.no_matches") : t("model_predictions.no_found")}
+          </div>
+        ) : (
+          filtered.map(p => (
+            <PredictionCard
+              key={p.id}
+              pred={p}
+              canManage={canManage}
+              selectedMetric={selectedMetric}
+              isUpdating={isUpdating === p.id}
+              isActiveChart={activeChartId === p.id}
+              onToggle={handlePublishToggle}
+              onDeleteRequest={(id) => setDeleteModalId(id)}
+              onViewChart={handleViewChart}
+              formatDate={formatDate}
+              formatScoreName={formatScoreName}
+              getDashboardLink={getDashboardLink}
+              t={t}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
