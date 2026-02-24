@@ -60,7 +60,11 @@ export function DashboardSidebar({ sections }: SidebarProps) {
   const handleLevelClick = (levelId: string, isSprint: boolean) => {
     updateState({
       adm_level: LEVEL_TO_INT[levelId] ?? 1,
-      sprint: isSprint
+      sprint: isSprint,
+      adm_0: "",
+      adm_1: "",
+      adm_2: "",
+      prediction_id: null
     });
   };
 
@@ -112,8 +116,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
           <Link
             href="/dashboard"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors whitespace-nowrap ${pathname === "/dashboard"
-                ? "bg-accent text-white"
-                : "hover:bg-primary/5 hover:text-text"
+              ? "bg-accent text-white"
+              : "hover:bg-primary/5 hover:text-text"
               }`}
           >
             {t("dashboard.overview.overview")}
@@ -142,8 +146,8 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                         href={`/dashboard/${cat.id}`}
                         onClick={() => handleLevelClick(level.id, section.id === "sprint")}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
-                            ? "bg-accent text-white font-medium"
-                            : "hover:bg-primary/5 hover:text-text"
+                          ? "bg-accent text-white font-medium"
+                          : "hover:bg-primary/5 hover:text-text"
                           }`}
                       >
                         {level.label}
