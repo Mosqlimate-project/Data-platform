@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
+import Link from "next/link";
 
 const NetworkBackground = dynamic(() => import("@/components/NetworkBackground"), {
   ssr: false,
@@ -85,7 +86,7 @@ function ScrollIndicator({ label }: { label: string }) {
           nextSection.scrollIntoView({ behavior: "smooth" });
         }
       }}
-      
+
       className="fixed bottom-6 left-8 w-14 h-14 bg-accent text-white rounded-full flex flex-col items-center justify-center shadow-xl cursor-pointer animate-bounce hover:scale-110 transition z-50"
     >
       <span className="text-[10px] font-semibold leading-none -mb-1">
@@ -181,97 +182,127 @@ export default function HomePage() {
         <section data-scroll-section id="explore-nossos-dados" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
             <div className="max-w-6xl mx-auto text-center">
-              <h2 className="text-5xl font-bold mb-10 text-text">
-                {t("home.data.title")}
-              </h2>
+              <Link href="/datastore" className="block w-fit mx-auto group">
+                <h2 className="text-5xl font-bold mb-10 text-text group-hover:text-primary transition-colors cursor-pointer">
+                  {t("home.data.title")}
+                </h2>
+              </Link>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-6xl">
                 <FadeInSection>
-                  <div className="relative p-6 rounded-xl bg-border shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
-                    <div className="absolute top-2 right-8">
-                      <Image
-                        src="/info_dengue_logo.png"
-                        alt="Logo Infodengue"
-                        width={100}
-                        height={50}
+                  <a
+                    href="https://info.dengue.mat.br/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                      <div className="absolute top-2 right-8">
+                        <Image
+                          src="/info_dengue_logo.png"
+                          alt="Logo Infodengue"
+                          width={100}
+                          height={50}
+                        />
+                      </div>
+                      <h3 className="text-3xl font-semibold mb-3 text-text group-hover:text-primary transition-colors">
+                        {t("home.data.cases_title")}
+                      </h3>
+                      <p
+                        className="text-lg text-text/60 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: t("home.data.cases_desc"),
+                        }}
                       />
                     </div>
-                    <h3 className="text-3xl font-semibold mb-3 text-text">
-                      {t("home.data.cases_title")}
-                    </h3>
-                    <p
-                      className="text-lg text-text/60 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: t("home.data.cases_desc"),
-                      }}
-                    />
-                  </div>
+                  </a>
                 </FadeInSection>
 
                 <FadeInSection>
-                  <div className="p-6 rounded-xl bg-border shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
-                    <div className="absolute top-3 right-8">
-                      <Image
-                        src="/copernicus_logo.png"
-                        alt="Logo Copernicus"
-                        width={100}
-                        height={50}
+                  <a
+                    href="https://api.mosqlimate.org/docs/datastore/GET/climate/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
+                      <div className="absolute top-3 right-8">
+                        <Image
+                          src="/copernicus_logo.png"
+                          alt="Logo Copernicus"
+                          width={100}
+                          height={50}
+                        />
+                      </div>
+                      <h3 className="text-3xl font-semibold mb-3 text-text group-hover:text-primary transition-colors">
+                        {t("home.data.climate_title")}
+                      </h3>
+                      <p
+                        className="text-lg text-text/60 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: t("home.data.climate_desc"),
+                        }}
                       />
                     </div>
-                    <h3 className="text-3xl font-semibold mb-3 text-text">
-                      {t("home.data.climate_title")}
-                    </h3>
-                    <p
-                      className="text-lg text-text/60 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: t("home.data.climate_desc"),
-                      }}
-                    />
-                  </div>
+                  </a>
                 </FadeInSection>
 
                 <FadeInSection>
-                  <div className="p-6 rounded-xl bg-border shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
-                    <div className="absolute top-3 right-8">
-                      <Image
-                        src="/contaovos_icon.png"
-                        alt="Icon Contaovos"
-                        width={100}
-                        height={50}
+                  <a
+                    href="https://contaovos.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
+                      <div className="absolute top-3 right-8">
+                        <Image
+                          src="/contaovos_icon.png"
+                          alt="Icon Contaovos"
+                          width={100}
+                          height={50}
+                        />
+                      </div>
+                      <h3 className="text-3xl font-semibold mb-3 text-text group-hover:text-primary transition-colors">
+                        {t("home.data.mosquito_title")}
+                      </h3>
+                      <p
+                        className="text-lg text-text/60 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: t("home.data.mosquito_desc"),
+                        }}
                       />
                     </div>
-                    <h3 className="text-3xl font-semibold mb-3 text-text">
-                      {t("home.data.mosquito_title")}
-                    </h3>
-                    <p
-                      className="text-lg text-text/60 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: t("home.data.mosquito_desc"),
-                      }}
-                    />
-                  </div>
+                  </a>
                 </FadeInSection>
 
                 <FadeInSection>
-                  <div className="p-6 rounded-xl bg-border shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
-                    <div className="absolute top-3 right-8">
-                      <Image
-                        src="/episcanner_icon.svg"
-                        alt="Icon Epi-Scanner"
-                        width={100}
-                        height={50}
+                  <a
+                    href="https://info.dengue.mat.br/epi-scanner/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
+                      <div className="absolute top-3 right-8">
+                        <Image
+                          src="/episcanner_icon.svg"
+                          alt="Icon Epi-Scanner"
+                          width={100}
+                          height={50}
+                        />
+                      </div>
+                      <h3 className="text-3xl font-semibold mb-3 text-text group-hover:text-primary transition-colors">
+                        {t("home.data.epi_title")}
+                      </h3>
+                      <p
+                        className="text-lg text-text/60 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: t("home.data.epi_desc"),
+                        }}
                       />
                     </div>
-                    <h3 className="text-3xl font-semibold mb-3 text-text">
-                      {t("home.data.epi_title")}
-                    </h3>
-                    <p
-                      className="text-lg text-text/60 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: t("home.data.epi_desc"),
-                      }}
-                    />
-                  </div>
+                  </a>
                 </FadeInSection>
               </div>
             </div>
@@ -288,7 +319,7 @@ export default function HomePage() {
                 {t("home.models.description")}
               </p>
 
-              <a href="/models" className="group relative inline-block">
+              <a href="/dashboard" className="group relative inline-block">
                 <Image
                   src="/models.png"
                   alt="Models"

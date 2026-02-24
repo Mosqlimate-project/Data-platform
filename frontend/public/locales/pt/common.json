@@ -254,7 +254,17 @@
     }
   },
   "common": {
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "actions": {
+      "delete": "Deletar",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    }
+  },
+  "models": {
+    "predictions": {
+      "delete_confirm": "Tem certeza que quer deletar a previsão #{{id}}?"
+    }
   },
   "datastore": {
     "infodengue": {
@@ -457,7 +467,8 @@
       "raquel": "Bolsista Marie Curie no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global. Sua formação é em epidemiologia quantitativa e sua pesquisa foca na dinâmica de doenças infecciosas e sua associação com fatores ambientais, climáticos e sociais. É colaboradora no projeto Mosqlimate.",
       "thais": "Bióloga com mestrado e doutorado em Zoologia. Tenho interesse em estudos sobre ecologia e dinâmica populacional de vetores de arboviroses e seu impacto na dinâmica de transmissão de doenças. Atualmente trabalho como analista no Centro de Inteligência Epidemiológica da Secretaria de Saúde da Cidade do Rio de Janeiro e como pesquisadora colaboradora no sistema Infodengue.",
       "lais": "Pesquisadora no Programa de Computação Científica (PROCC/Fiocruz), com mestrado e doutorado em Epidemiologia pela ENSP/Fiocruz. Realizou pós-doutorado no PROCC e CReSP, Université de Montréal. Seu trabalho foca em modelagem Bayesiana de doenças infecciosas, especialmente arboviroses, analisando padrões espaciais e determinantes socioambientais.",
-      "bruno": "Pós-doutorando no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global, onde desenvolve modelos de doenças infecciosas para alerta precoce e suporte à decisão. Constrói indicadores para rastrear os impactos das mudanças climáticas na saúde usando kits de ferramentas digitais de acesso aberto e reproduzíveis. É biólogo, Doutor em Ecologia e Evolução e Mestre em Parasitologia. Como colaborador no Mosqlimate, Bruno está desenvolvendo modelos de aprendizado profundo para prever dengue no Brasil usando dados do sistema Infodengue."
+      "bruno": "Pós-doutorando no Barcelona Supercomputing Center no grupo de Resiliência em Saúde Global, onde desenvolve modelos de doenças infecciosas para alerta precoce e suporte à decisão. Constrói indicadores para rastrear os impactos das mudanças climáticas na saúde usando kits de ferramentas digitais de acesso aberto e reproduzíveis. É biólogo, Doutor em Ecologia e Evolução e Mestre em Parasitologia. Como colaborador no Mosqlimate, Bruno está desenvolvendo modelos de aprendizado profundo para prever dengue no Brasil usando dados do sistema Infodengue.",
+      "joyce": "Doutoranda em Matemática Aplicada e Ciência de Dados na FGV EMAp. Mestre em Modelagem Matemática da Informação e bacharel em Matemática Aplicada. Seus interesses de pesquisa concentram-se na modelagem matemática de sistemas complexos, com foco particular em dinâmica epidemiológica e abordagens baseadas em dados para a compreensão de fenômenos do mundo real. Tem interesse na integração de modelagem quantitativa, análise de dados e métodos computacionais para apoiar a tomada de decisão em contextos de saúde pública."
     }
   },
   "navbar": {
@@ -490,7 +501,7 @@
     "data": {
       "title": "Explore nossos dados",
       "cases_title": "Casos",
-      "cases_desc": "Dados semanais sobre <b>dengue</b>, <b>Zika</b> e <b>chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
+      "cases_desc": "Dados semanais sobre <b>Dengue</b>, <b>Zika</b> e <b>Chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
       "mosquito_title": "Mosquito",

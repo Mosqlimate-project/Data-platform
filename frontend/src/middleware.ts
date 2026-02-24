@@ -13,6 +13,8 @@ const publicPaths = [
   "/api/user/check-email",
   "/api/registry/models",
   "/api/registry/model",
+  "/api/registry/predictions",
+  "/api/users/api-key",
   "/api/datastore/charts",
   "/api/datastore/cities",
   "/api/vis/dashboard",
