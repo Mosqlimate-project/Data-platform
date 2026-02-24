@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.1.7](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.6...2.1.7) (2026-02-24)
+
+
+### Bug Fixes
+
+* **dashboard:** improve dashboard logic & organize it ([#416](https://github.com/Mosqlimate-project/Data-platform/issues/416)) ([24d641a](https://github.com/Mosqlimate-project/Data-platform/commit/24d641abcaa3e5ad2c85783c8a5d2fba3d1277ff))
+
 ## [2.1.6](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.5...2.1.6) (2026-02-19)
 
 
