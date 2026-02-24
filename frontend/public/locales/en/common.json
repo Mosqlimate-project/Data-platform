@@ -254,7 +254,17 @@
     }
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "actions": {
+      "delete": "Delete",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  },
+  "models": {
+    "predictions": {
+      "delete_confirm": "Are you sure you want to delete prediction #{{id}}?"
+    }
   },
   "datastore": {
     "infodengue": {

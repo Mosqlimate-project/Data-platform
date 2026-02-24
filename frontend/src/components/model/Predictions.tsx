@@ -304,12 +304,14 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3 text-destructive">
                 <div className="p-2 bg-destructive/10 rounded-full">
-                  <AlertTriangle size={24} color="orange" />
+                  <AlertTriangle size={24} color="red" />
                 </div>
-                <h3 className="text-lg font-bold text-foreground">{t("common:actions.delete")}</h3>
+                <h3 className="text-lg font-bold text-foreground">
+                  {t("common.actions.delete")}
+                </h3>
               </div>
               <p className="text-muted-foreground text-sm">
-                {t("models:predictions.delete_confirm", { id: deleteModalId })}
+                {t("models.predictions.delete_confirm", { id: deleteModalId })}
               </p>
             </div>
             <div className="flex items-center justify-end gap-3 p-4 bg-muted/30 border-t">
@@ -318,7 +320,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
                 onClick={() => setDeleteModalId(null)}
                 className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50"
               >
-                {t("common:actions.cancel")}
+                {t("common.actions.cancel")}
               </button>
               <button
                 disabled={isDeleting}
@@ -326,7 +328,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
                 className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} color="red" />}
-                {t("common:actions.delete")}
+                {t("common.actions.delete")}
               </button>
             </div>
           </div>
