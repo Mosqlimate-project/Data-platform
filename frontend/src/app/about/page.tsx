@@ -247,6 +247,14 @@ const team = [
     linkedin: "https://www.linkedin.com/in/carvalho-bm/",
     lattes: "http://lattes.cnpq.br/5725434538672496",
   },
+  {
+    id: "joyce",
+    name: "Joyce Figueiró Braga",
+    roleKey: "associated",
+    image: "/team/joyce.jpeg",
+    linkedin: "https://www.linkedin.com/in/joyce-figueiró-braga-51784425/",
+    lattes: "http://lattes.cnpq.br/9948080229720839",
+  },
 ];
 
 
@@ -323,7 +331,7 @@ export default function AboutPage() {
                   </div>
 
                 </div>
-                
+
               </FadeInSection>
             ))}
             <ScrollIndicator label={t("home.scroll")} />
