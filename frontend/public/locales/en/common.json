@@ -512,7 +512,7 @@
     "models": {
       "title": "Analyze our models",
       "description": "Mosqlimate provides and registers forecasting models for dengue, chikungunya, and Zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of expansion signs or outbreaks, including new arboviruses, integrating with the Infodengue early warning system.",
-      "image_message": "Click to be redirected to the Models tab."
+      "image_message": "Click to be redirected to the Dashboard."
     },
     "differentials": {
       "title": "Discover Mosqlimate's differentials",

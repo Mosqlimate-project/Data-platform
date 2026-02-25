@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
         "X-UID-Key": ADMIN_UIDKEY,
       },
-      cache: "no-store"
+      next: { revalidate: 300 }
     });
 
     if (!response.ok) {
