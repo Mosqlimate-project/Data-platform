@@ -12,7 +12,7 @@ export async function GET(
     const res = await fetch(
       `${BACKEND_BASE_URL}/api/vis/dashboard/prediction/${prediction_id}/`,
       {
-        cache: "no-store",
+        cache: "force-cache",
         headers: {
           "Content-Type": "application/json",
           "X-UID-Key": ADMIN_UIDKEY,
@@ -28,7 +28,12 @@ export async function GET(
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=31536000, max-age=31536000, immutable',
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },

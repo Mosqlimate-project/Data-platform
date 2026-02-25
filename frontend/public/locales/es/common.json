@@ -499,7 +499,7 @@
     "models": {
       "title": "Analice nuestros modelos",
       "description": "Mosqlimate pone a disposición y registra modelos de pronóstico para dengue, chikungunya y Zika, utilizando datos climáticos y epidemiológicos oficiales de dominio público. Estos modelos permiten comparar metodologías a través de paneles, mejorar pronósticos e identificar señales de expansión o brotes, incluyendo nuevos arbovirus, integrándose al sistema de alerta temprana Infodengue.",
-      "image_message": "Haga clic para ser redirigido a la pestaña Modelos."
+      "image_message": "Haga clic para ser redirigido a la pestaña del Dashboard."
     },
     "differentials": {
       "title": "Descubra los diferenciales de Mosqlimate",

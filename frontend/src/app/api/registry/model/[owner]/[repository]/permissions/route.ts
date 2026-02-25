@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyUser } from "@/app/api/auth/verify";
 import { BACKEND_BASE_URL } from "@/lib/env";
-import { ADMIN_UIDKEY } from "@/lib/env";
 
 export async function GET(
   request: NextRequest,

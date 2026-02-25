@@ -55,55 +55,63 @@ export default function Chatbot() {
     initializedRef.current = true;
 
     async function init() {
-      const response = await fetch(`/api/session-key`);
+      try {
+        const response = await fetch(`/api/session-key`);
 
-      if (!response.ok) {
-        console.error("Failed to get session key");
-        return;
-      }
-
-      const data = await response.json();
-      const sessionKey = data.session_key;
-      const backend_url = new URL(NEXT_PUBLIC_BACKEND_URL).host;
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
-      socketRef.current = ws;
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.text?.msg) {
-          setMessages((prev) => {
-            const cleaned = prev.filter((m) => m.source !== "waiting");
-            return [...cleaned, data.text];
-          });
+        if (!response.ok) {
+          throw new Error("Failed to get session key");
         }
-      };
 
-      ws.onclose = () => {
-        setMessages((prev) => [
-          ...prev,
-          { msg: "Disconnected. Reload to reconnect.", source: "system" },
-        ]);
-      };
+        const data = await response.json();
+        const sessionKey = data.session_key;
 
-      ws.onerror = () => {
-        setMessages((prev) => [
-          ...prev,
-          { msg: "An error occurred. Reload the page.", source: "system" },
-        ]);
-      };
+        if (!sessionKey) return;
+
+        const backend_url = new URL(NEXT_PUBLIC_BACKEND_URL).host;
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
+
+        socketRef.current = ws;
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.text?.msg) {
+            setMessages((prev) => {
+              const cleaned = prev.filter((m) => m.source !== "waiting");
+              return [...cleaned, data.text];
+            });
+          }
+        };
+
+        ws.onclose = () => {
+          setMessages((prev) => [
+            ...prev,
+            { msg: "Disconnected. Reload to reconnect.", source: "system" },
+          ]);
+        };
+
+        ws.onerror = () => {
+          setMessages((prev) => [
+            ...prev,
+            { msg: "An error occurred. Reload the page.", source: "system" },
+          ]);
+        };
+      } catch (err) {
+        console.error("Chatbot init error:", err);
+      }
     }
 
     init();
-    return () => socketRef.current?.close();
+    return () => {
+      socketRef.current?.close();
+      initializedRef.current = false;
+    };
   }, []);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-scroll when opening the chat
   useEffect(() => {
     if (open) {
       setTimeout(() => {

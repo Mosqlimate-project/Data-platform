@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyUser } from "../auth/verify";
+import { verifyUser } from "@/app/api/auth/verify";
 
 export async function GET(req: NextRequest) {
   const user = await verifyUser(req);
