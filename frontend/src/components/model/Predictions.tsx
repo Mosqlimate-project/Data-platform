@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LineChart, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
 import MarkdownRenderer from "@/components/model/MarkdownRenderer";
+import { FRONTEND_SECRET } from "@/lib/env";
 
 interface PredictionScore {
   name: string;
@@ -258,7 +259,12 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     if (activeChartId === pred.id) return;
     setActiveChartId(pred.id); setIsChartLoading(true); setChartData(null);
     try {
-      const res = await fetch(`/api/vis/dashboard/prediction/${pred.id}`);
+      const res = await fetch(`/api/vis/dashboard/prediction/${pred.id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-secret": FRONTEND_SECRET || "",
+        }
+      });
       const data: PredictionRowData[] = await res.json();
       setChartData({
         id: pred.id, color: "#2563eb",

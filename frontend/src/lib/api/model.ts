@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 
 export async function getPermissions(owner: string, repository: string) {
   try {
@@ -11,6 +11,7 @@ export async function getPermissions(owner: string, repository: string) {
         cache: "no-store",
         headers: {
           Cookie: cookieStore.toString(),
+          "x-internal-secret": FRONTEND_SECRET || ""
         },
       }
     );

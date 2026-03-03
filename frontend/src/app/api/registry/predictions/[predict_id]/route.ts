@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { BACKEND_BASE_URL } from "@/lib/env";
+import { BACKEND_BASE_URL, FRONTEND_SECRET, ADMIN_UIDKEY } from "@/lib/env";
 import { cookies } from "next/headers";
 
 export async function GET(
   request: Request,
   { params }: { params: { predict_id: string } }
 ) {
+  const secret = request.headers.get("x-internal-secret")
   const { predict_id } = params;
-  const ADMIN_UIDKEY = process.env.ADMIN_UIDKEY;
+
+  if (!FRONTEND_SECRET || secret !== FRONTEND_SECRET) {
+    return NextResponse.json({ message: "Unauthorized [f]" }, { status: 401 });
+  }
 
   if (!ADMIN_UIDKEY) {
     return NextResponse.json({ message: "Server not configured" }, { status: 500 });

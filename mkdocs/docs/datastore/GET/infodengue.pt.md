@@ -1,6 +1,14 @@
 ## [Dados do Infodengue](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue)
 Este endpoint dá acesso a dados do projeto [Infodengue](https://info.dengue.mat.br/), que fornece uma série de variáveis epidemiológicas para todos os municípios brasileiros em uma escala de tempo semanal. Os parâmetros de requisição e as variáveis dos dados são descritos abaixo.
 
+### Metodologias
+Os produtos derivados dos dados utilizam as seguintes metodologias científicas:
+* **Rt (Número Reprodutivo):** Calculado conforme [Cori et al. (2013)](https://www.sciencedirect.com/science/article/pii/S1755436517300907?via%3Dihub).
+* **Nowcasting:** Estimativa de casos corrigida por atraso de notificação baseada em [Bastos et al. (2019)](https://onlinelibrary.wiley.com/doi/full/10.1002/sim.8303).
+
+> **WARNING**  
+> Os dados do InfoDengue referentes às semanas mais recentes são preliminares e estão sujeitos a atualizações posteriores.
+
 Para um exemplo de uso da API no Mosqlimate, consulte [Demonstração da API](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue). Exemplos em Python são encontrados abaixo.
 
 ## Tabela de Parâmetros

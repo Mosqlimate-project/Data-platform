@@ -6,6 +6,7 @@ export const FRONTEND_PORT = process.env.FRONTEND_PORT!;
 export const BACKEND_PORT = process.env.BACKEND_PORT!;
 export const ADMIN_UIDKEY = process.env.ADMIN_UIDKEY!;
 export const BACKEND_BASE_URL = `http://backend:${BACKEND_PORT}`;
+export const FRONTEND_SECRET = process.env.FRONTEND_SECRET!;
 export const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX || "";
 
 export const SECRET_KEY = process.env.SECRET_KEY!;

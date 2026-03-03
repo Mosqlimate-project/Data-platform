@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_BASE_URL } from "@/lib/env";
-import { ADMIN_UIDKEY } from "@/lib/env";
+import { BACKEND_BASE_URL, FRONTEND_SECRET, ADMIN_UIDKEY } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
+  const secret = request.headers.get("x-internal-secret")
   const searchParams = request.nextUrl.searchParams;
   const query = new URLSearchParams();
   const params = ["case_definition", "sprint", "category", "adm_level", "disease", "country", "state", "city"];
+
+  if (!FRONTEND_SECRET || secret !== FRONTEND_SECRET) {
+    return NextResponse.json({ message: "Unauthorized [f]" }, { status: 401 });
+  }
 
   params.forEach((key) => {
     const values = searchParams.getAll(key);

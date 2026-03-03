@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
+import { FRONTEND_SECRET } from "@/lib/env";
 
 interface City {
   geocode: string;
@@ -51,7 +52,12 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
         const isNumeric = /^\d+$/.test(query);
         const param = isNumeric ? "geocode" : "name";
 
-        const res = await fetch(`/api/datastore/cities?${param}=${query}`);
+        const res = await fetch(`/api/datastore/cities?${param}=${query}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": FRONTEND_SECRET || "",
+          },
+        });
 
         if (res.ok) {
           const data = await res.json();

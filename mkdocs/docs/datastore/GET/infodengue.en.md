@@ -1,6 +1,13 @@
 ## [Infodengue data](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue)
 This endpoint gives access to data from the [Infodengue](https://info.dengue.mat.br/) project, which provide a number of epidemiological variables for all the Brazilian municipalities on a weekly time scale. The request parameters and data variables are described below.
 
+### Methodologies
+Data-derived products utilize the following scientific methodologies:
+* **Rt (Reproductive Number):** Calculated according to [Cori et al. (2013)](https://www.sciencedirect.com/science/article/pii/S1755436517300907?via%3Dihub).
+* **Nowcasting:** Case estimation corrected for reporting delays based on [Bastos et al. (2019)](https://onlinelibrary.wiley.com/doi/full/10.1002/sim.8303).
+
+> **WARNING**  
+> Please note that InfoDengue data for the most recent weeks are preliminary and subject to later updates.
 
 For an example of API usage in Mosqlimate, please refer to [API Demo](https://api.mosqlimate.org/api/docs#/infodengue/datastore_api_get_infodengue). Python examples are found below.
 
