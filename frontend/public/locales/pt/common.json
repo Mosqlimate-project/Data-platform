@@ -1,4 +1,16 @@
 {
+  "model_sidebar": {
+    "description": "Descrição",
+    "no_description": "Nenhuma descrição fornecida.",
+    "metadata": "Metadados",
+    "contributors": "Contribuidores",
+    "tags": {
+      "disease": "Agravo",
+      "category": "Categoria",
+      "admin_level": "Nível Administrativo",
+      "resolution": "Resolução Temporal"
+    }
+  },
   "dashboard": {
     "score_columns": {
       "mae": "MAE",
@@ -397,14 +409,14 @@
       "araujo_cnmac_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Evaluating transfer learning for forecasting chikungunya cases. In: XLII CNMAC, 2023, Bonito - MS. Proceeding Series of the Brazilian Society of Computational and Applied Mathematics, 2023. v. 10.",
       "araujo_evigilancia_2023": "ARAUJO, E. C.; COELHO, FLÁVIO CODEÇO . Forecasting dengue burden using machine learning. In: E-Vigilância 2023, 2023, Rio de Janeiro. Livro de Resumos, 2023.",
       "almeida_epi_2024": "ALMEIDA, I. F.; LANA, R. M. ; COELHO, F. C. ; CODECO, C. T. . PERFIS DE TRANSMISSÃO DE DENGUE: ANÁLISE DOS MUNICÍPIOS BRASILEIROS (2010-2022). In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
-      "araujo_epi_2024": "ARAUJO, E. C.; CARVALHO, L. M. ; VACARO, L. B. ; BASTOS, M. M. ; BASTOS, L. S. ; LANA, R. M. ; CODECO, C. T. ; ALMEIDA, I. F. ; FREITAS, L. P. ; SEGUNDO, Z. R. C. ; COELHO, F. C. . MOSQLIMATE: A PLATFORM FOR COMPARING ARBOVIRAL DISEASES FORECASTING MODELS. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
+      "araujo_epi_2024": "ARAUJO, E. C.; CARVALHO, L. M. ; VACARO, L. B. ; BASTOS, M. M. ; BASTOS, L. S. ; LANA, R. M. ; CODECO, C. T. ; ALMEIDA, I. F. ; PICININI FREITAS, L. ; SEGUNDO, Z. R. C. ; COELHO, F. C. . MOSQLIMATE: A PLATFORM FOR COMPARING ARBOVIRAL DISEASES FORECASTING MODELS. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
       "segundo_epi_2024": "SEGUNDO, Zuilho Rodrigues Castro , 2025, MODELOS DE DECISÃO PARA TESTAGEM DE CASOS SUSPEITOS DE ARBOVIROSES POR RL. In: 12° Congresso Brasileiro de Epidemiologia, 2024, Rio de Janeiro. Anais do 12º Congresso Brasileiro de Epidemiologia - Vol.3, 2024.",
       "magalhaes_eid_2024": "Magalhaes, T., Coelho, F. C., Souza, W. V., Viana, I. F., Jaenisch, T., Marques, E. T., ... & Braga, C. (2024). Effect of Sexual Partnerships on Zika Virus Transmission in Virus-Endemic Region, Northeast Brazil. Emerging Infectious Diseases, 30(12), 2559.",
-      "araujo_rsos_2025": "ARAUJO, E. C.; CODEÇO, C. T.; LOCH, S.; VACARO, L. B.; FREITAS, L. P.; LANA, R. M.; et al.; COELHO, F. C. Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, v. 12, n. 5, p. 241261, 2025.",
+      "araujo_rsos_2025": "ARAUJO, E. C.; CODEÇO, C. T.; LOCH, S.; VACARO, L. B.; PICININI FREITAS, L.; LANA, R. M.; et al.; COELHO, F. C. Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. Royal Society Open Science, v. 12, n. 5, p. 241261, 2025.",
       "ganem_arxiv_2024": "GANEM, F.; VACARO, L. B.; ARAUJO, E. C.; ALVES, L. D.; BASTOS, L.; CARVALHO, L. M.; et al.; COELHO, F. C. Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv, 2024.",
       "bastos_arxiv_2024": "BASTOS, M. M.; CARVALHO, L. M.; ARAUJO, E. C.; COELHO, F. C. Long-term predictive models for mosquito borne diseases: a narrative review. arXiv, 2024.",
-      "araujo_pnas_2026": "ARAUJO, E. C.; CARVALHO, L. M.; GANEM, F.; VACARO, L. B.; BASTOS, L. S.; FREITAS, L. P.; et al.; COELHO, F. C. Leveraging probabilistic forecasts for dengue preparedness and control: The 2024 Dengue Forecasting Sprint in Brazil. Proceedings of the National Academy of Sciences of the United States of America, v. 123, n. 7, p. e2508989123, 2026.",
-      "freitas_idm_2025": "FREITAS, L. P.; CRUZ FERREIRA, D. A.; LANA, R. M. CÂMARA, D. C. P.; PORTELLA, T. P.; CARVALHO, M. S.; et al.; BASTOS, L. S. A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. Infectious Disease Modelling, 2025.",
+      "araujo_pnas_2026": "ARAUJO, E. C.; CARVALHO, L. M.; GANEM, F.; VACARO, L. B.; BASTOS, L. S.; PICININI FREITAS, L.; et al.; COELHO, F. C. Leveraging probabilistic forecasts for dengue preparedness and control: The 2024 Dengue Forecasting Sprint in Brazil. Proceedings of the National Academy of Sciences of the United States of America, v. 123, n. 7, p. e2508989123, 2026.",
+      "freitas_idm_2025": "PICININI FREITAS, L.; CRUZ FERREIRA, D. A.; LANA, R. M. CÂMARA, D. C. P.; PORTELLA, T. P.; CARVALHO, M. S.; et al.; BASTOS, L. S. A statistical model for forecasting probabilistic epidemic bands for dengue cases in Brazil. Infectious Disease Modelling, 2025.",
       "santos_thesis_2024": "Santos, J. P. S. dos. (2024). Analyzing dengue epidemic dynamics using physics informed neural networks [Doctoral dissertation, Fundação Getulio Vargas]. Fundação Getulio Vargas EMAp.",
       "coelho_imdc_report_2025": "COELHO, F. C.; CODEÇO, C. T.; ARAUJO, E. C.; GANEM, F. S. et al. Relatório IMDC 2025. Zenodo, 2025.",
       "codeco_infodengue_2024": "CODEÇO, C. T.; COELHO, F. C.; GANEM, F. S.; ARAUJO, E. C. Relatório Técnico Infodengue. Zenodo, 2024.",
@@ -413,8 +425,8 @@
       "coelho_pres_2025": "COELHO, Flávio C. Integração de dados e modelagem estatística para vigilância epidemiológica. Seminário apresentado no Seminário de Estatística da Universidade Federal do Rio de Janeiro (UFRJ), Rio de Janeiro, abr. 2025.",
       "laiate_cnmac_2025": "LAIATE, Beatriz; COELHO, Flávio Codeço; SOUZA, Julie. A computational approach to Bayesian inference of interval-valued probabilities: application to dengue fever cases prediction. In: PROCEEDING SERIES OF THE BRAZILIAN SOCIETY OF COMPUTATIONAL AND APPLIED MATHEMATICS, 2025.",
       "coelho_evigilancia_2023": "COELHO, Flávio C. Mosqlimate: plataforma de vigilância climática aplicada à saúde. Apresentação realizada no E-Vigilância, nov. 2023.",
-      "araujo_episcanner_2024": "ARAUJO, E. C.; CARVALHO, L. M.; CODEÇO, C. T.; LANA, R. M.; ALMEIDA, I. F.; FREITAS, L. P.; VACARO, L. B.; BASTOS, L. S.; BASTOS, M. M.; SEGUNDO, Z. R. C.; COELHO, F. C. EPISCANNER: real-time epidemic scanner. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
-      "araujo_mosqlimate_2024": "ARAUJO, E. C.; CARVALHO, L. M.; VACARO, L. B.; BASTOS, M. M.; BASTOS, L. S.; LANA, R. M.; CODEÇO, C. T.; ALMEIDA, I. F.; FREITAS, L. P.; SEGUNDO, Z. R. C.; COELHO, F. C. Mosqlimate: a platform for comparing arboviral diseases forecasting models. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
+      "araujo_episcanner_2024": "ARAUJO, E. C.; CARVALHO, L. M.; CODEÇO, C. T.; LANA, R. M.; ALMEIDA, I. F.; PICININI FREITAS, L.; VACARO, L. B.; BASTOS, L. S.; BASTOS, M. M.; SEGUNDO, Z. R. C.; COELHO, F. C. EPISCANNER: real-time epidemic scanner. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
+      "araujo_mosqlimate_2024": "ARAUJO, E. C.; CARVALHO, L. M.; VACARO, L. B.; BASTOS, M. M.; BASTOS, L. S.; LANA, R. M.; CODEÇO, C. T.; ALMEIDA, I. F.; PICININI FREITAS, L.; SEGUNDO, Z. R. C.; COELHO, F. C. Mosqlimate: a platform for comparing arboviral diseases forecasting models. In: CONGRESSO BRASILEIRO DE EPIDEMIOLOGIA, 12., 2024.",
       "dataset_egg": "Aedes aegypti Egg Image Data Set",
       "dataset_sprint": "Sprint-dataset 2024",
       "dataset_dengue": "Dengue: padrões de dinâmica de transmissão nos municípios do Brasil, 2010–2023",
@@ -454,7 +466,6 @@
       "eduardo": "Bacharel em engenharia de controle e automação na UTFPR. Tem experiência na análise de dados de saúde pública e desenvolvimento de modelos de aprendizado de máquina aplicados a contextos epidemiológicos. Seus interesses incluem ciência de dados aplicada à saúde, modelagem matemática e computacional de doenças, desenvolvimento de ferramentas em Python e colaboração interdisciplinar em projetos de impacto social. Atua como cientista de dados no WP2 do projeto Mosqlimate. Também é gerente do projeto Mosqlimate.",
       "iasmim": "Pós-doutoranda na FGV EMAp. Doutora e Mestre em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Pesquisadora no projeto Infodengue e Mosqlimate, atua no WP2 com modelos envolvendo padrões de transmissão de arboviroses e seus determinantes epidemiológicos e climáticos. É também Gerente de Engajamento Comunitário do Mosqlimate e pesquisadora líder no WP3. Seus interesses de pesquisa focam em doenças transmissíveis e sua epidemiologia.",
       "lua": "Estudante de Ciência da Computação e entusiasta de Código Aberto. Desenvolvedor de Software na Fundação Getulio Vargas, responsável pelo desenvolvimento, implantação e manutenção do Projeto Mosqlimate.",
-      "lucas": "Estatístico e cientista de dados, com doutorado em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Minha experiência profissional inclui a aplicação de metodologías estatísticas e de aprendizado de máquina em diversos campos como agricultura e saúde, além de contribuir para iniciativas de saúde pública e análise de dados para organizações internacionais.",
       "fabiana": "Mestre e doutora em Epidemiologia e Saúde Pública pela Universidade de Brasília e Universitat Autònoma de Barcelona. É pesquisadora de pós-doutorado na FGV EMAp e membro da Equipe Mosqlimate, pesquisando estratégias de vigilância da dengue e a relação entre fatores socioeconômicos, climáticos e ambientais com doenças arbovirais. Fabiana é coordenadora do Forecast Sprint do Mosqlimate, gerenciando nossas competições internacionais anuais de previsão.",
       "beatriz": "Pós-doutoranda na FGV EMAp e membro da Equipe Mosqlimate, realizando pesquisas sobre inferência Bayesiana, modelagem matemática da Dengue e Teoria da Possibilidade. Mestre e Doutora em Matemática Aplicada pela UNICAMP. Tem curiosidade por modelos híbridos de doenças infecciosas envolvendo sistemas dinâmicos fuzzy, redes neurais e métodos estatísticos de quantificação de incerteza.",
       "marcio": "Doutorando em Física, possui profunda afinidade com sistemas dinâmicos, mecânica estatística, inferência Bayesiana e aprendizado de máquina. Atualmente contribui com seus insights como pesquisador colaborativo no projeto Mosqlimate.",
@@ -493,20 +504,20 @@
     },
     "project": {
       "title": "Conheça o projeto",
-      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a arboviroses (doenças transmitidas por mosquitos) no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como dengue, chikungunya e Zika.",
+      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a doenças transmitidas por mosquitos no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como Dengue, Chikungunya e Zika.",
       "products": "Nossos dois principais produtos são:",
       "btn_data": "Dados",
       "btn_models": "Modelos Preditivos"
     },
     "data": {
       "title": "Explore nossos dados",
-      "cases_title": "Casos",
+      "cases_title": "Casos de agravos",
       "cases_desc": "Dados semanais sobre <b>Dengue</b>, <b>Zika</b> e <b>Chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
-      "mosquito_title": "Mosquito",
+      "mosquito_title": "Dados vetoriais",
       "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
-      "epi_title": "Epi-Scanner",
+      "epi_title": "Episcanner",
       "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, Zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
     },
     "models": {
@@ -515,7 +526,7 @@
       "image_message": "Clique para ser direcionado à aba Modelos."
     },
     "differentials": {
-      "title": "Descubra os diferenciais do Mosqlimate",
+      "title": "Descubra as competências do Mosqlimate",
       "integration_title": "Integração completa de dados",
       "integration_desc": "Reúne, em um só lugar, informações epidemiológicas, climáticas e entomológicas.",
       "comparison_title": "Comparação inteligente de modelos",
@@ -525,11 +536,11 @@
       "quality_title": "Compromisso com a qualidade",
       "quality_desc": "Conteúdo atualizado, sustentado por publicações científicas e resultados validados.",
       "community_title": "Comunidade ativa e colaborativa",
-      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
+      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o IMDC (Infodengue-Mosqlimate Dengue Challenge) anual, além de seminários contínuos."
     },
     "team": {
       "title": "Conheça a nossa equipe",
-      "image_message": "Clique para ser direcionado à aba 'Sobre Nós'."
+      "image_message": "Clique para ir à aba 'Sobre Nós'."
     }
   },
   "model_predictions": {
@@ -690,6 +701,7 @@
     "connect_title": "Conectar",
     "connect_email": "Contato por E-mail",
     "connect_youtube": "Canal no YouTube",
+    "connect_linkedin": "Perfil no LinkedIn",
     "project_name": "Projeto Mosqlimate",
     "rights": "Todos os direitos reservados.",
     "terms": "Termos de Serviço",

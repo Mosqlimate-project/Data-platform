@@ -14,6 +14,7 @@ import { useTheme } from 'next-themes';
 import { oauthLogin } from '@/lib/api/auth';
 import NetworkBackground from "@/components/NetworkBackground";
 import { useTranslation } from 'react-i18next';
+import { FRONTEND_SECRET } from '@/lib/env';
 
 interface Repository {
   id: string;
@@ -102,7 +103,13 @@ export default function AddModelPage() {
         name: diseaseSearch
       });
 
-      const res = await fetch(`/api/datastore/diseases?${params}`);
+      const res = await fetch(`/api/datastore/diseases?${params}`, {
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-secret": FRONTEND_SECRET || "",
+        },
+      }
+      );
 
       if (!res.ok) throw new Error("Search failed");
 

@@ -1,4 +1,4 @@
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { ModelTabs } from "@/components/model/tabs";
 import { notFound } from "next/navigation";
 
@@ -13,7 +13,12 @@ export default async function ModelLayout({
 
   const res = await fetch(
     `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
-    { cache: "no-store" }
+    {
+      cache: "no-store",
+      headers: {
+        "x-internal-secret": FRONTEND_SECRET || ""
+      }
+    }
   );
 
   if (res.status !== 200) notFound();

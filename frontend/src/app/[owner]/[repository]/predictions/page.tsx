@@ -1,4 +1,4 @@
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import PredictionsList, { ModelPrediction } from "@/components/model/Predictions";
 import { getPermissions } from "@/lib/api/model";
 
@@ -15,6 +15,9 @@ async function getPredictions(owner: string, repository: string): Promise<ModelP
       `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/predictions`,
       {
         cache: "no-store",
+        headers: {
+          "x-internal-secret": FRONTEND_SECRET || ""
+        }
       }
     );
 

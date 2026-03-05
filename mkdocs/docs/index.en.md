@@ -1,4 +1,4 @@
-# Welcome to the Mosqlimate API documentation
+# Welcome to the Mosqlimate documentation
 The Mosqlimate API is focused on providing automatable access to both Data and 
 Forecasting models for arbovirus diseases. 
 

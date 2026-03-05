@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { DashboardSidebar } from "@/components/dashboard/Sidebar";
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
 import { DashboardProvider } from "@/context/Dashboard";
 
@@ -12,6 +12,9 @@ async function getSections() {
 
     const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/vis/dashboard/categories/`, {
       cache: "no-store",
+      headers: {
+        "x-internal-secret": FRONTEND_SECRET || ""
+      }
     });
 
     if (!res.ok) return [];

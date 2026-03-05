@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_BASE_URL } from "@/lib/env";
-import { ADMIN_UIDKEY } from "@/lib/env";
+import { BACKEND_BASE_URL, FRONTEND_SECRET, ADMIN_UIDKEY } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
+  const secret = request.headers.get("x-internal-secret")
+
+  if (!FRONTEND_SECRET || secret !== FRONTEND_SECRET) {
+    return NextResponse.json({ message: "Unauthorized [f]" }, { status: 401 });
+  }
+
   const res = await fetch(
     `${BACKEND_BASE_URL}/api/vis/dashboard/categories/`,
     {

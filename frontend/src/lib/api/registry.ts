@@ -1,4 +1,5 @@
 import type { PredictionOut } from "@/types/prediction";
+import { FRONTEND_SECRET } from "../env";
 
 export async function fetchPrediction(predict_id: number): Promise<PredictionOut | null> {
   try {
@@ -6,6 +7,7 @@ export async function fetchPrediction(predict_id: number): Promise<PredictionOut
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "x-internal-secret": FRONTEND_SECRET || "",
       },
     });
 

@@ -1,4 +1,4 @@
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -14,6 +14,9 @@ export default async function OwnerPage({ params }: PageProps) {
     `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/`,
     {
       cache: "no-store",
+      headers: {
+        "x-internal-secret": FRONTEND_SECRET || ""
+      }
     }
   );
 

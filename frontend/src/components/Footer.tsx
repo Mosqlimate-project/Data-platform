@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { FaYoutube, FaLinkedin, FaEnvelope } from 'react-icons/fa';
 
 export default function Footer() {
   const { theme, setTheme } = useTheme();
@@ -131,6 +132,7 @@ export default function Footer() {
                   href="mailto:mosqlimate@gmail.com"
                   className="flex items-center gap-2 hover:text-blue-500 transition-colors opacity-80 hover:opacity-100"
                 >
+                  <FaEnvelope className="text-base" />
                   {t('footer.connect_email')}
                 </a>
               </li>
@@ -141,7 +143,19 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 hover:text-red-500 transition-colors opacity-80 hover:opacity-100"
                 >
+                  <FaYoutube className="text-base" />
                   {t('footer.connect_youtube')}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.linkedin.com/company/mosqlimate/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-[#0077b5] transition-colors opacity-80 hover:opacity-100"
+                >
+                  <FaLinkedin className="text-base" />
+                  {t('footer.connect_linkedin')}
                 </a>
               </li>
             </ul>

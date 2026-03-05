@@ -1,10 +1,20 @@
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import Models from "./Models";
 
 async function getData() {
   const [modelsRes, tagsRes] = await Promise.all([
-    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/thumbnails/`, { cache: "no-store" }),
-    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/tags/`, { cache: "no-store" })
+    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/thumbnails/`, {
+      cache: "no-store",
+      headers: {
+        "x-internal-secret": FRONTEND_SECRET || ""
+      }
+    }),
+    fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/tags/`, {
+      cache: "no-store",
+      headers: {
+        "x-internal-secret": FRONTEND_SECRET || ""
+      }
+    })
   ]);
 
   if (!modelsRes.ok || !tagsRes.ok) {

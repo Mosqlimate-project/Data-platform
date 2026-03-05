@@ -1,6 +1,6 @@
 import MarkdownRenderer from "@/components/model/MarkdownRenderer";
 import ModelSidebar from "@/components/model/ModelSidebar";
-import { NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { getPermissions } from "@/lib/api/model";
 
 interface PageProps {
@@ -14,7 +14,12 @@ async function getReadmeContent(owner: string, repository: string) {
   try {
     const res = await fetch(
       `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/readme`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: {
+          "x-internal-secret": FRONTEND_SECRET || ""
+        }
+      }
     );
 
     if (!res.ok) return null;
@@ -31,7 +36,12 @@ async function fetchModelDetails(owner: string, repository: string) {
   try {
     const res = await fetch(
       `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: {
+          "x-internal-secret": FRONTEND_SECRET || ""
+        }
+      }
     );
 
     if (!res.ok) return null;
@@ -76,6 +86,12 @@ export default async function ReadmePage({ params }: PageProps) {
           initialDescription={modelDetails?.description}
           contributors={modelDetails?.contributors}
           canManage={permissions.can_manage}
+          tags={{
+            disease: modelDetails?.disease,
+            category: modelDetails?.category,
+            adm_level: modelDetails?.adm_level,
+            time_resolution: modelDetails?.time_resolution
+          }}
         />
       </aside>
     </div>

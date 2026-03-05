@@ -1,6 +1,6 @@
 # Project information
-site_name: "Mosqlimate API Documentation"
-site_description: "Mosqlimate API Documentation"
+site_name: "Mosqlimate Documentation"
+site_description: "Mosqlimate Documentation"
 site_author: "Luã Bida Vacaro"
 site_url: "https://api.mosqlimate.org/docs/"
 
@@ -92,15 +92,15 @@ plugins:
         - locale: pt
           name: Português
           build: true
-          site_name: "Documentação da API Mosqlimate"
-          site_description: "Documentação da API Mosqlimate"
+          site_name: "Documentação - Mosqlimate"
+          site_description: "Documentação - Mosqlimate"
           nav_translations:
-            General: Início
+            Home: Início
             Getting Started: Primeiros Passos
-            API Overview: Visão Geral
+            Overview: Visão Geral
             Authorization: Autenticação
             Model Registry: Registro de Modelos
-            Back to API: Voltar à API
+            Back to Platform: Voltar à Plataforma
             Fetch Authors: Buscar Autores
             Fetch Models: Buscar Modelos
             Fetch Predictions: Buscar Previsões
@@ -122,18 +122,18 @@ extra_css:
 
 # Page tree
 nav:
-  - "General": 
+  - "Home": 
     - "Getting Started": "index.md"
-    - "API Overview": "overview.md"
+    - "Overview": "overview.md"
     - "Authorization": "uid-key.md"
   - "Model Registry":
-    - "Registry API": "registry/index.md"
+    - "Registry": "registry/index.md"
     - "Fetch Models": "registry/GET/models.md"
     - "Fetch Predictions": "registry/GET/predictions.md"
     - "Inserting Models": "registry/POST/models.md"
     - "Inserting Predictions": "registry/POST/predictions.md"
   - "Datastore":
-    - "Datastore API": "datastore/index.md"
+    - "Datastore": "datastore/index.md"
     - "Infodengue": "datastore/GET/infodengue.md"
     - "Climate": "datastore/GET/climate.md"
     - "Climate Weekly": "datastore/GET/climate-weekly.md"
@@ -143,5 +143,5 @@ nav:
     - "How to use": "vis/dashboard/how_to_use.md"
     - "Scores": "vis/dashboard/scores.md"
     - "Details": "vis/dashboard/details.md"
-  - "API Docs": "https://api.mosqlimate.org/api/docs"
-  - "Back to API": "https://mosqlimate.org/"
+  - "Docs": "https://api.mosqlimate.org/api/docs"
+  - "Back to Platform": "https://mosqlimate.org/"
