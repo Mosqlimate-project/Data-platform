@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.2...2.2.3) (2026-03-05)
+
+
+### Bug Fixes
+
+* **oauth:** refresh access token when OauthAccount.access_token expires at repo /readme/ endpoint ([#450](https://github.com/Mosqlimate-project/Data-platform/issues/450)) ([b516eca](https://github.com/Mosqlimate-project/Data-platform/commit/b516eca81cd17e5e64518f32c563a7db7a126bc4))
+
 ## [2.2.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.1...2.2.2) (2026-03-05)
 
 
