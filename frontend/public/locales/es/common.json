@@ -1,4 +1,16 @@
 {
+  "model_sidebar": {
+    "description": "Descripción",
+    "no_description": "No se proporcionó ninguna descripción.",
+    "metadata": "Metadatos",
+    "contributors": "Colaboradores",
+    "tags": {
+      "disease": "Enfermedad",
+      "category": "Categoría",
+      "admin_level": "Nivel Adm",
+      "resolution": "Resolución"
+    }
+  },
   "dashboard": {
     "score_columns": {
       "mae": "MAE",

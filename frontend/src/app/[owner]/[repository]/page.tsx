@@ -86,6 +86,12 @@ export default async function ReadmePage({ params }: PageProps) {
           initialDescription={modelDetails?.description}
           contributors={modelDetails?.contributors}
           canManage={permissions.can_manage}
+          tags={{
+            disease: modelDetails?.disease,
+            category: modelDetails?.category,
+            adm_level: modelDetails?.adm_level,
+            time_resolution: modelDetails?.time_resolution
+          }}
         />
       </aside>
     </div>

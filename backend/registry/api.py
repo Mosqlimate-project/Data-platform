@@ -242,9 +242,9 @@ def models_tags(request, ids: List[int] = Query(None)):
             )
             tags_map[key]["models"].add(model.id)
 
-    response_data = []
+    tags = []
     for (category, tag_id), data in tags_map.items():
-        response_data.append(
+        tags.append(
             {
                 "id": tag_id,
                 "name": data["name"],
@@ -253,7 +253,7 @@ def models_tags(request, ids: List[int] = Query(None)):
             }
         )
 
-    return sorted(response_data, key=lambda x: (x["category"], x["name"]))
+    return sorted(tags, key=lambda x: (x["category"], x["name"]))
 
 
 @router.get(

@@ -1,10 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Pencil, Check, X, User } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslation } from "next-i18next";
 
 interface Contributor {
   username: string;
@@ -14,132 +11,97 @@ interface Contributor {
 interface ModelSidebarProps {
   owner: string;
   repository: string;
-  initialDescription: string | null;
+  initialDescription?: string;
   contributors?: Contributor[];
   canManage: boolean;
+  tags?: {
+    disease?: string;
+    category?: string;
+    adm_level?: number;
+    time_resolution?: string;
+  };
 }
 
 export default function ModelSidebar({
-  owner,
-  repository,
   initialDescription,
-  contributors = [],
-  canManage,
+  contributors,
+  tags
 }: ModelSidebarProps) {
-  const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  const [description, setDescription] = useState(initialDescription || "");
-  const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation('common');
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/registry/model/${owner}/${repository}/description/`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description }),
-      });
-
-      if (!res.ok) throw new Error("Failed to update description");
-
-      setIsEditing(false);
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save description");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const tagList = [
+    {
+      label: t('model_sidebar.tags.disease'),
+      value: tags?.disease
+    },
+    {
+      label: t('model_sidebar.tags.category'),
+      value: tags?.category
+    },
+    {
+      label: t('model_sidebar.tags.admin_level'),
+      value: tags?.adm_level !== undefined ? `ADM ${tags.adm_level}` : null
+    },
+    {
+      label: t('model_sidebar.tags.resolution'),
+      value: tags?.time_resolution
+    },
+  ].filter(t => t.value);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-card border rounded-lg p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">About</h3>
-          {canManage && !isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-muted-foreground hover:text-primary transition-colors p-1 hover:bg-muted rounded"
-              title="Edit description"
-            >
-              <Pencil size={16} />
-            </button>
-          )}
-        </div>
-
-        {isEditing ? (
-          <div className="space-y-3">
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-[120px] p-3 text-sm rounded-md border bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-y"
-              placeholder="Enter a short description for this model..."
-              maxLength={500}
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setDescription(initialDescription || "");
-                }}
-                disabled={isLoading}
-                className="p-2 rounded-md hover:bg-muted text-muted-foreground"
-              >
-                <X size={18} />
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isLoading}
-                className="p-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Check size={18} />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
-            {description || <span className="italic opacity-50">No description provided.</span>}
-          </div>
-        )}
+    <div className="flex flex-col gap-4 w-full max-w-full">
+      <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden break-words">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+          {t('model_sidebar.description')}
+        </h3>
+        <p className="text-sm text-text/80 leading-relaxed whitespace-pre-wrap">
+          {initialDescription || t('model_sidebar.no_description')}
+        </p>
       </div>
 
-      <div className="bg-card border rounded-lg p-6 space-y-4">
-        <h3 className="font-semibold text-lg">Contributors</h3>
+      {tagList.length > 0 && (
+        <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+            {t('model_sidebar.metadata')}
+          </h3>
+          <div className="flex flex-col gap-4">
+            {tagList.map((tag) => (
+              <div key={tag.label} className="flex flex-col border-b border-[var(--color-border)] last:border-0 pb-3 last:pb-0">
+                <span className="text-[10px] text-gray-400 uppercase font-bold mb-1">
+                  {tag.label}
+                </span>
+                <span className="text-sm font-medium text-[var(--color-text)] truncate">
+                  {tag.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {contributors && contributors.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {contributors.map((contributor) => (
-              <Link
-                key={contributor.username}
-                href={`/${contributor.username}`}
-                className="relative group"
-                title={contributor.username}
-              >
-                <div className="w-10 h-10 rounded-full border bg-muted overflow-hidden relative">
-                  {contributor.avatar_url ? (
-                    <Image
-                      src={contributor.avatar_url}
-                      alt={contributor.username}
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                    />
+      {contributors && contributors.length > 0 && (
+        <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+            {t('model_sidebar.contributors')}
+          </h3>
+          <div className="flex flex-col gap-3">
+            {contributors.map((c) => (
+              <div key={c.username} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full border border-border overflow-hidden bg-hover shrink-0">
+                  {c.avatar_url ? (
+                    <Image src={c.avatar_url} alt={c.username} width={32} height={32} />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                      <User size={20} />
+                    <div className="w-full h-full flex items-center center text-[10px] font-bold">
+                      {c.username.substring(0, 2).toUpperCase()}
                     </div>
                   )}
                 </div>
-              </Link>
+                <span className="text-sm font-medium text-text/80 truncate">{c.username}</span>
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="text-sm text-muted-foreground italic opacity-50">
-            No contributors found.
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

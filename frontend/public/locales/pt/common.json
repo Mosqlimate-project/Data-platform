@@ -1,4 +1,16 @@
 {
+  "model_sidebar": {
+    "description": "Descrição",
+    "no_description": "Nenhuma descrição fornecida.",
+    "metadata": "Metadados",
+    "contributors": "Contribuidores",
+    "tags": {
+      "disease": "Agravo",
+      "category": "Categoria",
+      "admin_level": "Nível Administrativo",
+      "resolution": "Resolução Temporal"
+    }
+  },
   "dashboard": {
     "score_columns": {
       "mae": "MAE",

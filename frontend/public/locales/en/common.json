@@ -1,4 +1,16 @@
 {
+  "model_sidebar": {
+    "description": "Description",
+    "no_description": "No description provided.",
+    "metadata": "Metadata",
+    "contributors": "Contributors",
+    "tags": {
+      "disease": "Disease",
+      "category": "Category",
+      "admin_level": "Admin Level",
+      "resolution": "Resolution"
+    }
+  },
   "dashboard": {
     "score_columns": {
       "mae": "MAE",
