@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import List
 from urllib.parse import urlparse
+from datetime import timedelta
 
 import httpx
 from django.contrib.auth import get_user_model
@@ -8,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from main.schema import (
     BadRequestSchema,
     NotFoundSchema,
@@ -364,30 +366,53 @@ def repository_readme(request, owner: str, repository: str):
         "gitlab": GitlabProvider,
     }.get(repo.provider)
 
-    if provider_cls:
-        provider = provider_cls(request)
-        access_token = None
-        token_holder = repo.owner
+    if not provider_cls:
+        return 404, {"message": "No Oauth provider found"}
 
-        if not token_holder:
-            admin = m.RepositoryContributor.objects.filter(
-                repository=repo,
-                permission=m.RepositoryContributor.Permissions.ADMIN,
-            ).first()
-            if admin:
-                token_holder = admin.user
+    provider = provider_cls(request)
+    token_holder = repo.owner
 
-        if token_holder:
-            oauth_account = token_holder.oauth_accounts.filter(
-                provider=repo.provider
-            ).first()
-            if oauth_account:
-                access_token = oauth_account.access_token
+    if not token_holder:
+        admin = m.RepositoryContributor.objects.filter(
+            repository=repo,
+            permission=m.RepositoryContributor.Permissions.ADMIN,
+        ).first()
+        if admin:
+            token_holder = admin.user
 
-        content = provider.get_readme(repo, access_token=access_token)
+    if not token_holder:
+        return 404, {"message": "Repository admin inaccessible"}
+
+    oauth_account = token_holder.oauth_accounts.filter(
+        provider=repo.provider
+    ).first()
+
+    if not oauth_account:
+        return 404, {"message": "Admin Oauth account not found"}
+
+    if oauth_account.access_token_expires_at < (
+        timezone.now() + timedelta(minutes=5)
+    ):
+        refresh_data = provider.refresh_access_token(
+            refresh_token=oauth_account.refresh_token
+        )
+
+        if "access_token" not in refresh_data:
+            raise ValueError("Data not found when refreshing oauth token")
+
+        oauth_account.access_token = refresh_data.access_token
+        oauth_account.access_token_expires_at = timezone.now() + timedelta(
+            refresh_data["expires_in"]
+        )
+        oauth_account.refresh_token = refresh_data["refresh_token"]
+        oauth_account.save()
+
+    content = provider.get_readme(
+        repo, access_token=oauth_account.access_token
+    )
 
     if not content:
-        return 404, {"message": "README not found or inaccessible."}
+        return 404, {"message": "README not found or inaccessible"}
 
     return 200, {"content": content}
 

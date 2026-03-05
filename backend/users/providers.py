@@ -70,6 +70,11 @@ class OAuthProvider(ABC):
     @abstractmethod
     def get_user_info(self, access_token: str, token_json: dict): ...
 
+    @abstractmethod
+    def get_readme(
+        self, repository: "Repository", access_token: Optional[str] = None
+    ) -> str: ...
+
     def get_token(self, code: str) -> str:
         payload = {
             "client_id": self.client_id,
@@ -93,11 +98,6 @@ class OAuthProvider(ABC):
             res.raise_for_status()
             return res.json()
 
-    @abstractmethod
-    def get_readme(
-        self, repository: "Repository", access_token: Optional[str] = None
-    ) -> str: ...
-
 
 class GoogleProvider(OAuthProvider):
     provider = "google"
@@ -114,6 +114,38 @@ class GoogleProvider(OAuthProvider):
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
     ]
+
+    def get_token(self, code: str) -> dict:
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "auth_uri": self.auth_url,
+                    "token_uri": self.token_url,
+                    "redirect_uris": [self.redirect_url],
+                }
+            },
+            scopes=self.scopes,
+        )
+        flow.redirect_uri = self.redirect_url
+
+        flow.fetch_token(code=code)
+
+        credentials = flow.credentials
+        return {
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "expires_in": (
+                (
+                    credentials.expiry - timezone.now().replace(tzinfo=None)
+                ).total_seconds()
+                if credentials.expiry
+                else None
+            ),
+            "token_type": "Bearer",
+            "scope": " ".join(credentials.scopes),
+        }
 
     def get_auth_url(self) -> str:
         flow = Flow.from_client_config(
