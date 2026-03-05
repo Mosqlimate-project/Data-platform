@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.1...2.2.2) (2026-03-05)
+
+
+### Bug Fixes
+
+* **dashboard:** include published filter on dashboard endpoint (causes empty dashboard) ([#449](https://github.com/Mosqlimate-project/Data-platform/issues/449)) ([7ceb2cd](https://github.com/Mosqlimate-project/Data-platform/commit/7ceb2cd0b4e3eb07719a927835cacb6d67b7dc23))
+
 ## [2.2.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.0...2.2.1) (2026-03-05)
 
 
