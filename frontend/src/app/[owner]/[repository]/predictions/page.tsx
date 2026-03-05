@@ -1,4 +1,4 @@
-import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { FRONTEND_SECRET } from "@/lib/env";
 import PredictionsList, { ModelPrediction } from "@/components/model/Predictions";
 import { getPermissions } from "@/lib/api/model";
 
@@ -12,7 +12,7 @@ interface PageProps {
 async function getPredictions(owner: string, repository: string): Promise<ModelPrediction[]> {
   try {
     const res = await fetch(
-      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/predictions`,
+      `/api/registry/model/${owner}/${repository}/predictions`,
       {
         cache: "no-store",
         headers: {

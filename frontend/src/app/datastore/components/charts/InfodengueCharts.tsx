@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import * as echarts from "echarts";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
+import { FRONTEND_SECRET } from "@/lib/env";
 
 interface ChartProps {
   geocode: string;
@@ -74,7 +75,7 @@ export function TotalCases({ geocode, disease, start, end }: ChartProps) {
     if (!geocode) return;
     const query = new URLSearchParams({ geocode, disease, start, end });
 
-    fetch(`/api/datastore/charts/infodengue/total-cases/?${query}`)
+    fetch(`/api/datastore/charts/infodengue/total-cases/?${query}`, { headers })
       .then((res) => res.json())
       .then((data) => {
         if (data.total_cases !== undefined) {
@@ -117,7 +118,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
       case_definition: "reported"
     });
 
-    fetch(`/api/vis/dashboard/cases/?${params}`)
+    fetch(`/api/vis/dashboard/cases/?${params}`, { headers })
       .then((res) => {
         if (!res.ok) throw new Error(t('charts_infodengue.fetch_error'));
         return res.json();
@@ -252,6 +253,11 @@ interface RtData {
   Rt: number;
 }
 
+const headers = {
+  "Content-Type": "application/json",
+  "x-internal-secret": FRONTEND_SECRET || "",
+};
+
 export function RtChart({ geocode, disease, start, end }: ChartProps) {
   const { t } = useTranslation('common');
   const { resolvedTheme } = useTheme();
@@ -265,7 +271,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
 
     const query = new URLSearchParams({ geocode, disease, start, end });
 
-    fetch(`/api/datastore/charts/infodengue/rt/?${query}`)
+    fetch(`/api/datastore/charts/infodengue/rt/?${query}`, { headers })
       .then((res) => res.json())
       .then((data: RtData[]) => {
         if (!data || data.length === 0) {

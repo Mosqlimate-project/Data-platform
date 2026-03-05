@@ -27,13 +27,20 @@ const publicPaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-internal-secret", process.env.FRONTEND_SECRET || "");
+
   const isPublic =
     pathname === FRONTEND_PREFIX ||
     pathname === "/" ||
     publicPaths.some((path) => pathname.startsWith(path));
 
   if (isPublic) {
-    return NextResponse.next();
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   const user = await verifyUser(request);
@@ -42,10 +49,18 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith("/api")) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.next();
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
-  const response = NextResponse.next();
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   if (user.headers) {
     const setCookie = user.headers.get("set-cookie");
