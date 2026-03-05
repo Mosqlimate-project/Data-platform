@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useChart } from "../../hooks/useChart";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
+import { FRONTEND_SECRET } from "@/lib/env";
 
 interface ChartProps {
   geocode: string;
@@ -25,9 +26,18 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
 
     async function load() {
       try {
+        const headers = {
+          "Content-Type": "application/json",
+          "x-internal-secret": FRONTEND_SECRET || "",
+        };
+
         const [chartRes, cityRes] = await Promise.all([
-          fetch(`/api/datastore/charts/climate/accumulated-waterfall/?${query}`),
-          fetch(`/api/datastore/cities?geocode=${geocode}`)
+          fetch(`/api/datastore/charts/climate/accumulated-waterfall/?${query}`, {
+            headers
+          }),
+          fetch(`/api/datastore/cities?geocode=${geocode}`, {
+            headers
+          })
         ]);
 
         if (!chartRes.ok) throw new Error(t('charts_climate.loading_error'));
