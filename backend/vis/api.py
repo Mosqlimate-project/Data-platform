@@ -37,7 +37,8 @@ uidkey_auth = UidKeyAuth()
 @decorate_view(never_cache)
 def dashboard_categories(request):
     data = (
-        RepositoryModel.objects.annotate(predictions_count=Count("predicts"))
+        RepositoryModel.objects.filter(predicts__published=True)
+        .annotate(predictions_count=Count("predicts"))
         .filter(predictions_count__gt=0)
         .values_list("sprint_id", "category", "adm_level")
         .distinct()
@@ -166,7 +167,7 @@ def dashboard_diseases(
     diseases = Disease.objects.filter(
         models__adm_level=adm_level,
         models__category__in=categories,
-        models__predicts__isnull=False,
+        models__predicts__published=True,
     )
 
     if sprint:
@@ -212,7 +213,7 @@ def dashboard_countries(
         disease__code=disease,
         adm_level=adm_level,
         category__in=categories,
-        predicts__isnull=False,
+        predicts__published=True,
     )
 
     if sprint:
@@ -279,6 +280,7 @@ def dashboard_states(
         adm_level=adm_level,
         category__in=categories,
         predicts__isnull=False,
+        predicts__published=True,
     )
 
     if sprint:
@@ -344,6 +346,7 @@ def dashboard_cities(
         adm_level=adm_level,
         category__in=categories,
         predicts__isnull=False,
+        predicts__published=True,
     )
 
     if sprint:
@@ -403,6 +406,7 @@ def dashboard_sprints(
         repositorymodel__disease__code=disease,
         repositorymodel__adm_level=adm_level,
         repositorymodel__category__in=categories,
+        repositorymodel__predicts__published=True,
     )
 
     if adm_level == 0 and country:
@@ -493,18 +497,20 @@ def dashboard_predictions(
 @decorate_view(never_cache)
 def dashboard_prediction_meta(request, prediction_id: int):
     try:
-        prediction = ModelPrediction.objects.get(id=prediction_id)
+        prediction = QuantitativePrediction.objects.select_related(
+            "model__sprint"
+        ).get(id=prediction_id)
     except ModelPrediction.DoesNotExist:
         return {"message": f"Prediction #{prediction_id} not found"}
 
     return {
         "id": prediction.id,
-        "disease_code": prediction.model.disease,
+        "disease_code": prediction.model.disease.code,
         "adm_level": prediction.model.adm_level,
         "adm_0_code": prediction.adm0.geocode if prediction.adm0 else None,
         "adm_1_code": prediction.adm1.geocode if prediction.adm1 else None,
         "adm_2_code": prediction.adm2.geocode if prediction.adm2 else None,
-        "sprint": prediction.model.sprint.exists(),
+        "sprint": prediction.model.sprint is not None,
     }
 
 
