@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.0...2.2.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **requests:** include x-internal-secret in the middleware ([#448](https://github.com/Mosqlimate-project/Data-platform/issues/448)) ([625a2ca](https://github.com/Mosqlimate-project/Data-platform/commit/625a2ca52c516177e9b4b62e64430712f5be5435))
+
 # [2.2.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.10...2.2.0) (2026-03-05)
 
 
