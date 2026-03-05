@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from './AuthProvider';
 import { HiMenu } from "react-icons/hi";
 import { FaRegBell, FaLinkedin } from "react-icons/fa";
+import { useTheme } from 'next-themes';
 
 const links = [
   { href: '/', label: 'navbar.home' },
@@ -28,6 +29,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation("common");
   const { user, openLogin, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +64,6 @@ export default function Navbar() {
         "z-20 flex items-center justify-between px-6 py-4 border-b border-border text-text transition-colors bg-bg",
       )}
     >
-
       <div className="flex items-center gap-8">
         <div className="h-8 w-8 relative flex items-center justify-center">
           <Image src="/mosquito.svg" alt="Logo" width={32} height={32} priority />
@@ -93,8 +94,29 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2">
-
         <div className="flex items-center gap-1">
+          <div className="relative group flex items-center justify-center">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-full hover:bg-hover transition-colors text-text/80 hover:text-text"
+              aria-label={t('footer.theme')}
+            >
+              {theme === 'light' ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 18a6 6 0 100-12 6 6 0 000 12z" />
+                  <path fillRule="evenodd" d="M12 2a.75.75 0 01.75.75V5a.75.75 0 01-1.5 0V2.75A.75.75 0 0112 2zm0 16a.75.75 0 01.75.75V22a.75.75 0 01-1.5 0v-3.25A.75.75 0 0112 18zm10-6a.75.75 0 01-.75.75H18a.75.75 0 010-1.5h3.25A.75.75 0 0122 12zm-16 0a.75.75 0 01-.75.75H2a.75.75 0 010-1.5h3.25A.75.75 0 016 12zm13.03-7.78a.75.75 0 010 1.06L17.06 7.25a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm-10.06 10.06a.75.75 0 010 1.06L7 17.97a.75.75 0 01-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zm10.06 1.06a.75.75 0 010 1.06l-1.97 1.97a.75.75 0 11-1.06-1.06l1.97-1.97a.75.75 0 011.06 0zM7 6.03a.75.75 0 010 1.06L5.03 9.06A.75.75 0 013.97 8l1.97-1.97A.75.75 0 017 6.03z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-300" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M17.293 15.293A8 8 0 118.707 6.707a6.5 6.5 0 108.586 8.586z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+            <span className="absolute top-full mt-2 w-max px-2 py-1 bg-text text-bg text-[10px] font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-sm">
+              {t('footer.theme')}
+            </span>
+          </div>
+
           <LanguageSelector />
 
           {user ? (
@@ -131,30 +153,26 @@ export default function Navbar() {
           {dropdownOpen && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-bg border border-border rounded-lg shadow-xl z-50 overflow-hidden py-1">
               <ul className="flex flex-col text-sm">
-
                 {user && (
-                  <>
-                    <li>
-                      <Link
-                        href="/profile"
-                        className={clsx(
-                          "flex items-center px-4 py-2 transition-colors",
-                          isActive('/profile')
-                            ? "bg-hover text-text font-bold"
-                            : "text-text/70 hover:bg-hover hover:text-text font-medium"
-                        )}
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/profile') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-                          <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
-                        </svg>
-                        {t("navbar.profile")}
-                      </Link>
-                    </li>
-                  </>
+                  <li>
+                    <Link
+                      href="/profile"
+                      className={clsx(
+                        "flex items-center px-4 py-2 transition-colors",
+                        isActive('/profile')
+                          ? "bg-hover text-text font-bold"
+                          : "text-text/70 hover:bg-hover hover:text-text font-medium"
+                      )}
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/profile') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                        <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                      </svg>
+                      {t("navbar.profile")}
+                    </Link>
+                  </li>
                 )}
-
                 <li>
                   <Link
                     href="/models"
@@ -174,7 +192,6 @@ export default function Navbar() {
                     {t("navbar.models")}
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="/dashboard"
@@ -194,7 +211,6 @@ export default function Navbar() {
                     {t("navbar.dashboard")}
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="/datastore"
@@ -215,7 +231,6 @@ export default function Navbar() {
                     {t("navbar.datastore")}
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="/docs"
@@ -236,10 +251,8 @@ export default function Navbar() {
                     {t("navbar.docs")}
                   </Link>
                 </li>
-
                 <li className="text-center text-xs font-semibold text-gray-500 py-2 uppercase tracking-wide">community</li>
                 <li><hr className="border-t border-border" /></li>
-
                 <li>
                   <Link
                     href="/publications"
@@ -257,7 +270,6 @@ export default function Navbar() {
                     {t("navbar.publications")}
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="/about"
@@ -275,7 +287,6 @@ export default function Navbar() {
                     {t("navbar.about")}
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="https://www.linkedin.com/company/mosqlimate/"
@@ -288,7 +299,6 @@ export default function Navbar() {
                     LinkedIn
                   </Link>
                 </li>
-
                 <li>
                   <Link
                     href="https://github.com/Mosqlimate-project"
@@ -303,7 +313,6 @@ export default function Navbar() {
                     GitHub
                   </Link>
                 </li>
-
                 {user && (
                   <>
                     <div className="h-px bg-border my-1" />
