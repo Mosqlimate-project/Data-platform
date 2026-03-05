@@ -136,14 +136,6 @@ const team = [
     lattes: "http://lattes.cnpq.br/2917646970654963",
   },
   {
-    id: "lucas",
-    name: "Lucas Monteiro Bianchi",
-    roleKey: "data_scientist",
-    image: "/team/Lucas.webp",
-    linkedin: "https://www.linkedin.com/in/lucas-bianchi-19730993/",
-    lattes: "http://lattes.cnpq.br/5099258319176445",
-  },
-  {
     id: "fabiana",
     name: "Fabiana Ganem",
     roleKey: "postdoc",

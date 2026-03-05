@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getEndpoints } from "./data";
 import { ClimateView } from "./views/ClimateView";
 import { InfodengueView } from "./views/InfodengueView";
@@ -11,8 +12,25 @@ import { EpiScannerView } from "./views/EpiscannerView";
 
 export default function DatastorePage() {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<number>(0);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const endpoints = getEndpoints(t);
+
+  const currentEndpointParam = searchParams.get('endpoint');
+
+  const selectedIndex = endpoints.findIndex(
+    (ep) => ep.endpoint.replace(/\//g, '') === currentEndpointParam
+  );
+
+  const selected = selectedIndex !== -1 ? selectedIndex : 0;
+
+  const handleSelect = (index: number) => {
+    const endpointName = endpoints[index].endpoint.replace(/\//g, '');
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('endpoint', endpointName);
+
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   const renderContent = () => {
     const endpoint = endpoints[selected];
@@ -44,7 +62,7 @@ export default function DatastorePage() {
             return (
               <div
                 key={i}
-                onClick={() => setSelected(i)}
+                onClick={() => handleSelect(i)}
                 className={`min-w-[240px] h-40 rounded-md flex flex-col justify-between p-4 cursor-pointer border transition-all shadow-sm ${selected === i
                   ? "bg-[var(--color-accent)] text-white shadow-none"
                   : "bg-[var(--color-bg)] text-[var(--color-text)] hover:shadow-none"

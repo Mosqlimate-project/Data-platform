@@ -191,9 +191,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-6xl">
                 <FadeInSection>
                   <a
-                    href="https://info.dengue.mat.br/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/datastore?endpoint=infodengue"
                     className="block group"
                   >
                     <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer">
@@ -220,9 +218,7 @@ export default function HomePage() {
 
                 <FadeInSection>
                   <a
-                    href="https://api.mosqlimate.org/docs/datastore/GET/climate/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/datastore?endpoint=climate"
                     className="block group"
                   >
                     <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
@@ -249,9 +245,7 @@ export default function HomePage() {
 
                 <FadeInSection>
                   <a
-                    href="https://contaovos.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/datastore?endpoint=mosquito"
                     className="block group"
                   >
                     <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
@@ -278,9 +272,7 @@ export default function HomePage() {
 
                 <FadeInSection>
                   <a
-                    href="https://info.dengue.mat.br/epi-scanner/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/datastore?endpoint=episcanner"
                     className="block group"
                   >
                     <div className="relative p-6 rounded-xl bg-border shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-300 cursor-pointer h-full">
