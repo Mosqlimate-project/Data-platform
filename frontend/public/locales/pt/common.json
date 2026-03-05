@@ -504,20 +504,20 @@
     },
     "project": {
       "title": "Conheça o projeto",
-      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a arboviroses (doenças transmitidas por mosquitos) no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como dengue, chikungunya e Zika.",
+      "description": "O Mosqlimate é uma plataforma inovadora de monitoramento e previsão de riscos relacionados a doenças transmitidas por mosquitos no contexto das mudanças climáticas. Desenvolvemos ferramentas que integram dados climáticos, epidemiológicos e entomológicos para melhorar a detecção precoce de surtos e apoiar estratégias de controle, no Brasil e na América do Sul. Nosso propósito é prevenir riscos e fortalecer a resposta a doenças como Dengue, Chikungunya e Zika.",
       "products": "Nossos dois principais produtos são:",
       "btn_data": "Dados",
       "btn_models": "Modelos Preditivos"
     },
     "data": {
       "title": "Explore nossos dados",
-      "cases_title": "Casos",
+      "cases_title": "Casos de agravos",
       "cases_desc": "Dados semanais sobre <b>Dengue</b>, <b>Zika</b> e <b>Chikungunya</b> para todos os municípios brasileiros, a fim de acompanhar tendências e sazonalidade para controle de doenças.",
       "climate_title": "Clima",
       "climate_desc": "Variáveis climáticas diárias extraídas de dados de reanálise por satélite, como <b>temperatura</b> e <b>precipitação</b>, para prever a dinâmica de proliferação dos mosquitos vetores.",
-      "mosquito_title": "Mosquito",
+      "mosquito_title": "Dados vetoriais",
       "mosquito_desc": "Dados do projeto <b>Contaovos</b>, obtidos por meio de armadilhas para ovos de Aedes aegypti para monitorar a densidade vetorial em tempo real no Brasil.",
-      "epi_title": "Epi-Scanner",
+      "epi_title": "Episcanner",
       "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, Zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
     },
     "models": {
@@ -526,7 +526,7 @@
       "image_message": "Clique para ser direcionado à aba Modelos."
     },
     "differentials": {
-      "title": "Descubra os diferenciais do Mosqlimate",
+      "title": "Descubra as competências do Mosqlimate",
       "integration_title": "Integração completa de dados",
       "integration_desc": "Reúne, em um só lugar, informações epidemiológicas, climáticas e entomológicas.",
       "comparison_title": "Comparação inteligente de modelos",
@@ -536,11 +536,11 @@
       "quality_title": "Compromisso com a qualidade",
       "quality_desc": "Conteúdo atualizado, sustentado por publicações científicas e resultados validados.",
       "community_title": "Comunidade ativa e colaborativa",
-      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o Sprint anual, além de seminários contínuos."
+      "community_desc": "Realiza eventos de destaque como a E-Vigilância bianual e o IMDC (Infodengue-Mosqlimate Dengue Challenge) anual, além de seminários contínuos."
     },
     "team": {
       "title": "Conheça a nossa equipe",
-      "image_message": "Clique para ser direcionado à aba 'Sobre Nós'."
+      "image_message": "Clique para ir à aba 'Sobre Nós'."
     }
   },
   "model_predictions": {

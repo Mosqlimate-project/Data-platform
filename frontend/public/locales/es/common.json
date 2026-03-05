@@ -491,20 +491,20 @@
     },
     "project": {
       "title": "Conozca el proyecto",
-      "description": "Mosqlimate es una plataforma innovadora para el monitoreo y pronóstico de riesgos relacionados con arbovirosis (enfermedades transmitidas por mosquitos) en el contexto del cambio climático. Desarrollamos herramientas que integran datos climáticos, epidemiológicos y entomológicos para mejorar la detección temprana de brotes y apoyar estrategias de control en Brasil y América del Sur. Nuestro propósito es prevenir riesgos y fortalecer la respuesta a enfermedades como dengue, chikungunya y Zika.",
+      "description": "Mosqlimate es una plataforma innovadora para el monitoreo y pronóstico de riesgos relacionados con enfermedades transmitidas por mosquitos en el contexto del cambio climático. Desarrollamos herramientas que integran datos climáticos, epidemiológicos y entomológicos para mejorar la detección temprana de brotes y apoyar las estrategias de control en Brasil y Sudamérica. Nuestro objetivo es prevenir riesgos y fortalecer la respuesta a enfermedades como el dengue, el chikunguña y el zika.",
       "products": "Nuestros dos productos principales son:",
       "btn_data": "Datos",
       "btn_models": "Modelos Predictivos"
     },
     "data": {
       "title": "Explore nuestros datos",
-      "cases_title": "Casos",
+      "cases_title": "Casos de enfermedad",
       "cases_desc": "Datos semanales sobre <b>dengue</b>, <b>Zika</b> y <b>chikungunya</b> para todos los municipios brasileños, con el fin de seguir tendencias y estacionalidad para el control de enfermedades.",
       "climate_title": "Clima",
       "climate_desc": "Variables climáticas diarias extraídas de datos de reanálisis satelital, como <b>temperatura</b> y <b>precipitación</b>, para predecir la dinámica de proliferación de los mosquitos vectores.",
-      "mosquito_title": "Mosquito",
+      "mosquito_title": "Datos vectoriales",
       "mosquito_desc": "Datos del proyecto <b>Contaovos</b>, obtenidos mediante trampas para huevos de Aedes aegypti para monitorear la densidad vectorial en tiempo real en Brasil.",
-      "epi_title": "Epi-Scanner",
+      "epi_title": "Episcanner",
       "epi_desc": "Analiza y presenta datos actualizados de la <b>expansión de dengue, Zika y chikungunya</b> en el territorio nacional con foco en patrones espaciales y temporales de transmisión."
     },
     "models": {
@@ -523,11 +523,11 @@
       "quality_title": "Compromiso con la calidad",
       "quality_desc": "Contenido actualizado, sustentado por publicaciones científicas y resultados validados.",
       "community_title": "Comunidad activa y colaborativa",
-      "community_desc": "Realiza eventos destacados como la E-Vigilancia bianual y el Sprint anual, además de seminarios continuos."
+      "community_desc": "Realiza eventos destacados como la E-Vigilancia bianual y el IMDC (Infodengue-Mosqlimate Dengue Challenge) anual, además de seminarios continuos."
     },
     "team": {
       "title": "Conozca a nuestro equipo",
-      "image_message": "Haga clic para ser redirigido a la pestaña 'Sobre Nosotros'."
+      "image_message": "Haga clic para ir a la pestaña 'Sobre Nosotros'."
     }
   },
   "model_predictions": {

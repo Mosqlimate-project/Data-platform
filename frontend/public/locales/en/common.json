@@ -73,7 +73,7 @@
         "models": "Models: ",
         "models_description": "all models registered in Mosqlimate.",
         "diseases": "Diseases: ",
-        "diseases_description": "dengue, Zika, chikungunya (when available).",
+        "diseases_description": "Dengue, Zika, Chikungunya (when available).",
         "scale": "Scale: ",
         "scale_description": "municipal, state or national, depending on the models submitted.",
         "goal": "Goal: ",
@@ -504,29 +504,29 @@
     },
     "project": {
       "title": "About the project",
-      "description": "Mosqlimate is an innovative platform for monitoring and forecasting risks related to arboviruses (diseases transmitted by mosquitoes) in the context of climate change. We develop tools that integrate climate, epidemiological, and entomological data to improve early outbreak detection and support control strategies in Brazil and South America. Our purpose is to prevent risks and strengthen the response to diseases like dengue, chikungunya, and Zika.",
+      "description": "Mosqlimate is an innovative platform for monitoring and forecasting risks related to mosquito-borne in the context of climate change. We develop tools that integrate climate, epidemiological, and entomological data to improve early outbreak detection and support control strategies in Brazil and South America. Our purpose is to prevent risks and strengthen the response to diseases like Dengue, Chikungunya, and Zika.",
       "products": "Our two main products are:",
       "btn_data": "Data",
       "btn_models": "Predictive Models"
     },
     "data": {
       "title": "Explore our data",
-      "cases_title": "Cases",
+      "cases_title": "Disease Cases",
       "cases_desc": "Weekly data on <b>dengue</b>, <b>Zika</b>, and <b>chikungunya</b> for all Brazilian municipalities to track trends and seasonality for disease control.",
       "climate_title": "Climate",
       "climate_desc": "Daily climate variables extracted from satellite reanalysis data, such as <b>temperature</b> and <b>precipitation</b>, to predict the proliferation dynamics of vector mosquitoes.",
-      "mosquito_title": "Mosquito",
+      "mosquito_title": "Vector data",
       "mosquito_desc": "Data from the <b>Contaovos</b> project, obtained through traps for Aedes aegypti eggs to monitor vector density in real-time in Brazil.",
-      "epi_title": "Epi-Scanner",
-      "epi_desc": "Analyzes and presents updated data on the <b>expansion of dengue, Zika, and chikungunya</b> in the national territory, focusing on spatial and temporal transmission patterns."
+      "epi_title": "Episcanner",
+      "epi_desc": "Analyzes and presents updated data on the <b>expansion of Dengue, Zika, and Chikungunya</b> in the national territory, focusing on spatial and temporal transmission patterns."
     },
     "models": {
       "title": "Analyze our models",
-      "description": "Mosqlimate provides and registers forecasting models for dengue, chikungunya, and Zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of expansion signs or outbreaks, including new arboviruses, integrating with the Infodengue early warning system.",
+      "description": "Mosqlimate provides and registers forecasting models for Dengue, Chikungunya, and Zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of signs of expansion or outbreaks, including new arboviruses, integrating with the Infodengue early warning system.",
       "image_message": "Click to be redirected to the Models tab."
     },
     "differentials": {
-      "title": "Discover Mosqlimate's differentials",
+      "title": "Discover Mosqlimate's strenghts",
       "integration_title": "Complete data integration",
       "integration_desc": "Gathers epidemiological, climatic, and entomological information in one place.",
       "comparison_title": "Smart model comparison",
@@ -536,11 +536,11 @@
       "quality_title": "Commitment to quality",
       "quality_desc": "Updated content, supported by scientific publications and validated results.",
       "community_title": "Active and collaborative community",
-      "community_desc": "Holds prominent events such as the biannual E-Vigilância and the annual Sprint, in addition to continuous seminars."
+      "community_desc": "Holds prominent events such as the biannual E-Vigilância and the annual IMDC (Infodengue-Mosqlimate Dengue Challenge), in addition to continuous seminars."
     },
     "team": {
       "title": "Meet our team",
-      "image_message": "Click to be redirected to the 'About Us' tab."
+      "image_message": "Click to go to the 'About Us' tab."
     }
   },
   "model_predictions": {

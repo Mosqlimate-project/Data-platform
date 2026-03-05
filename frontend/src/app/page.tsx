@@ -279,13 +279,13 @@ export default function HomePage() {
                       <div className="absolute top-3 right-8">
                         <Image
                           src="/episcanner_icon.svg"
-                          alt="Icon Epi-Scanner"
+                          alt="Icon Episcanner"
                           width={100}
                           height={50}
                         />
                       </div>
                       <h3 className="text-3xl font-semibold mb-3 text-text group-hover:text-primary transition-colors">
-                        {t("home.data.epi_title")}
+                        Episcanner
                       </h3>
                       <p
                         className="text-lg text-text/60 leading-relaxed"
