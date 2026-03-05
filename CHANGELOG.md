@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.2.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.10...2.2.0) (2026-03-05)
+
+
+### Features
+
+* include a protection layer to GET requests by frontend & multiple frontend minor fixes ([#447](https://github.com/Mosqlimate-project/Data-platform/issues/447)) ([eb38572](https://github.com/Mosqlimate-project/Data-platform/commit/eb38572e1097abc66c27565446f7f0876a47b8fa))
+
 ## [2.1.10](https://github.com/Mosqlimate-project/Data-platform/compare/2.1.9...2.1.10) (2026-02-24)
 
 
