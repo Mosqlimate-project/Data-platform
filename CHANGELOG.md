@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.3...2.2.4) (2026-03-06)
+
+
+### Bug Fixes
+
+* **about:** minor /about/ fixes & /datastore/ descriptions ([#451](https://github.com/Mosqlimate-project/Data-platform/issues/451)) ([96f3241](https://github.com/Mosqlimate-project/Data-platform/commit/96f3241457fb3cab9878286308c140c09bef0712))
+
 ## [2.2.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.2...2.2.3) (2026-03-05)
 
 
