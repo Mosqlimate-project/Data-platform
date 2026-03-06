@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { NEXT_PUBLIC_FRONTEND_URL, FRONTEND_PORT } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL, BACKEND_BASE_URL } from "@/lib/env";
 
 export async function GET(
   req: NextRequest,
@@ -13,11 +13,16 @@ export async function GET(
     return NextResponse.redirect(new URL("/?error=missing_data", NEXT_PUBLIC_FRONTEND_URL));
   }
 
+  const internalFetchUrl = `${BACKEND_BASE_URL}/api/user/oauth/decode/?data=${encodeURIComponent(data)}`;
+
   try {
-    const internalFetchUrl = `http://frontend:${FRONTEND_PORT}/api/auth/decode?data=${encodeURIComponent(data)}`;
-    const r = await fetch(internalFetchUrl, { cache: "no-store" });
+    const r = await fetch(internalFetchUrl, {
+      cache: "no-store",
+      headers: { "Accept": "application/json" }
+    });
 
     if (!r.ok) {
+      console.error("Backend decode failed in Install Callback");
       return NextResponse.redirect(new URL("/?error=invalid_token", NEXT_PUBLIC_FRONTEND_URL));
     }
 

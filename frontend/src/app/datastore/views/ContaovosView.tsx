@@ -180,7 +180,9 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
     <EndpointLayout
       title={config.name}
       description={config.description}
+      moreInfoLink={config.more_info_link}
       endpoint={config.endpoint}
+      source={config.source}
       dataVariables={config.data_variables}
       apiBuilder={<MosquitoApiBuilder />}
       controls={

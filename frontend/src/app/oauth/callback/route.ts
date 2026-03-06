@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setTokens } from "@/app/api/auth/setCookies";
-import { NEXT_PUBLIC_FRONTEND_URL, FRONTEND_PORT } from "@/lib/env";
+import { NEXT_PUBLIC_FRONTEND_URL, BACKEND_BASE_URL } from "@/lib/env";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/oauth/login?error=missing_data", NEXT_PUBLIC_FRONTEND_URL));
   }
 
-  const internalFetchUrl = `http://frontend:${FRONTEND_PORT}/api/auth/decode?data=${encodeURIComponent(data)}`;
+  const internalFetchUrl = `${BACKEND_BASE_URL}/api/user/oauth/decode/?data=${encodeURIComponent(data)}`;
 
   try {
     const r = await fetch(internalFetchUrl, {
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!r.ok) {
+      console.error("Backend decode failed in OAuth Callback");
       return NextResponse.redirect(new URL("/oauth/login?error=invalid_token", NEXT_PUBLIC_FRONTEND_URL));
     }
 

@@ -28,11 +28,10 @@ class OAuthProvider(ABC):
     def __init__(self, request: HttpRequest, extra_state: dict = {}):
         self.request = request
         self.extra_state = extra_state
-        if self.provider == "google":
-            self.redirect_url = self.redirect_url.replace(
-                "0.0.0.0",
-                "localhost",
-            )
+        self.redirect_url = self.redirect_url.replace(
+            "0.0.0.0",
+            "localhost",
+        )
 
     @classmethod
     def from_request(
