@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { LayoutDashboard, Search, X, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LineChart, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
+import { LineChart, QuantitativePrediction, Series } from "@/components/dashboard/QuantitativeLineChart";
 import MarkdownRenderer from "@/components/model/MarkdownRenderer";
 import { FRONTEND_SECRET } from "@/lib/env";
 
@@ -45,6 +45,11 @@ interface PredictionRowData {
   upper_50?: number;
   lower_90?: number;
   upper_90?: number;
+}
+
+interface CaseData {
+  date: string;
+  cases: number;
 }
 
 interface PredictionsListProps {
@@ -212,6 +217,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
   const debouncedSearchQuery = useDebounce(inputValue, 300);
   const [activeChartId, setActiveChartId] = useState<number | null>(null);
   const [chartData, setChartData] = useState<QuantitativePrediction | null>(null);
+  const [historicalCases, setHistoricalCases] = useState<Series>({ labels: [], data: [] });
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -245,6 +251,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
       if (activeChartId === deleteModalId) {
         setActiveChartId(null);
         setChartData(null);
+        setHistoricalCases({ labels: [], data: [] });
       }
       setDeleteModalId(null);
       router.refresh();
@@ -257,15 +264,23 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
 
   const handleViewChart = useCallback(async (pred: ModelPrediction) => {
     if (activeChartId === pred.id) return;
-    setActiveChartId(pred.id); setIsChartLoading(true); setChartData(null);
+    setActiveChartId(pred.id);
+    setIsChartLoading(true);
+    setChartData(null);
+    setHistoricalCases({ labels: [], data: [] });
+
     try {
-      const res = await fetch(`/api/vis/dashboard/prediction/${pred.id}`, {
+      const predRes = await fetch(`/api/vis/dashboard/prediction/${pred.id}`, {
         headers: {
           "Content-Type": "application/json",
           "x-internal-secret": FRONTEND_SECRET || "",
         }
       });
-      const data: PredictionRowData[] = await res.json();
+
+      if (!predRes.ok) throw new Error("Failed to fetch prediction");
+
+      const data: PredictionRowData[] = await predRes.json();
+
       setChartData({
         id: pred.id, color: "#2563eb",
         data: {
@@ -274,7 +289,46 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
           lower_90: data.map(d => d.lower_90 ?? null), upper_90: data.map(d => d.upper_90 ?? null),
         },
       });
-    } catch { setChartData(null); } finally { setIsChartLoading(false); }
+
+      if (pred.start && pred.end) {
+        try {
+          const caseParams = new URLSearchParams({
+            disease: pred.disease_code,
+            adm_level: pred.adm_level.toString(),
+            sprint: pred.sprint ? "true" : "false",
+            case_definition: pred.case_definition || "reported",
+            start: pred.start,
+            end: pred.end,
+          });
+
+          if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
+          if (pred.adm_1_code) caseParams.set("adm_1", String(pred.adm_1_code));
+          if (pred.adm_2_code) caseParams.set("adm_2", String(pred.adm_2_code));
+
+          const casesRes = await fetch(`/api/vis/dashboard/cases?${caseParams.toString()}`, {
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-secret": FRONTEND_SECRET || "",
+            }
+          });
+
+          if (casesRes.ok) {
+            const cases: CaseData[] = await casesRes.json();
+            setHistoricalCases({
+              labels: cases.map(c => new Date(c.date)),
+              data: cases.map(c => c.cases)
+            });
+          }
+        } catch (e) {
+          console.warn("Could not load historical cases, showing prediction only.", e);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch prediction data:", error);
+      setChartData(null);
+    } finally {
+      setIsChartLoading(false);
+    }
   }, [activeChartId]);
 
   useEffect(() => { if (!hasInitialized && localPredictions.length > 0) { const f = localPredictions.find(p => p.published); if (f) handleViewChart(f); setHasInitialized(true); } }, [localPredictions, hasInitialized, handleViewChart]);
@@ -286,10 +340,10 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     p.set("disease", pred.disease_code);
     p.set("prediction_id", pred.id.toString());
     p.set("case_definition", pred.case_definition || "reported");
-    if (pred.adm_0_code) p.set("adm_0", pred.adm_0_code);
-    if (pred.adm_level >= 1 && pred.adm_1_code) p.set("adm_1", pred.adm_1_code);
-    if (pred.adm_level >= 2 && pred.adm_2_code) p.set("adm_2", pred.adm_2_code);
-    if (pred.adm_level >= 3 && pred.adm_3_code) p.set("adm_3", pred.adm_3_code);
+    if (pred.adm_0_code) p.set("adm_0", String(pred.adm_0_code));
+    if (pred.adm_level >= 1 && pred.adm_1_code) p.set("adm_1", String(pred.adm_1_code));
+    if (pred.adm_level >= 2 && pred.adm_2_code) p.set("adm_2", String(pred.adm_2_code));
+    if (pred.adm_level >= 3 && pred.adm_3_code) p.set("adm_3", String(pred.adm_3_code));
     return `/dashboard/${pred.category === "categorical" ? "categorical" : "quantitative"}?${p.toString()}`;
   }, []);
 
@@ -297,8 +351,30 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     if (!canManage && !p.published) return false;
     if (!debouncedSearchQuery) return true;
     const q = debouncedSearchQuery.toLowerCase();
-    return p.id.toString().includes(q) || p.commit.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.adm_0_name?.toLowerCase().includes(q) || p.adm_1_name?.toLowerCase().includes(q);
-  }), [localPredictions, debouncedSearchQuery, canManage]);
+
+    const metricValue = p.scores?.find(s => s.name === selectedMetric)?.score.toString() || "";
+
+    const searchableFields = [
+      p.id,
+      p.commit,
+      p.description,
+      p.disease_code,
+      p.case_definition,
+      p.adm_0_name,
+      p.adm_1_name,
+      p.adm_2_name,
+      p.adm_3_name,
+      p.adm_0_code,
+      p.adm_1_code,
+      p.adm_2_code,
+      p.adm_3_code,
+      metricValue
+    ];
+
+    return searchableFields.some(field =>
+      field !== null && field !== undefined && String(field).toLowerCase().includes(q)
+    );
+  }), [localPredictions, debouncedSearchQuery, canManage, selectedMetric]);
 
   if (!predictions || predictions.length === 0) return (<div className="w-full bg-card border rounded-xl p-12"><div className="max-w-3xl mx-auto"><MarkdownRenderer content={`## ${t("model_predictions.empty_title")}\n${t("model_predictions.empty_desc")}`} /></div></div>);
 
@@ -345,13 +421,52 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
         <h3 className="font-semibold text-sm mb-4">{activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}</h3>
         <div className="flex-1 relative">
           {isChartLoading && (<div className="absolute inset-0 flex items-center justify-center bg-card/80 z-10"><Loader2 className="animate-spin text-primary" /></div>)}
-          {chartData ? (<LineChart data={{ labels: [], data: [] }} predictions={[chartData]} activeIntervals={new Set([chartData.id])} height="100%" />) : !isChartLoading && (<div className="flex items-center justify-center h-full text-muted-foreground text-sm">{activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}</div>)}
+          {chartData ? (
+            <LineChart
+              data={historicalCases}
+              predictions={[chartData]}
+              activeIntervals={new Set([chartData.id])}
+              height="100%"
+            />
+          ) : !isChartLoading && (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              {activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative flex-1 max-w-sm"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input type="text" placeholder={t("model_predictions.search_placeholder")} value={inputValue} onChange={e => setInputValue(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary" />{inputValue && (<button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>)}</div>
-        <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border"><span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span><select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer">{availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}</select></div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={t("model_predictions.search_placeholder")}
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary"
+            />
+            {inputValue && (
+              <button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
+            <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
+            <select
+              value={selectedMetric}
+              onChange={e => setSelectedMetric(e.target.value)}
+              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+            >
+              {availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground px-1">
+          <span>{t("model_predictions.search_hint", "Search by ID, Admin Level (Name/Code), Commit, Metric value, or metadata")}</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

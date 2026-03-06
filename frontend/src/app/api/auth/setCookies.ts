@@ -12,23 +12,22 @@ export function setTokens(
   }: { accessToken: string; refreshToken: string }
 ) {
   const isProd = process.env.NODE_ENV === "production";
-  const now = new Date();
 
-  res.cookies.set("access_token", accessToken, {
+  const commonOptions = {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
+    domain: isProd ? ".mosqlimate.org" : undefined,
+  };
+
+  res.cookies.set("access_token", accessToken, {
+    ...commonOptions,
     maxAge: ACCESS_MAX_AGE,
-    expires: new Date(now.getTime() + ACCESS_MAX_AGE * 1000),
   });
 
   res.cookies.set("refresh_token", refreshToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: "lax",
-    path: "/",
+    ...commonOptions,
     maxAge: REFRESH_MAX_AGE,
-    expires: new Date(now.getTime() + REFRESH_MAX_AGE * 1000),
   });
 }

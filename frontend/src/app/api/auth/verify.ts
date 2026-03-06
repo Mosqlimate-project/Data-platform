@@ -35,9 +35,13 @@ export async function verifyUser(req: NextRequest): Promise<VerifyResult> {
     if (!userRefresh) return null;
 
     const newHeaders = new Headers();
-    const setCookieHeader = res.headers.get("set-cookie");
-    if (setCookieHeader) {
-      newHeaders.set("set-cookie", setCookieHeader);
+
+    const setCookies = res.headers.getSetCookie();
+
+    if (setCookies.length > 0) {
+      setCookies.forEach(cookie => {
+        newHeaders.append("set-cookie", cookie);
+      });
     }
 
     return {

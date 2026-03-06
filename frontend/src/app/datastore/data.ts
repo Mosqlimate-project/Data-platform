@@ -5,6 +5,7 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     endpoint: "/infodengue/",
     name: t("datastore.infodengue.title"),
     description: t("datastore.infodengue.description"),
+    source: "https://info.dengue.mat.br/",
     more_info_link: "https://api.mosqlimate.org/docs/datastore/GET/infodengue/",
     tags: ["dengue", "municipal", "weekly"],
     data_variables: [
@@ -165,6 +166,7 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     endpoint: "/climate/",
     name: t("datastore.climate.title"),
     description: t("datastore.climate.description"),
+    source: "https://cds.climate.copernicus.eu/",
     more_info_link: "https://api.mosqlimate.org/docs/datastore/GET/climate/",
     tags: ["Temperature", "Municipal", "Daily"],
     data_variables: [
@@ -254,6 +256,7 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     endpoint: "/mosquito/",
     name: t("datastore.mosquito.title"),
     description: t("datastore.mosquito.description"),
+    source: "https://contaovos.com/pt-br/api/",
     more_info_link: "https://api.mosqlimate.org/docs/datastore/GET/mosquito/",
     tags: ["ContaOvos", "municipal", "daily"],
     data_variables: [
@@ -343,6 +346,7 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     endpoint: "/episcanner/",
     name: t("datastore.episcanner.title"),
     description: t("datastore.episcanner.description"),
+    source: "https://info.dengue.mat.br/epi-scanner/",
     more_info_link: "https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner",
     tags: ["Epidemiological", "Municipal", "Yearly"],
     data_variables: [

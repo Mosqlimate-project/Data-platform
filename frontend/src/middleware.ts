@@ -18,15 +18,11 @@ const publicPaths = [
   "/api/datastore/charts",
   "/api/datastore/cities",
   "/api/vis/dashboard",
-  "/_next",
-  "/favicon.ico",
-  "/public",
   "/models",
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-internal-secret", process.env.FRONTEND_SECRET || "");
 
@@ -37,9 +33,7 @@ export async function middleware(request: NextRequest) {
 
   if (isPublic) {
     return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
+      request: { headers: requestHeaders },
     });
   }
 
@@ -50,22 +44,18 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
+      request: { headers: requestHeaders },
     });
   }
 
   const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
 
   if (user.headers) {
-    const setCookie = user.headers.get("set-cookie");
-    if (setCookie) {
-      response.headers.set("set-cookie", setCookie);
+    const setCookieValue = user.headers.get("set-cookie");
+    if (setCookieValue) {
+      response.headers.append("set-cookie", setCookieValue);
     }
   }
 

@@ -148,26 +148,17 @@ class GoogleProvider(OAuthProvider):
         }
 
     def get_auth_url(self) -> str:
-        flow = Flow.from_client_config(
-            {
-                "web": {
-                    "client_id": self.client_id,
-                    "client_secret": self.client_secret,
-                    "auth_uri": self.auth_url,
-                    "token_uri": self.token_url,
-                    "redirect_uris": [self.redirect_url],
-                }
-            },
-            scopes=self.scopes,
-        )
-        flow.redirect_uri = self.redirect_url
-        auth_url, _ = flow.authorization_url(
-            prompt="consent",
-            access_type="offline",
-            state=self.state,
-            include_granted_scopes="true",
-        )
-        return auth_url
+        params = {
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_url,
+            "response_type": "code",
+            "scope": " ".join(self.scopes),
+            "state": self.state,
+            "access_type": "offline",
+            "prompt": "consent",
+            "include_granted_scopes": "true",
+        }
+        return f"{self.auth_url}?{urllib.parse.urlencode(params)}"
 
     def get_user_info(self, access_token: str, *args, **kwargs):
         with httpx.Client() as client:

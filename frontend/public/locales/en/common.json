@@ -266,6 +266,8 @@
     }
   },
   "common": {
+    "documentation": "Documentation",
+    "source": "Source",
     "cancel": "Cancel",
     "actions": {
       "delete": "Delete",
@@ -281,7 +283,7 @@
   "datastore": {
     "infodengue": {
       "title": "Mosquito-borne Diseases",
-      "description": "This endpoint gives access to data from the Infodengue project, which provide a number of epidemiological variables for all the Brazilian municipalities on a weekly time scale. The request parameters and data variables are described below.",
+      "description": "This endpoint provides, via Mosqlimate, access to the InfoDengue project’s epidemiological dataset at a weekly resolution, covering all Brazilian municipalities. The available indicators and variables are derived from official public health surveillance data in Brazil and are processed and standardized by InfoDengue to support arbovirus monitoring and modeling. For usage details, request parameters, and examples, please refer to the API documentation",
       "variables": {
         "data_iniSE": "Start date of epidemiological week",
         "SE": "Epidemiological week",
@@ -316,7 +318,7 @@
     },
     "climate": {
       "title": "Climate data",
-      "description": "Through this API endpoint, you can fetch several climate variables that have been extracted for all brazilian municipalities from the satellite-based reanalysis data provided by Copernicus ERA5.",
+      "description": "This endpoint provides, via Mosqlimate, access to municipality-level climate variables for all of Brazil, derived from the ERA5 reanalysis (Copernicus Climate Change Service). The data are extracted, aggregated, and refined by Mosqlimate for each Brazilian municipality (spatiotemporal standardization and formatting), facilitating their use in analytical workflows. For usage details, request parameters, and examples, please refer to the API documentation",
       "variables": {
         "date": "Day of the year",
         "geocodigo": "IBGE's municipality code",
@@ -336,8 +338,8 @@
       }
     },
     "mosquito": {
-      "title": "Mosquito Egg Count",
-      "description": "Here you get access to mosquito abundance data from the Contaovos project, co-developed by the Mosqlimate project. These data, described below, are based on eggtraps distributed throughout Brasil according to a monitoring design specified by the Ministry of Health.",
+      "title": "Mosquito Egg Counts (ContaOvos)",
+      "description": "This endpoint provides, via Mosqlimate, access to mosquito abundance data from the ContaOvos project, co-developed with Mosqlimate. The dataset is based on ovitrap (egg trap) monitoring in participating municipalities, following a surveillance design specified by the Brazilian Ministry of Health. Records include ovitrap location (latitude/longitude) and egg counts over time, supporting analyses of vector dynamics and arbovirus risk. For usage details, request parameters, and examples, please refer to the API documentation",
       "variables": {
         "counting_id": "",
         "date": "",
@@ -358,7 +360,7 @@
     },
     "episcanner": {
       "title": "EpiScanner Data",
-      "description": "Real-time Epidemic Scanner data providing estimates of epidemiological parameters for cities in Brazil.",
+      "description": "This endpoint provides, via Mosqlimate, access to mosquito abundance data from the ContaOvos project, co-developed with Mosqlimate. The dataset is based on ovitrap (egg trap) monitoring in participating municipalities, following a surveillance design specified by the Brazilian Ministry of Health. Records include ovitrap location (latitude/longitude) and egg counts over time, supporting analyses of vector dynamics and arbovirus risk. For usage details, request parameters, and examples, please refer to the API documentation",
       "variables": {
         "disease": "Specific disease (dengue, zika, chik)",
         "CID10": "Disease's ICD-10 code",
@@ -473,7 +475,7 @@
       "julie": "Postdoctoral researcher at FGV EMAp. She is an applied mathematician, physicist, and data scientist with a PhD in Applied Mathematics and Data Science. She holds a master’s and a bachelor’s degree in Physics. Her research focuses on mathematical modeling of epidemics, emphasizing using epidemiological model-informed neural networks (PINNs) to capture complex dengue dynamics. She also has expertise in machine learning, causal inference, and developing data pipelines for epidemiological analysis. Her work seeks to integrate advanced computing and artificial intelligence methods for understanding and controlling infectious diseases.",
       "ana": "Undergraduate student in Data Science and Artificial Intelligence at FGV-EMAp. She works as a developer and data scientist on the Mosqlimate research project. FAPERJ undergraduate research fellow in a project carried out by Fiocruz researchers with 15 girls from public schools in Rio de Janeiro. Interest in data science applied to health, machine learning and social projects, especially those related to education.",
       "ezequiel": "Master's student in Applied Mathematics and Data Science at FGV EMAp. His work focuses on Bayesian modeling, particularly in power priors. He currently serves as a research assistant on the hdbayes R package project and Mosqlimate. His primary research interests lie in biostatistics, especially in Bayesian and computational statistics.",
-      "zuilho": "Undergraduate student in Data Science and Artificial Intelligence at FGV EMAp. I'm particularly interested in Machine Learning and Reinforcement Learning. Currently, I'm working on reinforcement learning models where agents are designed to optimize testing distribution for arboviral diseases such as dengue and chikungunya across different regions.",
+      "zuilho": "Master's student in Applied Mathematics and Data Science at FGV EMAp. His research interests include Machine Learning, Reinforcement Learning, Forecasting Models, Topology, and general modeling. He is currently working on on models to predict dengue incidence and optimize the distribution of diagnostic tests for arboviral diseases using reinforcement learning agents across different regions.",
       "sillas": "Undergraduate student in Data Science and Artificial Intelligence at FGV-EMAp. He is currently working on integrating an AI assistant into the Mosqlimate platform. His interests focus on Machine Learning, particularly Deep Learning models.",
       "raquel": "Marie Curie fellow at the Barcelona Supercomputing Center in the Global Health Resilience group. Her background is in quantitative epidemiology and her research focuses on infectious disease dynamics and their association with environmental, climate, and social factors. She is a collaborator in the Mosqlimate project.",
       "thais": "Biologist with a MSc and PhD in Zoology. I am interested in studies on ecology and population dynamics of arbovirus vectors and their impact on the dynamics of disease transmission. I currently work as an analyst at the Epidemiological Intelligence Center of the Secretariat of Health of Rio de Janeiro City and as a collaborating researcher in the Infodengue system.",
