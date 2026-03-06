@@ -38,6 +38,8 @@ interface EndpointLayoutProps {
   title: string;
   endpoint: string;
   description: string;
+  moreInfoLink: string;
+  source: string;
   dataVariables?: { variable: string; type: string; description: string }[];
   children?: ReactNode;
   controls?: ReactNode;
@@ -47,6 +49,8 @@ interface EndpointLayoutProps {
 export function EndpointLayout({
   title,
   description,
+  moreInfoLink,
+  source,
   dataVariables,
   endpoint,
   children,
@@ -80,7 +84,6 @@ export function EndpointLayout({
       </div>
 
       <div className="flex flex-col gap-4 w-full xl:w-[400px] shrink-0">
-
         {controls && (
           <AccordionCard
             title={t('endpoint_layout.accordion.charts_title')}
@@ -118,7 +121,41 @@ export function EndpointLayout({
           isOpen={openCard === "Description"}
           onClick={() => toggleCard("Description")}
         >
-          <p className="opacity-90 leading-relaxed">{description}</p>
+          <div className="space-y-4">
+            <p className="opacity-90 leading-relaxed text-justify text-sm">
+              {description}
+            </p>
+
+            <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
+              {source && (
+                <p className="text-xs">
+                  <span className="font-semibold">{t('common.source')}: </span>
+                  <a
+                    href={source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline break-all"
+                  >
+                    {source}
+                  </a>
+                </p>
+              )}
+
+              {moreInfoLink && (
+                <p className="text-xs">
+                  <span className="font-semibold">{t('common.documentation') || 'Documentation'}: </span>
+                  <a
+                    href={moreInfoLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline break-all"
+                  >
+                    {moreInfoLink}
+                  </a>
+                </p>
+              )}
+            </div>
+          </div>
         </AccordionCard>
 
         {dataVariables && dataVariables.length > 0 && (

@@ -191,21 +191,13 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
 
-  const handleStartDateChange = (value: string) => {
-    if (endDate && value > endDate) return;
-    setStartDate(value);
-  };
-
-  const handleEndDateChange = (value: string) => {
-    if (startDate && value < startDate) return;
-    setEndDate(value);
-  };
-
   return (
     <EndpointLayout
       title={config.name}
       description={config.description}
+      moreInfoLink={config.more_info_link}
       endpoint={config.endpoint}
+      source={config.source}
       dataVariables={config.data_variables}
       apiBuilder={<InfodengueApiBuilder />}
       controls={
@@ -232,40 +224,21 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
             <LocalizedDateInput
               label="Start Date"
               value={startDate}
-              onChange={handleStartDateChange}
+              onChange={(v) => setStartDate(v)}
             />
             <LocalizedDateInput
               label="End Date"
               value={endDate}
-              onChange={handleEndDateChange}
+              onChange={(v) => setEndDate(v)}
             />
           </div>
         </>
       }
     >
       <div className="flex flex-col gap-8 w-full">
-        <TotalCases
-          geocode={String(geocode)}
-          disease={disease}
-          start={startDate}
-          end={endDate}
-        />
-      </div>
-      <div className="flex flex-col gap-8 w-full">
-        < DailyCasesChart
-          geocode={String(geocode)}
-          disease={disease}
-          start={startDate}
-          end={endDate}
-        />
-      </div>
-      <div className="flex flex-col gap-8 w-full">
-        < RtChart
-          geocode={String(geocode)}
-          disease={disease}
-          start={startDate}
-          end={endDate}
-        />
+        <TotalCases geocode={String(geocode)} disease={disease} start={startDate} end={endDate} />
+        <DailyCasesChart geocode={String(geocode)} disease={disease} start={startDate} end={endDate} />
+        <RtChart geocode={String(geocode)} disease={disease} start={startDate} end={endDate} />
       </div>
     </EndpointLayout>
   );

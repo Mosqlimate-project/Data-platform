@@ -7,14 +7,25 @@ function getSecret(): Uint8Array {
 }
 
 export async function parseToken(token: string): Promise<JWTPayload | null> {
-  let secret = getSecret();
+  const secret = getSecret();
   try {
-    const { payload } = await jwtVerify(token, secret, { algorithms: [`${JWT_ALGORITHM}`] });
+    const { payload } = await jwtVerify(token, secret, {
+      algorithms: [JWT_ALGORITHM || "HS256"]
+    });
+
+    if (!payload.sub) {
+      console.error("Token missing 'sub' claim");
+      return null;
+    }
 
     return payload;
 
-  } catch (error) {
-    console.log("Token verification failed:", error);
+  } catch (error: any) {
+    if (error.code === 'ERR_JWT_EXPIRED') {
+      return null;
+    }
+
+    console.error("JWT Verification Error:", error.message);
     return null;
   }
 }

@@ -266,6 +266,8 @@
     }
   },
   "common": {
+    "documentation": "Documentación",
+    "source": "Fuente",
     "cancel": "Cancelar",
     "actions": {
       "delete": "Eliminar",
@@ -281,7 +283,7 @@
   "datastore": {
     "infodengue": {
       "title": "Enfermedades transmitidas por mosquitos",
-      "description": "Este endpoint proporciona acceso a datos del proyecto Infodengue, que ofrece diversas variables epidemiológicas para todos los municipios brasileños en una escala semanal. Los parámetros de la solicitud y las variables de datos se describen a continuación.",
+      "description": "Este endpoint proporciona, a través de Mosqlimate, acceso al conjunto de datos epidemiológicos del proyecto InfoDengue con una resolución semanal, que abarca todos los municipios brasileños. Los indicadores y variables disponibles se derivan de datos oficiales de vigilancia de la salud pública en Brasil y son procesados ​​y estandarizados por InfoDengue para facilitar el monitoreo y modelado de arbovirus. Para obtener detalles de uso, parámetros de solicitud y ejemplos, consulte la documentación de la API",
       "variables": {
         "data_iniSE": "Fecha de inicio de la semana epidemiológica",
         "SE": "Semana epidemiológica",
@@ -316,7 +318,7 @@
     },
     "climate": {
       "title": "Datos climáticos",
-      "description": "A través de este endpoint, puede obtener diversas variables climáticas extraídas para todos los municipios brasileños a partir de datos de reanálisis satelital proporcionados por Copernicus ERA5.",
+      "description": "Este endpoint proporciona, a través de Mosqlimate, acceso a variables climáticas a nivel municipal para todo Brasil, derivadas del reanálisis de ERA5 (Servicio de Cambio Climático de Copernicus). Mosqlimate extrae, agrega y refina los datos para cada municipio brasileño (estandarización espaciotemporal y formato), lo que facilita su uso en flujos de trabajo analíticos. Para obtener detalles de uso, parámetros de solicitud y ejemplos, consulte la documentación de la API",
       "variables": {
         "date": "Día del año",
         "geocodigo": "Código del municipio (IBGE)",
@@ -336,8 +338,8 @@
       }
     },
     "mosquito": {
-      "title": "Conteo de Huevos de Mosquito",
-      "description": "Aquí obtiene acceso a datos de abundancia de mosquitos del proyecto Contaovos, codesarrollado por el proyecto Mosqlimate. Estos datos, descritos a continuación, se basan en ovitrampas distribuidas por todo Brasil según un diseño de monitoreo especificado por el Ministerio de Salud.",
+      "title": "Conteo de Huevos de Mosquito (ContaOvos)",
+      "description": "Este endpoint proporciona, a través de Mosqlimate, acceso a los datos de abundancia de mosquitos del proyecto ContaOvos, codesarrollado con Mosqlimate. El conjunto de datos se basa en el monitoreo de ovitrampas (trampas para huevos) en los municipios participantes, siguiendo un diseño de vigilancia especificado por el Ministerio de Salud de Brasil. Los registros incluyen la ubicación de las ovitrampas (latitud/longitud) y el conteo de huevos a lo largo del tiempo, lo que respalda los análisis de la dinámica de vectores y el riesgo de arbovirus. Para obtener detalles de uso, parámetros de solicitud y ejemplos, consulte la documentación de la API",
       "variables": {
         "counting_id": "",
         "date": "",
@@ -358,7 +360,7 @@
     },
     "episcanner": {
       "title": "Datos EpiScanner",
-      "description": "Datos del Escaneador Epidémico en tiempo real que proporciona estimaciones de parámetros epidemiológicos para ciudades en Brasil.",
+      "description": "Este endpoint proporciona, a través de Mosqlimate, acceso a los datos de EpiScanner (Epidemic Scanner), una herramienta desarrollada en colaboración con InfoDengue que proporciona estimaciones en tiempo real de los parámetros epidemiológicos de las ciudades de Brasil. Para obtener información sobre su uso, parámetros de solicitud y ejemplos, consulte la documentación de la API",
       "variables": {
         "disease": "Enfermedad específica (dengue, zika, chik)",
         "CID10": "Código CIE-10 de la enfermedad",
@@ -460,7 +462,7 @@
       "julie": "Investigadora posdoctoral en FGV EMAp. Es matemática aplicada, física y científica de datos con doctorado en Matemáticas Aplicadas y Ciencia de Datos. Tiene maestría y licenciatura en Física. Su investigación se centra en el modelado matemático de epidemias, enfatizando el uso de redes neuronales informadas por modelos epidemiológicos (PINNs) para capturar la dinámica compleja del dengue. También tiene experiencia en aprendizaje automático, inferencia causal y desarrollo de tuberías de datos para análisis epidemiológico. Su trabajo busca integrar computación avanzada y métodos de inteligencia artificial para comprender y controlar enfermedades infecciosas.",
       "ana": "Estudiante de pregrado en Ciencia de Datos e Inteligencia Artificial en FGV-EMAp. Trabaja como desarrolladora y científica de datos en el proyecto de investigación Mosqlimate. Becaria de iniciación científica de FAPERJ en un proyecto realizado por investigadores de Fiocruz con 15 niñas de escuelas públicas de Río de Janeiro. Interés en ciencia de datos aplicada a la salud, aprendizaje automático y proyectos sociales, especialmente los relacionados con la educación.",
       "ezequiel": "Estudiante de maestría en Matemáticas Aplicadas y Ciencia de Datos en FGV EMAp. Su trabajo se centra en el modelado bayesiano, particularmente en power priors. Actualmente se desempeña como asistente de investigación en el proyecto del paquete R hdbayes y en Mosqlimate. Sus principales intereses de investigación se encuentran en la bioestadística, especialmente en la estadística bayesiana y computacional.",
-      "zuilho": "Estudiante de pregrado en Ciencia de Datos e Inteligencia Artificial en FGV EMAp. Estoy particularmente interesado en Aprendizaje Automático y Aprendizaje por Refuerzo. Actualmente, estoy trabajando en modelos de aprendizaje por refuerzo donde los agentes están diseñados para optimizar la distribución de pruebas para enfermedades arbovirales como dengue y chikungunya en diferentes regiones.",
+      "zuilho": "Estudiante de maestría en Matemáticas Aplicadas y Ciencia de Datos en FGV EMAp. Sus intereses de investigación incluyen aprendizaje automático, aprendizaje por refuerzo, modelos de pronóstico, topología y modelado general. Actualmente trabaja en modelos para predecir la incidencia del dengue y optimizar la distribución de pruebas diagnósticas para enfermedades arbovirales mediante agentes de aprendizaje por refuerzo en diferentes regiones.",
       "sillas": "Estudiante de pregrado en Ciencia de Datos e Inteligencia Artificial en FGV-EMAp. Actualmente trabaja en la integración de un asistente de IA en la plataforma Mosqlimate. Sus intereses se centran en el Aprendizaje Automático, particularmente modelos de Aprendizaje Profundo.",
       "raquel": "Becaria Marie Curie en el Barcelona Supercomputing Center en el grupo de Resiliencia en Salud Global. Su formación es en epidemiología cuantitativa y su investigación se centra en la dinámica de enfermedades infecciosas y su asociación con factores ambientales, climáticos y sociales. Es colaboradora en el proyecto Mosqlimate.",
       "thais": "Bióloga con maestría y doctorado en Zoología. Tengo interés en estudios sobre ecología y dinámica poblacional de vectores de arbovirosis y su impacto en la dinámica de transmisión de enfermedades. Actualmente trabajo como analista en el Centro de Inteligencia Epidemiológica de la Secretaría de Salud de la Ciudad de Río de Janeiro y como investigadora colaboradora en el sistema Infodengue.",

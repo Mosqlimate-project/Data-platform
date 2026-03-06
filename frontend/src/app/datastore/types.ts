@@ -13,6 +13,7 @@ export interface EndpointDetails {
   endpoint: string;
   name: string;
   description: string;
+  source: string;
   more_info_link: string;
   tags: string[];
   data_variables: EndpointDataVar[];
