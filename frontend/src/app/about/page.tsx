@@ -129,7 +129,7 @@ const team = [
   },
   {
     id: "lua",
-    name: "Luã Bida Vacaro",
+    name: "Luã Vacaro",
     roleKey: "developer_data_scientist",
     image: "/team/lua.png",
     linkedin: "https://www.linkedin.com/in/luabida/",

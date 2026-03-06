@@ -28,7 +28,7 @@ const team = [
   { id: "leon", name: "Leon Alves", roleKey: "coordination", image: "/team/leon.png" },
   { id: "eduardo", name: "Eduardo Corrêa Araujo", roleKey: "coordination", image: "/team/eduardo.jpg" },
   { id: "iasmim", name: "Iasmim Ferreira de Almeida", roleKey: "coordination", image: "/team/Iasmim.jpg" },
-  { id: "lua", name: "Luã Bida Vacaro", roleKey: "developer_data_scientist", image: "/team/lua.png" },
+  { id: "lua", name: "Luã Vacaro", roleKey: "developer_data_scientist", image: "/team/lua.png" },
   { id: "fabiana", name: "Fabiana Ganem", roleKey: "postdoc", image: "/team/Fabiana.png" },
   { id: "beatriz", name: "Beatriz Laiate", roleKey: "postdoc", image: "/team/Beatriz.webp" },
   { id: "marcio", name: "Marcio Maciel Bastos", roleKey: "postdoc", image: "/team/marcio.png" },

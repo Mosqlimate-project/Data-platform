@@ -432,15 +432,9 @@ def oauth_install_callback(
 @decorate_view(never_cache)
 def oauth_decode(request, data: str):
     try:
-        decoded = signing.loads(data, salt="oauth-callback", max_age=300)
+        decoded = signing.loads(data, salt="oauth-callback", max_age=600)
     except signing.BadSignature:
         return 400, {"message": "Invalid or expired data"}
-
-    original_ip = decoded.get("ip_address")
-    current_ip = get_client_ip(request)
-
-    if original_ip and original_ip != current_ip:
-        return 400, {"message": "Security check failed: IP address mismatch"}
 
     return decoded
 
