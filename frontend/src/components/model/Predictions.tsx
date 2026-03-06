@@ -301,9 +301,9 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
             end: pred.end,
           });
 
-          if (pred.adm_0_code) caseParams.set("adm_0", pred.adm_0_code);
-          if (pred.adm_1_code) caseParams.set("adm_1", pred.adm_1_code);
-          if (pred.adm_2_code) caseParams.set("adm_2", pred.adm_2_code);
+          if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
+          if (pred.adm_1_code) caseParams.set("adm_1", String(pred.adm_1_code));
+          if (pred.adm_2_code) caseParams.set("adm_2", String(pred.adm_2_code));
 
           const casesRes = await fetch(`/api/vis/dashboard/cases?${caseParams.toString()}`, {
             headers: {
@@ -340,10 +340,10 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     p.set("disease", pred.disease_code);
     p.set("prediction_id", pred.id.toString());
     p.set("case_definition", pred.case_definition || "reported");
-    if (pred.adm_0_code) p.set("adm_0", pred.adm_0_code);
-    if (pred.adm_level >= 1 && pred.adm_1_code) p.set("adm_1", pred.adm_1_code);
-    if (pred.adm_level >= 2 && pred.adm_2_code) p.set("adm_2", pred.adm_2_code);
-    if (pred.adm_level >= 3 && pred.adm_3_code) p.set("adm_3", pred.adm_3_code);
+    if (pred.adm_0_code) p.set("adm_0", String(pred.adm_0_code));
+    if (pred.adm_level >= 1 && pred.adm_1_code) p.set("adm_1", String(pred.adm_1_code));
+    if (pred.adm_level >= 2 && pred.adm_2_code) p.set("adm_2", String(pred.adm_2_code));
+    if (pred.adm_level >= 3 && pred.adm_3_code) p.set("adm_3", String(pred.adm_3_code));
     return `/dashboard/${pred.category === "categorical" ? "categorical" : "quantitative"}?${p.toString()}`;
   }, []);
 
@@ -351,8 +351,30 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     if (!canManage && !p.published) return false;
     if (!debouncedSearchQuery) return true;
     const q = debouncedSearchQuery.toLowerCase();
-    return p.id.toString().includes(q) || p.commit.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.adm_0_name?.toLowerCase().includes(q) || p.adm_1_name?.toLowerCase().includes(q);
-  }), [localPredictions, debouncedSearchQuery, canManage]);
+
+    const metricValue = p.scores?.find(s => s.name === selectedMetric)?.score.toString() || "";
+
+    const searchableFields = [
+      p.id,
+      p.commit,
+      p.description,
+      p.disease_code,
+      p.case_definition,
+      p.adm_0_name,
+      p.adm_1_name,
+      p.adm_2_name,
+      p.adm_3_name,
+      p.adm_0_code,
+      p.adm_1_code,
+      p.adm_2_code,
+      p.adm_3_code,
+      metricValue
+    ];
+
+    return searchableFields.some(field =>
+      field !== null && field !== undefined && String(field).toLowerCase().includes(q)
+    );
+  }), [localPredictions, debouncedSearchQuery, canManage, selectedMetric]);
 
   if (!predictions || predictions.length === 0) return (<div className="w-full bg-card border rounded-xl p-12"><div className="max-w-3xl mx-auto"><MarkdownRenderer content={`## ${t("model_predictions.empty_title")}\n${t("model_predictions.empty_desc")}`} /></div></div>);
 
@@ -414,9 +436,37 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative flex-1 max-w-sm"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><input type="text" placeholder={t("model_predictions.search_placeholder")} value={inputValue} onChange={e => setInputValue(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary" />{inputValue && (<button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>)}</div>
-        <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border"><span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span><select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer">{availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}</select></div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={t("model_predictions.search_placeholder")}
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary"
+            />
+            {inputValue && (
+              <button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
+            <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
+            <select
+              value={selectedMetric}
+              onChange={e => setSelectedMetric(e.target.value)}
+              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
+            >
+              {availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground px-1">
+          <span>{t("model_predictions.search_hint", "Search by ID, Admin Level (Name/Code), Commit, Metric value, or metadata")}</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
