@@ -136,14 +136,6 @@ const team = [
     lattes: "http://lattes.cnpq.br/2917646970654963",
   },
   {
-    id: "lucas",
-    name: "Lucas de Lima Barbosa",
-    roleKey: "data_scientist",
-    image: "/team/lucas.jpeg",
-    linkedin: "https://www.linkedin.com/in/lucas-lima-b/",
-    lattes: "http://lattes.cnpq.br/2926715426145396",
-  },
-  {
     id: "fabiana",
     name: "Fabiana Ganem",
     roleKey: "postdoc",
