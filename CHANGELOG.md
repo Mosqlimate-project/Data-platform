@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.4...2.2.5) (2026-03-06)
+
+
+### Bug Fixes
+
+* **login:** minor fixes on login to more robustness ([#452](https://github.com/Mosqlimate-project/Data-platform/issues/452)) ([2277c9e](https://github.com/Mosqlimate-project/Data-platform/commit/2277c9ef41a7af399cc5b44b66c2ffe108ea14ca))
+
 ## [2.2.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.3...2.2.4) (2026-03-06)
 
 
