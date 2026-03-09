@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Papa from "papaparse";
 import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
@@ -9,18 +10,6 @@ import { EggCountChart } from "../components/charts/ContaovosCharts";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuth } from "@/components/AuthProvider";
-
-function jsonToCsv(items: any[]) {
-  if (!items || items.length === 0) return "";
-  const header = Object.keys(items[0]);
-  const rows = items.map(row =>
-    header.map(fieldName => {
-      const value = row[fieldName] ?? "";
-      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
-    }).join(",")
-  );
-  return [header.join(","), ...rows].join("\r\n");
-}
 
 function DownloadButtons({
   baseUrl,
@@ -42,7 +31,6 @@ function DownloadButtons({
     }
 
     if (disabled) return;
-
     setIsDownloading(format);
 
     try {
@@ -62,31 +50,45 @@ function DownloadButtons({
 
       if (!response.ok) throw new Error("Download failed");
 
-      const jsonData = await response.json();
+      const rawData = await response.json();
+
+      const dataToExport = Array.isArray(rawData)
+        ? rawData
+        : (rawData.data && Array.isArray(rawData.data))
+          ? rawData.data
+          : null;
+
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("No data found for the selected filters.");
+        setIsDownloading(null);
+        return;
+      }
+
       let blob: Blob;
 
       if (format === "csv") {
-        const csvContent = jsonToCsv(jsonData);
-        blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const csvString = Papa.unparse(dataToExport, {
+          quotes: true,
+          header: true,
+          skipEmptyLines: true,
+        });
+        blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       } else {
-        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+        blob = new Blob([JSON.stringify(rawData, null, 2)], { type: "application/json" });
       }
 
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-
       const filename = `mosquito_export_${new Date().toISOString().split('T')[0]}.${format}`;
       link.setAttribute("download", filename);
-
       document.body.appendChild(link);
       link.click();
-
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export data. Please try again.");
+      alert("Failed to export data.");
     } finally {
       setIsDownloading(null);
     }
@@ -174,8 +176,7 @@ function LocalizedDateInput({
           onClick={(e) => {
             try {
               e.currentTarget.showPicker();
-            } catch {
-            }
+            } catch { }
           }}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
@@ -185,10 +186,10 @@ function LocalizedDateInput({
 }
 
 function MosquitoApiBuilder() {
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [municipality, setMunicipality] = useState<string>("");
   const [state, setState] = useState<string>("");
@@ -236,16 +237,8 @@ function MosquitoApiBuilder() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <LocalizedDateInput
-          label="date_start"
-          value={dateStart}
-          onChange={setDateStart}
-        />
-        <LocalizedDateInput
-          label="date_end"
-          value={dateEnd}
-          onChange={setDateEnd}
-        />
+        <LocalizedDateInput label="date_start" value={dateStart} onChange={setDateStart} />
+        <LocalizedDateInput label="date_end" value={dateEnd} onChange={setDateEnd} />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -265,10 +258,10 @@ function MosquitoApiBuilder() {
 }
 
 export function ContaovosView({ config }: { config: EndpointDetails }) {
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
@@ -301,26 +294,14 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
           </div>
 
           <div className="flex gap-2 relative">
-            <LocalizedDateInput
-              label="Start Date"
-              value={startDate}
-              onChange={handleStartDateChange}
-            />
-            <LocalizedDateInput
-              label="End Date"
-              value={endDate}
-              onChange={handleEndDateChange}
-            />
+            <LocalizedDateInput label="Start Date" value={startDate} onChange={handleStartDateChange} />
+            <LocalizedDateInput label="End Date" value={endDate} onChange={handleEndDateChange} />
           </div>
         </>
       }
     >
       <div className="flex flex-col gap-6 w-full">
-        <EggCountChart
-          geocode={String(geocode)}
-          start={startDate}
-          end={endDate}
-        />
+        <EggCountChart geocode={String(geocode)} start={startDate} end={endDate} />
       </div>
     </EndpointLayout>
   );
