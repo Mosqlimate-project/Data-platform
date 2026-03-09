@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.6](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.5...2.2.6) (2026-03-09)
+
+
+### Bug Fixes
+
+* **predictions:** include the option to select the bound pairs; prediction table; download as csv & more ([#453](https://github.com/Mosqlimate-project/Data-platform/issues/453)) ([cd3ad84](https://github.com/Mosqlimate-project/Data-platform/commit/cd3ad8448b158c07680f85ff8868c1420cc76d47))
+
 ## [2.2.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.4...2.2.5) (2026-03-06)
 
 
