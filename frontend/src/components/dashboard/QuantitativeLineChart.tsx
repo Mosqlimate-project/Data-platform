@@ -218,6 +218,20 @@ export const LineChart: React.FC<ChartProps> = ({
         splitLine: { lineStyle: { color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb" } },
       },
       series: seriesOptions,
+      graphic: {
+        type: 'image',
+        top: 30,
+        right: 50,
+        z: 0,
+        bounding: 'raw',
+        style: {
+          image: '/watermark.png',
+          width: 100,
+          height: 100,
+          opacity: 0.3,
+        }
+      },
+
       dataZoom: [
         { type: "inside", throttle: 50 },
         {

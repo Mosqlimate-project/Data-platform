@@ -1,38 +1,149 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Copy, Calendar as CalendarIcon } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
 import { TemperatureChart, AccumulatedWaterfallChart, AirChart } from "../components/charts/ClimateCharts";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
+import { useAuth } from "@/components/AuthProvider";
 
-function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
+const VALID_UFS = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
+  "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+function jsonToCsv(items: any[]) {
+  if (!items || items.length === 0) return "";
+  const header = Object.keys(items[0]);
+  const rows = items.map(row =>
+    header.map(fieldName => {
+      const value = row[fieldName] ?? "";
+      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+    }).join(",")
+  );
+  return [header.join(","), ...rows].join("\r\n");
+}
+
+function DownloadButtons({
+  baseUrl,
+  params,
+  disabled
+}: {
+  baseUrl: string,
+  params: URLSearchParams,
+  disabled: boolean
+}) {
+  const { user, openLogin } = useAuth();
+  const [isDownloading, setIsDownloading] = useState<"csv" | "json" | null>(null);
+  const isLoggedIn = !!user;
+
+  const handleDownload = async (format: "csv" | "json") => {
+    if (!isLoggedIn) {
+      openLogin();
+      return;
+    }
+
+    if (disabled) return;
+
+    setIsDownloading(format);
+
+    try {
+      const keyRes = await fetch("/api/user/api-key");
+      if (!keyRes.ok) throw new Error("Could not retrieve API Key");
+      const { api_key } = await keyRes.json();
+
+      const url = `${baseUrl}?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-UID-Key": api_key,
+          "Accept": "application/json"
+        },
+      });
+
+      if (!response.ok) throw new Error("Download failed");
+
+      const jsonData = await response.json();
+      let blob: Blob;
+
+      if (format === "csv") {
+        const csvContent = jsonToCsv(jsonData);
+        blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      } else {
+        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+      }
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const filename = `climate_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      link.setAttribute("download", filename);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export data. Please try again.");
+    } finally {
+      setIsDownloading(null);
+    }
   };
 
   return (
-    <div className="relative group mt-4">
-      <label className="text-xs font-semibold uppercase tracking-wider opacity-70 block mb-2">
-        Generated URL
-      </label>
-      <div className="relative">
-        <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto border border-border pr-8">
-          {code}
-        </pre>
+    <div className="flex flex-col gap-2 mt-4">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold uppercase tracking-wider opacity-70">
+          Export Data
+        </label>
+        {disabled && isLoggedIn && (
+          <span className="text-[10px] text-destructive flex items-center gap-1 font-medium animate-in fade-in slide-in-from-right-1">
+            Select City or UF
+          </span>
+        )}
+        {!isLoggedIn && (
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+            <Lock size={10} /> Login required
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={handleCopy}
-          className="absolute top-2 right-2 p-1.5 rounded-md bg-background border border-border shadow-sm hover:bg-muted transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-          title="Copy URL"
+          disabled={disabled || !!isDownloading}
+          onClick={() => handleDownload("csv")}
+          className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-md transition-all text-sm font-medium 
+            ${disabled && isLoggedIn
+              ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+              : "bg-background border-border hover:bg-muted hover:border-primary/30 text-foreground shadow-sm active:scale-95"}`}
         >
-          {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
+          {isDownloading === "csv" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <FileSpreadsheet className={`w-4 h-4 ${disabled && isLoggedIn ? "text-muted-foreground" : "text-green-600"}`} />
+          )}
+          CSV
+        </button>
+        <button
+          disabled={disabled || !!isDownloading}
+          onClick={() => handleDownload("json")}
+          className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-md transition-all text-sm font-medium 
+            ${disabled && isLoggedIn
+              ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+              : "bg-background border-border hover:bg-muted hover:border-primary/30 text-foreground shadow-sm active:scale-95"}`}
+        >
+          {isDownloading === "json" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <FileJson className={`w-4 h-4 ${disabled && isLoggedIn ? "text-muted-foreground" : "text-blue-600"}`} />
+          )}
+          JSON
         </button>
       </div>
     </div>
@@ -69,7 +180,6 @@ function LocalizedDateInput({
             try {
               e.currentTarget.showPicker();
             } catch {
-              // Fallback for browsers that don't support showPicker
             }
           }}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -85,40 +195,56 @@ function ClimateApiBuilder() {
   oneYearAgo.setDate(now.getDate() - 365);
   const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
-  const [geocode, setGeocode] = useState<number | undefined>(3304557);
+  const [geocode, setGeocode] = useState<number | undefined>();
   const [uf, setUf] = useState<string>("");
   const [start, setStart] = useState<string>(formatDateISO(oneYearAgo));
   const [end, setEnd] = useState<string>(formatDateISO(now));
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(100);
 
+  const isValidUf = useMemo(() => VALID_UFS.includes(uf.toUpperCase()), [uf]);
+  const isDownloadDisabled = !geocode && !isValidUf;
+
   const baseUrl = `${NEXT_PUBLIC_BACKEND_URL}/api/datastore/climate/`;
-  const params = new URLSearchParams();
 
-  if (start) params.set("start", start);
-  if (end) params.set("end", end);
-  if (geocode) params.set("geocode", String(geocode));
-  if (uf) params.set("uf", uf);
-  if (page > 1) params.set("page", String(page));
-  if (perPage !== 100) params.set("per_page", String(perPage));
-
-  const url = `${baseUrl}?${params.toString()}`;
+  const params = useMemo(() => {
+    const p = new URLSearchParams();
+    if (start) p.set("start", start);
+    if (end) p.set("end", end);
+    if (geocode) p.set("geocode", String(geocode));
+    if (uf && isValidUf) p.set("uf", uf.toUpperCase());
+    p.set("page", String(page));
+    p.set("per_page", String(perPage));
+    return p;
+  }, [start, end, geocode, uf, isValidUf, page, perPage]);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium opacity-70">geocode</label>
-        <CitySearch value={geocode} onChange={setGeocode} />
+        <CitySearch
+          value={geocode}
+          onChange={(val) => {
+            setGeocode(val);
+            if (val) setUf("");
+          }}
+        />
       </div>
 
-      <div className="flex flex-col gap-1">        <label className="text-xs font-medium opacity-70">uf</label>
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-medium opacity-70">uf</label>
         <input
           type="text"
           maxLength={2}
           placeholder="e.g. RJ"
           value={uf}
-          onChange={(e) => setUf(e.target.value.toUpperCase())}
-          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+          onChange={(e) => {
+            const val = e.target.value.toUpperCase();
+            setUf(val);
+            if (val.length > 0) setGeocode(undefined);
+          }}
+          className={`border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none transition-all ${uf && !isValidUf ? "border-destructive ring-1 ring-destructive" : "focus:ring-1 focus:ring-primary"
+            }`}
         />
       </div>
 
@@ -142,8 +268,8 @@ function ClimateApiBuilder() {
             type="number"
             min={1}
             value={page}
-            onChange={(e) => setPage(parseInt(e.target.value) || 1)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+            onChange={(e) => setPage(Math.max(1, parseInt(e.target.value) || 1))}
+            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -153,13 +279,13 @@ function ClimateApiBuilder() {
             min={1}
             max={300}
             value={perPage}
-            onChange={(e) => setPerPage(parseInt(e.target.value) || 300)}
-            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+            onChange={(e) => setPerPage(Math.min(300, Math.max(1, parseInt(e.target.value) || 1)))}
+            className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
-      <CodeBlock code={url} />
+      <DownloadButtons baseUrl={baseUrl} params={params} disabled={isDownloadDisabled} />
     </div>
   );
 }
