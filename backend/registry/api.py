@@ -405,7 +405,8 @@ def repository_readme(request, owner: str, repository: str):
             refresh_data["expires_in"]
         )
         oauth_account.refresh_token = refresh_data["refresh_token"]
-        oauth_account.save()
+        with transaction.atomic():
+            oauth_account.save()
 
     content = provider.get_readme(
         repo, access_token=oauth_account.access_token

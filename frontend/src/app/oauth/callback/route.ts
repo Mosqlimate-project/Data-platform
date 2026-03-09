@@ -24,6 +24,13 @@ export async function GET(req: NextRequest) {
     }
 
     const decoded = await r.json();
+
+    if (decoded.action === "register") {
+      const registerUrl = new URL("/oauth/register", NEXT_PUBLIC_FRONTEND_URL);
+      registerUrl.searchParams.set("data", data);
+      return NextResponse.redirect(registerUrl);
+    }
+
     const { access_token, refresh_token, next } = decoded;
 
     if (!access_token || !refresh_token) {
