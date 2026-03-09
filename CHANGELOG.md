@@ -1,6 +1,14 @@
 Release Notes
 ---
 
+## [2.2.7](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.6...2.2.7) (2026-03-09)
+
+
+### Bug Fixes
+
+* **datastore:** replace url by csv/json download buttons on request builder ([#454](https://github.com/Mosqlimate-project/Data-platform/issues/454)) ([a941d92](https://github.com/Mosqlimate-project/Data-platform/commit/a941d92178ef1d3a847ad5f4492ca16d0eddc822))
+* **prod:** fix cors origins for backend on frontend requests ([#455](https://github.com/Mosqlimate-project/Data-platform/issues/455)) ([3affd24](https://github.com/Mosqlimate-project/Data-platform/commit/3affd248a24d48195fc8243e1bf517e79caf0dfb))
+
 ## [2.2.6](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.5...2.2.6) (2026-03-09)
 
 
