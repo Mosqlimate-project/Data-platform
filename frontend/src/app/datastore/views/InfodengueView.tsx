@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Papa from "papaparse";
 import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
@@ -14,18 +15,6 @@ const VALID_UFS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
   "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 ];
-
-function jsonToCsv(items: any[]) {
-  if (!items || items.length === 0) return "";
-  const header = Object.keys(items[0]);
-  const rows = items.map(row =>
-    header.map(fieldName => {
-      const value = row[fieldName] ?? "";
-      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
-    }).join(",")
-  );
-  return [header.join(","), ...rows].join("\r\n");
-}
 
 function DownloadButtons({
   baseUrl,
@@ -47,7 +36,6 @@ function DownloadButtons({
     }
 
     if (disabled) return;
-
     setIsDownloading(format);
 
     try {
@@ -67,26 +55,40 @@ function DownloadButtons({
 
       if (!response.ok) throw new Error("Download failed");
 
-      const jsonData = await response.json();
+      const rawData = await response.json();
+
+      const dataToExport = Array.isArray(rawData)
+        ? rawData
+        : (rawData.data && Array.isArray(rawData.data))
+          ? rawData.data
+          : null;
+
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("No data found for the selected filters.");
+        setIsDownloading(null);
+        return;
+      }
+
       let blob: Blob;
 
       if (format === "csv") {
-        const csvContent = jsonToCsv(jsonData);
-        blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const csvString = Papa.unparse(dataToExport, {
+          quotes: true,
+          header: true,
+          skipEmptyLines: true,
+        });
+        blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       } else {
-        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+        blob = new Blob([JSON.stringify(rawData, null, 2)], { type: "application/json" });
       }
 
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-
       const filename = `infodengue_export_${new Date().toISOString().split('T')[0]}.${format}`;
       link.setAttribute("download", filename);
-
       document.body.appendChild(link);
       link.click();
-
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
@@ -179,8 +181,7 @@ function LocalizedDateInput({
           onClick={(e) => {
             try {
               e.currentTarget.showPicker();
-            } catch (err) {
-            }
+            } catch (err) { }
           }}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
@@ -190,10 +191,10 @@ function LocalizedDateInput({
 }
 
 function InfodengueApiBuilder() {
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [disease, setDisease] = useState<string>("dengue");
   const [geocode, setGeocode] = useState<number | undefined>();
@@ -264,16 +265,8 @@ function InfodengueApiBuilder() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <LocalizedDateInput
-          label="start"
-          value={start}
-          onChange={setStart}
-        />
-        <LocalizedDateInput
-          label="end"
-          value={end}
-          onChange={setEnd}
-        />
+        <LocalizedDateInput label="start" value={start} onChange={setStart} />
+        <LocalizedDateInput label="end" value={end} onChange={setEnd} />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -306,10 +299,10 @@ function InfodengueApiBuilder() {
 }
 
 export function InfodengueView({ config }: { config: EndpointDetails }) {
+  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
   const now = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
-  const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
 
   const [disease, setDisease] = useState<string>("dengue");
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
@@ -346,16 +339,8 @@ export function InfodengueView({ config }: { config: EndpointDetails }) {
           </div>
 
           <div className="flex gap-2 relative">
-            <LocalizedDateInput
-              label="Start Date"
-              value={startDate}
-              onChange={(v) => setStartDate(v)}
-            />
-            <LocalizedDateInput
-              label="End Date"
-              value={endDate}
-              onChange={(v) => setEndDate(v)}
-            />
+            <LocalizedDateInput label="Start Date" value={startDate} onChange={setStartDate} />
+            <LocalizedDateInput label="End Date" value={endDate} onChange={setEndDate} />
           </div>
         </>
       }

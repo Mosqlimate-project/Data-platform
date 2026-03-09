@@ -1,24 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Papa from "papaparse";
 import { FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/AuthProvider";
-
-function jsonToCsv(items: any[]) {
-  if (!items || items.length === 0) return "";
-  const header = Object.keys(items[0]);
-  const rows = items.map(row =>
-    header.map(fieldName => {
-      const value = row[fieldName] ?? "";
-      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
-    }).join(",")
-  );
-  return [header.join(","), ...rows].join("\r\n");
-}
 
 function DownloadButtons({
   baseUrl,
@@ -60,14 +49,31 @@ function DownloadButtons({
 
       if (!response.ok) throw new Error("Download failed");
 
-      const jsonData = await response.json();
+      const rawData = await response.json();
+
+      const dataToExport = Array.isArray(rawData)
+        ? rawData
+        : (rawData.data && Array.isArray(rawData.data))
+          ? rawData.data
+          : null;
+
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("No data found for the selected filters.");
+        setIsDownloading(null);
+        return;
+      }
+
       let blob: Blob;
 
       if (format === "csv") {
-        const csvContent = jsonToCsv(jsonData);
-        blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const csvString = Papa.unparse(dataToExport, {
+          quotes: true,
+          header: true,
+          skipEmptyLines: true,
+        });
+        blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       } else {
-        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+        blob = new Blob([JSON.stringify(rawData, null, 2)], { type: "application/json" });
       }
 
       const downloadUrl = window.URL.createObjectURL(blob);
