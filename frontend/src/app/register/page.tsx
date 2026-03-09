@@ -29,27 +29,23 @@ function RegisterPageContent() {
 
   const [username, setUsername] = useState(initialUsername);
   const [email, setEmail] = useState(initialEmail);
-
   const [password, setPassword] = useState('');
   const [passwordScore, setPasswordScore] = useState<number | null>(null);
   const [passwordFeedback, setPasswordFeedback] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [homepage, setHomepage] = useState('');
-
   const [avatar, setAvatar] = useState<File | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
   const [agree, setAgree] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');
 
   const ran = useRef(false);
 
-  const isEmailLocked = !!initialEmail || !!oauthDecoded?.email;
-  const isUsernameLocked = !!initialUsername || !!oauthDecoded?.username;
+  const isEmailLocked = !!oauthDecoded?.email || !!initialEmail;
+  const isUsernameLocked = !!oauthDecoded?.username || !!initialUsername;
 
   useEffect(() => {
     if (!data || ran.current) return;
@@ -64,8 +60,13 @@ function RegisterPageContent() {
         const decoded = await res.json();
 
         setOauthDecoded(decoded);
-        setEmail(decoded.email ?? initialEmail);
-        setUsername(decoded.username ?? initialUsername);
+
+        if (decoded.email) setEmail(decoded.email);
+        if (decoded.username) setUsername(decoded.username);
+        if (decoded.first_name) setFirstName(decoded.first_name);
+        if (decoded.last_name) setLastName(decoded.last_name);
+        if (decoded.avatar_url) setAvatarUrl(decoded.avatar_url);
+
       } catch {
         toast.error(t('register_page.errors.auth_expired'));
       } finally {
@@ -92,6 +93,7 @@ function RegisterPageContent() {
   }
 
   const validateUsername = debounce(async (value: string) => {
+    if (isUsernameLocked) return;
     if (value.length < 4) return setUsernameError(t('register_page.errors.username_short'));
     if (value.length > 25) return setUsernameError(t('register_page.errors.username_long'));
 
@@ -115,6 +117,7 @@ function RegisterPageContent() {
   }, 1000);
 
   function handleUsernameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (isUsernameLocked) return;
     const value = e.target.value;
     setUsername(value);
     validateUsername(value);
@@ -194,9 +197,9 @@ function RegisterPageContent() {
         )}
 
         <div className="relative mb-6">
-          <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
+          <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-blue-500 shadow-md bg-neutral-100">
             {avatarUrl ? (
-              <img src={avatarUrl} className="object-cover w-full h-full" />
+              <img src={avatarUrl} className="object-cover w-full h-full" alt="Avatar Preview" />
             ) : (
               <div className="bg-[var(--color-hover)] w-full h-full 
                               flex items-center justify-center text-[var(--color-text)] opacity-50 text-sm">
@@ -206,7 +209,7 @@ function RegisterPageContent() {
           </div>
 
           <label className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 
-                             text-white rounded-full p-2 cursor-pointer shadow-md">
+                               text-white rounded-full p-2 cursor-pointer shadow-md">
             <input
               type="file"
               accept="image/*"
@@ -238,25 +241,28 @@ function RegisterPageContent() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-          <Input
-            label={t('register_page.labels.username')}
-            value={username}
-            onChange={handleUsernameChange}
-            error={usernameError}
-            required
-            className="md:col-span-2"
-          />
+          <div className="md:col-span-2">
+            <Input
+              label={t('register_page.labels.username')}
+              value={username}
+              onChange={handleUsernameChange}
+              error={usernameError}
+              disabled={isUsernameLocked}
+              required
+            />
+          </div>
 
-          <Input
-            label={t('register_page.labels.email')}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isEmailLocked}
-            error={emailError}
-            required
-            className="md:col-span-2"
-          />
+          <div className="md:col-span-2">
+            <Input
+              label={t('register_page.labels.email')}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isEmailLocked}
+              error={emailError}
+              required
+            />
+          </div>
 
           <div className="md:col-span-2">
             <Input
@@ -366,7 +372,7 @@ function Input({
         className="w-full border border-[var(--color-border)] rounded-md 
                    px-3 py-2 text-sm bg-[var(--color-bg)] 
                    text-[var(--color-text)] focus:ring-2 focus:ring-blue-500 outline-none
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+                   disabled:opacity-50 disabled:bg-neutral-50 dark:disabled:bg-neutral-800 disabled:cursor-not-allowed"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>

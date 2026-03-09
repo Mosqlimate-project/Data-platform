@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Search, X, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, Search, X, Loader2, Trash2, AlertTriangle, Table as TableIcon, LineChart as ChartIcon, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LineChart, QuantitativePrediction, Series } from "@/components/dashboard/QuantitativeLineChart";
@@ -43,8 +43,12 @@ interface PredictionRowData {
   pred: number;
   lower_50?: number;
   upper_50?: number;
+  lower_80?: number;
+  upper_80?: number;
   lower_90?: number;
   upper_90?: number;
+  lower_95?: number;
+  upper_95?: number;
 }
 
 interface CaseData {
@@ -217,9 +221,55 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
   const debouncedSearchQuery = useDebounce(inputValue, 300);
   const [activeChartId, setActiveChartId] = useState<number | null>(null);
   const [chartData, setChartData] = useState<QuantitativePrediction | null>(null);
+  const [rawTableData, setRawTableData] = useState<PredictionRowData[]>([]);
   const [historicalCases, setHistoricalCases] = useState<Series>({ labels: [], data: [] });
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
+
+  const [visibleIntervals, setVisibleIntervals] = useState<string[]>(["50", "90"]);
+
+  const availableBounds = useMemo(() => {
+    if (!rawTableData.length) return [];
+    const bounds: string[] = [];
+    const check = (key: keyof PredictionRowData) => rawTableData.some(d => d[key] !== null && d[key] !== undefined);
+    if (check("lower_50")) bounds.push("50");
+    if (check("lower_80")) bounds.push("80");
+    if (check("lower_90")) bounds.push("90");
+    if (check("lower_95")) bounds.push("95");
+    return bounds;
+  }, [rawTableData]);
+
+  const activeIntervalsSet = useMemo(() => {
+    return new Set(visibleIntervals);
+  }, [visibleIntervals]);
+
+  const filteredChartData = useMemo(() => {
+    if (!chartData) return null;
+
+    const keep = (i: string) => activeIntervalsSet.has(i);
+
+    return {
+      ...chartData,
+      data: {
+        ...chartData.data,
+        lower_50: keep("50") ? chartData.data.lower_50 : null,
+        upper_50: keep("50") ? chartData.data.upper_50 : null,
+        lower_80: keep("80") ? chartData.data.lower_80 : null,
+        upper_80: keep("80") ? chartData.data.upper_80 : null,
+        lower_90: keep("90") ? chartData.data.lower_90 : null,
+        upper_90: keep("90") ? chartData.data.upper_90 : null,
+        lower_95: keep("95") ? chartData.data.lower_95 : null,
+        upper_95: keep("95") ? chartData.data.upper_95 : null,
+      }
+    };
+  }, [chartData, activeIntervalsSet]);
+
+  const toggleInterval = (key: string) => {
+    setVisibleIntervals(prev =>
+      prev.includes(key) ? prev.filter(i => i !== key) : [...prev, key]
+    );
+  };
 
   const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -251,6 +301,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
       if (activeChartId === deleteModalId) {
         setActiveChartId(null);
         setChartData(null);
+        setRawTableData([]);
         setHistoricalCases({ labels: [], data: [] });
       }
       setDeleteModalId(null);
@@ -262,11 +313,38 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     }
   };
 
+  const downloadCSV = () => {
+    if (!rawTableData.length) return;
+    const headers = ["date", "pred", "lower_50", "upper_50", "lower_80", "upper_80", "lower_90", "upper_90", "lower_95", "upper_95"];
+
+    const csvContent = [
+      headers.join(","),
+      ...rawTableData.map(d => [
+        `"${d.date}"`,
+        d.pred,
+        d.lower_50 ?? "", d.upper_50 ?? "",
+        d.lower_80 ?? "", d.upper_80 ?? "",
+        d.lower_90 ?? "", d.upper_90 ?? "",
+        d.lower_95 ?? "", d.upper_95 ?? ""
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `prediction_${activeChartId}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleViewChart = useCallback(async (pred: ModelPrediction) => {
     if (activeChartId === pred.id) return;
-    setActiveChartId(pred.id);
-    setIsChartLoading(true);
+    setActiveChartId(pred.id); setIsChartLoading(true);
     setChartData(null);
+    setRawTableData([]);
     setHistoricalCases({ labels: [], data: [] });
 
     try {
@@ -279,14 +357,23 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
 
       if (!predRes.ok) throw new Error("Failed to fetch prediction");
 
-      const data: PredictionRowData[] = await predRes.json();
+      const jsonResponse = await predRes.json();
+      const data: PredictionRowData[] = jsonResponse.data || jsonResponse;
+      setRawTableData(data);
 
       setChartData({
         id: pred.id, color: "#2563eb",
         data: {
-          labels: data.map(d => new Date(d.date)), data: data.map(d => d.pred),
-          lower_50: data.map(d => d.lower_50 ?? null), upper_50: data.map(d => d.upper_50 ?? null),
-          lower_90: data.map(d => d.lower_90 ?? null), upper_90: data.map(d => d.upper_90 ?? null),
+          labels: data.map(d => new Date(d.date)),
+          data: data.map(d => d.pred),
+          lower_50: data.map(d => d.lower_50 ?? null),
+          upper_50: data.map(d => d.upper_50 ?? null),
+          lower_80: data.map(d => d.lower_80 ?? null),
+          upper_80: data.map(d => d.upper_80 ?? null),
+          lower_90: data.map(d => d.lower_90 ?? null),
+          upper_90: data.map(d => d.upper_90 ?? null),
+          lower_95: data.map(d => d.lower_95 ?? null),
+          upper_95: data.map(d => d.upper_95 ?? null),
         },
       });
 
@@ -320,7 +407,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
             });
           }
         } catch (e) {
-          console.warn("Could not load historical cases, showing prediction only.", e);
+          console.warn("Could not load historical cases", e);
         }
       }
     } catch (error) {
@@ -351,29 +438,9 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
     if (!canManage && !p.published) return false;
     if (!debouncedSearchQuery) return true;
     const q = debouncedSearchQuery.toLowerCase();
-
     const metricValue = p.scores?.find(s => s.name === selectedMetric)?.score.toString() || "";
-
-    const searchableFields = [
-      p.id,
-      p.commit,
-      p.description,
-      p.disease_code,
-      p.case_definition,
-      p.adm_0_name,
-      p.adm_1_name,
-      p.adm_2_name,
-      p.adm_3_name,
-      p.adm_0_code,
-      p.adm_1_code,
-      p.adm_2_code,
-      p.adm_3_code,
-      metricValue
-    ];
-
-    return searchableFields.some(field =>
-      field !== null && field !== undefined && String(field).toLowerCase().includes(q)
-    );
+    const searchableFields = [p.id, p.commit, p.description, p.disease_code, p.case_definition, p.adm_0_name, p.adm_1_name, p.adm_2_name, p.adm_3_name, p.adm_0_code, p.adm_1_code, p.adm_2_code, p.adm_3_code, metricValue];
+    return searchableFields.some(field => field !== null && field !== undefined && String(field).toLowerCase().includes(q));
   }), [localPredictions, debouncedSearchQuery, canManage, selectedMetric]);
 
   if (!predictions || predictions.length === 0) return (<div className="w-full bg-card border rounded-xl p-12"><div className="max-w-3xl mx-auto"><MarkdownRenderer content={`## ${t("model_predictions.empty_title")}\n${t("model_predictions.empty_desc")}`} /></div></div>);
@@ -388,48 +455,124 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
                 <div className="p-2 bg-destructive/10 rounded-full">
                   <AlertTriangle size={24} color="red" />
                 </div>
-                <h3 className="text-lg font-bold text-foreground">
-                  {t("common.actions.delete")}
-                </h3>
+                <h3 className="text-lg font-bold text-foreground">{t("common.actions.delete")}</h3>
               </div>
-              <p className="text-muted-foreground text-sm">
-                {t("models.predictions.delete_confirm", { id: deleteModalId })}
-              </p>
+              <p className="text-muted-foreground text-sm">{t("models.predictions.delete_confirm", { id: deleteModalId })}</p>
             </div>
             <div className="flex items-center justify-end gap-3 p-4 bg-muted/30 border-t">
-              <button
-                disabled={isDeleting}
-                onClick={() => setDeleteModalId(null)}
-                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50"
-              >
-                {t("common.actions.cancel")}
-              </button>
-              <button
-                disabled={isDeleting}
-                onClick={handleDeletePrediction}
-                className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} color="red" />}
-                {t("common.actions.delete")}
-              </button>
+              <button disabled={isDeleting} onClick={() => setDeleteModalId(null)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50">{t("common.actions.cancel")}</button>
+              <button disabled={isDeleting} onClick={handleDeletePrediction} className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50">{isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} color="red" />}{t("common.actions.delete")}</button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="h-[500px] w-full bg-card border rounded-xl p-4 relative flex flex-col">
-        <h3 className="font-semibold text-sm mb-4">{activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}</h3>
+      <div className="min-h-[550px] w-full bg-card border rounded-xl p-4 relative flex flex-col">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+          <h3 className="font-semibold text-sm">
+            {activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}
+          </h3>
+
+          {activeChartId && (
+            <div className="flex flex-wrap items-center gap-2">
+              {availableBounds.length > 0 && (
+                <div className="flex items-center gap-3 border rounded-lg p-1 bg-muted/20">
+                  {availableBounds.map((interval) => {
+                    const isActive = visibleIntervals.includes(interval);
+                    return (
+                      <button
+                        key={interval}
+                        onClick={() => toggleInterval(interval)}
+                        className={`
+                          px-3 py-1 text-[11px] font-black rounded-md transition-all duration-200
+                          ${isActive
+                            ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }
+                        `}
+                      >
+                        {interval}%
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 border rounded-lg p-1 bg-muted/20">
+                <button
+                  onClick={() => setViewMode("chart")}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === "chart" ? "bg-background shadow-md text-primary ring-1 ring-border" : "text-muted-foreground hover:bg-muted"}`}
+                  title="View Chart"
+                >
+                  <ChartIcon size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === "table" ? "bg-background shadow-md text-primary ring-1 ring-border" : "text-muted-foreground hover:bg-muted"}`}
+                  title="View Data Table"
+                >
+                  <TableIcon size={16} />
+                </button>
+                <div className="w-px h-4 bg-border mx-1" />
+                <button
+                  onClick={downloadCSV}
+                  className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                  title="Download CSV"
+                >
+                  <Download size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 relative">
-          {isChartLoading && (<div className="absolute inset-0 flex items-center justify-center bg-card/80 z-10"><Loader2 className="animate-spin text-primary" /></div>)}
+          {isChartLoading && (<div className="absolute inset-0 flex items-center justify-center bg-card/80 z-20"><Loader2 className="animate-spin text-primary" /></div>)}
+
           {chartData ? (
-            <LineChart
-              data={historicalCases}
-              predictions={[chartData]}
-              activeIntervals={new Set([chartData.id])}
-              height="100%"
-            />
+            viewMode === "chart" ? (
+              <div className="h-[400px]">
+                <LineChart
+                  data={historicalCases}
+                  predictions={chartData ? [chartData] : []}
+                  activeIntervals={activeIntervalsSet}
+                  height="100%"
+                />
+              </div>
+            ) : (
+              <div className="overflow-auto max-h-[400px] border rounded-lg relative">
+                <table className="w-full text-[11px] text-left border-separate border-spacing-0">
+                  <thead className="sticky top-0 z-10 bg-bg">
+                    <tr>
+                      <th className="p-2 font-bold whitespace-nowrap bg-card border-b">date</th>
+                      <th className="p-2 font-bold whitespace-nowrap text-primary bg-card border-b">pred</th>
+                      {availableBounds.map(b => (
+                        <th key={b} className="p-2 font-bold whitespace-nowrap text-muted-foreground bg-card border-b">lower_{b} - upper_{b}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rawTableData.map((row, i) => (
+                      <tr key={i} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                        <td className="p-2 whitespace-nowrap">{formatDate(row.date)}</td>
+                        <td className="p-2 font-mono font-medium text-primary">{row.pred.toFixed(2)}</td>
+                        {availableBounds.map(b => {
+                          const lower = row[`lower_${b}` as keyof PredictionRowData];
+                          const upper = row[`upper_${b}` as keyof PredictionRowData];
+                          return (
+                            <td key={b} className="p-2 font-mono text-muted-foreground">
+                              {typeof lower === 'number' ? lower.toFixed(1) : "-"} / {typeof upper === 'number' ? upper.toFixed(1) : "-"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           ) : !isChartLoading && (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+            <div className="flex items-center justify-center h-[400px] text-muted-foreground text-sm">
               {activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}
             </div>
           )}
@@ -438,34 +581,17 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-md">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder={t("model_predictions.search_placeholder")}
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary"
-            />
-            {inputValue && (
-              <button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground">
-                <X className="h-4 w-4" />
-              </button>
-            )}
+            <input type="text" placeholder={t("model_predictions.search_placeholder")} value={inputValue} onChange={e => setInputValue(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary" />
+            {inputValue && (<button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>)}
           </div>
           <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
             <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
-            <select
-              value={selectedMetric}
-              onChange={e => setSelectedMetric(e.target.value)}
-              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
-            >
+            <select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer">
               {availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}
             </select>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground px-1">
-          <span>{t("model_predictions.search_hint", "Search by ID, Admin Level (Name/Code), Commit, Metric value, or metadata")}</span>
         </div>
       </div>
 
@@ -476,21 +602,7 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
           </div>
         ) : (
           filtered.map(p => (
-            <PredictionCard
-              key={p.id}
-              pred={p}
-              canManage={canManage}
-              selectedMetric={selectedMetric}
-              isUpdating={isUpdating === p.id}
-              isActiveChart={activeChartId === p.id}
-              onToggle={handlePublishToggle}
-              onDeleteRequest={(id) => setDeleteModalId(id)}
-              onViewChart={handleViewChart}
-              formatDate={formatDate}
-              formatScoreName={formatScoreName}
-              getDashboardLink={getDashboardLink}
-              t={t}
-            />
+            <PredictionCard key={p.id} pred={p} canManage={canManage} selectedMetric={selectedMetric} isUpdating={isUpdating === p.id} isActiveChart={activeChartId === p.id} onToggle={handlePublishToggle} onDeleteRequest={(id) => setDeleteModalId(id)} onViewChart={handleViewChart} formatDate={formatDate} formatScoreName={formatScoreName} getDashboardLink={getDashboardLink} t={t} />
           ))
         )}
       </div>

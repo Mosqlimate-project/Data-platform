@@ -52,7 +52,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [chartData, setChartData] = useState<Series>({ labels: [], data: [] });
   const [chartPredictions, setChartPredictions] = useState<QuantitativePrediction[]>([]);
   const [loadingPredictions, setLoadingPredictions] = useState<number[]>([]);
-  const [activeIntervals, setActiveIntervals] = useState<Set<number>>(new Set());
+
+  const [activeIntervals, setActiveIntervals] = useState<Set<number | string>>(new Set());
 
   const [diseaseOptions, setDiseaseOptions] = useState<DiseaseOption[]>([]);
   const [countryOptions, setCountryOptions] = useState<Option[]>([]);
@@ -305,7 +306,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         caseDefinition={inputs.case_definition}
         chartData={chartData}
         chartPredictions={chartPredictions}
-        activeIntervals={activeIntervals}
+        activeIntervals={activeIntervals as any}
       />
 
       <DashboardPredictions
@@ -321,12 +322,16 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         paginatedPredictions={filteredAndSortedPredictions.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)}
         chartPredictions={chartPredictions}
         loadingPredictions={loadingPredictions}
-        activeIntervals={activeIntervals}
+        activeIntervals={activeIntervals as any}
         togglePrediction={(p) => {
           const isSelected = chartPredictions.some(cp => cp.id === p.id);
           if (isSelected) {
             setChartPredictions(prev => prev.filter(cp => cp.id !== p.id));
-            setActiveIntervals(prev => { const n = new Set(prev); n.delete(p.id); return n; });
+            setActiveIntervals(prev => {
+              const n = new Set(prev);
+              n.delete(p.id);
+              return n;
+            });
           } else {
             loadSinglePredictionData(p.id);
           }

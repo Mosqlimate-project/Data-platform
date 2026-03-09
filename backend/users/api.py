@@ -157,33 +157,7 @@ def oauth_callback(
 
     adapter = OAuthAdapter.from_request(request, provider, raw_info)
     provider_id = adapter.provider_id
-
     user = None
-    token = request.COOKIES.get("access_token")
-    if token:
-        payload = decode_token(token)
-        if payload and payload.get("type") == "access":
-            try:
-                user = User.objects.get(pk=payload.get("sub"))
-            except User.DoesNotExist:
-                pass
-
-    if user:
-        if not user.avatar and adapter.avatar_url:
-            download_image(user, adapter.avatar_url)
-
-        OAuthAccount.objects.update_or_create(
-            user=user,
-            provider=provider,
-            defaults={
-                "provider_id": provider_id,
-                "raw_info": raw_info,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "access_token_expires_at": expires_at,
-            },
-        )
-        return HttpResponseRedirect(next_url)
 
     try:
         account = OAuthAccount.objects.select_related("user").get(
@@ -192,16 +166,31 @@ def oauth_callback(
         )
         user = account.user
 
-        if not user.avatar and adapter.avatar_url:
-            download_image(user, adapter.avatar_url)
-
         account.access_token = access_token
         if refresh_token:
             account.refresh_token = refresh_token
         if expires_at:
             account.access_token_expires_at = expires_at
-
         account.save()
+
+    except OAuthAccount.DoesNotExist:
+        if adapter.email:
+            user = User.objects.filter(email__iexact=adapter.email).first()
+
+        if user:
+            OAuthAccount.objects.create(
+                user=user,
+                provider=provider,
+                provider_id=provider_id,
+                raw_info=raw_info,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                access_token_expires_at=expires_at,
+            )
+
+    if user:
+        if not user.avatar and adapter.avatar_url:
+            download_image(user, adapter.avatar_url)
 
         data = signing.dumps(
             {
@@ -217,72 +206,32 @@ def oauth_callback(
             f"{settings.FRONTEND_URL}/oauth/callback?data={data}"
         )
 
-    except OAuthAccount.DoesNotExist:
-        existing_user = None
+    data = signing.dumps(
+        {
+            "action": "register",
+            "username": adapter.username,
+            "first_name": adapter.first_name,
+            "last_name": adapter.last_name,
+            "email": adapter.email,
+            "avatar_url": adapter.avatar_url,
+            "provider": provider,
+            "provider_id": provider_id,
+            "raw_info": raw_info,
+            "access_token": access_token,
+            "ip": ip,
+            "refresh_token": refresh_token,
+            "access_token_expires_at": (
+                expires_at.isoformat() if expires_at else None
+            ),
+            "next": next_url,
+        },
+        compress=True,
+        salt="oauth-callback",
+    )
 
-        if adapter.email:
-            existing_user = User.objects.filter(
-                email__iexact=adapter.email,
-            ).first()
-
-        if existing_user:
-            if not existing_user.avatar and adapter.avatar_url:
-                download_image(existing_user, adapter.avatar_url)
-
-            OAuthAccount.objects.create(
-                user=existing_user,
-                provider=provider,
-                provider_id=provider_id,
-                raw_info=raw_info,
-                access_token=access_token,
-                refresh_token=refresh_token,
-                access_token_expires_at=expires_at,
-            )
-
-            data = signing.dumps(
-                {
-                    "ip": ip,
-                    "access_token": create_access_token(
-                        {"sub": str(existing_user.pk)}
-                    ),
-                    "refresh_token": create_refresh_token(
-                        {"sub": str(existing_user.pk)}
-                    ),
-                    "next": next_url,
-                },
-                compress=True,
-                salt="oauth-callback",
-            )
-            return HttpResponseRedirect(
-                f"{settings.FRONTEND_URL}/oauth/callback?data={data}"
-            )
-
-        data = signing.dumps(
-            {
-                "action": "register",
-                "username": adapter.username,
-                "first_name": adapter.first_name,
-                "last_name": adapter.last_name,
-                "email": adapter.email,
-                "avatar_url": adapter.avatar_url,
-                "provider": provider,
-                "provider_id": provider_id,
-                "raw_info": raw_info,
-                "access_token": access_token,
-                "ip": ip,
-                "refresh_token": refresh_token,
-                "access_token_expires_at": (
-                    expires_at.isoformat() if expires_at else None
-                ),
-                "next": next_url,
-            },
-            compress=True,
-            salt="oauth-callback",
-        )
-
-        return HttpResponseRedirect(
-            f"{settings.FRONTEND_URL}/oauth/register?data={data}"
-        )
+    return HttpResponseRedirect(
+        f"{settings.FRONTEND_URL}/oauth/register?data={data}"
+    )
 
 
 @router.get(
