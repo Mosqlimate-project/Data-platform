@@ -1,36 +1,142 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/components/AuthProvider";
 
-function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
+function jsonToCsv(items: any[]) {
+  if (!items || items.length === 0) return "";
+  const header = Object.keys(items[0]);
+  const rows = items.map(row =>
+    header.map(fieldName => {
+      const value = row[fieldName] ?? "";
+      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+    }).join(",")
+  );
+  return [header.join(","), ...rows].join("\r\n");
+}
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+function DownloadButtons({
+  baseUrl,
+  params,
+  disabled
+}: {
+  baseUrl: string,
+  params: URLSearchParams,
+  disabled: boolean
+}) {
+  const { user, openLogin } = useAuth();
+  const [isDownloading, setIsDownloading] = useState<"csv" | "json" | null>(null);
+  const isLoggedIn = !!user;
+
+  const handleDownload = async (format: "csv" | "json") => {
+    if (!isLoggedIn) {
+      openLogin();
+      return;
+    }
+
+    if (disabled) return;
+
+    setIsDownloading(format);
+
+    try {
+      const keyRes = await fetch("/api/user/api-key");
+      if (!keyRes.ok) throw new Error("Could not retrieve API Key");
+      const { api_key } = await keyRes.json();
+
+      const url = `${baseUrl}?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-UID-Key": api_key,
+          "Accept": "application/json"
+        },
+      });
+
+      if (!response.ok) throw new Error("Download failed");
+
+      const jsonData = await response.json();
+      let blob: Blob;
+
+      if (format === "csv") {
+        const csvContent = jsonToCsv(jsonData);
+        blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      } else {
+        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+      }
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const filename = `episcanner_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      link.setAttribute("download", filename);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export data. Please try again.");
+    } finally {
+      setIsDownloading(null);
+    }
   };
 
   return (
-    <div className="relative group mt-4">
-      <label className="text-xs font-semibold uppercase tracking-wider opacity-70 block mb-2">
-        Generated URL
-      </label>
-      <div className="relative">
-        <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto border border-border pr-8">
-          {code}
-        </pre>
+    <div className="flex flex-col gap-2 mt-4">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold uppercase tracking-wider opacity-70">
+          Export Data
+        </label>
+        {disabled && isLoggedIn && (
+          <span className="text-[10px] text-destructive flex items-center gap-1 font-medium animate-in fade-in slide-in-from-right-1">
+            Input a valid UF
+          </span>
+        )}
+        {!isLoggedIn && (
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+            <Lock size={10} /> Login required
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={handleCopy}
-          className="absolute top-2 right-2 p-1.5 rounded-md bg-background border border-border shadow-sm hover:bg-muted transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-          title="Copy URL"
+          disabled={disabled || !!isDownloading}
+          onClick={() => handleDownload("csv")}
+          className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-md transition-all text-sm font-medium 
+            ${disabled && isLoggedIn
+              ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+              : "bg-background border-border hover:bg-muted hover:border-primary/30 text-foreground shadow-sm active:scale-95"}`}
         >
-          {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
+          {isDownloading === "csv" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <FileSpreadsheet className={`w-4 h-4 ${disabled && isLoggedIn ? "text-muted-foreground" : "text-green-600"}`} />
+          )}
+          CSV
+        </button>
+        <button
+          disabled={disabled || !!isDownloading}
+          onClick={() => handleDownload("json")}
+          className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-md transition-all text-sm font-medium 
+            ${disabled && isLoggedIn
+              ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+              : "bg-background border-border hover:bg-muted hover:border-primary/30 text-foreground shadow-sm active:scale-95"}`}
+        >
+          {isDownloading === "json" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <FileJson className={`w-4 h-4 ${disabled && isLoggedIn ? "text-muted-foreground" : "text-blue-600"}`} />
+          )}
+          JSON
         </button>
       </div>
     </div>
@@ -44,13 +150,16 @@ function EpiScannerApiBuilder() {
   const [year, setYear] = useState<number>(currentYear);
 
   const baseUrl = `${NEXT_PUBLIC_BACKEND_URL}/api/datastore/episcanner/`;
-  const params = new URLSearchParams();
 
-  if (disease) params.set("disease", disease);
-  if (uf) params.set("uf", uf);
-  if (year) params.set("year", String(year));
+  const params = useMemo(() => {
+    const p = new URLSearchParams();
+    if (disease) p.set("disease", disease);
+    if (uf) p.set("uf", uf.toUpperCase());
+    if (year) p.set("year", String(year));
+    return p;
+  }, [disease, uf, year]);
 
-  const url = `${baseUrl}?${params.toString()}`;
+  const isDownloadDisabled = !uf || uf.length < 2;
 
   return (
     <div className="flex flex-col gap-3">
@@ -59,7 +168,7 @@ function EpiScannerApiBuilder() {
         <select
           value={disease}
           onChange={(e) => setDisease(e.target.value)}
-          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
         >
           <option value="dengue">Dengue</option>
           <option value="chik">Chikungunya</option>
@@ -75,7 +184,7 @@ function EpiScannerApiBuilder() {
           placeholder="e.g. SP"
           value={uf}
           onChange={(e) => setUf(e.target.value.toUpperCase())}
-          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
@@ -85,11 +194,11 @@ function EpiScannerApiBuilder() {
           type="number"
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value) || currentYear)}
-          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+          className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
-      <CodeBlock code={url} />
+      <DownloadButtons baseUrl={baseUrl} params={params} disabled={isDownloadDisabled} />
     </div>
   );
 }
@@ -128,7 +237,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
             <select
               value={disease}
               onChange={(e) => setDisease(e.target.value)}
-              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="dengue">Dengue</option>
               <option value="chik">Chikungunya</option>
@@ -142,7 +251,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
               maxLength={2}
               value={uf}
               onChange={(e) => setUf(e.target.value.toUpperCase())}
-              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -151,7 +260,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
               type="number"
               value={year}
               onChange={(e) => setYear(parseInt(e.target.value) || currentYear)}
-              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9"
+              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
