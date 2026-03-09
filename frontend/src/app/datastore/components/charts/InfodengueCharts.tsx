@@ -18,6 +18,16 @@ interface DailyCaseData {
   cases: number;
 }
 
+interface RtData {
+  data_iniSE: string;
+  Rt: number;
+}
+
+const headers = {
+  "Content-Type": "application/json",
+  "x-internal-secret": FRONTEND_SECRET || "",
+};
+
 function useChart(options: echarts.EChartsOption | null, loading: boolean) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
@@ -26,14 +36,17 @@ function useChart(options: echarts.EChartsOption | null, loading: boolean) {
     if (chartRef.current && !chartInstance.current) {
       chartInstance.current = echarts.init(chartRef.current);
 
-      const handleResize = () => chartInstance.current?.resize();
+      const handleResize = () => {
+        chartInstance.current?.resize();
+      };
+
       window.addEventListener("resize", handleResize);
 
       return () => {
         window.removeEventListener("resize", handleResize);
       };
     }
-  }, [options, loading]);
+  }, []);
 
   useEffect(() => {
     if (!chartInstance.current) return;
@@ -105,9 +118,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
     if (!geocode || !disease || !start || !end) return;
 
     setLoading(true);
-
     const diseaseCode = getDiseaseCode(disease);
-
     const params = new URLSearchParams({
       sprint: "false",
       disease: diseaseCode,
@@ -129,9 +140,7 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
           return;
         }
 
-        const sortedData = data.sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
+        const sortedData = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         const dates = sortedData.map((d) => d.date);
         const cases = sortedData.map((d) => d.cases);
 
@@ -149,33 +158,18 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
             trigger: "axis",
             backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
             borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-            textStyle: {
-              color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827",
-            },
+            textStyle: { color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827" },
             formatter: (params: any) => {
               const p = params[0];
               const date = new Date(p.axisValue).toLocaleDateString();
               return `${date}<br/><strong>${p.marker} ${p.seriesName}: ${p.value}</strong>`;
             },
           },
-          graphic: {
-            type: 'image',
-            top: 10,
-            right: 10,
-            z: 0,
-            bounding: 'raw',
-            style: {
-              image: '/watermark.png',
-              width: 100,
-              height: 100,
-              opacity: 0.3,
-            }
-          },
           grid: {
             left: "3%",
             right: "4%",
-            bottom: "3%",
-            top: "40px",
+            bottom: "8%",
+            top: "50px",
             containLabel: true,
           },
           xAxis: {
@@ -183,30 +177,15 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
             data: dates,
             axisLabel: {
               formatter: (value: string) => value.split("T")[0],
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            axisLine: {
-              lineStyle: {
-                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-              },
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280",
+              fontSize: 10
             },
           },
           yAxis: {
             type: "value",
             name: t('charts_infodengue.cases_axis'),
-            axisLabel: {
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            nameTextStyle: {
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            splitLine: {
-              show: true,
-              lineStyle: {
-                type: "dashed",
-                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-              }
-            },
+            axisLabel: { color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280" },
+            splitLine: { lineStyle: { type: "dashed", color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb" } },
           },
           series: [
             {
@@ -236,27 +215,17 @@ export function DailyCasesChart({ geocode, disease, start, end }: ChartProps) {
   const chartRef = useChart(option, loading);
 
   return (
-    <div className="w-full border border-border rounded-md p-4 bg-bg shadow-sm mt-6">
+    <div className="w-full border border-border rounded-md p-4 bg-bg shadow-sm mt-6 overflow-hidden">
       {!loading && !option ? (
         <div className="h-[350px] flex items-center justify-center text-secondary opacity-60 text-sm">
           {t('charts_infodengue.no_data')}
         </div>
       ) : (
-        <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+        <div ref={chartRef} style={{ width: "100%", height: "350px", minWidth: 0 }} />
       )}
     </div>
   );
 }
-
-interface RtData {
-  data_iniSE: string;
-  Rt: number;
-}
-
-const headers = {
-  "Content-Type": "application/json",
-  "x-internal-secret": FRONTEND_SECRET || "",
-};
 
 export function RtChart({ geocode, disease, start, end }: ChartProps) {
   const { t } = useTranslation('common');
@@ -268,7 +237,6 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
     if (!geocode || !disease || !start || !end) return;
 
     setLoading(true);
-
     const query = new URLSearchParams({ geocode, disease, start, end });
 
     fetch(`/api/datastore/charts/infodengue/rt/?${query}`, { headers })
@@ -279,9 +247,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
           return;
         }
 
-        const sortedData = data.sort(
-          (a, b) => new Date(a.data_iniSE).getTime() - new Date(b.data_iniSE).getTime()
-        );
+        const sortedData = data.sort((a, b) => new Date(a.data_iniSE).getTime() - new Date(b.data_iniSE).getTime());
         const dates = sortedData.map((d) => d.data_iniSE);
         const rtValues = sortedData.map((d) => d.Rt);
 
@@ -299,9 +265,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
             trigger: "axis",
             backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
             borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-            textStyle: {
-              color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827",
-            },
+            textStyle: { color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827" },
             formatter: (params: any) => {
               const p = params[0];
               const date = new Date(p.axisValue).toLocaleDateString();
@@ -309,24 +273,11 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
               return `${date}<br/><strong>${t('charts_infodengue.rt_tooltip')}: ${val.toFixed(2)}</strong>`;
             },
           },
-          graphic: {
-            type: 'image',
-            top: 10,
-            right: 10,
-            z: 0,
-            bounding: 'raw',
-            style: {
-              image: '/watermark.png',
-              width: 100,
-              height: 100,
-              opacity: 0.3,
-            }
-          },
           grid: {
             left: "3%",
             right: "4%",
-            bottom: "3%",
-            top: "50px",
+            bottom: "8%",
+            top: "60px",
             containLabel: true,
           },
           xAxis: {
@@ -334,41 +285,16 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
             data: dates,
             axisLabel: {
               formatter: (value: string) => value.split("T")[0],
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            axisLine: {
-              lineStyle: {
-                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-              },
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280",
+              fontSize: 10
             },
           },
           yAxis: {
             type: "value",
             name: "Rt",
-            axisLabel: {
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            nameTextStyle: {
-              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
-            },
-            splitLine: {
-              show: true,
-              lineStyle: {
-                type: "dashed",
-                color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-              }
-            },
+            axisLabel: { color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280" },
+            splitLine: { lineStyle: { type: "dashed", color: resolvedTheme === "dark" ? "#374151" : "#e5e7eb" } },
             min: 0,
-          },
-          visualMap: {
-            show: false,
-            pieces: [
-              { gt: 0, lte: 1, color: "#22c55e" },
-              { gt: 1, color: "#ef4444" },
-            ],
-            outOfRange: {
-              color: "#999",
-            },
           },
           series: [
             {
@@ -380,23 +306,7 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
               markLine: {
                 silent: true,
                 symbol: "none",
-                lineStyle: {
-                  color: resolvedTheme === "dark" ? "#9ca3af" : "#333",
-                  type: "dashed",
-                  width: 1,
-                },
-                label: {
-                  position: "end",
-                  formatter: t('charts_infodengue.threshold'),
-                  color: resolvedTheme === "dark" ? "#9ca3af" : "#333",
-                },
                 data: [{ yAxis: 1.0 }],
-              },
-              areaStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: "rgba(150, 150, 150, 0.2)" },
-                  { offset: 1, color: "rgba(150, 150, 150, 0.0)" },
-                ]),
               },
             },
           ],
@@ -412,13 +322,13 @@ export function RtChart({ geocode, disease, start, end }: ChartProps) {
   const chartRef = useChart(option, loading);
 
   return (
-    <div className="w-full border border-border rounded-md p-4 bg-bg shadow-sm mt-6">
+    <div className="w-full border border-border rounded-md p-4 bg-bg shadow-sm mt-6 overflow-hidden">
       {!loading && !option ? (
         <div className="h-[350px] flex items-center justify-center text-secondary opacity-60 text-sm">
           {t('charts_infodengue.no_rt_data')}
         </div>
       ) : (
-        <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+        <div ref={chartRef} style={{ width: "100%", height: "350px", minWidth: 0 }} />
       )}
     </div>
   );
