@@ -1,4 +1,112 @@
 {
+  "privacy": {
+    "title": "Política de Privacidad",
+    "effectiveDate": "Fecha de Vigencia: 10 de Marzo de 2026",
+    "summary": "Esta política explica cómo recopilamos, utilizamos, almacenamos y protegemos los datos personales cuando utilizas la plataforma.",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Datos Personales Recopilados",
+        "content": "Podemos recopilar información proporcionada directamente por los usuarios, como dirección de correo electrónico, nombre de usuario, datos de perfil y cualquier contenido enviado a la plataforma. También podemos recopilar información técnica como dirección IP, tipo de navegador e información del dispositivo."
+      },
+      "purpose": {
+        "title": "2. Finalidad del Tratamiento",
+        "content": "Los datos personales se utilizan para operar y proporcionar la plataforma, autenticar usuarios, mejorar funcionalidades, mantener la seguridad del servicio y comunicar información importante relacionada con la cuenta del usuario."
+      },
+      "legalBasis": {
+        "title": "3. Base Legal para el Tratamiento",
+        "content": "El tratamiento de datos personales puede realizarse con base en el consentimiento del usuario, la ejecución de un contrato, el cumplimiento de obligaciones legales o el interés legítimo según lo permita la legislación aplicable."
+      },
+      "cookies": {
+        "title": "4. Cookies y Tecnologías Similares",
+        "content": "Las cookies pueden utilizarse para mantener sesiones autenticadas, recordar preferencias del usuario y mejorar la experiencia general de la plataforma."
+      },
+      "sharing": {
+        "title": "5. Compartición de Datos",
+        "content": "Los datos personales no se venden. La información puede compartirse con proveedores de infraestructura y socios de servicios necesarios para el funcionamiento de la plataforma, como servicios de alojamiento o autenticación."
+      },
+      "internationalTransfer": {
+        "title": "6. Transferencia Internacional de Datos",
+        "content": "Si es necesario, los datos pueden almacenarse o procesarse en servidores ubicados fuera del país. En estos casos se adoptan medidas adecuadas para proteger los datos personales."
+      },
+      "security": {
+        "title": "7. Seguridad de los Datos",
+        "content": "Se implementan medidas técnicas y organizativas para proteger los datos personales contra acceso no autorizado, pérdida, alteración o divulgación indebida."
+      },
+      "retention": {
+        "title": "8. Retención de Datos",
+        "content": "Los datos personales se conservan solo durante el tiempo necesario para cumplir los fines descritos en esta política o para cumplir obligaciones legales."
+      },
+      "rights": {
+        "title": "9. Derechos del Titular",
+        "content": "De acuerdo con la legislación aplicable, los usuarios pueden solicitar confirmación del tratamiento de datos, acceso a los datos personales, corrección de datos incorrectos, eliminación o anonimización de datos personales y portabilidad cuando corresponda."
+      },
+      "dpo": {
+        "title": "10. Contacto de Protección de Datos",
+        "content": "Para ejercer sus derechos o realizar consultas sobre el tratamiento de datos personales, los usuarios pueden contactar al responsable del tratamiento mediante los canales de soporte de la plataforma."
+      },
+      "changes": {
+        "title": "11. Cambios en esta Política",
+        "content": "Esta política puede actualizarse periódicamente. Cuando se realicen cambios, la fecha de vigencia se actualizará en esta página."
+      }
+    },
+    "footer": "Para consultas o solicitudes relacionadas con privacidad, por favor contacte al soporte."
+  },
+  "tos": {
+    "title": "Términos de Servicio",
+    "effectiveDate": "Fecha de Vigencia: 10 de Marzo de 2026",
+    "summary": "Resumen: Al acceder o utilizar este servicio, aceptas cumplir con estos Términos. Eres responsable de tu cuenta y de cualquier contenido que subas, y nos otorgas los derechos necesarios para operar y mantener la plataforma.",
+    "sections": {
+      "acceptance": {
+        "title": "Aceptación de los Términos",
+        "content": "Al acceder o utilizar esta plataforma, aceptas quedar sujeto a estos Términos de Servicio y a todas las leyes y regulaciones aplicables. Si no estás de acuerdo con estos Términos, no debes utilizar el servicio."
+      },
+      "accounts": {
+        "title": "Cuentas y Elegibilidad",
+        "content": "Debes tener al menos 13 años para crear una cuenta. Eres responsable de mantener la seguridad de tus credenciales y de todas las actividades realizadas bajo tu cuenta. Podemos suspender o terminar cuentas que violen estos Términos."
+      },
+      "oauth": {
+        "title": "OAuth y Vinculación de Identidad",
+        "content": "Podemos permitir autenticación mediante proveedores de terceros. Al iniciar sesión mediante OAuth, podemos acceder a información básica de la cuenta como correo electrónico y nombre de usuario para verificar la identidad y prevenir cuentas duplicadas. Si ya existe una cuenta con el mismo correo electrónico, estas pueden vincularse automáticamente."
+      },
+      "content": {
+        "title": "Contenido del Usuario",
+        "content": "Conservas la propiedad del contenido que subas, incluidos avatares e información de perfil. Al subir contenido, nos otorgas una licencia mundial y no exclusiva para alojar, mostrar y procesar ese contenido únicamente con el propósito de operar y mejorar el servicio. Debes tener los derechos sobre cualquier contenido que subas."
+      },
+      "acceptableUse": {
+        "title": "Uso Aceptable",
+        "content": "Aceptas no utilizar la plataforma de forma indebida. Los comportamientos prohibidos incluyen violar leyes, suplantar a otras personas, subir contenido dañino o ilegal, intentar acceder a sistemas no autorizados o interrumpir el funcionamiento del servicio."
+      },
+      "externalLinks": {
+        "title": "Enlaces Externos",
+        "content": "Los perfiles de usuario pueden contener enlaces a sitios web de terceros. No controlamos ni supervisamos estos sitios y no somos responsables de su contenido, políticas o prácticas. El acceso a enlaces externos es bajo tu propio riesgo."
+      },
+      "intellectualProperty": {
+        "title": "Propiedad Intelectual",
+        "content": "Todo el software de la plataforma, la marca y los elementos de diseño pertenecen al operador del servicio o a sus licenciantes y están protegidos por leyes de propiedad intelectual. No puedes reproducir, distribuir o realizar ingeniería inversa de ninguna parte del servicio sin permiso."
+      },
+      "availability": {
+        "title": "Disponibilidad del Servicio",
+        "content": "Nuestro objetivo es proporcionar un servicio confiable, pero no garantizamos disponibilidad ininterrumpida. La plataforma puede modificarse, suspenderse o discontinuarse en cualquier momento sin previo aviso."
+      },
+      "warranty": {
+        "title": "Exención de Garantías",
+        "content": "El servicio se proporciona 'tal cual' y 'según disponibilidad'. No ofrecemos garantías sobre la fiabilidad, precisión o idoneidad para un propósito particular."
+      },
+      "liability": {
+        "title": "Limitación de Responsabilidad",
+        "content": "En la máxima medida permitida por la ley, la plataforma y sus operadores no serán responsables por daños indirectos, incidentales o consecuentes derivados del uso del servicio."
+      },
+      "law": {
+        "title": "Ley Aplicable",
+        "content": "Estos Términos se regirán e interpretarán de acuerdo con las leyes aplicables en la jurisdicción donde esté establecido el operador del servicio."
+      },
+      "changes": {
+        "title": "Cambios en los Términos",
+        "content": "Podemos actualizar estos Términos periódicamente. El uso continuo de la plataforma después de las actualizaciones constituye la aceptación de los Términos revisados."
+      }
+    },
+    "footer": "Si tienes preguntas sobre estos Términos, por favor contacta al soporte."
+  },
   "model_sidebar": {
     "description": "Descripción",
     "no_description": "No se proporcionó ninguna descripción.",

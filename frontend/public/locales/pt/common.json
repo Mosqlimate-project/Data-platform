@@ -1,4 +1,112 @@
 {
+  "privacy": {
+    "title": "Política de Privacidade",
+    "effectiveDate": "Data de Vigência: 10 de Março de 2026",
+    "summary": "Esta política explica como coletamos, utilizamos, armazenamos e protegemos dados pessoais quando você utiliza a plataforma.",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Dados Pessoais Coletados",
+        "content": "Podemos coletar informações fornecidas diretamente pelos usuários, como endereço de email, nome de usuário, dados de perfil e qualquer conteúdo enviado à plataforma. Também podemos coletar informações técnicas como endereço IP, tipo de navegador e informações do dispositivo."
+      },
+      "purpose": {
+        "title": "2. Finalidade do Tratamento",
+        "content": "Os dados pessoais são utilizados para fornecer e operar a plataforma, autenticar usuários, melhorar funcionalidades, manter a segurança do serviço e comunicar informações importantes relacionadas à conta do usuário."
+      },
+      "legalBasis": {
+        "title": "3. Base Legal para o Tratamento",
+        "content": "O tratamento de dados pessoais pode ocorrer com base no consentimento do usuário, execução de contrato, cumprimento de obrigação legal ou interesse legítimo, conforme permitido pela legislação aplicável."
+      },
+      "cookies": {
+        "title": "4. Cookies e Tecnologias Semelhantes",
+        "content": "Cookies podem ser utilizados para manter sessões autenticadas, lembrar preferências do usuário e melhorar a experiência geral da plataforma."
+      },
+      "sharing": {
+        "title": "5. Compartilhamento de Dados",
+        "content": "Dados pessoais não são vendidos. Informações podem ser compartilhadas com provedores de infraestrutura e parceiros de serviço necessários para o funcionamento da plataforma, como serviços de hospedagem ou autenticação."
+      },
+      "internationalTransfer": {
+        "title": "6. Transferência Internacional de Dados",
+        "content": "Se necessário, os dados podem ser armazenados ou processados em servidores localizados fora do país. Nesses casos, medidas adequadas são adotadas para proteger os dados pessoais."
+      },
+      "security": {
+        "title": "7. Segurança dos Dados",
+        "content": "Medidas técnicas e organizacionais são adotadas para proteger dados pessoais contra acesso não autorizado, perda, alteração ou divulgação indevida."
+      },
+      "retention": {
+        "title": "8. Retenção de Dados",
+        "content": "Os dados pessoais são mantidos apenas pelo tempo necessário para cumprir as finalidades descritas nesta política ou atender obrigações legais."
+      },
+      "rights": {
+        "title": "9. Direitos do Titular",
+        "content": "De acordo com a legislação aplicável, o usuário pode solicitar confirmação do tratamento de dados, acesso aos dados pessoais, correção de dados incorretos, exclusão ou anonimização de dados pessoais e portabilidade quando aplicável."
+      },
+      "dpo": {
+        "title": "10. Contato para Proteção de Dados",
+        "content": "Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais, o usuário pode entrar em contato com o responsável pelo tratamento através dos canais de suporte da plataforma."
+      },
+      "changes": {
+        "title": "11. Alterações nesta Política",
+        "content": "Esta política pode ser atualizada periodicamente. Quando alterações ocorrerem, a data de vigência será atualizada nesta página."
+      }
+    },
+    "footer": "Para dúvidas ou solicitações relacionadas à privacidade, entre em contato com o suporte."
+  },
+  "tos": {
+    "title": "Termos de Serviço",
+    "effectiveDate": "Data de Vigência: 10 de Março de 2026",
+    "summary": "Resumo: Ao acessar ou utilizar este serviço, você concorda em cumprir estes Termos. Você é responsável pela sua conta e por qualquer conteúdo que enviar, e nos concede os direitos necessários para operar e manter a plataforma.",
+    "sections": {
+      "acceptance": {
+        "title": "Aceitação dos Termos",
+        "content": "Ao acessar ou utilizar esta plataforma, você concorda em estar vinculado a estes Termos de Serviço e a todas as leis e regulamentos aplicáveis. Caso não concorde com estes Termos, você não poderá utilizar o serviço."
+      },
+      "accounts": {
+        "title": "Contas e Elegibilidade",
+        "content": "Você deve ter pelo menos 13 anos para criar uma conta. Você é responsável por manter a segurança das suas credenciais e por todas as atividades realizadas em sua conta. Podemos suspender ou encerrar contas que violem estes Termos."
+      },
+      "oauth": {
+        "title": "OAuth e Vinculação de Identidade",
+        "content": "Podemos permitir autenticação por provedores de terceiros. Ao entrar usando OAuth, podemos acessar informações básicas da conta, como email e nome de usuário, para verificar a identidade e evitar contas duplicadas. Se já existir uma conta com o mesmo email, elas poderão ser vinculadas automaticamente."
+      },
+      "content": {
+        "title": "Conteúdo do Usuário",
+        "content": "Você mantém a propriedade do conteúdo que enviar, incluindo avatares e informações de perfil. Ao enviar conteúdo, você nos concede uma licença mundial e não exclusiva para hospedar, exibir e processar esse conteúdo exclusivamente para operar e melhorar o serviço. Você deve possuir os direitos sobre qualquer conteúdo enviado."
+      },
+      "acceptableUse": {
+        "title": "Uso Aceitável",
+        "content": "Você concorda em não utilizar a plataforma de forma indevida. Comportamentos proibidos incluem violar leis, se passar por outra pessoa, enviar conteúdo ilegal ou prejudicial, tentar acessar sistemas não autorizados ou interferir no funcionamento do serviço."
+      },
+      "externalLinks": {
+        "title": "Links Externos",
+        "content": "Perfis de usuários podem conter links para sites de terceiros. Não controlamos ou monitoramos esses sites e não somos responsáveis por seus conteúdos, políticas ou práticas. O acesso a links externos é por sua conta e risco."
+      },
+      "intellectualProperty": {
+        "title": "Propriedade Intelectual",
+        "content": "Todo o software da plataforma, marca e elementos de design pertencem ao operador do serviço ou aos seus licenciadores e são protegidos por leis de propriedade intelectual. Você não pode reproduzir, distribuir ou realizar engenharia reversa de qualquer parte do serviço sem autorização."
+      },
+      "availability": {
+        "title": "Disponibilidade do Serviço",
+        "content": "Nos esforçamos para fornecer um serviço confiável, mas não garantimos disponibilidade ininterrupta. A plataforma pode ser modificada, suspensa ou encerrada a qualquer momento sem aviso prévio."
+      },
+      "warranty": {
+        "title": "Isenção de Garantias",
+        "content": "O serviço é fornecido 'como está' e 'conforme disponível'. Não oferecemos garantias quanto à confiabilidade, precisão ou adequação a um propósito específico."
+      },
+      "liability": {
+        "title": "Limitação de Responsabilidade",
+        "content": "Na máxima extensão permitida por lei, a plataforma e seus operadores não serão responsáveis por quaisquer danos indiretos, incidentais ou consequenciais decorrentes do uso do serviço."
+      },
+      "law": {
+        "title": "Legislação Aplicável",
+        "content": "Estes Termos serão regidos e interpretados de acordo com as leis aplicáveis na jurisdição onde o operador do serviço estiver estabelecido."
+      },
+      "changes": {
+        "title": "Alterações nos Termos",
+        "content": "Podemos atualizar estes Termos periodicamente. O uso contínuo da plataforma após as atualizações constitui aceitação dos Termos revisados."
+      }
+    },
+    "footer": "Se você tiver dúvidas sobre estes Termos, entre em contato com o suporte."
+  },
   "model_sidebar": {
     "description": "Descrição",
     "no_description": "Nenhuma descrição fornecida.",

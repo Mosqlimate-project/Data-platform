@@ -58,43 +58,52 @@ function DownloadButtons({
 
       const rawData = await response.json();
 
-      const dataToExport = Array.isArray(rawData)
-        ? rawData
-        : (rawData.data && Array.isArray(rawData.data))
-          ? rawData.data
-          : null;
+      let dataToExport: any[] = [];
 
-      if (!dataToExport || dataToExport.length === 0) {
-        alert("No data found for the selected filters.");
-        setIsDownloading(null);
-        return;
+      if (Array.isArray(rawData)) {
+        dataToExport = rawData;
+      } else if (rawData && typeof rawData === 'object') {
+        if (Array.isArray(rawData.items)) {
+          dataToExport = rawData.items;
+        } else if (Array.isArray(rawData.data)) {
+          dataToExport = rawData.data;
+        } else {
+          dataToExport = [rawData];
+        }
       }
 
-      let blob: Blob;
-
       if (format === "csv") {
+        if (!dataToExport || dataToExport.length === 0) {
+          alert("No data found for the selected filters.");
+          setIsDownloading(null);
+          return;
+        }
+
         const csvString = Papa.unparse(dataToExport, {
           quotes: true,
           header: true,
           skipEmptyLines: true,
         });
-        blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", `export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
       } else {
-        blob = new Blob([JSON.stringify(rawData, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: "application/json" });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", `export_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
       }
-
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-
-      const filename = `climate_export_${new Date().toISOString().split('T')[0]}.${format}`;
-      link.setAttribute("download", filename);
-
-      document.body.appendChild(link);
-      link.click();
-
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error("Export error:", error);
       alert("Failed to export data. Please try again.");

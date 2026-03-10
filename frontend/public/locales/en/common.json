@@ -1,4 +1,112 @@
 {
+  "privacy": {
+    "title": "Privacy Policy",
+    "effectiveDate": "Effective Date: March 10, 2026",
+    "summary": "This policy explains how we collect, use, store, and protect personal data when you use the platform.",
+    "sections": {
+      "dataCollected": {
+        "title": "1. Personal Data Collected",
+        "content": "We may collect information provided directly by users, such as email address, username, profile data, and any content submitted to the platform. We may also collect technical information such as IP address, browser type, and device information."
+      },
+      "purpose": {
+        "title": "2. Purpose of Data Processing",
+        "content": "Personal data is used to operate and provide the platform, authenticate users, improve service functionality, maintain security, and communicate important information regarding the user's account."
+      },
+      "legalBasis": {
+        "title": "3. Legal Basis for Processing",
+        "content": "Personal data may be processed based on user consent, contractual necessity, compliance with legal obligations, or legitimate interests, as permitted under applicable data protection laws."
+      },
+      "cookies": {
+        "title": "4. Cookies and Similar Technologies",
+        "content": "Cookies may be used to maintain authenticated sessions, remember user preferences, and improve the overall experience of the platform."
+      },
+      "sharing": {
+        "title": "5. Data Sharing",
+        "content": "Personal data is not sold. Information may be shared with infrastructure providers and service partners necessary for the operation of the platform, such as hosting or authentication services."
+      },
+      "internationalTransfer": {
+        "title": "6. International Data Transfers",
+        "content": "If necessary, data may be stored or processed on servers located outside your country. In such cases, reasonable safeguards are implemented to protect personal data."
+      },
+      "security": {
+        "title": "7. Data Security",
+        "content": "Technical and organizational measures are implemented to protect personal data against unauthorized access, loss, alteration, or disclosure."
+      },
+      "retention": {
+        "title": "8. Data Retention",
+        "content": "Personal data is retained only for as long as necessary to fulfill the purposes described in this policy or to comply with legal obligations."
+      },
+      "rights": {
+        "title": "9. Data Subject Rights",
+        "content": "Depending on applicable laws, users may request confirmation of data processing, access to personal data, correction of inaccurate data, deletion or anonymization of personal data, and data portability where applicable."
+      },
+      "dpo": {
+        "title": "10. Data Protection Contact",
+        "content": "To exercise your rights or ask questions regarding personal data processing, you may contact the responsible data controller through the platform’s support channels."
+      },
+      "changes": {
+        "title": "11. Changes to This Policy",
+        "content": "This policy may be updated periodically. When updates occur, the effective date will be revised on this page."
+      }
+    },
+    "footer": "For privacy-related requests or questions, please contact support."
+  },
+  "tos": {
+    "title": "Terms of Service",
+    "effectiveDate": "Effective Date: March 10, 2026",
+    "summary": "Summary: By accessing or using this service, you agree to comply with these Terms. You are responsible for your account and any content you upload, and you grant us the rights necessary to operate and maintain the platform.",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By accessing or using this platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree to these Terms, you may not use the service."
+      },
+      "accounts": {
+        "title": "Accounts & Eligibility",
+        "content": "You must be at least 13 years old to create an account. You are responsible for maintaining the security of your credentials and for all activities conducted under your account. We may suspend or terminate accounts that violate these Terms."
+      },
+      "oauth": {
+        "title": "OAuth & Identity Linking",
+        "content": "We may allow authentication via third-party providers. When signing in through OAuth, we may access basic account information such as email and username to verify identity and prevent duplicate accounts. If an existing account matches your email address, accounts may be automatically linked."
+      },
+      "content": {
+        "title": "User Content",
+        "content": "You retain ownership of the content you upload, including avatars and profile information. By uploading content, you grant us a worldwide, non-exclusive license to host, display, and process the content solely for the purpose of operating and improving the service. You must have the rights to any content you upload."
+      },
+      "acceptableUse": {
+        "title": "Acceptable Use",
+        "content": "You agree not to misuse the platform. Prohibited behavior includes violating laws, impersonating others, uploading harmful or illegal content, attempting to access unauthorized systems, or disrupting the service."
+      },
+      "externalLinks": {
+        "title": "External Links",
+        "content": "User profiles may contain links to third-party websites. We do not control or monitor these websites and are not responsible for their content, policies, or practices. Visiting external links is done at your own risk."
+      },
+      "intellectualProperty": {
+        "title": "Intellectual Property",
+        "content": "All platform software, branding, and design elements are owned by the service operator or its licensors and are protected by intellectual property laws. You may not reproduce, distribute, or reverse engineer any part of the service without permission."
+      },
+      "availability": {
+        "title": "Service Availability",
+        "content": "We aim to provide reliable service but cannot guarantee uninterrupted availability. The platform may be modified, suspended, or discontinued at any time without prior notice."
+      },
+      "warranty": {
+        "title": "Disclaimer of Warranties",
+        "content": "The service is provided on an 'as is' and 'as available' basis. We make no warranties regarding reliability, accuracy, or fitness for a particular purpose."
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "content": "To the maximum extent permitted by law, the platform and its operators shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service."
+      },
+      "law": {
+        "title": "Governing Law",
+        "content": "These Terms shall be governed by and interpreted in accordance with the laws applicable in the jurisdiction where the service operator is established."
+      },
+      "changes": {
+        "title": "Changes to the Terms",
+        "content": "We may update these Terms from time to time. Continued use of the platform after updates constitutes acceptance of the revised Terms."
+      }
+    },
+    "footer": "If you have questions regarding these Terms, please contact support."
+  },
   "model_sidebar": {
     "description": "Description",
     "no_description": "No description provided.",
