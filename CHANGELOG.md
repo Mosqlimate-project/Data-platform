@@ -1,6 +1,14 @@
 Release Notes
 ---
 
+## [2.2.8](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.7...2.2.8) (2026-03-10)
+
+
+### Bug Fixes
+
+* fix json to csv on datastore ([#456](https://github.com/Mosqlimate-project/Data-platform/issues/456)) ([a53e2ff](https://github.com/Mosqlimate-project/Data-platform/commit/a53e2ff434c33e0de645826a3c3cc45d5664b5ac))
+* **models:** include more tags on models thumbs & more ([#464](https://github.com/Mosqlimate-project/Data-platform/issues/464)) ([73aa5bb](https://github.com/Mosqlimate-project/Data-platform/commit/73aa5bb9270d4ccfb3b90d9a85bd95c8c29116f3))
+
 ## [2.2.7](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.6...2.2.7) (2026-03-09)
 
 
