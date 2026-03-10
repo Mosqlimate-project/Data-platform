@@ -194,7 +194,7 @@ const team = [
   {
     id: "zuilho",
     name: "Zuilho Segundo",
-    roleKey: "undergrad",
+    roleKey: "grad",
     image: "/team/Zuilho.webp",
     linkedin: "https://www.linkedin.com/in/ZuilhoSe/",
     lattes: "http://lattes.cnpq.br/4620754984831209",
