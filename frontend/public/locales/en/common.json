@@ -614,7 +614,7 @@
     },
     "project": {
       "title": "About the project",
-      "description": "Mosqlimate is an innovative platform for monitoring and forecasting risks related to mosquito-borne in the context of climate change. We develop tools that integrate climate, epidemiological, and entomological data to improve early outbreak detection and support control strategies in Brazil and South America. Our purpose is to prevent risks and strengthen the response to diseases like Dengue, Chikungunya, and Zika.",
+      "description": "Mosqlimate is an innovative platform for monitoring and forecasting risks related to mosquito-borne diseases in the context of climate change. We develop tools that integrate climate, epidemiological, and entomological data to improve early outbreak detection and support control strategies in Brazil and South America. Our purpose is to prevent risks and strengthen the response to diseases like Dengue, Chikungunya, and Zika.",
       "products": "Our two main products are:",
       "btn_data": "Data",
       "btn_models": "Predictive Models"
@@ -631,7 +631,7 @@
       "epi_desc": "Analyzes and presents updated data on the <b>expansion of Dengue, Zika, and Chikungunya</b> in the national territory, focusing on spatial and temporal transmission patterns."
     },
     "models": {
-      "title": "Analyze our models",
+      "title": "Forecasting Models and Comparative Dashboards",
       "description": "Mosqlimate provides and registers forecasting models for Dengue, Chikungunya, and Zika, using official public domain climatic and epidemiological data. These models allow for methodology comparison through dashboards, improved forecasts, and identification of signs of expansion or outbreaks, including new arboviruses, integrating with the Infodengue early warning system.",
       "image_message": "Click to be redirected to the Models tab."
     },

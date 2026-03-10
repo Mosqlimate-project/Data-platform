@@ -618,7 +618,7 @@
       "epi_desc": "Analiza y presenta datos actualizados de la <b>expansión de dengue, Zika y chikungunya</b> en el territorio nacional con foco en patrones espaciales y temporales de transmisión."
     },
     "models": {
-      "title": "Analice nuestros modelos",
+      "title": "Modelos de pronóstico y cuadros de mando comparativos",
       "description": "Mosqlimate pone a disposición y registra modelos de pronóstico para dengue, chikungunya y Zika, utilizando datos climáticos y epidemiológicos oficiales de dominio público. Estos modelos permiten comparar metodologías a través de paneles, mejorar pronósticos e identificar señales de expansión o brotes, incluyendo nuevos arbovirus, integrándose al sistema de alerta temprana Infodengue.",
       "image_message": "Haga clic para ser redirigido a la pestaña Modelos."
     },

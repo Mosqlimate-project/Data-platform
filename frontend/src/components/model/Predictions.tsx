@@ -588,8 +588,20 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
           </div>
           <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
             <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
-            <select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer">
-              {availableScores.map(s => (<option key={s} value={s}>{formatScoreName(s)}</option>))}
+            <select
+              value={selectedMetric}
+              onChange={e => setSelectedMetric(e.target.value)}
+              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground dark:text-slate-100"
+            >
+              {availableScores.map(s => (
+                <option
+                  key={s}
+                  value={s}
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                >
+                  {formatScoreName(s)}
+                </option>
+              ))}
             </select>
           </div>
         </div>
