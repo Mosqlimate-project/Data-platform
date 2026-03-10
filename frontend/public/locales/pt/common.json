@@ -662,7 +662,7 @@
     "prediction_id": "Previsão #{{id}}",
     "unable_load": "Não foi possível carregar os dados do gráfico",
     "select_below": "Selecione uma previsão da lista abaixo",
-    "search_placeholder": "Buscar previsões...",
+    "search_placeholder": "Buscar previsões por ID, ADM Level, Data, Commit, Ano IMDC...",
     "metric_label": "Métrica:",
     "no_matches": "Nenhuma previsão corresponde à sua busca.",
     "no_found": "Nenhuma previsão encontrada.",

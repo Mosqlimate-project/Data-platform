@@ -662,7 +662,7 @@
     "prediction_id": "Prediction #{{id}}",
     "unable_load": "Unable to load chart data",
     "select_below": "Select a prediction from the list below",
-    "search_placeholder": "Search predictions...",
+    "search_placeholder": "Search predictions by ID, ADM Level, Date, Commit, IMDC Year...",
     "metric_label": "Metric:",
     "no_matches": "No predictions match your search.",
     "no_found": "No predictions found.",

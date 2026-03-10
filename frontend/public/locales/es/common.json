@@ -649,7 +649,7 @@
     "prediction_id": "Predicción #{{id}}",
     "unable_load": "No se pudieron cargar los datos del gráfico",
     "select_below": "Seleccione una predicción de la lista a continuación",
-    "search_placeholder": "Buscar predicciones...",
+    "search_placeholder": "Buscar predicciones por ID, Nivel ADM, Fecha, Confirmación, Año IMDC...",
     "metric_label": "Métrica:",
     "no_matches": "Ninguna predicción coincide con su búsqueda.",
     "no_found": "No se encontraron predicciones.",
