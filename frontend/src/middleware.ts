@@ -8,6 +8,7 @@ const publicPaths = [
   "/oauth/callback",
   "/api/auth",
   "/api/me",
+  "/api/session-key",
   "/api/user/register",
   "/api/user/check-username",
   "/api/user/check-email",

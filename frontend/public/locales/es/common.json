@@ -558,7 +558,7 @@
     "team": {
       "flavio": "Investigador Principal de Mosqlimate y profesor asociado en la Escuela de Matemáticas Aplicadas de la FGV, Río de Janeiro, Brasil. También formo parte de la red GRAPH, con sede en la Universidad de Ginebra, donde soy su coordinador de análisis de datos. En Brasil, también soy uno de los coordinadores del proyecto Infodengue. Mis intereses de investigación giran en torno a la epidemiología de enfermedades infecciosas desde el punto de vista de las matemáticas, la estadística y la ciencia de datos.",
       "leonardo": "Investigador en salud pública en el Programa de Computación Científica (PROCC), Fundación Oswaldo Cruz (Fiocruz). Es becario de investigación en FAPERJ y CNPq. Su investigación principal es el desarrollo y aplicación de métodos estadísticos (bayesianos) para la epidemiología de enfermedades infecciosas. Es co-líder en el WP2.",
-      "luiz": "Profesor Asistente en la Escuela de Matemáticas Aplicadas, Fundación Getulio Vargas. Sus intereses son la Bioestadística, particularmente Monte Carlo vía cadenas de Markov, filogenética estadística y combinación de modelos. Co-lideró el WP2, esperando traer técnicas de vanguardia de comparación y combinación de modelos para predecir enfermedades arbovirales.",
+      "luiz": "Profesor Asistente en la Escuela de Matemáticas Aplicadas, Fundación Getulio Vargas. Sus intereses son la Bioestadística, particularmente Monte Carlo vía cadenas de Markov, filogenética estadística y combinación de modelos. Es co-líder en el WP2, esperando traer técnicas de vanguardia de comparación y combinación de modelos para predecir enfermedades arbovirales.",
       "leon": "Profesor en CEFET, Río de Janeiro, Brasil. Desarrollador de la aplicación Conta Ovos, que tiene como objetivo monitorear la densidad de huevos de Aedes aegypti en el espacio y el tiempo. Mis intereses son el procesamiento de imágenes y el diseño de aplicaciones. Coordinador del WP1.",
       "eduardo": "Licenciado en ingeniería de control y automatización en UTFPR. Tiene experiencia en el análisis de datos de salud pública y desarrollo de modelos de aprendizaje automático aplicados a contextos epidemiológicos. Sus intereses incluyen la ciencia de datos aplicada a la salud, modelado matemático y computacional de enfermedades, desarrollo de herramientas en Python y colaboración interdisciplinaria en proyectos de impacto social. Trabaja como científico de datos en el WP2 del proyecto Mosqlimate. También es gerente del proyecto Mosqlimate.",
       "iasmim": "Investigadora posdoctoral en FGV EMAp. Doctora y Máster en Epidemiología en Salud Pública de ENSP/FIOCRUZ. Investigadora en el proyecto Infodengue y Mosqlimate, es investigadora en el WP2, donde trabaja con modelos que involucran patrones de transmisión de arbovirus y sus determinantes epidemiológicos y climáticos. También es Gerente de Participación Comunitaria de Mosqlimate e investigadora principal en el WP3. Sus intereses de investigación se centran en enfermedades transmisibles y su epidemiología.",
@@ -618,7 +618,7 @@
       "epi_desc": "Analiza y presenta datos actualizados de la <b>expansión de dengue, Zika y chikungunya</b> en el territorio nacional con foco en patrones espaciales y temporales de transmisión."
     },
     "models": {
-      "title": "Analice nuestros modelos",
+      "title": "Modelos de pronóstico y cuadros de mando comparativos",
       "description": "Mosqlimate pone a disposición y registra modelos de pronóstico para dengue, chikungunya y Zika, utilizando datos climáticos y epidemiológicos oficiales de dominio público. Estos modelos permiten comparar metodologías a través de paneles, mejorar pronósticos e identificar señales de expansión o brotes, incluyendo nuevos arbovirus, integrándose al sistema de alerta temprana Infodengue.",
       "image_message": "Haga clic para ser redirigido a la pestaña Modelos."
     },
@@ -649,7 +649,7 @@
     "prediction_id": "Predicción #{{id}}",
     "unable_load": "No se pudieron cargar los datos del gráfico",
     "select_below": "Seleccione una predicción de la lista a continuación",
-    "search_placeholder": "Buscar predicciones...",
+    "search_placeholder": "Buscar predicciones por ID, Nivel ADM, Fecha, Confirmación, Año IMDC...",
     "metric_label": "Métrica:",
     "no_matches": "Ninguna predicción coincide con su búsqueda.",
     "no_found": "No se encontraron predicciones.",

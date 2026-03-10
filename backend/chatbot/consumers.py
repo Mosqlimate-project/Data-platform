@@ -17,11 +17,16 @@ logger = logging.getLogger(__name__)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        accept_language = "en"
-
-        for header, value in self.scope["headers"]:
-            if header == b"accept-language":
-                accept_language = value.decode()
+        query_params = self.scope.get("query_string", b"").decode()
+        self.language = "en"
+        if query_params:
+            try:
+                params = dict(
+                    x.split("=") for x in query_params.split("&") if "=" in x
+                )
+                self.language = params.get("lang", "en")
+            except Exception:
+                pass
 
         self.session_key = self.scope["url_route"]["kwargs"]["session_key"]
 
@@ -70,8 +75,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
             await sync_to_async(generate_bot_answer.delay)(
-                f"Present yourself in language: {accept_language}",
+                f"Present yourself in language: {self.language}",
                 self.session_key,
+                language=self.language,
             )
 
         for message in messages:
@@ -118,13 +124,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             ]
 
             await sync_to_async(generate_bot_answer.delay)(
-                question, self.session_key, self.user_api_key, message_history
+                question,
+                self.session_key,
+                self.user_api_key,
+                message_history,
+                language=self.language,
             )
 
         except Exception as e:
             logger.exception(f"ChatConsumer error: {e}")
             if settings.DEBUG:
-                error = e
+                error = str(e)
             else:
                 error = (
                     "Sorry, an error has occurred, please reload the page or "

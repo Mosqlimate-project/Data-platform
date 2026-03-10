@@ -265,6 +265,16 @@ class ModelThumbs(Schema):
     disease: str
     predictions: int
     last_update: float
+    category_display: Optional[str] = None
+    time_resolution_display: Optional[str] = None
+    adm_level_display: Optional[str] = None
+    imdc_year: Optional[str] = None
+
+    @staticmethod
+    def resolve_imdc_year(obj):
+        if obj.sprint:
+            return f"IMDC {obj.sprint.year}"
+        return None
 
     @staticmethod
     def resolve_model_id(obj):
@@ -299,6 +309,22 @@ class ModelThumbs(Schema):
     @staticmethod
     def resolve_last_update(obj):
         return obj.updated.timestamp()
+
+    @staticmethod
+    def resolve_category_display(obj):
+        return obj.get_category_display() if obj.category else None
+
+    @staticmethod
+    def resolve_time_resolution_display(obj):
+        return (
+            obj.get_time_resolution_display() if obj.time_resolution else None
+        )
+
+    @staticmethod
+    def resolve_adm_level_display(obj):
+        return (
+            obj.get_adm_level_display() if obj.adm_level is not None else None
+        )
 
 
 class ModelIncludeInit(Schema):

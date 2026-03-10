@@ -194,7 +194,9 @@ def models_tags(request, ids: List[int] = Query(None)):
     user = request.auth
 
     qs = (
-        m.RepositoryModel.objects.select_related("disease", "repository")
+        m.RepositoryModel.objects.select_related(
+            "disease", "repository", "sprint"
+        )
         .annotate(predictions_count=models.Count("predicts"))
         .filter(predictions_count__gt=0)
     )
@@ -216,27 +218,32 @@ def models_tags(request, ids: List[int] = Query(None)):
 
     for model in qs:
         if model.disease:
-            key = ("disease", str(model.disease.id))
+            tag_id = f"dis_{model.disease.id}"
+            key = ("disease", tag_id)
             tags_map[key]["name"] = str(model.disease)
             tags_map[key]["models"].add(model.id)
 
         if model.adm_level is not None:
-            key = ("adm_level", str(model.adm_level))
+            tag_id = f"adm_{model.adm_level}"
+            key = ("adm_level", tag_id)
             tags_map[key]["name"] = model.get_adm_level_display()
             tags_map[key]["models"].add(model.id)
 
         if model.category:
-            key = ("model_category", str(model.category))
+            tag_id = f"cat_{model.category}"
+            key = ("model_category", tag_id)
             tags_map[key]["name"] = model.get_category_display()
             tags_map[key]["models"].add(model.id)
 
         if model.time_resolution:
-            key = ("periodicity", str(model.time_resolution))
+            tag_id = f"per_{model.time_resolution}"
+            key = ("periodicity", tag_id)
             tags_map[key]["name"] = model.get_time_resolution_display()
             tags_map[key]["models"].add(model.id)
 
         if model.sprint_id:
-            key = ("IMDC", str(model.sprint_id))
+            tag_id = f"spr_{model.sprint_id}"
+            key = ("IMDC", tag_id)
             tags_map[key]["name"] = (
                 str(model.sprint.year)
                 if model.sprint

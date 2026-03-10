@@ -8,6 +8,7 @@ def generate_bot_answer(
     session_key: str,
     user_api_key: Optional[str] = None,
     message_history: Optional[dict] = None,
+    language: str = "en",
 ):
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
@@ -16,15 +17,20 @@ def generate_bot_answer(
     try:
         from mosqlimate_assistant import main
 
+        full_question = f"[Language: {language}] {question}"
+
         answer = main.assistant_pipeline(
-            question, 3, x_uid=user_api_key, message_history=message_history
+            full_question,
+            3,
+            x_uid=user_api_key,
+            message_history=message_history,
         )
     except Exception as err:
         async_to_sync(channel_layer.group_send)(
             f"chat_{session_key}",
             {
                 "type": "bot_message",
-                "message": err,
+                "message": str(err),
                 "error": True,
             },
         )

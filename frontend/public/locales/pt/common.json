@@ -571,7 +571,7 @@
     "team": {
       "flavio": "Investigador Principal do Mosqlimate e professor associado na Escola de Matemática Aplicada da FGV, Rio de Janeiro, Brasil. Também faço parte da rede GRAPH, sediada na Universidade de Genebra, onde sou coordenador de análise de dados. No Brasil, sou um dos coordenadores do projeto Infodengue. Meus interesses de pesquisa giram em torno da epidemiologia de doenças infecciosas sob o ponto de vista da matemática, estatística e ciência de dados.",
       "leonardo": "Pesquisador em saúde pública no Programa de Computação Científica (PROCC), Fundação Oswaldo Cruz (Fiocruz). É bolsista de pesquisa da FAPERJ e CNPq. Sua principal pesquisa é no desenvolvimento e aplicação de métodos estatísticos (Bayesianos) para epidemiologia de doenças infecciosas. Ele é co-líder no WP2.",
-      "luiz": "Professor Assistente na Escola de Matemática Aplicada, Fundação Getulio Vargas. Seus interesses são em Bioestatística, particularmente Monte Carlo via cadeias de Markov, filogenética estatística e combinação de modelos. Ele co-liderou o WP2, esperando trazer técnicas de ponta de comparação e combinação de modelos para prever doenças arbovirais.",
+      "luiz": "Professor Assistente na Escola de Matemática Aplicada, Fundação Getulio Vargas. Seus interesses são em Bioestatística, particularmente Monte Carlo via cadeias de Markov, filogenética estatística e combinação de modelos. Ele é co-líder no WP2, esperando trazer técnicas de ponta de comparação e combinação de modelos para prever doenças arbovirais.",
       "leon": "Professor no CEFET, Rio de Janeiro, Brasil. Desenvolvedor do aplicativo Conta Ovos, que visa monitorar a densidade de ovos de Aedes aegypti no espaço e no tempo. Meus interesses são em processamento de imagens e design de aplicativos. Coordenador do WP1.",
       "eduardo": "Bacharel em engenharia de controle e automação na UTFPR. Tem experiência na análise de dados de saúde pública e desenvolvimento de modelos de aprendizado de máquina aplicados a contextos epidemiológicos. Seus interesses incluem ciência de dados aplicada à saúde, modelagem matemática e computacional de doenças, desenvolvimento de ferramentas em Python e colaboração interdisciplinar em projetos de impacto social. Atua como cientista de dados no WP2 do projeto Mosqlimate. Também é gerente do projeto Mosqlimate.",
       "iasmim": "Pós-doutoranda na FGV EMAp. Doutora e Mestre em Epidemiologia em Saúde Pública pela ENSP/FIOCRUZ. Pesquisadora no projeto Infodengue e Mosqlimate, atua no WP2 com modelos envolvendo padrões de transmissão de arboviroses e seus determinantes epidemiológicos e climáticos. É também Gerente de Engajamento Comunitário do Mosqlimate e pesquisadora líder no WP3. Seus interesses de pesquisa focam em doenças transmissíveis e sua epidemiologia.",
@@ -631,7 +631,7 @@
       "epi_desc": "Analisa e apresenta dados atualizados da <b>expansão de dengue, Zika e chikungunya</b> no território nacional com foco em padrões espaciais e temporais da transmissão."
     },
     "models": {
-      "title": "Analise nossos modelos",
+      "title": "Modelos de previsão e dashboards comparativos",
       "description": "O Mosqlimate disponibiliza e registra modelos de previsão para dengue, chikungunya e Zika, utilizando dados climáticos e epidemiológicos oficiais de domínio público. Esses modelos permitem comparar metodologias através de dashboards, aprimorar previsões e identificar sinais de expansão ou surtos, inclusive de novos arbovírus, integrando-se ao sistema de alerta precoce Infodengue.",
       "image_message": "Clique para ser direcionado à aba Modelos."
     },
@@ -662,7 +662,7 @@
     "prediction_id": "Previsão #{{id}}",
     "unable_load": "Não foi possível carregar os dados do gráfico",
     "select_below": "Selecione uma previsão da lista abaixo",
-    "search_placeholder": "Buscar previsões...",
+    "search_placeholder": "Buscar previsões por ID, ADM Level, Data, Commit, Ano IMDC...",
     "metric_label": "Métrica:",
     "no_matches": "Nenhuma previsão corresponde à sua busca.",
     "no_found": "Nenhuma previsão encontrada.",

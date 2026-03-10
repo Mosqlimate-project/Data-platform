@@ -16,6 +16,10 @@ type Model = {
   disease: string;
   predictions: number;
   last_update: number;
+  category_display?: string;
+  time_resolution_display?: string;
+  adm_level_display?: string;
+  imdc_year?: string;
 };
 
 type TagModelSummary = {
@@ -70,7 +74,21 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
 
       return selectedTags.every((tagId) => {
         const tag = tags.find((t) => t.id === tagId);
-        return tag?.models.some((tm) => tm.id === m.model_id);
+        if (!tag) return false;
+
+        if (tag.category === "Adm Level") {
+          return m.adm_level_display === tag.name;
+        }
+
+        if (tag.category === "Category") {
+          return m.category_display === tag.name;
+        }
+
+        if (tag.category === "Time Resolution") {
+          return m.time_resolution_display === tag.name;
+        }
+
+        return tag.models.some((tm) => tm.id === m.model_id);
       });
     });
   }, [models, query, selectedTags, tags]);
@@ -164,6 +182,10 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
                   disease={model.disease}
                   predictions={model.predictions}
                   last_update={model.last_update}
+                  category={model.category_display}
+                  time_resolution={model.time_resolution_display}
+                  adm_level={model.adm_level_display}
+                  imdc={model.imdc_year}
                 />
               ))
             ) : (
