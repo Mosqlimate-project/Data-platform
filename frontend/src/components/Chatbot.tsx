@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -42,68 +43,73 @@ const theme = {
 };
 
 export default function Chatbot() {
+  const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    let isMounted = true;
 
     async function init() {
-      const response = await fetch(`/api/session-key`);
+      try {
+        const response = await fetch(`/api/session-key`);
+        if (!response.ok || !isMounted) return;
 
-      if (!response.ok) {
-        console.error("Failed to get session key");
-        return;
-      }
+        const data = await response.json();
+        const sessionKey = data.session_key;
 
-      const data = await response.json();
-      const sessionKey = data.session_key;
-      const backend_url = new URL(NEXT_PUBLIC_BACKEND_URL).host;
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const ws = new WebSocket(`${protocol}://${backend_url}/ws/chat/${sessionKey}/`);
-      socketRef.current = ws;
+        const backendHost = NEXT_PUBLIC_BACKEND_URL.replace(/^https?:\/\//, "");
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const currentLang = i18n.language || 'en';
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.text?.msg) {
-          setMessages((prev) => {
-            const cleaned = prev.filter((m) => m.source !== "waiting");
-            return [...cleaned, data.text];
-          });
+        const wsUrl = `${protocol}://${backendHost}/ws/chat/${sessionKey}/?lang=${currentLang}`;
+
+        if (socketRef.current) {
+          socketRef.current.close();
         }
-      };
 
-      ws.onclose = () => {
-        setMessages((prev) => [
-          ...prev,
-          { msg: "Disconnected. Reload to reconnect.", source: "system" },
-        ]);
-      };
+        const ws = new WebSocket(wsUrl);
+        socketRef.current = ws;
 
-      ws.onerror = () => {
-        setMessages((prev) => [
-          ...prev,
-          { msg: "An error occurred. Reload the page.", source: "system" },
-        ]);
-      };
+        ws.onopen = () => {
+          console.log("WebSocket Connected to:", wsUrl);
+        };
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.text?.msg) {
+            setMessages((prev) => {
+              const cleaned = prev.filter((m) => m.source !== "waiting");
+              return [...cleaned, data.text];
+            });
+          }
+        };
+
+        ws.onerror = (e) => {
+          console.error("WebSocket Error:", e);
+        };
+
+      } catch (err) {
+        console.error("Init Error:", err);
+      }
     }
 
     init();
-    return () => socketRef.current?.close();
-  }, []);
 
-  // Auto-scroll on new messages
+    return () => {
+      isMounted = false;
+      socketRef.current?.close();
+    };
+  }, [i18n.language]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-scroll when opening the chat
   useEffect(() => {
     if (open) {
       setTimeout(() => {
@@ -113,7 +119,7 @@ export default function Chatbot() {
   }, [open]);
 
   const sendMessage = () => {
-    if (socketRef.current && input.trim() !== "") {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN && input.trim() !== "") {
       setMessages((prev) => [
         ...prev,
         { msg: input, source: "user" },
@@ -128,15 +134,21 @@ export default function Chatbot() {
   const components = {
     code({ node, inline, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || "");
-      return !inline && match ? (
+      const content = String(children).replace(/\n$/, "");
+
+      if (inline || !match) {
+        return <code className={className} {...props}>{children}</code>;
+      }
+
+      return (
         <Highlight
           theme={theme as any}
-          code={String(children).replace(/\n$/, "")}
+          code={content}
           language={match[1]}
         >
-          {({ className, style, tokens, getLineProps, getTokenProps }) => (
+          {({ className: _className, style, tokens, getLineProps, getTokenProps }) => (
             <pre
-              className={`${className} !bg-[var(--color-accent)]/20 overflow-x-auto`}
+              className={`${_className} !bg-[var(--color-accent)]/20 overflow-x-auto p-4 rounded-lg my-2`}
               style={style}
             >
               {tokens.map((line, i) => (
@@ -149,10 +161,6 @@ export default function Chatbot() {
             </pre>
           )}
         </Highlight>
-      ) : (
-        <code className={className} {...props}>
-          {children}
-        </code>
       );
     },
   };
@@ -170,8 +178,7 @@ export default function Chatbot() {
 
       {open && (
         <div
-          className={`fixed z-50 bottom-6 right-6 bg-[var(--color-bg)] border rounded-xl shadow-2xl flex flex-col transition-all duration-300 ease-in-out ${expanded ? "w-[45rem] h-[36rem]" : "w-80 h-96"
-            }`}
+          className={`fixed z-50 bottom-6 right-6 bg-[var(--color-bg)] border rounded-xl shadow-2xl flex flex-col transition-all duration-300 ease-in-out ${expanded ? "w-[45rem] h-[36rem]" : "w-80 h-96"}`}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b bg-[var(--color-bg)] rounded-t-xl">
             <div className="flex items-center gap-2">
@@ -187,21 +194,11 @@ export default function Chatbot() {
                 title={expanded ? "Shrink" : "Expand"}
               >
                 {expanded ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M5 9h4V5H5v4zm6 6h4v-4h-4v4zM5 15h4v-4H5v4zm6-6h4V5h-4v4z" />
                   </svg>
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M3 3h6v2H5v4H3V3zm14 0v6h-2V5h-4V3h6zm-6 14v-2h4v-4h2v6h-6zm-8-6h2v4h4v2H3v-6z" />
                   </svg>
                 )}
@@ -212,21 +209,8 @@ export default function Chatbot() {
                 className="text-[var(--color-text)] hover:bg-[var(--color-accent)]/10 p-1 rounded transition"
                 title="Close"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 
-                    011.414 1.414L11.414 10l4.293 4.293a1 1 0 
-                    01-1.414 1.414L10 11.414l-4.293 
-                    4.293a1 1 0 01-1.414-1.414L8.586 
-                    10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
@@ -236,8 +220,6 @@ export default function Chatbot() {
             {messages.map((m, i) => {
               const isUser = m.source === "user";
               const isBot = m.source === "bot";
-              const isWaiting = m.source === "waiting";
-
               return (
                 <div
                   key={i}
@@ -245,14 +227,10 @@ export default function Chatbot() {
                     ? "bg-blue-600 text-white ml-auto text-right rounded-br-none"
                     : isBot
                       ? "bg-[var(--color-accent)]/10 text-[var(--color-text)] mr-auto text-left rounded-bl-none border border-[var(--color-border)]"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 italic mx-auto text-center py-1.5 px-3 rounded-full text-xs"
-                    }`}
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 italic mx-auto text-center py-1.5 px-3 rounded-full text-xs"}`}
                 >
                   {isBot ? (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={components}
-                    >
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
                       {m.msg}
                     </ReactMarkdown>
                   ) : (
@@ -274,7 +252,7 @@ export default function Chatbot() {
             />
             <button
               onClick={sendMessage}
-              disabled={!input.trim() || !socketRef.current}
+              disabled={!input.trim() || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN}
               className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shrink-0"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 translate-x-0.5">
