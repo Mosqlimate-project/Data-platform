@@ -59,8 +59,8 @@ function DownloadButtons({
 
       const dataToExport = Array.isArray(rawData)
         ? rawData
-        : (rawData.data && Array.isArray(rawData.data))
-          ? rawData.data
+        : (rawData.items && Array.isArray(rawData.items))
+          ? rawData.items
           : null;
 
       if (!dataToExport || dataToExport.length === 0) {
