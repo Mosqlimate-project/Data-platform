@@ -10,7 +10,8 @@ interface DashboardChartProps {
   caseDefinition: string;
   chartData: Series;
   chartPredictions: QuantitativePrediction[];
-  activeIntervals: Set<number>;
+  globalIntervals: Set<string>;
+  visibleBounds: Set<number>;
 }
 
 export default function DashboardChart({
@@ -19,7 +20,8 @@ export default function DashboardChart({
   caseDefinition,
   chartData,
   chartPredictions,
-  activeIntervals
+  globalIntervals,
+  visibleBounds
 }: DashboardChartProps) {
   const { t } = useTranslation('common');
 
@@ -33,7 +35,8 @@ export default function DashboardChart({
         <LineChart
           data={chartData}
           predictions={chartPredictions}
-          activeIntervals={activeIntervals}
+          globalIntervals={globalIntervals}
+          visibleBounds={visibleBounds}
           height="100%"
           dataSeriesName={seriesName}
         />

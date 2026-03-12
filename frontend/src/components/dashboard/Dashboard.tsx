@@ -49,7 +49,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [chartPredictions, setChartPredictions] = useState<QuantitativePrediction[]>([]);
   const [loadingPredictions, setLoadingPredictions] = useState<number[]>([]);
 
-  const [activeIntervals, setActiveIntervals] = useState<Set<number | string>>(new Set());
+  const [globalIntervals, setGlobalIntervals] = useState<Set<string>>(new Set(["50", "90"]));
+  const [visibleBounds, setVisibleBounds] = useState<Set<number>>(new Set());
 
   const [diseaseOptions, setDiseaseOptions] = useState<DiseaseOption[]>([]);
   const [countryOptions, setCountryOptions] = useState<Option[]>([]);
@@ -77,6 +78,24 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     key: string | null;
     direction: "asc" | "desc";
   }>({ key: null, direction: "asc" });
+
+  const toggleGlobalInterval = useCallback((interval: string) => {
+    setGlobalIntervals(prev => {
+      const next = new Set(prev);
+      if (next.has(interval)) next.delete(interval);
+      else next.add(interval);
+      return next;
+    });
+  }, []);
+
+  const toggleIndividualVisibility = useCallback((predictionId: number) => {
+    setVisibleBounds(prev => {
+      const next = new Set(prev);
+      if (next.has(predictionId)) next.delete(predictionId);
+      else next.add(predictionId);
+      return next;
+    });
+  }, []);
 
   const loadSinglePredictionData = useCallback(async (predictionId: number) => {
     setLoadingPredictions(prev => [...prev, predictionId]);
@@ -172,7 +191,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
   useEffect(() => {
     setChartPredictions([]);
-    setActiveIntervals(new Set());
+    setVisibleBounds(new Set());
     initializeDashboard(inputs);
   }, [category, inputs.adm_level, inputs.sprint, inputs.disease, inputs.adm_0, inputs.adm_1]);
 
@@ -302,7 +321,8 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         caseDefinition={inputs.case_definition}
         chartData={chartData}
         chartPredictions={chartPredictions}
-        activeIntervals={activeIntervals as any}
+        globalIntervals={globalIntervals}
+        visibleBounds={visibleBounds}
       />
 
       <DashboardPredictions
@@ -318,25 +338,18 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         paginatedPredictions={filteredAndSortedPredictions.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)}
         chartPredictions={chartPredictions}
         loadingPredictions={loadingPredictions}
-        activeIntervals={activeIntervals as any}
-        togglePrediction={(p) => {
+        globalIntervals={globalIntervals}
+        toggleGlobalInterval={toggleGlobalInterval}
+        visibleBounds={visibleBounds}
+        toggleIndividualVisibility={toggleIndividualVisibility}
+        togglePredictionLine={(p) => {
           const isSelected = chartPredictions.some(cp => cp.id === p.id);
           if (isSelected) {
             setChartPredictions(prev => prev.filter(cp => cp.id !== p.id));
-            setActiveIntervals(prev => {
-              const n = new Set(prev);
-              n.delete(p.id);
-              return n;
-            });
           } else {
             loadSinglePredictionData(p.id);
           }
         }}
-        toggleInterval={(id) => setActiveIntervals(prev => {
-          const n = new Set(prev);
-          n.has(id) ? n.delete(id) : n.add(id);
-          return n;
-        })}
         handleSort={(key) =>
           setSortConfig(prev => ({
             key,
@@ -352,7 +365,10 @@ export default function DashboardClient({ category }: DashboardClientProps) {
           const unselected = pageItems.filter(p => !chartPredictions.some(cp => cp.id === p.id));
           await Promise.all(unselected.map(p => loadSinglePredictionData(p.id)));
         }}
-        handleClearAll={() => { setChartPredictions([]); setActiveIntervals(new Set()); }}
+        handleClearAll={() => {
+          setChartPredictions([]);
+          setVisibleBounds(new Set());
+        }}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         totalPages={Math.ceil(filteredAndSortedPredictions.length / ITEMS_PER_PAGE)}

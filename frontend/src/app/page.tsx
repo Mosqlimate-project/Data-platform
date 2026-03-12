@@ -336,7 +336,12 @@ export default function HomePage() {
                       adm1={meta.adm_1_code || undefined}
                       adm2={meta.adm_2_code || undefined}
                     />
-                    <Link href={dashboardHref} className="mt-10 inline-flex items-center gap-3 px-8 py-4 bg-primary text-text rounded-full font-bold hover:bg-primary/90 transition-all shadow-xl hover:scale-105 active:scale-95">
+                    <Link
+                      href={dashboardHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-10 inline-flex items-center gap-3 px-8 py-4 bg-primary text-text rounded-full font-bold hover:bg-primary/90 transition-all shadow-xl hover:scale-105 active:scale-95"
+                    >
                       {t("home.models.image_message")}
                       <MoveRight className="w-5 h-5" />
                     </Link>
