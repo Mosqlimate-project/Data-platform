@@ -68,8 +68,7 @@ export function AccumulatedWaterfallChart({ geocode, start, end }: ChartProps) {
             textStyle: {
               color: resolvedTheme === "dark" ? "#ffffff" : "#000000",
               fontSize: 14,
-              overflow: 'breakAll',
-              width: 300
+              fontWeight: "bold"
             }
           },
           tooltip: {

@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { MoveRight } from "lucide-react";
+import HomeChart from "@/components/HomeChart";
+import { fetchPredictionMetadata, PredictionMetadata } from "@/lib/dashboard/api";
 
 const NetworkBackground = dynamic(() => import("@/components/NetworkBackground"), {
   ssr: false,
@@ -115,6 +117,44 @@ function ScrollIndicator({ label }: { label: string }) {
 
 export default function HomePage() {
   const { t } = useTranslation("common");
+  const [meta, setMeta] = useState<PredictionMetadata | null>(null);
+  const isProd = process.env.NODE_ENV === 'production';
+
+  const PREDICTION_ID = isProd ? "2085" : "4415";
+
+  useEffect(() => {
+    async function getMeta() {
+      try {
+        const data = await fetchPredictionMetadata(PREDICTION_ID);
+        setMeta(data);
+      } catch (e) {
+        console.error("Error fetching homepage metadata", e);
+      }
+    }
+    getMeta();
+  }, []);
+
+  const dashboardHref = useMemo(() => {
+    if (!meta) return "/dashboard";
+
+    const p = new URLSearchParams();
+
+    p.set("sprint", meta.sprint ? "true" : "false");
+    p.set("adm_level", meta.adm_level.toString());
+    p.set("disease", meta.disease_code);
+    p.set("prediction_id", PREDICTION_ID);
+    p.set("case_definition", meta.case_definition);
+
+    if (meta.adm_level === 0 && meta.adm_0_code) {
+      p.set("adm_0", meta.adm_0_code);
+    } else if (meta.adm_level === 1 && meta.adm_1_code) {
+      p.set("adm_1", meta.adm_1_code);
+    } else if (meta.adm_level === 2 && meta.adm_2_code) {
+      p.set("adm_2", meta.adm_2_code);
+    }
+
+    return `/dashboard/quantitative?${p.toString()}`;
+  }, [meta]);
 
   return (
     <div className="relative w-full min-h-screen bg-[var(--color-bg)] text-text transition-colors duration-300">
@@ -279,15 +319,30 @@ export default function HomePage() {
 
         <section data-scroll-section id="analise-nossos-modelos" className="py-32 px-6 bg-[var(--color-bg)]">
           <FadeInSection>
-            <div className="max-w-5xl mx-auto text-center">
+            <div className="max-w-6xl mx-auto text-center">
               <h2 className="text-5xl font-bold mb-6 text-text">{t("home.models.title")}</h2>
-              <p className="text-xl text-text/80 max-w-5xl mb-8 leading-relaxed">{t("home.models.description")}</p>
-              <a href="/dashboard" className="group relative inline-block">
-                <Image src="/models.png" alt="Models" width={1600} height={1200} className="mx-auto transition group-hover:opacity-80" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white text-lg font-medium px-4 text-center">{t("home.models.image_message")}</span>
-                </div>
-              </a>
+              <p className="text-xl text-text/80 max-w-5xl mb-12 mx-auto leading-relaxed">{t("home.models.description")}</p>
+
+              <div className="relative group">
+                {meta && (
+                  <>
+                    <HomeChart
+                      predictionId={meta.id}
+                      disease={meta.disease_code}
+                      admLevel={meta.adm_level}
+                      sprint={meta.sprint}
+                      caseDefinition={meta.case_definition}
+                      adm0={meta.adm_0_code || ""}
+                      adm1={meta.adm_1_code || undefined}
+                      adm2={meta.adm_2_code || undefined}
+                    />
+                    <Link href={dashboardHref} className="mt-10 inline-flex items-center gap-3 px-8 py-4 bg-primary text-text rounded-full font-bold hover:bg-primary/90 transition-all shadow-xl hover:scale-105 active:scale-95">
+                      {t("home.models.image_message")}
+                      <MoveRight className="w-5 h-5" />
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </FadeInSection>
         </section>

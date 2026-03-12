@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { usePathname } from "next/navigation";
 import { Series, QuantitativePrediction } from "@/components/dashboard/QuantitativeLineChart";
 import { Loader2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useDashboard } from "@/context/Dashboard";
 import {
   fetchDiseases,
@@ -44,8 +42,6 @@ const CHART_COLORS = [
 ];
 
 export default function DashboardClient({ category }: DashboardClientProps) {
-  const { t } = useTranslation("common");
-  const pathname = usePathname();
   const { state: inputs, updateState: setInputs } = useDashboard();
 
   const [loading, setLoading] = useState(false);

@@ -507,6 +507,7 @@ def dashboard_prediction_meta(request, prediction_id: int):
         "id": prediction.id,
         "disease_code": prediction.model.disease.code,
         "adm_level": prediction.model.adm_level,
+        "case_definition": prediction.case_definition,
         "adm_0_code": prediction.adm0.geocode if prediction.adm0 else None,
         "adm_1_code": prediction.adm1.geocode if prediction.adm1 else None,
         "adm_2_code": prediction.adm2.geocode if prediction.adm2 else None,
