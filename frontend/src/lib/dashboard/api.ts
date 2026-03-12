@@ -24,6 +24,7 @@ export interface PredictionMetadata {
   id: number;
   disease_code: string;
   adm_level: AdmLevel;
+  case_definition: CaseDefinition;
   adm_0_code: string | null;
   adm_1_code: string | null;
   adm_2_code: string | null;

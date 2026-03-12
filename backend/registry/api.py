@@ -374,9 +374,10 @@ def repository_readme(request, owner: str, repository: str):
     }.get(repo.provider)
 
     if not provider_cls:
-        return 404, {"message": "No Oauth provider found"}
+        return 404, {"message": "No OAuth provider found"}
 
     provider = provider_cls(request)
+
     token_holder = repo.owner
 
     if not token_holder:
@@ -394,30 +395,74 @@ def repository_readme(request, owner: str, repository: str):
         provider=repo.provider
     ).first()
 
-    if not oauth_account:
-        return 404, {"message": "Admin Oauth account not found"}
+    if oauth_account:
+        try:
+            if (
+                oauth_account.access_token_expires_at
+                and oauth_account.access_token_expires_at
+                < (timezone.now() + timedelta(minutes=5))
+            ):
+                refresh_data = provider.refresh_access_token(
+                    refresh_token=oauth_account.refresh_token
+                )
 
-    if oauth_account.access_token_expires_at < (
-        timezone.now() + timedelta(minutes=5)
-    ):
-        refresh_data = provider.refresh_access_token(
-            refresh_token=oauth_account.refresh_token
-        )
+                oauth_account.access_token = refresh_data["access_token"]
+                oauth_account.refresh_token = refresh_data.get(
+                    "refresh_token", oauth_account.refresh_token
+                )
 
-        if "access_token" not in refresh_data:
-            raise ValueError("Data not found when refreshing oauth token")
+                expires_in = refresh_data.get("expires_in")
 
-        oauth_account.access_token = refresh_data.access_token
-        oauth_account.access_token_expires_at = timezone.now() + timedelta(
-            refresh_data["expires_in"]
-        )
-        oauth_account.refresh_token = refresh_data["refresh_token"]
-        with transaction.atomic():
-            oauth_account.save()
+                if expires_in:
+                    oauth_account.access_token_expires_at = (
+                        timezone.now() + timedelta(seconds=expires_in)
+                    )
 
-    content = provider.get_readme(
-        repo, access_token=oauth_account.access_token
-    )
+                with transaction.atomic():
+                    oauth_account.save()
+
+            content = provider.get_readme(repo, oauth_account)
+
+        except Exception:
+            content = None
+
+    if not content and repo.provider == "github":
+        try:
+            url = f"https://api.github.com/repos/{owner}/{repository}/readme"
+
+            headers = {
+                "Accept": "application/vnd.github.raw",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+
+            with httpx.Client(timeout=10) as client:
+                resp = client.get(url, headers=headers)
+
+                if resp.status_code == 200:
+                    content = resp.text
+
+        except Exception:
+            content = None
+
+    if not content and repo.provider == "github":
+        branches = ["main", "master"]
+
+        try:
+            with httpx.Client(timeout=10) as client:
+                for branch in branches:
+                    raw_url = (
+                        "https://raw.githubusercontent.com/"
+                        f"{owner}/{repository}/{branch}/README.md"
+                    )
+
+                    resp = client.get(raw_url)
+
+                    if resp.status_code == 200:
+                        content = resp.text
+                        break
+
+        except Exception:
+            content = None
 
     if not content:
         return 404, {"message": "README not found or inaccessible"}

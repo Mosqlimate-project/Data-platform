@@ -50,9 +50,11 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const isWaiting = messages.some(m => m.source === "waiting");
 
   useEffect(() => {
     let isMounted = true;
+    let pingInterval: NodeJS.Timeout;
 
     async function init() {
       try {
@@ -77,20 +79,31 @@ export default function Chatbot() {
 
         ws.onopen = () => {
           console.log("WebSocket Connected to:", wsUrl);
+
+          pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: "ping" }));
+            }
+          }, 10000);
         };
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          if (data.text?.msg) {
-            setMessages((prev) => {
-              const cleaned = prev.filter((m) => m.source !== "waiting");
-              return [...cleaned, data.text];
-            });
-          }
+
+          if (!data.text) return;
+
+          setMessages((prev) => {
+            const withoutWaiting = prev.filter(m => m.source !== "waiting");
+            return [...withoutWaiting, data.text];
+          });
         };
 
         ws.onerror = (e) => {
           console.error("WebSocket Error:", e);
+        };
+
+        ws.onclose = () => {
+          if (pingInterval) clearInterval(pingInterval);
         };
 
       } catch (err) {
@@ -102,6 +115,7 @@ export default function Chatbot() {
 
     return () => {
       isMounted = false;
+      if (pingInterval) clearInterval(pingInterval);
       socketRef.current?.close();
     };
   }, [i18n.language]);
@@ -252,7 +266,12 @@ export default function Chatbot() {
             />
             <button
               onClick={sendMessage}
-              disabled={!input.trim() || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN}
+              disabled={
+                !input.trim() ||
+                !socketRef.current ||
+                socketRef.current.readyState !== WebSocket.OPEN ||
+                isWaiting
+              }
               className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-10 h-10 shrink-0"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 translate-x-0.5">
