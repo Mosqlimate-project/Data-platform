@@ -41,11 +41,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         api_key = cache.get(self.session_key, None)
 
+        user = None
+
         if api_key:
-            username = str(api_key.split(":")[0])
-            user = await sync_to_async(User.objects.get)(username=username)
-        else:
-            user = None
+            try:
+                username = str(api_key.split(":")[0])
+                user = await sync_to_async(User.objects.get)(username=username)
+            except User.DoesNotExist:
+                user = None
 
         self.user = user
         self.user_api_key = api_key
@@ -68,13 +71,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
         if not messages:
-            await self.send(
-                text_data=json.dumps(
-                    {"text": {"msg": "waiting", "source": "system"}}
-                )
-            )
-
-            await sync_to_async(generate_bot_answer.delay)(
+            generate_bot_answer.delay(
                 f"Present yourself in language: {self.language}",
                 self.session_key,
                 language=self.language,
@@ -94,13 +91,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         response = json.loads(text_data)
+
+        if response.get("type") == "ping":
+            return
+
         question = response["text"]
 
-        await self.send(
-            text_data=json.dumps(
-                {"text": {"msg": "waiting", "source": "system"}}
-            )
-        )
+        if not question:
+            return
 
         await self.save_message("user", question)
 
@@ -123,7 +121,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 for m in messages
             ]
 
-            await sync_to_async(generate_bot_answer.delay)(
+            generate_bot_answer.delay(
                 question,
                 self.session_key,
                 self.user_api_key,
