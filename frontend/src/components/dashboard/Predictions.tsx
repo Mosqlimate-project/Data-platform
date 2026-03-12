@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  Search, X, Loader2, ArrowUp, ArrowDown, ArrowUpDown,
+  Search, Loader2, ArrowUp, ArrowDown, ArrowUpDown,
   Eye, EyeOff, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,9 +20,11 @@ interface DashboardPredictionsProps {
   paginatedPredictions: Prediction[];
   chartPredictions: QuantitativePrediction[];
   loadingPredictions: number[];
-  activeIntervals: Set<number>;
-  togglePrediction: (p: Prediction) => void;
-  toggleInterval: (id: number) => void;
+  globalIntervals: Set<string>;
+  toggleGlobalInterval: (val: string) => void;
+  visibleBounds: Set<number>;
+  toggleIndividualVisibility: (id: number) => void;
+  togglePredictionLine: (p: Prediction) => void;
   handleSort: (key: string) => void;
   sortConfig: { key: string | null; direction: "asc" | "desc" };
   handleSelectAll: () => void;
@@ -41,14 +43,15 @@ export default function DashboardPredictions({
   toggleModel,
   predictionSearch,
   setPredictionSearch,
-  predictionsLoading,
   filteredAndSortedPredictions,
   paginatedPredictions,
   chartPredictions,
   loadingPredictions,
-  activeIntervals,
-  togglePrediction,
-  toggleInterval,
+  globalIntervals,
+  toggleGlobalInterval,
+  visibleBounds,
+  toggleIndividualVisibility,
+  togglePredictionLine,
   handleSort,
   sortConfig,
   handleSelectAll,
@@ -59,6 +62,7 @@ export default function DashboardPredictions({
   itemsPerPage
 }: DashboardPredictionsProps) {
   const { t } = useTranslation('common');
+  const INTERVAL_OPTIONS = ["50", "80", "90", "95"];
 
   const SCORE_COLUMNS = [
     { key: "mae_score", label: t('dashboard.score_columns.mae') },
@@ -82,14 +86,8 @@ export default function DashboardPredictions({
               onChange={(e) => setModelSearch(e.target.value)}
               className="w-full pl-8 pr-8 py-2 text-xs border border-border bg-bg text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            {modelSearch && (
-              <button onClick={() => setModelSearch("")} className="absolute right-2 top-2.5 text-secondary hover:text-white">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
           </div>
-
-          <div className="flex flex-col gap-2 overflow-y-auto">
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[400px]">
             {uniqueModels.map((model) => (
               <button
                 key={model}
@@ -105,16 +103,37 @@ export default function DashboardPredictions({
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-text">{t('dashboard.panels.predictions')}</h3>
-            <div className="flex items-center gap-2">
-              <button onClick={handleSelectAll} className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-500/10 border border-blue-500/30 rounded hover:bg-blue-500/20">
-                {t('dashboard.actions.select_10')}
-              </button>
-              <button onClick={handleClearAll} className="px-3 py-1.5 text-xs font-medium text-secondary bg-bg border border-border rounded hover:bg-hover">
-                {t('dashboard.actions.clear')}
-              </button>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                  {t('dashboard.table.interval_bounds')}:
+                </span>
+                {INTERVAL_OPTIONS.map((interval) => (
+                  <label key={interval} className="flex items-center gap-1.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      className="w-3.5 h-3.5 rounded border-border text-blue-600 focus:ring-blue-500 bg-bg"
+                      checked={globalIntervals.has(interval)}
+                      onChange={() => toggleGlobalInterval(interval)}
+                    />
+                    <span className={`text-xs transition-colors ${globalIntervals.has(interval) ? 'text-text font-bold' : 'text-secondary group-hover:text-text'}`}>
+                      {interval}%
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 border-l border-border pl-4">
+                <button onClick={handleSelectAll} className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-500/10 border border-blue-500/30 rounded hover:bg-blue-500/20">
+                  {t('dashboard.actions.select_10')}
+                </button>
+                <button onClick={handleClearAll} className="px-3 py-1.5 text-xs font-medium text-secondary bg-bg border border-border rounded hover:bg-hover">
+                  {t('dashboard.actions.clear')}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -127,19 +146,16 @@ export default function DashboardPredictions({
               onChange={(e) => setPredictionSearch(e.target.value)}
               className="w-full pl-9 pr-9 py-2 text-sm border border-border bg-bg text-text rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            {predictionSearch && (
-              <button onClick={() => setPredictionSearch("")} className="absolute right-2 top-2 text-secondary hover:text-text">
-                <X className="h-5 w-5" />
-              </button>
-            )}
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-secondary uppercase bg-hover border-b border-border">
                 <tr>
-                  <th className="px-3 py-2 w-[40%]">{t('dashboard.table.model')}</th>
-                  <th className="px-3 py-2 text-center w-[10%]">{t('dashboard.table.interval_bounds')}</th>
+                  <th className="px-3 py-2 w-[50%]">{t('dashboard.table.model')}</th>
+                  <th className="px-3 py-2 text-center w-[10%]">
+                    {t('dashboard.table.interval_bounds')}:
+                  </th>
                   {SCORE_COLUMNS.map((col) => (
                     <th key={col.key} className="px-3 py-2 text-right cursor-pointer hover:bg-accent" onClick={() => handleSort(col.key)}>
                       <div className="flex items-center justify-end gap-1">
@@ -156,55 +172,42 @@ export default function DashboardPredictions({
                 {paginatedPredictions.map((p) => {
                   const selectedPred = chartPredictions.find(cp => cp.id === p.id);
                   const isSelected = !!selectedPred;
+                  const boundsVisible = visibleBounds.has(p.id);
+
                   return (
                     <tr
                       key={p.id}
-                      className={`border-b border-border cursor-pointer ${!isSelected && 'hover:bg-hover'}`}
-                      onClick={() => togglePrediction(p)}
-                      style={isSelected ? { backgroundColor: `${selectedPred.color}20` } : undefined}
+                      className={`border-b border-border cursor-pointer transition-colors ${isSelected ? '' : 'hover:bg-hover'}`}
+                      onClick={() => togglePredictionLine(p)}
+                      style={isSelected ? { backgroundColor: `${selectedPred.color}15` } : undefined}
                     >
                       <td className="px-3 py-2">
                         <div className="flex items-start gap-3">
                           <div className="text-xs font-mono text-secondary mt-1 min-w-[30px]">
                             {loadingPredictions.includes(p.id) ? (
                               <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                            ) : (
-                              `#${p.id}`
-                            )}
+                            ) : `#${p.id}`}
                           </div>
                           <div className="flex flex-col gap-1">
                             <div className="flex gap-2 items-center">
                               <span className="bg-blue-500/10 text-blue-600 text-xs px-2 py-0.5 rounded border border-blue-500/20 font-mono">
                                 {p.owner}
                               </span>
-                              <a
-                                href={`/${p.owner}/${p.repository}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="bg-hover text-text text-xs px-2 py-0.5 rounded border border-border font-mono hover:bg-accent hover:underline hover:text-white transition-colors"
-                              >
-                                {p.repository}
-                              </a>
+                              <span className="font-mono text-xs">{p.repository}</span>
                             </div>
-                            <div className="text-xs text-secondary flex gap-2 items-center">
-                              <span>{p.start} - {p.end}</span>
-                              {p.sprint && (
-                                <span className="px-2 py-0.5 bg-accent text-white rounded-full text-[10px]">
-                                  IMDC {p.sprint}
-                                </span>
-                              )}
-                            </div>
+                            <div className="text-xs text-secondary">{p.start} - {p.end}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-3 py-2 text-center">
                         <button
-                          onClick={() => toggleInterval(p.id)}
-                          disabled={!isSelected}
-                          className={`p-1 rounded ${isSelected ? (activeIntervals.has(p.id) ? "text-blue-600" : "text-secondary") : "opacity-30"}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleIndividualVisibility(p.id);
+                          }}
+                          className={`p-1.5 rounded-full transition-all ${boundsVisible ? 'bg-blue-500/20 text-blue-600' : 'text-secondary opacity-30 hover:opacity-100'}`}
                         >
-                          {activeIntervals.has(p.id) ? <Eye size={16} /> : <EyeOff size={16} />}
+                          {boundsVisible ? <Eye size={18} /> : <EyeOff size={18} />}
                         </button>
                       </td>
                       {SCORE_COLUMNS.map((col) => {
@@ -222,21 +225,47 @@ export default function DashboardPredictions({
             </table>
           </div>
 
-          <div className="flex items-center justify-between mt-4 border-t border-border pt-3">
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
             <div className="text-xs text-secondary">
               {t('dashboard.pagination.showing', {
-                start: ((currentPage - 1) * itemsPerPage) + 1,
+                start: (currentPage - 1) * itemsPerPage + 1,
                 end: Math.min(currentPage * itemsPerPage, filteredAndSortedPredictions.length),
                 total: filteredAndSortedPredictions.length
               })}
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1 rounded border border-border disabled:opacity-50">
-                <ChevronLeft size={16} />
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="p-1 rounded border border-border bg-bg text-secondary disabled:opacity-30 hover:bg-hover transition-colors"
+              >
+                <ChevronLeft size={18} />
               </button>
-              <div className="text-xs font-medium self-center">{t('dashboard.pagination.page', { current: currentPage, total: totalPages })}</div>
-              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-1 rounded border border-border disabled:opacity-50">
-                <ChevronRight size={16} />
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) pageNum = i + 1;
+                  else if (currentPage <= 3) pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                  else pageNum = currentPage - 2 + i;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-8 h-8 text-xs rounded transition-colors ${currentPage === pageNum ? 'bg-blue-600 text-white' : 'text-secondary hover:bg-hover border border-transparent'}`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="p-1 rounded border border-border bg-bg text-secondary disabled:opacity-30 hover:bg-hover transition-colors"
+              >
+                <ChevronRight size={18} />
               </button>
             </div>
           </div>

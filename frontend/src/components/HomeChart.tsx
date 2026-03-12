@@ -69,16 +69,19 @@ export default function HomeChart({
             });
           }
 
+          const formatNum = (val: number | null | undefined) =>
+            val != null ? parseFloat(val.toFixed(2)) : null;
+
           setPredictions([{
             id: predictionId,
             color: "#44aa99",
             data: {
               labels: predRows.map((d) => new Date(d.date)),
-              data: predRows.map((d) => d.pred),
-              lower_95: predRows.map((d) => d.lower_95 ?? null),
-              upper_95: predRows.map((d) => d.upper_95 ?? null),
-              lower_50: predRows.map((d) => d.lower_50 ?? null),
-              upper_50: predRows.map((d) => d.upper_50 ?? null),
+              data: predRows.map((d) => formatNum(d.pred) as number),
+              lower_95: predRows.map((d) => formatNum(d.lower_95)),
+              upper_95: predRows.map((d) => formatNum(d.upper_95)),
+              lower_50: predRows.map((d) => formatNum(d.lower_50)),
+              upper_50: predRows.map((d) => formatNum(d.upper_50)),
             },
           }]);
         }
@@ -105,7 +108,8 @@ export default function HomeChart({
         data={chartData}
         predictions={predictions}
         height={500}
-        activeIntervals={new Set(["95", "50"])}
+        globalIntervals={new Set(["95", "50"])}
+        visibleBounds={new Set([predictionId])}
       />
     </div>
   );

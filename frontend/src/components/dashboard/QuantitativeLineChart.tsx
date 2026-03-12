@@ -33,7 +33,8 @@ export interface ChartProps {
   predictions: QuantitativePrediction[];
   height?: string | number;
   width?: string | number;
-  activeIntervals?: Set<number | string>;
+  globalIntervals?: Set<string>;
+  visibleBounds?: Set<number | string>;
   dataSeriesName?: string;
 }
 
@@ -46,7 +47,8 @@ export const LineChart: React.FC<ChartProps> = ({
   predictions,
   height = "400px",
   width = "100%",
-  activeIntervals = new Set(),
+  globalIntervals = new Set(),
+  visibleBounds = new Set(),
   dataSeriesName = "Data",
 }) => {
   const { resolvedTheme } = useTheme();
@@ -79,8 +81,6 @@ export const LineChart: React.FC<ChartProps> = ({
     const legendData: any[] = [];
     const legendSelected: Record<string, boolean> = {};
 
-    const activeIntStrings = new Set(Array.from(activeIntervals).map(String));
-
     if (hasObservedData) {
       const dataMap = new Map<string, number | null>();
       data.labels.forEach((date, i) => {
@@ -109,6 +109,7 @@ export const LineChart: React.FC<ChartProps> = ({
 
     predictions.forEach((pred) => {
       const predId = String(pred.id);
+      const isVisibleInChart = visibleBounds.has(Number(pred.id)) || visibleBounds.has(predId);
 
       legendData.push({
         name: predId,
@@ -134,65 +135,64 @@ export const LineChart: React.FC<ChartProps> = ({
         z: 40,
       });
 
-      const possibleIntervals = ["50", "80", "90", "95"];
+      if (isVisibleInChart) {
+        const possibleIntervals = ["50", "80", "90", "95"];
 
-      possibleIntervals.forEach((intKey) => {
-        const isToggledInTable = activeIntStrings.has(predId);
-        const isGlobalToggle = activeIntStrings.has(intKey);
+        possibleIntervals.forEach((intKey) => {
+          if (!globalIntervals.has(intKey)) return;
 
-        if (!isToggledInTable && !isGlobalToggle) return;
+          const lowerKey = `lower_${intKey}` as keyof PredictionData;
+          const upperKey = `upper_${intKey}` as keyof PredictionData;
 
-        const lowerKey = `lower_${intKey}` as keyof PredictionData;
-        const upperKey = `upper_${intKey}` as keyof PredictionData;
+          const lowerRaw = pred.data[lowerKey] as (number | null)[] | null;
+          const upperRaw = pred.data[upperKey] as (number | null)[] | null;
 
-        const lowerRaw = pred.data[lowerKey] as (number | null)[] | null;
-        const upperRaw = pred.data[upperKey] as (number | null)[] | null;
+          if (Array.isArray(lowerRaw) && Array.isArray(upperRaw)) {
+            const lowerMap = new Map<string, number | null>();
+            const upperMap = new Map<string, number | null>();
 
-        if (Array.isArray(lowerRaw) && Array.isArray(upperRaw)) {
-          const lowerMap = new Map<string, number | null>();
-          const upperMap = new Map<string, number | null>();
+            pred.data.labels.forEach((date, i) => {
+              lowerMap.set(formatDate(date), lowerRaw[i]);
+              upperMap.set(formatDate(date), upperRaw[i]);
+            });
 
-          pred.data.labels.forEach((date, i) => {
-            lowerMap.set(formatDate(date), lowerRaw[i]);
-            upperMap.set(formatDate(date), upperRaw[i]);
-          });
+            const lData = mainLabels.map(l => lowerMap.get(l) ?? null);
+            const uData = mainLabels.map(l => upperMap.get(l) ?? null);
+            const deltaData = lData.map((l, i) => {
+              const u = uData[i];
+              return (typeof l === 'number' && typeof u === 'number') ? u - l : null;
+            });
 
-          const lData = mainLabels.map(l => lowerMap.get(l) ?? null);
-          const uData = mainLabels.map(l => upperMap.get(l) ?? null);
-          const deltaData = lData.map((l, i) => {
-            const u = uData[i];
-            return (typeof l === 'number' && typeof u === 'number') ? u - l : null;
-          });
+            seriesOptions.push({
+              name: `${predId}_${intKey}_base`,
+              type: "line",
+              data: lData,
+              smooth: true,
+              symbol: "none",
+              lineStyle: { opacity: 0 },
+              stack: `conf-${intKey}-${predId}`,
+              silent: true,
+              tooltip: { show: false }
+            });
 
-          seriesOptions.push({
-            name: `${predId}_${intKey}_base`,
-            type: "line",
-            data: lData,
-            smooth: true,
-            symbol: "none",
-            lineStyle: { opacity: 0 },
-            stack: `conf-${intKey}-${predId}`,
-            silent: true,
-            tooltip: { show: false }
-          });
-
-          seriesOptions.push({
-            name: `${predId}_${intKey}_area`,
-            type: "line",
-            data: deltaData,
-            smooth: true,
-            symbol: "none",
-            lineStyle: { opacity: 0 },
-            areaStyle: {
-              color: pred.color,
-              opacity: intKey === "50" ? 0.3 : 0.15
-            },
-            stack: `conf-${intKey}-${predId}`,
-            silent: true,
-            tooltip: { show: false }
-          });
-        }
-      });
+            seriesOptions.push({
+              name: `${predId}_${intKey}_area`,
+              type: "line",
+              data: deltaData,
+              smooth: true,
+              symbol: "none",
+              lineStyle: { opacity: 0 },
+              areaStyle: {
+                color: pred.color,
+                opacity: intKey === "50" ? 0.3 : 0.15
+              },
+              stack: `conf-${intKey}-${predId}`,
+              silent: true,
+              tooltip: { show: false }
+            });
+          }
+        });
+      }
     });
 
     const options: echarts.EChartsOption = {
@@ -231,7 +231,6 @@ export const LineChart: React.FC<ChartProps> = ({
           opacity: 0.3,
         }
       },
-
       dataZoom: [
         { type: "inside", throttle: 50 },
         {
@@ -250,7 +249,7 @@ export const LineChart: React.FC<ChartProps> = ({
     const handleResize = () => chartInstance.resize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [data, predictions, mainLabels, resolvedTheme, activeIntervals, dataSeriesName, hasObservedData]);
+  }, [data, predictions, mainLabels, resolvedTheme, globalIntervals, visibleBounds, dataSeriesName, hasObservedData]);
 
   return <div ref={chartRef} style={{ width, height }} />;
 };
