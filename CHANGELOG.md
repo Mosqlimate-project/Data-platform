@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.2.10](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.9...2.2.10) (2026-03-12)
+
+
+### Bug Fixes
+
+* **dashboard:** include the possibility of choose which interval bounds to show ([#466](https://github.com/Mosqlimate-project/Data-platform/issues/466)) ([fe5df65](https://github.com/Mosqlimate-project/Data-platform/commit/fe5df65dfd69d379f71dc8f9439179f096d759b1))
+
 ## [2.2.9](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.8...2.2.9) (2026-03-12)
 
 
