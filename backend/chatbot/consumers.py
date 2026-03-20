@@ -18,16 +18,17 @@ logger = logging.getLogger(__name__)
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_params = self.scope.get("query_string", b"").decode()
-        self.language = "en"
+        current_lang = "en"
         if query_params:
             try:
                 params = dict(
                     x.split("=") for x in query_params.split("&") if "=" in x
                 )
-                self.language = params.get("lang", "en")
+                current_lang = params.get("lang", "en")
             except Exception:
                 pass
 
+        self.language = current_lang
         self.session_key = self.scope["url_route"]["kwargs"]["session_key"]
 
         if not self.session_key:
@@ -40,7 +41,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         api_key = cache.get(self.session_key, None)
-
         user = None
 
         if api_key:
@@ -53,9 +53,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.user = user
         self.user_api_key = api_key
 
-        self.session, _ = await sync_to_async(
+        self.session, created = await sync_to_async(
             ChatSession.objects.get_or_create
-        )(user=user, session_key=self.session_key)
+        )(
+            session_key=self.session_key,
+            defaults={"user": user, "language": self.language},
+        )
+
+        if not created and self.session.language != self.language:
+            await sync_to_async(
+                Message.objects.filter(session=self.session).delete
+            )()
+            self.session.language = self.language
+            await sync_to_async(self.session.save)(update_fields=["language"])
 
         if user:
             messages = await sync_to_async(list)(
