@@ -1,6 +1,15 @@
 Release Notes
 ---
 
+## [2.2.11](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.10...2.2.11) (2026-03-20)
+
+
+### Bug Fixes
+
+* **chatbot:** update version & frontend improvements when changing the language ([#471](https://github.com/Mosqlimate-project/Data-platform/issues/471)) ([174523a](https://github.com/Mosqlimate-project/Data-platform/commit/174523affec28236ed39db03a951d6dd18871eba))
+* **registry/predictions:** include validations for inserting predictions ([#469](https://github.com/Mosqlimate-project/Data-platform/issues/469)) ([a8e2aa2](https://github.com/Mosqlimate-project/Data-platform/commit/a8e2aa2e5710abbe3cb25545b61ec3b660d32205))
+* **terms:** update TOS & privacy policy ([#470](https://github.com/Mosqlimate-project/Data-platform/issues/470)) ([7ca7960](https://github.com/Mosqlimate-project/Data-platform/commit/7ca796070ed975912da5285f7616cf5e83a122ba))
+
 ## [2.2.10](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.9...2.2.10) (2026-03-12)
 
 
