@@ -1,111 +1,115 @@
 {
   "privacy": {
-    "title": "Privacy Policy",
-    "effectiveDate": "Effective Date: March 10, 2026",
-    "summary": "This policy explains how we collect, use, store, and protect personal data when you use the platform.",
+    "title": "Privacy Policy – Mosqlimate",
+    "effectiveDate": "Last updated: March 18, 2026",
+    "summary": "Mosqlimate is committed to protecting personal data in compliance with LGPD (Brazilian Law No. 13.709/2018) and, where applicable, GDPR.",
     "sections": {
+      "scope": {
+        "title": "1. Scope",
+        "content": "This policy applies to global users, specifically developers and researchers using the site and the Mosqlimate API."
+      },
       "dataCollected": {
-        "title": "1. Personal Data Collected",
-        "content": "We may collect information provided directly by users, such as email address, username, profile data, and any content submitted to the platform. We may also collect technical information such as IP address, browser type, and device information."
+        "title": "2. Data Collected",
+        "content": "We collect the following information:\n• Email and basic profile identification.\n• Credentials, access tokens, and API keys.\n• Technical logs (IP address, request headers, and timestamps).\n• API usage metrics and patterns."
       },
       "purpose": {
-        "title": "2. Purpose of Data Processing",
-        "content": "Personal data is used to operate and provide the platform, authenticate users, improve service functionality, maintain security, and communicate important information regarding the user's account."
+        "title": "3. Purpose",
+        "content": "Data is processed for the following purposes:\n• Authentication and technical operation of the platform.\n• Security and prevention of abuse or intrusion attempts.\n• Technical communication regarding your account or API services.\n• Performance and stability improvements."
       },
       "legalBasis": {
-        "title": "3. Legal Basis for Processing",
-        "content": "Personal data may be processed based on user consent, contractual necessity, compliance with legal obligations, or legitimate interests, as permitted under applicable data protection laws."
+        "title": "4. Legal Basis",
+        "content": "Processing is based on contract execution (Terms of Use), legitimate interest in infrastructure security, and, where applicable, user consent."
       },
       "cookies": {
-        "title": "4. Cookies and Similar Technologies",
-        "content": "Cookies may be used to maintain authenticated sessions, remember user preferences, and improve the overall experience of the platform."
+        "title": "5. Cookies",
+        "content": "We use strictly necessary cookies to maintain authenticated sessions and remember technical preferences during navigation."
       },
       "sharing": {
-        "title": "5. Data Sharing",
-        "content": "Personal data is not sold. Information may be shared with infrastructure providers and service partners necessary for the operation of the platform, such as hosting or authentication services."
-      },
-      "internationalTransfer": {
-        "title": "6. International Data Transfers",
-        "content": "If necessary, data may be stored or processed on servers located outside your country. In such cases, reasonable safeguards are implemented to protect personal data."
+        "title": "6. Data Sharing",
+        "content": "We do not sell personal data. Information may only be shared with essential infrastructure providers (e.g., hosting services) required for platform operation."
       },
       "security": {
-        "title": "7. Data Security",
-        "content": "Technical and organizational measures are implemented to protect personal data against unauthorized access, loss, alteration, or disclosure."
+        "title": "7. Security",
+        "content": "Our security measures include data encryption, strict digital and physical access controls, and continuous monitoring against suspicious activity."
       },
       "retention": {
-        "title": "8. Data Retention",
-        "content": "Personal data is retained only for as long as necessary to fulfill the purposes described in this policy or to comply with legal obligations."
+        "title": "8. Retention",
+        "content": "Technical logs and usage metrics may be retained for undefined time for security, auditing, and API integrity analysis."
       },
       "rights": {
-        "title": "9. Data Subject Rights",
-        "content": "Depending on applicable laws, users may request confirmation of data processing, access to personal data, correction of inaccurate data, deletion or anonymization of personal data, and data portability where applicable."
+        "title": "9. Subject Rights",
+        "content": "In compliance with data protection laws, you have the right to access, correct, anonymize, or delete your data, as well as request portability or revoke consent."
       },
-      "dpo": {
-        "title": "10. Data Protection Contact",
-        "content": "To exercise your rights or ask questions regarding personal data processing, you may contact the responsible data controller through the platform’s support channels."
+      "contact": {
+        "title": "10. Contact",
+        "content": "To exercise your rights or clarify privacy questions, please contact us at: mosqlimate@gmail.com"
       },
       "changes": {
-        "title": "11. Changes to This Policy",
-        "content": "This policy may be updated periodically. When updates occur, the effective date will be revised on this page."
+        "title": "11. Changes",
+        "content": "This policy may be updated periodically. Continued use of the platform after updates constitutes awareness and acceptance of the current version."
       }
     },
-    "footer": "For privacy-related requests or questions, please contact support."
+    "footer": "For privacy and data protection inquiries, please contact our support team."
   },
   "tos": {
-    "title": "Terms of Service",
-    "effectiveDate": "Effective Date: March 10, 2026",
-    "summary": "Summary: By accessing or using this service, you agree to comply with these Terms. You are responsible for your account and any content you upload, and you grant us the rights necessary to operate and maintain the platform.",
+    "title": "Terms of Service – Mosqlimate",
+    "effectiveDate": "Last updated: March 18, 2026",
+    "summary": "By accessing or using mosqlimate.org and api.mosqlimate.org, you agree to comply with these Terms. Mosqlimate provides automated access to data and forecasting models for arboviral diseases.",
     "sections": {
       "acceptance": {
         "title": "Acceptance of Terms",
-        "content": "By accessing or using this platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree to these Terms, you may not use the service."
+        "content": "By accessing or using this platform, you agree to be bound by these Terms of Service and all applicable laws. If you do not agree, you may not use the service."
       },
       "accounts": {
         "title": "Accounts & Eligibility",
-        "content": "You must be at least 13 years old to create an account. You are responsible for maintaining the security of your credentials and for all activities conducted under your account. We may suspend or terminate accounts that violate these Terms."
+        "content": "You must be at least 13 years old to create an account. You are responsible for maintaining the security of your credentials. Accounts may be suspended for violations of these Terms."
       },
       "oauth": {
-        "title": "OAuth & Identity Linking",
-        "content": "We may allow authentication via third-party providers. When signing in through OAuth, we may access basic account information such as email and username to verify identity and prevent duplicate accounts. If an existing account matches your email address, accounts may be automatically linked."
+        "title": "OAuth & Identity",
+        "content": "We allow authentication via third-party providers. We may access basic information like email and username to prevent duplicates and automatically link accounts if the email matches."
+      },
+      "apiRules": {
+        "title": "API – Technical Rules",
+        "content": "• Rate Limiting: 60 req/min per token. Limits may change without notice.\n• Authentication: API Key usage is mandatory; keys are personal and non-transferable.\n• Monitoring: All requests may be logged. Suspicious activities may trigger automatic blocking.\n• SLA: Service provided on a 'best-effort' basis with no minimum uptime guarantee."
       },
       "content": {
-        "title": "User Content",
-        "content": "You retain ownership of the content you upload, including avatars and profile information. By uploading content, you grant us a worldwide, non-exclusive license to host, display, and process the content solely for the purpose of operating and improving the service. You must have the rights to any content you upload."
+        "title": "User Content & Data Use",
+        "content": "You retain ownership of your uploaded content. You grant us a license to host and process it to improve the service. Data provided by the platform may come from public sources (subject to original licenses) or be processed by Mosqlimate. Users must respect required attributions."
       },
       "acceptableUse": {
         "title": "Acceptable Use",
-        "content": "You agree not to misuse the platform. Prohibited behavior includes violating laws, impersonating others, uploading harmful or illegal content, attempting to access unauthorized systems, or disrupting the service."
+        "content": "Abusive use of the API, unauthorized mass scraping, intrusion attempts, and the sharing of personal data are strictly prohibited."
       },
-      "externalLinks": {
-        "title": "External Links",
-        "content": "User profiles may contain links to third-party websites. We do not control or monitor these websites and are not responsible for their content, policies, or practices. Visiting external links is done at your own risk."
+      "dataProvenance": {
+        "title": "Provenance & Reproducibility",
+        "content": "We aim to maintain metadata regarding data origin and processing, but we do not guarantee full provenance or total reproducibility due to changes in external sources."
       },
       "intellectualProperty": {
         "title": "Intellectual Property",
-        "content": "All platform software, branding, and design elements are owned by the service operator or its licensors and are protected by intellectual property laws. You may not reproduce, distribute, or reverse engineer any part of the service without permission."
+        "content": "All platform content and infrastructure belong to Mosqlimate and are licensed under GPL-3. Data aggregation and structuring by Mosqlimate may constitute original intellectual property."
       },
-      "availability": {
-        "title": "Service Availability",
-        "content": "We aim to provide reliable service but cannot guarantee uninterrupted availability. The platform may be modified, suspended, or discontinued at any time without prior notice."
+      "citation": {
+        "title": "Academic Citation",
+        "content": "For research use, please cite: \n\nGANEM, F.; VACARO, L. B.; ARAUJO, E. C.; ALVES, L. D.; BASTOS, L.; CARVALHO, L. M.; et al.; COELHO, F. C. Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv, 2024. DOI: 10.48550/arXiv.2405.04415"
       },
       "warranty": {
         "title": "Disclaimer of Warranties",
-        "content": "The service is provided on an 'as is' and 'as available' basis. We make no warranties regarding reliability, accuracy, or fitness for a particular purpose."
+        "content": "Data is provided 'as is'. We do not guarantee completeness or accuracy. Data should not be the sole source for critical decisions (financial, regulatory, or operational)."
       },
       "liability": {
         "title": "Limitation of Liability",
-        "content": "To the maximum extent permitted by law, the platform and its operators shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service."
+        "content": "We are not liable for data loss, interruptions, or third-party decisions based on the data provided."
       },
-      "law": {
-        "title": "Governing Law",
-        "content": "These Terms shall be governed by and interpreted in accordance with the laws applicable in the jurisdiction where the service operator is established."
+      "contact": {
+        "title": "Contact",
+        "content": "Questions regarding these Terms? Contact us at: mosqlimate@gmail.com"
       },
       "changes": {
-        "title": "Changes to the Terms",
-        "content": "We may update these Terms from time to time. Continued use of the platform after updates constitutes acceptance of the revised Terms."
+        "title": "Changes to Terms",
+        "content": "We reserve the right to update these terms. Continued use after changes constitutes acceptance of the new version."
       }
     },
-    "footer": "If you have questions regarding these Terms, please contact support."
+    "footer": "Mosqlimate Project © 2026 - Open source under GPL-3 license."
   },
   "model_sidebar": {
     "description": "Description",

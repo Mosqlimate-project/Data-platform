@@ -10,21 +10,26 @@ import {
   FileText,
   Ban,
   Gavel,
-  RefreshCw
+  RefreshCw,
+  Activity,
+  Database,
+  BookOpen,
+  Mail
 } from 'lucide-react';
 
 const icons: Record<string, React.ReactNode> = {
   acceptance: <FileText className="text-blue-500" />,
   accounts: <UserCheck className="text-green-500" />,
   oauth: <Shield className="text-cyan-500" />,
+  apiRules: <Activity className="text-emerald-500" />,
   content: <Image className="text-purple-500" />,
   acceptableUse: <Ban className="text-red-500" />,
-  externalLinks: <ExternalLink className="text-orange-500" />,
+  dataProvenance: <Database className="text-amber-500" />,
   intellectualProperty: <Shield className="text-indigo-500" />,
-  availability: <AlertCircle className="text-yellow-500" />,
+  citation: <BookOpen className="text-rose-500" />,
   warranty: <AlertCircle className="text-red-500" />,
   liability: <Shield className="text-pink-500" />,
-  law: <Gavel className="text-gray-500" />,
+  contact: <Mail className="text-gray-500" />,
   changes: <RefreshCw className="text-blue-500" />
 };
 
@@ -32,14 +37,15 @@ const sectionKeys = [
   'acceptance',
   'accounts',
   'oauth',
+  'apiRules',
   'content',
   'acceptableUse',
-  'externalLinks',
+  'dataProvenance',
   'intellectualProperty',
-  'availability',
+  'citation',
   'warranty',
   'liability',
-  'law',
+  'contact',
   'changes'
 ];
 
@@ -100,16 +106,16 @@ function Section({
 }) {
   return (
     <div className="flex gap-6">
-      <div className="mt-1">{icon}</div>
+      <div className="mt-1 shrink-0">{icon}</div>
 
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-[var(--color-text)]">
           {title}
         </h2>
 
-        <p className="text-[var(--color-text)] opacity-70 leading-relaxed">
+        <div className="text-[var(--color-text)] opacity-70 leading-relaxed whitespace-pre-line text-sm md:text-base">
           {content}
-        </p>
+        </div>
       </div>
     </div>
   );

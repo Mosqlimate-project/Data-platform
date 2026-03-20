@@ -1,111 +1,115 @@
 {
   "privacy": {
-    "title": "Política de Privacidade",
-    "effectiveDate": "Data de Vigência: 10 de Março de 2026",
-    "summary": "Esta política explica como coletamos, utilizamos, armazenamos e protegemos dados pessoais quando você utiliza a plataforma.",
+    "title": "Política de Privacidade – Mosqlimate",
+    "effectiveDate": "Última atualização: 18 de março de 2026",
+    "summary": "A Mosqlimate está comprometida com a proteção de dados pessoais em conformidade com a LGPD (Lei nº 13.709/2018) e o GDPR, quando aplicável.",
     "sections": {
+      "scope": {
+        "title": "1. Escopo",
+        "content": "Esta política aplica-se a utilizadores globais, com foco em desenvolvedores e investigadores que utilizam o site e a API Mosqlimate."
+      },
       "dataCollected": {
-        "title": "1. Dados Pessoais Coletados",
-        "content": "Podemos coletar informações fornecidas diretamente pelos usuários, como endereço de email, nome de usuário, dados de perfil e qualquer conteúdo enviado à plataforma. Também podemos coletar informações técnicas como endereço IP, tipo de navegador e informações do dispositivo."
+        "title": "2. Dados Coletados",
+        "content": "• Identificação: E-mail e dados básicos de perfil.\n• Credenciais: Tokens de acesso e chaves de API.\n• Logs Técnicos: Endereço IP, headers de requisição e timestamps.\n• Métricas: Dados de volume e padrões de uso da API."
       },
       "purpose": {
-        "title": "2. Finalidade do Tratamento",
-        "content": "Os dados pessoais são utilizados para fornecer e operar a plataforma, autenticar usuários, melhorar funcionalidades, manter a segurança do serviço e comunicar informações importantes relacionadas à conta do usuário."
+        "title": "3. Finalidade",
+        "content": "Os dados são processados para:\n• Autenticação e operação da plataforma.\n• Segurança, auditoria e prevenção de abusos.\n• Comunicação técnica sobre a conta ou API.\n• Otimização de performance do serviço."
       },
       "legalBasis": {
-        "title": "3. Base Legal para o Tratamento",
-        "content": "O tratamento de dados pessoais pode ocorrer com base no consentimento do usuário, execução de contrato, cumprimento de obrigação legal ou interesse legítimo, conforme permitido pela legislação aplicável."
+        "title": "4. Base Legal",
+        "content": "O tratamento baseia-se na execução de contrato (Termos de Uso), no legítimo interesse para segurança da plataforma e, quando necessário, no consentimento explícito do utilizador."
       },
       "cookies": {
-        "title": "4. Cookies e Tecnologias Semelhantes",
-        "content": "Cookies podem ser utilizados para manter sessões autenticadas, lembrar preferências do usuário e melhorar a experiência geral da plataforma."
+        "title": "5. Cookies",
+        "content": "Utilizamos cookies estritamente necessários para manter sessões autenticadas e lembrar preferências técnicas de navegação."
       },
       "sharing": {
-        "title": "5. Compartilhamento de Dados",
-        "content": "Dados pessoais não são vendidos. Informações podem ser compartilhadas com provedores de infraestrutura e parceiros de serviço necessários para o funcionamento da plataforma, como serviços de hospedagem ou autenticação."
-      },
-      "internationalTransfer": {
-        "title": "6. Transferência Internacional de Dados",
-        "content": "Se necessário, os dados podem ser armazenados ou processados em servidores localizados fora do país. Nesses casos, medidas adequadas são adotadas para proteger os dados pessoais."
+        "title": "6. Compartilhamento",
+        "content": "Não vendemos dados pessoais. Informações podem ser partilhadas apenas com provedores de infraestrutura essenciais (ex: hosting) sob rigorosos contratos de confidencialidade."
       },
       "security": {
-        "title": "7. Segurança dos Dados",
-        "content": "Medidas técnicas e organizacionais são adotadas para proteger dados pessoais contra acesso não autorizado, perda, alteração ou divulgação indevida."
+        "title": "7. Segurança",
+        "content": "Implementamos criptografia de dados, controlos de acesso rigorosos e monitorização contínua para prevenir acessos não autorizados."
       },
       "retention": {
-        "title": "8. Retenção de Dados",
-        "content": "Os dados pessoais são mantidos apenas pelo tempo necessário para cumprir as finalidades descritas nesta política ou atender obrigações legais."
+        "title": "8. Retenção",
+        "content": "Logs técnicos e métricas de uso podem ser retidos por tempo indeterminado para fins de segurança, auditoria e análise de integridade da API."
       },
       "rights": {
         "title": "9. Direitos do Titular",
-        "content": "De acordo com a legislação aplicável, o usuário pode solicitar confirmação do tratamento de dados, acesso aos dados pessoais, correção de dados incorretos, exclusão ou anonimização de dados pessoais e portabilidade quando aplicável."
+        "content": "Pode solicitar o acesso, correção, exportação ou eliminação dos seus dados, bem como a revogação de consentimentos anteriormente fornecidos."
       },
-      "dpo": {
-        "title": "10. Contato para Proteção de Dados",
-        "content": "Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados pessoais, o usuário pode entrar em contato com o responsável pelo tratamento através dos canais de suporte da plataforma."
+      "contact": {
+        "title": "10. Contato",
+        "content": "Para exercer os seus direitos ou questões sobre privacidade, contacte-nos em: mosqlimate@gmail.com"
       },
       "changes": {
-        "title": "11. Alterações nesta Política",
-        "content": "Esta política pode ser atualizada periodicamente. Quando alterações ocorrerem, a data de vigência será atualizada nesta página."
+        "title": "11. Alterações",
+        "content": "Esta política pode ser atualizada. O uso continuado da plataforma após mudanças constitui a ciência da nova versão."
       }
     },
-    "footer": "Para dúvidas ou solicitações relacionadas à privacidade, entre em contato com o suporte."
+    "footer": "Para questões relacionadas com privacidade e proteção de dados, contacte o nosso suporte."
   },
   "tos": {
-    "title": "Termos de Serviço",
-    "effectiveDate": "Data de Vigência: 10 de Março de 2026",
-    "summary": "Resumo: Ao acessar ou utilizar este serviço, você concorda em cumprir estes Termos. Você é responsável pela sua conta e por qualquer conteúdo que enviar, e nos concede os direitos necessários para operar e manter a plataforma.",
+    "title": "Termos de Uso – Mosqlimate",
+    "effectiveDate": "Última atualização: 18 de março de 2026",
+    "summary": "O uso da plataforma mosqlimate.org e api.mosqlimate.org implica a aceitação integral destes termos. A Mosqlimate fornece acesso automatizado a dados e modelos de previsão para doenças arbovirais.",
     "sections": {
       "acceptance": {
         "title": "Aceitação dos Termos",
-        "content": "Ao acessar ou utilizar esta plataforma, você concorda em estar vinculado a estes Termos de Serviço e a todas as leis e regulamentos aplicáveis. Caso não concorde com estes Termos, você não poderá utilizar o serviço."
+        "content": "Ao acessar ou utilizar esta plataforma, você concorda em estar vinculado a estes Termos de Serviço e a todas as leis aplicáveis. O uso contínuo constitui aceitação integral."
       },
       "accounts": {
         "title": "Contas e Elegibilidade",
-        "content": "Você deve ter pelo menos 13 anos para criar uma conta. Você é responsável por manter a segurança das suas credenciais e por todas as atividades realizadas em sua conta. Podemos suspender ou encerrar contas que violem estes Termos."
+        "content": "Você deve ter pelo menos 13 anos para criar uma conta. Você é responsável pela segurança de suas credenciais. Contas podem ser suspensas por violação destes termos."
       },
       "oauth": {
-        "title": "OAuth e Vinculação de Identidade",
-        "content": "Podemos permitir autenticação por provedores de terceiros. Ao entrar usando OAuth, podemos acessar informações básicas da conta, como email e nome de usuário, para verificar a identidade e evitar contas duplicadas. Se já existir uma conta com o mesmo email, elas poderão ser vinculadas automaticamente."
+        "title": "OAuth e Identidade",
+        "content": "Permitimos autenticação via terceiros. Podemos acessar email e nome de usuário para evitar duplicatas e vincular contas automaticamente se o email coincidir."
+      },
+      "apiRules": {
+        "title": "API – Regras Técnicas",
+        "content": "• Rate Limiting: 60 req/min por token. Limites podem variar sem aviso.\n• Autenticação: Uso de API Key obrigatório; chaves são pessoais e intransferíveis.\n• Monitoramento: Todas as requisições podem ser registradas. Atividades suspeitas geram bloqueio automático.\n• SLA: Serviço 'best-effort' sem garantia de uptime mínimo."
       },
       "content": {
-        "title": "Conteúdo do Usuário",
-        "content": "Você mantém a propriedade do conteúdo que enviar, incluindo avatares e informações de perfil. Ao enviar conteúdo, você nos concede uma licença mundial e não exclusiva para hospedar, exibir e processar esse conteúdo exclusivamente para operar e melhorar o serviço. Você deve possuir os direitos sobre qualquer conteúdo enviado."
+        "title": "Uso de Dados",
+        "content": "Permitido para pesquisa e desenvolvimento, desde que não viole leis. Dados podem vir de fontes públicas (sujeitos a licenças originais) ou processados pela plataforma Mosqlimate. O usuário deve respeitar as atribuições exigidas."
       },
       "acceptableUse": {
         "title": "Uso Aceitável",
-        "content": "Você concorda em não utilizar a plataforma de forma indevida. Comportamentos proibidos incluem violar leis, se passar por outra pessoa, enviar conteúdo ilegal ou prejudicial, tentar acessar sistemas não autorizados ou interferir no funcionamento do serviço."
+        "content": "É proibido o uso abusivo da API, scraping massivo não autorizado, tentativas de intrusão e a disponibilização de dados pessoais."
       },
-      "externalLinks": {
-        "title": "Links Externos",
-        "content": "Perfis de usuários podem conter links para sites de terceiros. Não controlamos ou monitoramos esses sites e não somos responsáveis por seus conteúdos, políticas ou práticas. O acesso a links externos é por sua conta e risco."
+      "dataProvenance": {
+        "title": "Proveniência e Reprodutibilidade",
+        "content": "Buscamos manter metadados de origem e processamento, mas não garantimos proveniência completa ou reprodutibilidade integral devido a mudanças em fontes externas."
       },
       "intellectualProperty": {
         "title": "Propriedade Intelectual",
-        "content": "Todo o software da plataforma, marca e elementos de design pertencem ao operador do serviço ou aos seus licenciadores e são protegidos por leis de propriedade intelectual. Você não pode reproduzir, distribuir ou realizar engenharia reversa de qualquer parte do serviço sem autorização."
+        "content": "Todo conteúdo e infraestrutura pertencem à Mosqlimate e estão licenciados sob GPL-3. A agregação e estruturação dos dados podem constituir propriedade intelectual própria."
       },
-      "availability": {
-        "title": "Disponibilidade do Serviço",
-        "content": "Nos esforçamos para fornecer um serviço confiável, mas não garantimos disponibilidade ininterrupta. A plataforma pode ser modificada, suspensa ou encerrada a qualquer momento sem aviso prévio."
+      "citation": {
+        "title": "Citação Acadêmica",
+        "content": "Para uso em pesquisas, utilize: \n\nGANEM, F.; VACARO, L. B.; ARAUJO, E. C.; ALVES, L. D.; BASTOS, L.; CARVALHO, L. M.; et al.; COELHO, F. C. Mosqlimate: a platform to providing automatable access to data and forecasting models for arbovirus disease. arXiv, 2024. DOI: 10.48550/arXiv.2405.04415"
       },
       "warranty": {
         "title": "Isenção de Garantias",
-        "content": "O serviço é fornecido 'como está' e 'conforme disponível'. Não oferecemos garantias quanto à confiabilidade, precisão ou adequação a um propósito específico."
+        "content": "Dados fornecidos 'como estão' (as is). Não garantimos completude ou precisão. Não use como única fonte para decisões críticas (financeiras, regulatórias, operacionais)."
       },
       "liability": {
         "title": "Limitação de Responsabilidade",
-        "content": "Na máxima extensão permitida por lei, a plataforma e seus operadores não serão responsáveis por quaisquer danos indiretos, incidentais ou consequenciais decorrentes do uso do serviço."
+        "content": "Não nos responsabilizamos por perda de dados, interrupções ou decisões de terceiros baseadas nos dados disponibilizados."
       },
-      "law": {
-        "title": "Legislação Aplicável",
-        "content": "Estes Termos serão regidos e interpretados de acordo com as leis aplicáveis na jurisdição onde o operador do serviço estiver estabelecido."
+      "contact": {
+        "title": "Contato",
+        "content": "Dúvidas sobre estes Termos? Entre em contato via: mosqlimate@gmail.com"
       },
       "changes": {
         "title": "Alterações nos Termos",
-        "content": "Podemos atualizar estes Termos periodicamente. O uso contínuo da plataforma após as atualizações constitui aceitação dos Termos revisados."
+        "content": "Reservamo-nos o direito de atualizar estes termos. O uso contínuo após mudanças constitui aceitação da nova versão."
       }
     },
-    "footer": "Se você tiver dúvidas sobre estes Termos, entre em contato com o suporte."
+    "footer": "Mosqlimate Project © 2026 - Código aberto sob licença GPL-3."
   },
   "model_sidebar": {
     "description": "Descrição",
