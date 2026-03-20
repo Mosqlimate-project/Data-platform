@@ -60,6 +60,12 @@ jobs:
         pre-commit install
         pre-commit run --all-files
 
+    - name: TypeScript Type Check
+      run: |
+        cd frontend
+        npm install
+        npx tsc --noEmit
+
     - name: Start containers
       run: |
         python contrib/scripts/do_dotenv.py

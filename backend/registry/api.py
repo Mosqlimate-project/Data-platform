@@ -20,6 +20,7 @@ from main.schema import (
 from ninja import Router, Query
 from ninja.pagination import paginate
 from ninja.decorators import decorate_view
+from ninja.errors import ValidationError
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
 
@@ -783,9 +784,9 @@ def list_predictions(
     include_in_schema=True,
 )
 @decorate_view(csrf_exempt)
-def create_prediction(request, payload: s.PredictionIn):
+def create_prediction(request, data: s.PredictionIn):
     user = request.auth
-    repo_owner, repo_name = payload.repository.strip("/").split("/", 1)
+    repo_owner, repo_name = data.repository.strip("/").split("/", 1)
 
     model = (
         m.RepositoryModel.objects.select_related(
@@ -800,14 +801,23 @@ def create_prediction(request, payload: s.PredictionIn):
     )
 
     if not model:
-        return 422, {
-            "message": f"Repository '{payload.repository}' not found."
-        }
+        return 422, {"message": f"Repository '{data.repository}' not found."}
 
-    if model.sprint and payload.case_definition == "reported":
+    if model.sprint and data.case_definition == "reported":
         return 422, {
             "message": "Predictions for IMDC Sprint must use probable cases"
         }
+
+    try:
+        data = s.PredictionIn.model_validate(
+            data,
+            context={
+                "time_resolution": model.time_resolution,
+                "is_sprint": model.sprint is not None,
+            },
+        )
+    except ValidationError as e:
+        return 422, {"message": e.errors()}
 
     repo = model.repository
     has_permission = False
@@ -879,7 +889,7 @@ def create_prediction(request, payload: s.PredictionIn):
         }
 
     Adm, payload_adm, db_field = config
-    geocode = getattr(payload, payload_adm)
+    geocode = getattr(data, payload_adm)
 
     if not geocode:
         return 422, {
@@ -901,10 +911,10 @@ def create_prediction(request, payload: s.PredictionIn):
 
     prediction = m.QuantitativePrediction(
         model=model,
-        commit=payload.commit,
-        description=payload.description,
-        case_definition=payload.case_definition,
-        published=payload.published,
+        commit=data.commit,
+        description=data.description,
+        case_definition=data.case_definition,
+        published=data.published,
         **adms,
     )
 
@@ -922,7 +932,7 @@ def create_prediction(request, payload: s.PredictionIn):
             upper_90=row.upper_90,
             upper_95=row.upper_95,
         )
-        for row in payload.prediction
+        for row in data.prediction
     ]
 
     if not calling_via_swagger(request):
