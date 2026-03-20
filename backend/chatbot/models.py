@@ -10,10 +10,9 @@ class ChatSession(models.Model):
         User, on_delete=models.SET_NULL, null=True, related_name="chats"
     )
     session_key = models.CharField(
-        unique=True,
-        db_index=True,
-        null=False,
+        unique=True, db_index=True, null=False, max_length=255
     )
+    language = models.CharField(max_length=10, default="en")
     start_time = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(auto_now_add=True)
 

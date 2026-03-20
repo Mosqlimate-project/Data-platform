@@ -74,12 +74,12 @@ export default function Chatbot() {
           socketRef.current.close();
         }
 
+        setMessages([]);
+
         const ws = new WebSocket(wsUrl);
         socketRef.current = ws;
 
         ws.onopen = () => {
-          console.log("WebSocket Connected to:", wsUrl);
-
           pingInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({ type: "ping" }));
@@ -89,17 +89,12 @@ export default function Chatbot() {
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-
           if (!data.text) return;
 
           setMessages((prev) => {
             const withoutWaiting = prev.filter(m => m.source !== "waiting");
             return [...withoutWaiting, data.text];
           });
-        };
-
-        ws.onerror = (e) => {
-          console.error("WebSocket Error:", e);
         };
 
         ws.onclose = () => {
