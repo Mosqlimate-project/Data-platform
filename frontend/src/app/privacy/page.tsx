@@ -11,34 +11,36 @@ import {
   Globe,
   Gavel,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Activity,
+  History
 } from "lucide-react";
 
 const icons: Record<string, React.ReactNode> = {
+  scope: <Globe className="text-cyan-500" />,
   dataCollected: <Database className="text-blue-500" />,
-  purpose: <User className="text-green-500" />,
+  purpose: <Activity className="text-green-500" />,
   legalBasis: <Gavel className="text-purple-500" />,
   cookies: <Cookie className="text-orange-500" />,
   sharing: <Share2 className="text-indigo-500" />,
-  internationalTransfer: <Globe className="text-cyan-500" />,
   security: <Lock className="text-red-500" />,
-  retention: <Database className="text-yellow-500" />,
+  retention: <History className="text-amber-500" />,
   rights: <User className="text-pink-500" />,
-  dpo: <Shield className="text-gray-500" />,
+  contact: <Shield className="text-gray-500" />,
   changes: <RefreshCw className="text-blue-500" />
 };
 
 const sectionKeys = [
+  "scope",
   "dataCollected",
   "purpose",
   "legalBasis",
   "cookies",
   "sharing",
-  "internationalTransfer",
   "security",
   "retention",
   "rights",
-  "dpo",
+  "contact",
   "changes"
 ];
 
@@ -99,16 +101,16 @@ function Section({
 }) {
   return (
     <div className="flex gap-6">
-      <div className="mt-1">{icon}</div>
+      <div className="mt-1 shrink-0">{icon}</div>
 
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-[var(--color-text)]">
           {title}
         </h2>
 
-        <p className="text-[var(--color-text)] opacity-70 leading-relaxed">
+        <div className="text-[var(--color-text)] opacity-70 leading-relaxed whitespace-pre-line text-sm md:text-base">
           {content}
-        </p>
+        </div>
       </div>
     </div>
   );
