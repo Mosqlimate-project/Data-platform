@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Literal, List
 from pydantic import model_validator, field_validator, ValidationInfo
 
+from epiweeks import Week
 from ninja import Field
 from ninja.errors import HttpError
 from django.db.models import Min, Max
@@ -239,28 +240,48 @@ class PredictionIn(Schema):
             raise HttpError(422, "Duplicate dates found in predictions.")
 
         for i in range(len(dates) - 1):
+            diff = dates[i + 1] - dates[i]
+
             if time_res == "week":
-                diff = dates[i + 1] - dates[i]
                 if diff != timedelta(weeks=1):
                     raise HttpError(
                         422,
                         (
                             "Gap detected: missing week between "
-                            f"{dates[i].date()} and {dates[i + 1].date()}."
+                            f"{dates[i]} and {dates[i + 1]}."
+                        ),
+                    )
+
+            elif time_res == "day":
+                if diff != timedelta(days=1):
+                    raise HttpError(
+                        422,
+                        (
+                            f"Gap detected: missing day between {dates[i]} "
+                            f"and {dates[i + 1]}."
                         ),
                     )
 
         for p in self.prediction:
-            if time_res == "week" and p.date.weekday() != 6:
-                raise HttpError(422, f"Date {p.date.date()} is not a Sunday.")
+            ew = Week.fromdate(p.date)
 
-            if is_sprint:
-                week = p.date.isocalendar()[1]
-                if not (41 <= week or week <= 40):
+            if time_res == "week":
+                if ew.startdate() != p.date:
                     raise HttpError(
                         422,
                         (
-                            f"Date {p.date.date()} is outside "
+                            f"Date {p.date} is not the start of CDC week "
+                            f"{ew.week} (Sunday)."
+                        ),
+                    )
+
+            if is_sprint:
+                week_num = ew.week
+                if not (41 <= week_num or week_num <= 40):
+                    raise HttpError(
+                        422,
+                        (
+                            f"Date {p.date} (Epiweek {week_num}) is outside "
                             "sprint range (W41-W40)."
                         ),
                     )

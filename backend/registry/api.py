@@ -1,3 +1,5 @@
+import hashlib
+import json
 from collections import defaultdict
 from typing import List
 from urllib.parse import urlparse
@@ -819,12 +821,35 @@ def create_prediction(request, data: s.PredictionIn):
     except ValidationError as e:
         return 422, {"message": e.errors()}
 
+    incoming_preds = [row.pred for row in data.prediction]
+    incoming_hash = hashlib.sha256(
+        json.dumps(incoming_preds).encode()
+    ).hexdigest()
+
+    existing_predictions = m.QuantitativePrediction.objects.filter(
+        model=model
+    ).prefetch_related("data")
+
+    for pred in existing_predictions:
+        existing_preds = list(
+            pred.data.values_list("pred", flat=True).order_by("date")
+        )
+        existing_hash = hashlib.sha256(
+            json.dumps(existing_preds).encode()
+        ).hexdigest()
+
+        if incoming_hash == existing_hash:
+            return 422, {
+                "message": (
+                    "Duplication found for this Prediction within the Model"
+                )
+            }
+
     repo = model.repository
     has_permission = False
 
     if repo.owner == user:
         has_permission = True
-
     elif repo.organization:
         is_org_admin = m.OrganizationMembership.objects.filter(
             organization=repo.organization,
@@ -858,7 +883,6 @@ def create_prediction(request, data: s.PredictionIn):
         )
 
     adms = {"adm0": None, "adm1": None, "adm2": None, "adm3": None}
-
     adm_config = {
         m.RepositoryModel.AdministrativeLevel.NATIONAL: (
             m.Adm0,
@@ -879,12 +903,10 @@ def create_prediction(request, data: s.PredictionIn):
     }
 
     config = adm_config.get(model.adm_level)
-
     if not config:
         return 500, {
             "message": (
-                "Server Error: Unknown administrative "
-                f"level find in Model '{model.adm_level}'"
+                f"Server Error: Unknown administrative level {model.adm_level}"
             )
         }
 
@@ -895,19 +917,14 @@ def create_prediction(request, data: s.PredictionIn):
         return 422, {
             "message": (
                 f"Model requires administrative level {model.adm_level},"
-                f" but '{payload_adm}' is missing or empty."
+                f" but '{payload_adm}' is missing."
             )
         }
 
     try:
         adms[db_field] = Adm.objects.get(pk=geocode)
     except Adm.DoesNotExist:
-        return 422, {
-            "message": (
-                f"Administrative unit '{geocode}' "
-                f"not found in {Adm._meta.verbose_name}."
-            )
-        }
+        return 422, {"message": f"Administrative unit '{geocode}' not found."}
 
     prediction = m.QuantitativePrediction(
         model=model,
