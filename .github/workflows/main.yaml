@@ -49,6 +49,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        poetry config virtualenvs.create false
         poetry install --no-root
 
     - name: Clean Conda Cache
@@ -59,6 +60,12 @@ jobs:
       run: |
         pre-commit install
         pre-commit run --all-files
+
+    - name: TypeScript Type Check
+      run: |
+        cd frontend
+        npm install
+        npx tsc --noEmit
 
     - name: Start containers
       run: |

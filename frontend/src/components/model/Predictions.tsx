@@ -535,7 +535,8 @@ export default function PredictionsList({ predictions, canManage = false }: Pred
                 <LineChart
                   data={historicalCases}
                   predictions={chartData ? [chartData] : []}
-                  activeIntervals={activeIntervalsSet}
+                  globalIntervals={activeIntervalsSet}
+                  visibleBounds={chartData ? new Set([chartData.id]) : new Set()}
                   height="100%"
                 />
               </div>

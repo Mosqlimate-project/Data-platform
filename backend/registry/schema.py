@@ -1,9 +1,10 @@
 import re
 from datetime import date as dt
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Literal, List
-from pydantic import model_validator, field_validator
+from pydantic import model_validator, field_validator, ValidationInfo
 
+from epiweeks import Week
 from ninja import Field
 from ninja.errors import HttpError
 from django.db.models import Min, Max
@@ -169,7 +170,8 @@ class PredictionDataRowSchema(Schema):
     @model_validator(mode="after")
     def validate_bounds(cls, values):
         if not (
-            values.lower_95
+            0
+            <= values.lower_95
             <= values.lower_90
             <= values.lower_80
             <= values.lower_50
@@ -180,7 +182,11 @@ class PredictionDataRowSchema(Schema):
             <= values.upper_95
         ):
             raise HttpError(
-                422, "Prediction bounds are not in the correct order"
+                422,
+                (
+                    "Prediction bounds are not in the correct order or "
+                    "contain negative values"
+                ),
             )
         return values
 
@@ -217,6 +223,70 @@ class PredictionIn(Schema):
     )
     adm_3: Optional[int] = Field(None, description="Sub-municipality geocode")
     prediction: List[PredictionDataRowSchema]
+
+    @model_validator(mode="after")
+    def validate_prediction(self, info: ValidationInfo) -> "PredictionIn":
+        context = info.context or {}
+        time_res = context.get("time_resolution")
+        is_sprint = context.get("is_sprint", False)
+
+        if not self.prediction:
+            raise HttpError(422, "Prediction list cannot be empty.")
+
+        sorted_data = sorted(self.prediction, key=lambda x: x.date)
+        dates = [p.date for p in sorted_data]
+
+        if len(dates) != len(set(dates)):
+            raise HttpError(422, "Duplicate dates found in predictions.")
+
+        for i in range(len(dates) - 1):
+            diff = dates[i + 1] - dates[i]
+
+            if time_res == "week":
+                if diff != timedelta(weeks=1):
+                    raise HttpError(
+                        422,
+                        (
+                            "Gap detected: missing week between "
+                            f"{dates[i]} and {dates[i + 1]}."
+                        ),
+                    )
+
+            elif time_res == "day":
+                if diff != timedelta(days=1):
+                    raise HttpError(
+                        422,
+                        (
+                            f"Gap detected: missing day between {dates[i]} "
+                            f"and {dates[i + 1]}."
+                        ),
+                    )
+
+        for p in self.prediction:
+            ew = Week.fromdate(p.date)
+
+            if time_res == "week":
+                if ew.startdate() != p.date:
+                    raise HttpError(
+                        422,
+                        (
+                            f"Date {p.date} is not the start of CDC week "
+                            f"{ew.week} (Sunday)."
+                        ),
+                    )
+
+            if is_sprint:
+                week_num = ew.week
+                if not (41 <= week_num or week_num <= 40):
+                    raise HttpError(
+                        422,
+                        (
+                            f"Date {p.date} (Epiweek {week_num}) is outside "
+                            "sprint range (W41-W40)."
+                        ),
+                    )
+
+        return self
 
     @field_validator("repository")
     @classmethod

@@ -1,3 +1,5 @@
+import hashlib
+import json
 from collections import defaultdict
 from typing import List
 from urllib.parse import urlparse
@@ -20,6 +22,7 @@ from main.schema import (
 from ninja import Router, Query
 from ninja.pagination import paginate
 from ninja.decorators import decorate_view
+from ninja.errors import ValidationError
 from users.auth import UidKeyAuth, JWTAuth
 from users.providers import GithubProvider, GitlabProvider
 
@@ -783,9 +786,9 @@ def list_predictions(
     include_in_schema=True,
 )
 @decorate_view(csrf_exempt)
-def create_prediction(request, payload: s.PredictionIn):
+def create_prediction(request, data: s.PredictionIn):
     user = request.auth
-    repo_owner, repo_name = payload.repository.strip("/").split("/", 1)
+    repo_owner, repo_name = data.repository.strip("/").split("/", 1)
 
     model = (
         m.RepositoryModel.objects.select_related(
@@ -800,21 +803,53 @@ def create_prediction(request, payload: s.PredictionIn):
     )
 
     if not model:
-        return 422, {
-            "message": f"Repository '{payload.repository}' not found."
-        }
+        return 422, {"message": f"Repository '{data.repository}' not found."}
 
-    if model.sprint and payload.case_definition == "reported":
+    if model.sprint and data.case_definition == "reported":
         return 422, {
             "message": "Predictions for IMDC Sprint must use probable cases"
         }
+
+    try:
+        data = s.PredictionIn.model_validate(
+            data,
+            context={
+                "time_resolution": model.time_resolution,
+                "is_sprint": model.sprint is not None,
+            },
+        )
+    except ValidationError as e:
+        return 422, {"message": e.errors()}
+
+    incoming_preds = [row.pred for row in data.prediction]
+    incoming_hash = hashlib.sha256(
+        json.dumps(incoming_preds).encode()
+    ).hexdigest()
+
+    existing_predictions = m.QuantitativePrediction.objects.filter(
+        model=model
+    ).prefetch_related("data")
+
+    for pred in existing_predictions:
+        existing_preds = list(
+            pred.data.values_list("pred", flat=True).order_by("date")
+        )
+        existing_hash = hashlib.sha256(
+            json.dumps(existing_preds).encode()
+        ).hexdigest()
+
+        if incoming_hash == existing_hash:
+            return 422, {
+                "message": (
+                    "Duplication found for this Prediction within the Model"
+                )
+            }
 
     repo = model.repository
     has_permission = False
 
     if repo.owner == user:
         has_permission = True
-
     elif repo.organization:
         is_org_admin = m.OrganizationMembership.objects.filter(
             organization=repo.organization,
@@ -848,7 +883,6 @@ def create_prediction(request, payload: s.PredictionIn):
         )
 
     adms = {"adm0": None, "adm1": None, "adm2": None, "adm3": None}
-
     adm_config = {
         m.RepositoryModel.AdministrativeLevel.NATIONAL: (
             m.Adm0,
@@ -869,42 +903,35 @@ def create_prediction(request, payload: s.PredictionIn):
     }
 
     config = adm_config.get(model.adm_level)
-
     if not config:
         return 500, {
             "message": (
-                "Server Error: Unknown administrative "
-                f"level find in Model '{model.adm_level}'"
+                f"Server Error: Unknown administrative level {model.adm_level}"
             )
         }
 
     Adm, payload_adm, db_field = config
-    geocode = getattr(payload, payload_adm)
+    geocode = getattr(data, payload_adm)
 
     if not geocode:
         return 422, {
             "message": (
                 f"Model requires administrative level {model.adm_level},"
-                f" but '{payload_adm}' is missing or empty."
+                f" but '{payload_adm}' is missing."
             )
         }
 
     try:
         adms[db_field] = Adm.objects.get(pk=geocode)
     except Adm.DoesNotExist:
-        return 422, {
-            "message": (
-                f"Administrative unit '{geocode}' "
-                f"not found in {Adm._meta.verbose_name}."
-            )
-        }
+        return 422, {"message": f"Administrative unit '{geocode}' not found."}
 
     prediction = m.QuantitativePrediction(
         model=model,
-        commit=payload.commit,
-        description=payload.description,
-        case_definition=payload.case_definition,
-        published=payload.published,
+        commit=data.commit,
+        description=data.description,
+        case_definition=data.case_definition,
+        published=data.published,
         **adms,
     )
 
@@ -922,7 +949,7 @@ def create_prediction(request, payload: s.PredictionIn):
             upper_90=row.upper_90,
             upper_95=row.upper_95,
         )
-        for row in payload.prediction
+        for row in data.prediction
     ]
 
     if not calling_via_swagger(request):
