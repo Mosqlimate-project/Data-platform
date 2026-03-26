@@ -3,6 +3,7 @@ import { DashboardSidebar } from "@/components/dashboard/Sidebar";
 import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import { Loader2 } from "lucide-react";
 import { DashboardProvider } from "@/context/Dashboard";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -10,11 +11,20 @@ async function getSections() {
   try {
     if (!NEXT_PUBLIC_FRONTEND_URL) return [];
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    const headers: Record<string, string> = {
+      "x-internal-secret": FRONTEND_SECRET || "",
+    };
+
+    if (token) {
+      headers["cookie"] = `access_token=${token}`;
+    }
+
     const res = await fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/vis/dashboard/categories/`, {
       cache: "no-store",
-      headers: {
-        "x-internal-secret": FRONTEND_SECRET || ""
-      }
+      headers: headers,
     });
 
     if (!res.ok) return [];

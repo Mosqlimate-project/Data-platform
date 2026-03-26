@@ -1,19 +1,27 @@
 import { NEXT_PUBLIC_FRONTEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import Models from "./Models";
+import { cookies } from "next/headers";
 
 async function getData() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+
+  const headers: Record<string, string> = {
+    "x-internal-secret": FRONTEND_SECRET || "",
+  };
+
+  if (token) {
+    headers["cookie"] = `access_token=${token}`;
+  }
+
   const [modelsRes, tagsRes] = await Promise.all([
     fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/thumbnails/`, {
       cache: "no-store",
-      headers: {
-        "x-internal-secret": FRONTEND_SECRET || ""
-      }
+      headers: headers,
     }),
     fetch(`${NEXT_PUBLIC_FRONTEND_URL}/api/registry/models/tags/`, {
       cache: "no-store",
-      headers: {
-        "x-internal-secret": FRONTEND_SECRET || ""
-      }
+      headers: headers,
     })
   ]);
 

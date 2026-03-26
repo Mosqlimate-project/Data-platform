@@ -6,12 +6,12 @@ interface ThumbnailProps {
   owner: string;
   repo: string;
   avatar_url: string | null;
-  disease: string;
+  diseases: string[];
   predictions: number;
   last_update: number;
   category?: string;
   time_resolution?: string;
-  adm_level?: string;
+  adm_levels: string[];
   imdc?: string;
 }
 
@@ -38,12 +38,12 @@ export default function Thumbnail({
   owner,
   repo,
   avatar_url,
-  disease,
+  diseases,
   predictions,
   last_update,
   category,
   time_resolution,
-  adm_level,
+  adm_levels,
   imdc
 }: ThumbnailProps) {
   const router = useRouter();
@@ -76,10 +76,14 @@ export default function Thumbnail({
       </div>
 
       <div className="flex flex-wrap gap-1.5 mb-4">
-        <Badge text={disease} color="blue" />
+        {diseases?.map((d) => (
+          <Badge key={d} text={d} color="blue" />
+        ))}
         {category && <Badge text={category} color="emerald" />}
         {time_resolution && <Badge text={time_resolution} color="amber" />}
-        {adm_level && <Badge text={adm_level} color="purple" />}
+        {adm_levels?.map((lvl) => (
+          <Badge key={lvl} text={lvl} color="purple" />
+        ))}
         {imdc && <Badge text={imdc} color="rose" />}
       </div>
 
@@ -104,7 +108,7 @@ function Badge({ text, color }: { text: string; color: 'blue' | 'emerald' | 'amb
   };
 
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${colors[color]} group-hover:bg-white/20 group-hover:text-white`}>
+    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${colors[color]} group-hover:bg-white/20 group-hover:text-white whitespace-nowrap`}>
       {text}
     </span>
   );

@@ -13,12 +13,12 @@ type Model = {
   owner: string;
   repository: string;
   avatar_url: string | null;
-  disease: string;
+  diseases: string[];
   predictions: number;
   last_update: number;
   category_display?: string;
   time_resolution_display?: string;
-  adm_level_display?: string;
+  adm_levels: string[];
   imdc_year?: string;
 };
 
@@ -75,18 +75,6 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
       return selectedTags.every((tagId) => {
         const tag = tags.find((t) => t.id === tagId);
         if (!tag) return false;
-
-        if (tag.category === "Adm Level") {
-          return m.adm_level_display === tag.name;
-        }
-
-        if (tag.category === "Category") {
-          return m.category_display === tag.name;
-        }
-
-        if (tag.category === "Time Resolution") {
-          return m.time_resolution_display === tag.name;
-        }
 
         return tag.models.some((tm) => tm.id === m.model_id);
       });
@@ -173,18 +161,18 @@ export default function Models({ models, tags }: { models: Model[]; tags: Tag[] 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 min-h-[400px] content-start">
             {paginatedModels.length > 0 ? (
-              paginatedModels.map((model, idx) => (
+              paginatedModels.map((model) => (
                 <Thumbnail
                   key={`${model.owner}-${model.repository}-${model.model_id}`}
                   owner={model.owner}
                   repo={model.repository}
                   avatar_url={model.avatar_url}
-                  disease={model.disease}
+                  diseases={model.diseases}
                   predictions={model.predictions}
                   last_update={model.last_update}
                   category={model.category_display}
                   time_resolution={model.time_resolution_display}
-                  adm_level={model.adm_level_display}
+                  adm_levels={model.adm_levels}
                   imdc={model.imdc_year}
                 />
               ))

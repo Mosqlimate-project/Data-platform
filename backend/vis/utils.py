@@ -85,7 +85,7 @@ def calculate_score(
         wis=None,
     )
 
-    match prediction.model.disease.code:
+    match prediction.disease.code:
         case "A90":
             disease = "dengue"
         case "A92.5":
@@ -113,7 +113,7 @@ def calculate_score(
         disease=disease,
         start_window_date=start_window_date,
         end_window_date=end_window_date,
-        adm_level=int(prediction.model.adm_level),
+        adm_level=int(prediction.adm_level),
         adm_1=(
             CODES_UF[int(prediction.adm1.geocode)] if prediction.adm1 else None
         ),
