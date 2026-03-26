@@ -7,14 +7,12 @@ from ninja import FilterSchema, Field
 class ModelFilterSchema(FilterSchema):
     id: Optional[int] = Field(None, q="id__exact")
     repository_owner: Optional[str] = Field(
-        None, q="repository__owner__username__icontains"
+        None, q="repository__owner__username__iexact"
     )
     repository_organization: Optional[str] = Field(
-        None, q="repository__organization__name__icontains"
+        None, q="repository__organization__name__iexact"
     )
-    repository_name: Optional[str] = Field(
-        None, q="repository__name__icontains"
-    )
+    repository_name: Optional[str] = Field(None, q="repository__name__iexact")
     disease: Optional[Literal["A90", "A92.0", "A92.5"]] = Field(
         None, q="disease__code__iexact"
     )
