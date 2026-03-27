@@ -42,7 +42,9 @@ class OrganizationMembership(TimestampModel):
         CONTRIBUTOR = "contributor", _("Contributor")
 
     user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        "Organization", on_delete=models.CASCADE, related_name="memberships"
+    )
     role = models.CharField(
         max_length=20, choices=Roles.choices, default="contributor"
     )
