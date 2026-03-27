@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.3.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.12...2.3.0) (2026-03-27)
+
+
+### Features
+
+* **predictions:** move adm_level and disease fields from Model to Prediction ([#477](https://github.com/Mosqlimate-project/Data-platform/issues/477)) ([f5adb6c](https://github.com/Mosqlimate-project/Data-platform/commit/f5adb6cc916291b09f9d536cb54ebb088f137db1))
+
 ## [2.2.12](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.11...2.2.12) (2026-03-26)
 
 
