@@ -71,7 +71,7 @@ class Prediction(Schema):
     published: bool
     created_at: datetime
     adm_level: Literal[0, 1, 2, 3]
-    adm_0: str | None
+    adm_0: str | None = None
     adm_1: int | None = None
     adm_2: int | None = None
     adm_3: int | None = None
@@ -82,29 +82,62 @@ class Prediction(Schema):
 
     @staticmethod
     def resolve_start(obj):
-        return (
-            getattr(obj, "start_date", None)
-            or obj.data.aggregate(d=Min("date"))["d"]
-        )
+        start = getattr(obj, "start_date", None)
+        if start:
+            return start
+        child = getattr(obj, "quantitativeprediction", None)
+        if child:
+            return child.data.aggregate(d=Min("date"))["d"]
+        return None
 
     @staticmethod
     def resolve_end(obj):
-        return (
-            getattr(obj, "end_date", None)
-            or obj.data.aggregate(d=Max("date"))["d"]
-        )
+        end = getattr(obj, "end_date", None)
+        if end:
+            return end
+        child = getattr(obj, "quantitativeprediction", None)
+        if child:
+            return child.data.aggregate(d=Max("date"))["d"]
+        return None
 
     @staticmethod
     def resolve_adm_0(obj):
-        return obj.adm0.geocode if obj.adm0 else None
+        match obj.adm_level:
+            case 0:
+                geocode = obj.adm0.geocode
+            case 1:
+                geocode = obj.adm1.country.geocode
+            case 2:
+                geocode = obj.adm2.adm1.country.geocode
+            case 3:
+                geocode = obj.adm3.adm2.adm1.country.geocode
+            case _:
+                geocode = None
+        return geocode
 
     @staticmethod
     def resolve_adm_1(obj):
-        return obj.adm1.geocode if obj.adm1 else None
+        match obj.adm_level:
+            case 1:
+                geocode = obj.adm1.geocode
+            case 2:
+                geocode = obj.adm2.adm1.geocode
+            case 3:
+                geocode = obj.adm3.adm2.adm1.geocode
+            case _:
+                geocode = None
+        return geocode
 
     @staticmethod
     def resolve_adm_2(obj):
-        return obj.adm2.geocode if obj.adm2 else None
+        match obj.adm_level:
+            case 2:
+                geocode = obj.adm2.geocode
+            case 3:
+                geocode = obj.adm3.adm2.geocode
+            case _:
+                geocode = None
+        return geocode
 
     @staticmethod
     def resolve_adm_3(obj):
@@ -113,7 +146,6 @@ class Prediction(Schema):
     @staticmethod
     def resolve_scores(obj):
         child = getattr(obj, "quantitativeprediction", None)
-
         if not child:
             return {}
 
@@ -127,7 +159,7 @@ class Prediction(Schema):
         ]
 
         return {
-            field: round(getattr(child, field), 2)
+            field.replace("_score", ""): round(getattr(child, field), 2)
             for field in score_fields
             if getattr(child, field, None) is not None
         }

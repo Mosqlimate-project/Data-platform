@@ -8,9 +8,9 @@
 | model_owner | não | str (icontains) | Proprietário do repositório do modelo |
 | model_organization | não | str (icontains) | Organização do repositório do modelo |
 | model_name | não | str (icontains) | Nome do repositório do modelo {proprietário ou org}/{nome} |
-| model_adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
+| adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
 | model_time_resolution | não | str (iexact) | Opções: day (dia), week (semana), month (mês) ou year (ano) |
-| model_disease | não | str ("A90", "A92.0", "A92.5") | Código da doença do modelo |
+| disease | não | str ("A90", "A92.0", "A92.5") | Código da doença (CID-10) |
 | model_category | não | str (iexact) | Categoria do modelo |
 | model_sprint | não | int/null | Ano IMDC do modelo |
 | start | não | str (AAAA-mm-dd) | Data de modelagem da predição após (maior que) |

@@ -7,8 +7,8 @@
 | repository_owner | não | str (icontains) | Proprietário do repositório do modelo |
 | repository_organization | não | str (icontains) | Organização do repositório do modelo |
 | repository_name | não | str (icontains) | Nome do repositório do modelo {owner ou org}/{nome} |
-| disease | não | str ("A90", "A92.0", "A92.5") | Código da doença |
-| adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
+| disease | não | str ("A90", "A92.0", "A92.5") | Código da doença encontrado nas previsões (CID-10) |
+| adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) encontrado nas previsões |
 | time_resolution | não | str (iexact) | Opções: day (dia), week (semana), month (mês) ou year (ano) |
 | category | não | str (iexact) | Categoria do modelo |
 | sprint | não | int/null | Ano IMDC do modelo |

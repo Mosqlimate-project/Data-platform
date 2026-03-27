@@ -783,7 +783,16 @@ def list_predictions(
     filters: PredictionFilterSchema = Query(...),
 ):
     user = request.auth
-    qs = m.ModelPrediction.objects.all()
+    qs = m.ModelPrediction.objects.select_related(
+        "disease",
+        "model",
+        "adm0",
+        "adm1",
+        "adm2",
+        "adm3",
+        "quantitativeprediction",
+    ).all()
+
     qs = filters.filter(qs)
     qs = qs.annotate(
         start_date=models.Min("quantitativeprediction__data__date"),
@@ -837,6 +846,11 @@ def create_prediction(request, data: s.PredictionIn):
 
     if not model:
         return 422, {"message": f"Repository '{data.repository}' not found."}
+
+    try:
+        disease_obj = m.Disease.objects.get(code__iexact=data.disease)
+    except m.Disease.DoesNotExist:
+        return 422, {"message": f"Disease code '{data.disease}' not found."}
 
     if model.sprint and data.case_definition == "reported":
         return 422, {
@@ -911,7 +925,9 @@ def create_prediction(request, data: s.PredictionIn):
         return (
             403,
             {
-                "message": "You do not have write permission for this repository."
+                "message": (
+                    "You do not have write permission for this repository."
+                )
             },
         )
 
@@ -949,7 +965,6 @@ def create_prediction(request, data: s.PredictionIn):
 
     except (m.Adm0.DoesNotExist,):
         return 422, {"message": f"adm_0 {data.adm_0} not found"}
-
     except (m.Adm1.DoesNotExist,):
         return 422, {"message": f"adm_1 {data.adm_1} - {data.adm_0} not found"}
     except (m.Adm2.DoesNotExist,):
@@ -965,10 +980,12 @@ def create_prediction(request, data: s.PredictionIn):
 
     prediction = m.QuantitativePrediction(
         model=model,
+        disease=disease_obj,
         commit=data.commit,
         description=data.description,
         case_definition=data.case_definition,
         published=data.published,
+        adm_level=data.adm_level,
         **adms,
     )
 

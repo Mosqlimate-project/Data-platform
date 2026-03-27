@@ -13,9 +13,7 @@ class ModelFilterSchema(FilterSchema):
         None, q="repository__organization__name__iexact"
     )
     repository_name: Optional[str] = Field(None, q="repository__name__iexact")
-    disease: Optional[Literal["A90", "A92.0", "A92.5"]] = Field(
-        None, q="predicts__disease__code__iexact"
-    )
+    disease: Optional[str] = Field(None, q="predicts__disease__code__iexact")
     adm_level: Optional[Literal[0, 1, 2, 3]] = Field(
         None, q="predicts__adm_level"
     )
@@ -51,9 +49,7 @@ class PredictionFilterSchema(FilterSchema):
     model_time_resolution: Optional[
         Literal["day", "week", "month", "year"]
     ] = Field(None, q="model__time_resolution__iexact")
-    disease: Optional[Literal["A90", "A92.0", "A92.5"]] = Field(
-        None, q="disease__code__iexact"
-    )
+    disease: Optional[str] = Field(None, q="disease__code__iexact")
     model_category: Optional[
         Literal[
             "quantitative",
