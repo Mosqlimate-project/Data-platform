@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.3.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.3.0...2.3.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **models:** fix related_name for permissions check ([#478](https://github.com/Mosqlimate-project/Data-platform/issues/478)) ([b556180](https://github.com/Mosqlimate-project/Data-platform/commit/b55618076b12c3942c2f3d3baf48fb4da5f5453c))
+
 # [2.3.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.2.12...2.3.0) (2026-03-27)
 
 
