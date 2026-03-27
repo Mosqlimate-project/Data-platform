@@ -764,10 +764,10 @@ def list_models(
         qs = qs.filter(
             models.Q(repository__active=True)
             | models.Q(repository__repository_contributors__user=user)
-        ).distinct()
+        )
     else:
         qs = qs.filter(repository__active=True)
-    return list(qs.order_by("-updated"))
+    return qs.order_by("-updated").distinct()
 
 
 @router.get(
@@ -799,11 +799,11 @@ def list_predictions(
                 models.Q(published=True)
                 & models.Q(model__repository__active=True)
             )
-        ).distinct()
+        )
     else:
         qs = qs.filter(published=True, model__repository__active=True)
 
-    return qs
+    return qs.distinct()
 
 
 @router.post(
@@ -916,48 +916,52 @@ def create_prediction(request, data: s.PredictionIn):
         )
 
     adms = {"adm0": None, "adm1": None, "adm2": None, "adm3": None}
-    adm_config = {
-        m.RepositoryModel.AdministrativeLevel.NATIONAL: (
-            m.Adm0,
-            "adm_0",
-            "adm0",
-        ),
-        m.RepositoryModel.AdministrativeLevel.STATE: (m.Adm1, "adm_1", "adm1"),
-        m.RepositoryModel.AdministrativeLevel.MUNICIPALITY: (
-            m.Adm2,
-            "adm_2",
-            "adm2",
-        ),
-        m.RepositoryModel.AdministrativeLevel.SUB_MUNICIPALITY: (
-            m.Adm3,
-            "adm_3",
-            "adm3",
-        ),
-    }
-
-    config = adm_config.get(model.adm_level)
-    if not config:
-        return 500, {
-            "message": (
-                f"Server Error: Unknown administrative level {model.adm_level}"
-            )
-        }
-
-    Adm, payload_adm, db_field = config
-    geocode = getattr(data, payload_adm)
-
-    if not geocode:
-        return 422, {
-            "message": (
-                f"Model requires administrative level {model.adm_level},"
-                f" but '{payload_adm}' is missing."
-            )
-        }
 
     try:
-        adms[db_field] = Adm.objects.get(pk=geocode)
-    except Adm.DoesNotExist:
-        return 422, {"message": f"Administrative unit '{geocode}' not found."}
+        if data.adm_level == 0:
+            adms["adm0"] = m.Adm0.objects.get(geocode=data.adm_0)
+
+        elif data.adm_level == 1:
+            adms["adm1"] = m.Adm1.objects.get(
+                geocode=data.adm_1, country__geocode=data.adm_0
+            )
+            adms["adm0"] = adms["adm1"].country
+
+        elif data.adm_level == 2:
+            adms["adm2"] = m.Adm2.objects.get(
+                geocode=data.adm_2,
+                adm1__geocode=data.adm_1,
+                adm1__country__geocode=data.adm_0,
+            )
+            adms["adm1"] = adms["adm2"].adm1
+            adms["adm0"] = adms["adm1"].country
+
+        elif data.adm_level == 3:
+            adms["adm3"] = m.Adm3.objects.get(
+                geocode=data.adm_3,
+                adm2__geocode=data.adm_2,
+                adm2__adm1__geocode=data.adm_1,
+                adm2__adm1__country__geocode=data.adm_0,
+            )
+            adms["adm2"] = adms["adm3"].adm2
+            adms["adm1"] = adms["adm2"].adm1
+            adms["adm0"] = adms["adm1"].country
+
+    except (m.Adm0.DoesNotExist,):
+        return 422, {"message": f"adm_0 {data.adm_0} not found"}
+
+    except (m.Adm1.DoesNotExist,):
+        return 422, {"message": f"adm_1 {data.adm_1} - {data.adm_0} not found"}
+    except (m.Adm2.DoesNotExist,):
+        return 422, {
+            "message": (
+                f"adm_2 {data.adm_2} - {data.adm_1} - {data.adm_0} not found"
+            )
+        }
+    except (m.Adm3.DoesNotExist,):
+        return 422, {
+            "message": (f"adm_3 {data.adm_3} not found for specified city")
+        }
 
     prediction = m.QuantitativePrediction(
         model=model,

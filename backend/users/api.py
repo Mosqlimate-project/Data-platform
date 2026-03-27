@@ -795,7 +795,6 @@ def profile_models(request):
             "repository",
             "repository__owner",
             "repository__organization",
-            "disease",
         )
         .distinct()
     )
@@ -825,7 +824,6 @@ def profile_models(request):
                 "owner": owner_name,
                 "provider": repo.provider,
                 "category": model.get_category_display(),
-                "disease": str(model.disease),
                 "can_manage": can_manage,
                 "active": repo.active,
             }
