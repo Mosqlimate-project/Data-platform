@@ -7,8 +7,8 @@
 | repository_owner | no | str _(icontains)_ | Model repo owner | 
 | repository_organization | no | str _(icontains)_ | Model repo org | 
 | repository_name | no | str _(icontains)_ | Model repo name {owner or org}/{name} | 
-| disease | no | str ("A90", "A92.0", "A92.5") | Disease code |
-| adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| disease | no | str ("A90", "A92.0", "A92.5") | Disease code (ICD-10) found in its predictions |
+| adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) found in its predictions |
 | time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
 | category | no | str (iexact) | Model category |
 | sprint | no | int/null | Model IMDC year |

@@ -48,6 +48,16 @@ class JWTAuth(HttpBearer):
             return None
 
 
+class OptionalJWTAuth(JWTAuth):
+    def __call__(self, request):
+        user = super().__call__(request)
+        if user is None:
+            from django.contrib.auth.models import AnonymousUser
+
+            return AnonymousUser()
+        return user
+
+
 class InvalidUIDKey(Exception):
     pass
 

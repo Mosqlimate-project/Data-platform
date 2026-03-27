@@ -8,9 +8,9 @@
 | model_owner | no | str _(icontains)_ | Model repo owner | 
 | model_organization | no | str _(icontains)_ | Model repo org | 
 | model_name | no | str _(icontains)_ | Model repo name {owner or org}/{name} | 
-| model_adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
+| adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) |
 | model_time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
-| model_disease | no | str ("A90", "A92.0", "A92.5") | Model disease code |
+| disease | no | str ("A90", "A92.0", "A92.5") | Disease code (ICD-10) |
 | model_category | no | str (iexact) | Model category |
 | model_sprint | no | int/null | Model IMDC year |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |

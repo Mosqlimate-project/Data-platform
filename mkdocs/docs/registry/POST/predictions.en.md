@@ -56,16 +56,18 @@ Example of the JSON object:
 > The methods presented in this documentation generate real objects in database. To test Mosqlimate API request methods without inserting data, please refer to [API Demo](https://api.mosqlimate.org/api/docs)
 
 ## Input parameters 
-The table below lists the parameters required to register a forecast. If your model refers to `adm_level = 1`, you only need to fill in the `adm_1` parameter and leave `adm_2` as null. The opposite applies if your model refers to `adm_level = 2`.
+The table below lists the parameters required to register a forecast. You need to fill in the other `adm_*` parameters above depending on the `adm_level`; if the forecast is at the state level (1), `adm_0` (country) needs to be filled in to ensure the correct location of the geocode passed.
 
 
 | Parameter name | Type | Description |
 |--|--|--|
 | repository | str | Model repository. Format: "{owner or org}/{name}" | 
+| disease |  str | Disease code (ICD-10); "A90": Dengue, "A92.0": Chikungunya, "A92.5: Zika  |
 | description | str or None | Prediction description |
 | commit | str | Git commit hash to lastest version of Prediction's code in the Model's repository |
 | case_definition | str | "reported" or "probable". The case definition used for the prediction data. |
 | published | bool _(True)_ | Whether this prediction is visible to the public. |
+| adm_level | int (0, 1, 2, 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
 | adm_0 | str _(BRA)_ | Country isocode. Default: "BRA" |
 | adm_1 | int _(UF)_ | State geocode. Example: 33 for RJ |
 | adm_2 | int _(IBGE)_ | City geocode. Example: 3304557 |
@@ -88,7 +90,9 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
     repository = "luabida/.config" 
     description = "test client prediction test client prediction"
     commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d"
-    adm_1 = 33  
+    disease = "A90"
+    adm_level = 1
+    adm_1 = 33
 
     prediction = [
         {
@@ -102,16 +106,20 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
             "upper_80": 1.2,
             "upper_90": 1.3,
             "upper_95": 1.4,
-        }
+        },
+        ...
     ] # Can also be a pandas DataFrame
 
     pred = upload_prediction(
         api_key=api_key,
+        disease=disease,
         repository=repository,
         description=description,
         commit=commit,
         case_definition="probable",
         published=True,
+        adm_level=adm_level,
+        adm_0="BRA",
         adm_1=adm_1,
         prediction=prediction
     )
@@ -125,8 +133,11 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
     post_prediction <- function(
         api_key,
         repository,
+        disease,
         description,
         commit,
+        adm_level,
+        adm_0,
         adm_1,
         prediction,
         case_definition = "probable",
@@ -142,10 +153,12 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
       
       body_list <- list(
         repository = repository,
+        disease = disease,
         description = description,
         commit = commit,
         case_definition = case_definition,
         published = published,
+        adm_0 = adm_0,
         adm_1 = adm_1,
         prediction = prediction
       )
@@ -173,14 +186,18 @@ The `mosqlient` package also accepts a pandas DataFrame with the required keys a
         upper_80 = 1.2,
         upper_90 = 1.3,
         upper_95 = 1.4
-      )
+      ),
+      ...
     )
 
     post_prediction(
       api_key = "your_api_key_here",
       repository = "luabida/.config",
+      disease = "A90",
       description = "test client prediction test client prediction",
       commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d",
+      adm_level = 1,
+      adm_0 = "BRA",
       adm_1 = 33,
       prediction = prediction_data
     )

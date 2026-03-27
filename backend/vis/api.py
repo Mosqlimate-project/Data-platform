@@ -1,7 +1,7 @@
 from typing import List, Optional, Literal
 
 from main.schema import NotFoundSchema
-from users.auth import UidKeyAuth
+from users.auth import OptionalJWTAuth
 from datastore.models import (
     Adm0,
     Adm1,
@@ -21,37 +21,71 @@ from vis import schema
 from ninja import Router, Query
 from ninja.decorators import decorate_view
 from django.views.decorators.cache import never_cache
-from django.db.models import Count, Max, Min
+from django.db.models import Max, Min, Q
 
 
 router = Router()
-uidkey_auth = UidKeyAuth()
+auth = OptionalJWTAuth()
+
+
+def can_manage_filter(user, prefix=""):
+    path = f"{prefix}__" if prefix else ""
+
+    base_filter = Q(**{f"{path}published" if prefix else "published": True})
+
+    if user and user.is_authenticated:
+        if user.is_superuser:
+            return Q()
+
+        repo_path = f"{path}model__repository"
+
+        can_manage = (
+            Q(**{f"{repo_path}__owner": user})
+            | Q(
+                **{
+                    f"{repo_path}__organization__memberships__user": user,
+                    f"{repo_path}__organization__memberships__role__in": [
+                        "OWNER",
+                        "ADMIN",
+                    ],
+                }
+            )
+            | Q(
+                **{
+                    f"{repo_path}__repository_contributors__user": user,
+                    f"{repo_path}__repository_contributors__permission": "ADMIN",
+                }
+            )
+        )
+        return base_filter | can_manage
+
+    return base_filter
 
 
 @router.get(
     "/dashboard/categories/",
     response=List[schema.SectionOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def dashboard_categories(request):
+    perm = can_manage_filter(request.auth)
+
     data = (
-        RepositoryModel.objects.filter(predicts__published=True)
-        .annotate(predictions_count=Count("predicts"))
-        .filter(predictions_count__gt=0)
-        .values_list("sprint_id", "category", "adm_level")
+        ModelPrediction.objects.filter(perm)
+        .values_list("model__sprint_id", "model__category", "adm_level")
         .distinct()
     )
 
     adm_levels = {
-        RepositoryModel.AdministrativeLevel.NATIONAL: ("national", "National"),
-        RepositoryModel.AdministrativeLevel.STATE: ("state", "State"),
-        RepositoryModel.AdministrativeLevel.MUNICIPALITY: (
+        ModelPrediction.AdministrativeLevel.NATIONAL: ("national", "National"),
+        ModelPrediction.AdministrativeLevel.STATE: ("state", "State"),
+        ModelPrediction.AdministrativeLevel.MUNICIPALITY: (
             "municipal",
             "Municipal",
         ),
-        RepositoryModel.AdministrativeLevel.SUB_MUNICIPALITY: (
+        ModelPrediction.AdministrativeLevel.SUB_MUNICIPALITY: (
             "sub_municipal",
             "Sub-Municipal",
         ),
@@ -90,11 +124,7 @@ def dashboard_categories(request):
 
     results = []
     level_order = ["national", "state", "municipal", "sub_municipal"]
-
-    section_definitions = [
-        ("default", "General"),
-        ("sprint", "IMDC"),
-    ]
+    section_definitions = [("default", "General"), ("sprint", "IMDC")]
 
     for section_key, section_label in section_definitions:
         categories_data = sections_structure.get(section_key, {})
@@ -102,7 +132,6 @@ def dashboard_categories(request):
             continue
 
         formatted_categories = []
-
         for group_slug, levels_set in categories_data.items():
             if not levels_set:
                 continue
@@ -128,7 +157,6 @@ def dashboard_categories(request):
             )
 
         formatted_categories.sort(key=lambda x: x["label"])
-
         results.append(
             {
                 "id": section_key,
@@ -143,7 +171,7 @@ def dashboard_categories(request):
 @router.get(
     "/dashboard/diseases/",
     response=List[schema.DashboardDiseasesOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_diseases(
@@ -164,24 +192,26 @@ def dashboard_diseases(
 
     categories = category_map.get(category, [category])
 
-    diseases = Disease.objects.filter(
-        models__adm_level=adm_level,
-        models__category__in=categories,
-        models__predicts__published=True,
+    perm = can_manage_filter(request.auth, prefix="predictions")
+
+    qs = Disease.objects.filter(
+        perm,
+        predictions__adm_level=adm_level,
+        predictions__model__category__in=categories,
     )
 
     if sprint:
-        diseases = diseases.filter(models__sprint__isnull=False)
+        qs = qs.filter(predictions__model__sprint__isnull=False)
     else:
-        diseases = diseases.filter(models__sprint__isnull=True)
+        qs = qs.filter(predictions__model__sprint__isnull=True)
 
-    return diseases.distinct()
+    return qs.distinct()
 
 
 @router.get(
     "/dashboard/countries/",
     response=List[schema.DashboardADMOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_countries(
@@ -209,20 +239,22 @@ def dashboard_countries(
     if adm_level is None:
         return []
 
-    repo_qs = RepositoryModel.objects.filter(
+    perm = can_manage_filter(request.auth)
+
+    qs = ModelPrediction.objects.filter(
+        perm,
         disease__code=disease,
         adm_level=adm_level,
-        category__in=categories,
-        predicts__published=True,
+        model__category__in=categories,
     )
 
     if sprint:
-        repo_qs = repo_qs.filter(sprint__isnull=False)
+        qs = qs.filter(model__sprint__isnull=False)
     else:
-        repo_qs = repo_qs.filter(sprint__isnull=True)
+        qs = qs.filter(model__sprint__isnull=True)
 
-    prediction_geocodes = repo_qs.values_list(
-        f"predicts__adm{adm_level}__geocode", flat=True
+    prediction_geocodes = qs.values_list(
+        f"adm{adm_level}__geocode", flat=True
     ).distinct()
 
     if adm_level == 0:
@@ -235,8 +267,6 @@ def dashboard_countries(
         countries = Adm0.objects.filter(
             states__cities__geocode__in=prediction_geocodes
         )
-    elif adm_level == 3:
-        countries = Adm0.objects.none()
     else:
         countries = Adm0.objects.none()
 
@@ -246,7 +276,7 @@ def dashboard_countries(
 @router.get(
     "/dashboard/states/",
     response=List[schema.DashboardADMOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_states(
@@ -271,25 +301,26 @@ def dashboard_states(
     }
 
     categories = category_map.get(category, [category])
+    perm = can_manage_filter(request.auth)
 
     if adm_level is None:
         return []
 
-    repo_qs = RepositoryModel.objects.filter(
+    qs = ModelPrediction.objects.filter(
+        perm,
         disease__code=disease,
         adm_level=adm_level,
-        category__in=categories,
-        predicts__isnull=False,
-        predicts__published=True,
+        published=True,
+        model__category__in=categories,
     )
 
     if sprint:
-        repo_qs = repo_qs.filter(sprint__isnull=False)
+        qs = qs.filter(model__sprint__isnull=False)
     else:
-        repo_qs = repo_qs.filter(sprint__isnull=True)
+        qs = qs.filter(model__sprint__isnull=True)
 
-    prediction_geocodes = repo_qs.values_list(
-        f"predicts__adm{adm_level}__geocode", flat=True
+    prediction_geocodes = qs.values_list(
+        f"adm{adm_level}__geocode", flat=True
     ).distinct()
 
     if adm_level == 1:
@@ -300,8 +331,6 @@ def dashboard_states(
         states = Adm1.objects.filter(
             cities__geocode__in=prediction_geocodes, country__geocode=country
         )
-    elif adm_level == 3:
-        states = Adm1.objects.none()
     else:
         states = Adm1.objects.none()
 
@@ -311,7 +340,7 @@ def dashboard_states(
 @router.get(
     "/dashboard/cities/",
     response=List[schema.DashboardADMOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_cities(
@@ -337,25 +366,26 @@ def dashboard_cities(
     }
 
     categories = category_map.get(category, [category])
+    perm = can_manage_filter(request.auth)
 
     if adm_level < 2:
         return []
 
-    repo_qs = RepositoryModel.objects.filter(
+    qs = ModelPrediction.objects.filter(
+        perm,
         disease__code=disease,
         adm_level=adm_level,
-        category__in=categories,
-        predicts__isnull=False,
-        predicts__published=True,
+        published=True,
+        model__category__in=categories,
     )
 
     if sprint:
-        repo_qs = repo_qs.filter(sprint__isnull=False)
+        qs = qs.filter(model__sprint__isnull=False)
     else:
-        repo_qs = repo_qs.filter(sprint__isnull=True)
+        qs = qs.filter(model__sprint__isnull=True)
 
-    prediction_geocodes = repo_qs.values_list(
-        f"predicts__adm{adm_level}__geocode", flat=True
+    prediction_geocodes = qs.values_list(
+        f"adm{adm_level}__geocode", flat=True
     ).distinct()
 
     if adm_level == 2:
@@ -364,8 +394,6 @@ def dashboard_cities(
             adm1__geocode=state,
             adm1__country__geocode=country,
         )
-    elif adm_level == 3:
-        cities = Adm2.objects.none()
     else:
         cities = Adm2.objects.none()
 
@@ -375,7 +403,7 @@ def dashboard_cities(
 @router.get(
     "/dashboard/sprints/",
     response=List[schema.DashboardSprintOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_sprints(
@@ -401,12 +429,13 @@ def dashboard_sprints(
     }
 
     categories = category_map.get(category, [category])
+    perm = can_manage_filter(request.auth, prefix="repositorymodel__predicts")
 
     qs = Sprint.objects.filter(
-        repositorymodel__disease__code=disease,
-        repositorymodel__adm_level=adm_level,
+        perm,
+        repositorymodel__predicts__disease__code=disease,
+        repositorymodel__predicts__adm_level=adm_level,
         repositorymodel__category__in=categories,
-        repositorymodel__predicts__published=True,
     )
 
     if adm_level == 0 and country:
@@ -422,7 +451,7 @@ def dashboard_sprints(
 @router.get(
     "/dashboard/predictions/",
     response=List[schema.DashboardPredictionOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -452,11 +481,13 @@ def dashboard_predictions(
 
     categories = category_map.get(category, [category])
 
+    perm = can_manage_filter(request.auth)
+
     qs = QuantitativePrediction.objects.filter(
-        model__disease__code=disease,
-        model__adm_level=adm_level,
+        perm,
+        disease__code=disease,
+        adm_level=adm_level,
         model__category__in=categories,
-        published=True,  # TODO: enabled non-published predictions logged users
     )
 
     if sprint:
@@ -491,22 +522,27 @@ def dashboard_predictions(
 @router.get(
     "/dashboard/prediction/{prediction_id}/metadata/",
     response={200: dict, 404: NotFoundSchema},
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def dashboard_prediction_meta(request, prediction_id: int):
+    perm = can_manage_filter(request.auth)
     try:
-        prediction = QuantitativePrediction.objects.select_related(
-            "model__sprint"
-        ).get(id=prediction_id)
-    except ModelPrediction.DoesNotExist:
-        return {"message": f"Prediction #{prediction_id} not found"}
+        prediction = (
+            QuantitativePrediction.objects.filter(perm)
+            .select_related("model__sprint")
+            .get(id=prediction_id)
+        )
+    except QuantitativePrediction.DoesNotExist:
+        return 404, {
+            "message": f"Prediction #{prediction_id} not found or unauthorized"
+        }
 
     return {
         "id": prediction.id,
-        "disease_code": prediction.model.disease.code,
-        "adm_level": prediction.model.adm_level,
+        "disease_code": prediction.disease.code,
+        "adm_level": prediction.adm_level,
         "case_definition": prediction.case_definition,
         "adm_0_code": prediction.adm0.geocode if prediction.adm0 else None,
         "adm_1_code": prediction.adm1.geocode if prediction.adm1 else None,
@@ -518,10 +554,17 @@ def dashboard_prediction_meta(request, prediction_id: int):
 @router.get(
     "/dashboard/prediction/{prediction_id}/",
     response=List[schema.DashboardQuantitativePredictionOut],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_prediction(request, prediction_id: int):
+    perm = can_manage_filter(request.auth)
+
+    if not QuantitativePrediction.objects.filter(
+        perm, id=prediction_id
+    ).exists():
+        return []
+
     return QuantitativePredictionRow.objects.filter(
         prediction_id=prediction_id
     ).order_by("date")
@@ -530,7 +573,7 @@ def dashboard_prediction(request, prediction_id: int):
 @router.get(
     "/dashboard/cases/",
     response=List[schema.HistoricoAlertaCases],
-    auth=uidkey_auth,
+    auth=auth,
     include_in_schema=False,
 )
 def dashboard_cases(

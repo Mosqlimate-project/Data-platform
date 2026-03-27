@@ -23,7 +23,7 @@ from ninja import Router, Query
 from ninja.pagination import paginate
 from ninja.decorators import decorate_view
 from ninja.errors import ValidationError
-from users.auth import UidKeyAuth, JWTAuth
+from users.auth import UidKeyAuth, JWTAuth, OptionalJWTAuth
 from users.providers import GithubProvider, GitlabProvider
 
 from .utils import calling_via_swagger
@@ -108,19 +108,12 @@ def model_add(request, payload: s.ModelIncludeInit):
             defaults={"permission": m.RepositoryContributor.Permissions.ADMIN},
         )
 
-        try:
-            disease = m.Disease.objects.get(id=payload.disease_id)
-        except m.Disease.DoesNotExist:
-            return 400, {"message": "Unknown Disease."}
-
         sprint_id = payload.sprint if payload.sprint != 0 else None
 
         model, created = m.RepositoryModel.objects.update_or_create(
             repository=repository,
             defaults={
-                "disease": disease,
                 "time_resolution": payload.time_resolution,
-                "adm_level": payload.adm_level,
                 "category": payload.category,
                 "sprint_id": sprint_id,
             },
@@ -155,117 +148,158 @@ def model_add(request, payload: s.ModelIncludeInit):
 @router.get(
     "/models/thumbnails/",
     response=List[s.ModelThumbs],
-    auth=UidKeyAuth(),
+    auth=OptionalJWTAuth(),
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def models_thumbnails(request):
     user = request.auth
+    perm = models.Q(repository__active=True)
+
+    if user and user.is_authenticated:
+        if user.is_superuser:
+            perm = models.Q()
+        else:
+            perm |= (
+                models.Q(repository__owner=user)
+                | models.Q(
+                    repository__organization__memberships__user=user,
+                    repository__organization__memberships__role__in=[
+                        "OWNER",
+                        "ADMIN",
+                    ],
+                )
+                | models.Q(
+                    repository__repository_contributors__user=user,
+                    repository__repository_contributors__permission="ADMIN",
+                )
+            )
 
     qs = (
-        m.RepositoryModel.objects.select_related(
+        m.RepositoryModel.objects.filter(perm)
+        .select_related(
             "repository",
             "repository__organization",
             "repository__owner",
-            "disease",
         )
         .annotate(predictions_count=models.Count("predicts"))
         .filter(predictions_count__gt=0)
+        .distinct()
+        .order_by("-updated")
     )
 
-    if user and (user.is_superuser or user.is_staff):
-        pass
-    elif user:
-        qs = qs.filter(
-            models.Q(repository__active=True)
-            | models.Q(repository__repository_contributors__user=user)
-        ).distinct()
-    else:
-        qs = qs.filter(repository__active=True)
-
-    return qs.order_by("-updated")
+    return list(qs)
 
 
 @router.get(
     "/models/tags/",
     response=List[s.ModelTags],
-    auth=UidKeyAuth(),
+    auth=OptionalJWTAuth(),
     include_in_schema=False,
 )
-@decorate_view(never_cache)
 def models_tags(request, ids: List[int] = Query(None)):
     user = request.auth
 
+    repo_filter = models.Q(repository__active=True)
+
+    if user and user.is_authenticated:
+        if user.is_superuser:
+            repo_filter = models.Q()
+        else:
+            repo_filter |= (
+                models.Q(repository__owner=user)
+                | models.Q(
+                    repository__organization__memberships__user=user,
+                    repository__organization__memberships__role__in=[
+                        "OWNER",
+                        "ADMIN",
+                    ],
+                )
+                | models.Q(
+                    repository__repository_contributors__user=user,
+                    repository__repository_contributors__permission="ADMIN",
+                )
+            )
+
     qs = (
-        m.RepositoryModel.objects.select_related(
-            "disease", "repository", "sprint"
-        )
+        m.RepositoryModel.objects.filter(repo_filter)
         .annotate(predictions_count=models.Count("predicts"))
         .filter(predictions_count__gt=0)
     )
 
-    if user and (user.is_superuser or user.is_staff):
-        pass
-    elif user:
-        qs = qs.filter(
-            models.Q(repository__active=True)
-            | models.Q(repository__repository_contributors__user=user)
-        ).distinct()
-    else:
-        qs = qs.filter(repository__active=True)
-
     if ids:
         qs = qs.filter(id__in=ids)
 
+    model_ids = qs.values_list("id", flat=True)
     tags_map = defaultdict(lambda: {"name": "", "models": set()})
 
-    for model in qs:
-        if model.disease:
-            tag_id = f"dis_{model.disease.id}"
-            key = ("disease", tag_id)
-            tags_map[key]["name"] = str(model.disease)
-            tags_map[key]["models"].add(model.id)
+    disease_data = (
+        m.ModelPrediction.objects.filter(model_id__in=model_ids)
+        .values("disease_id", "disease__code", "model_id")
+        .distinct()
+    )
 
-        if model.adm_level is not None:
-            tag_id = f"adm_{model.adm_level}"
-            key = ("adm_level", tag_id)
-            tags_map[key]["name"] = model.get_adm_level_display()
-            tags_map[key]["models"].add(model.id)
+    for item in disease_data:
+        tag_id = f"dis_{item['disease_id']}"
+        key = ("disease", tag_id)
+        tags_map[key]["name"] = str(item["disease__code"])
+        tags_map[key]["models"].add(item["model_id"])
 
-        if model.category:
-            tag_id = f"cat_{model.category}"
+    adm_data = (
+        m.ModelPrediction.objects.filter(model_id__in=model_ids)
+        .values("adm_level", "model_id")
+        .distinct()
+    )
+
+    adm_choices = dict(m.ModelPrediction.AdministrativeLevel.choices)
+    for item in adm_data:
+        level = item["adm_level"]
+        tag_id = f"adm_{level}"
+        key = ("adm_level", tag_id)
+        tags_map[key]["name"] = str(adm_choices.get(level, f"Level {level}"))
+        tags_map[key]["models"].add(item["model_id"])
+
+    other_fields = qs.values(
+        "id", "category", "time_resolution", "sprint_id", "sprint__year"
+    )
+
+    for row in other_fields:
+        mid = row["id"]
+        if row["category"]:
+            tag_id = f"cat_{row['category']}"
             key = ("model_category", tag_id)
-            tags_map[key]["name"] = model.get_category_display()
-            tags_map[key]["models"].add(model.id)
+            tags_map[key]["name"] = str(
+                row["category"].replace("_", " ").title()
+            )
+            tags_map[key]["models"].add(mid)
 
-        if model.time_resolution:
-            tag_id = f"per_{model.time_resolution}"
+        if row["time_resolution"]:
+            tag_id = f"per_{row['time_resolution']}"
             key = ("periodicity", tag_id)
-            tags_map[key]["name"] = model.get_time_resolution_display()
-            tags_map[key]["models"].add(model.id)
+            tags_map[key]["name"] = str(row["time_resolution"].title())
+            tags_map[key]["models"].add(mid)
 
-        if model.sprint_id:
-            tag_id = f"spr_{model.sprint_id}"
+        if row["sprint_id"]:
+            tag_id = f"spr_{row['sprint_id']}"
             key = ("IMDC", tag_id)
             tags_map[key]["name"] = (
-                str(model.sprint.year)
-                if model.sprint
-                else f"{model.sprint_id}"
+                str(row["sprint__year"])
+                if row["sprint__year"]
+                else str(row["sprint_id"])
             )
-            tags_map[key]["models"].add(model.id)
+            tags_map[key]["models"].add(mid)
 
-    tags = []
-    for (category, tag_id), data in tags_map.items():
-        tags.append(
-            {
-                "id": tag_id,
-                "name": data["name"],
-                "category": category,
-                "models": [{"id": mid} for mid in data["models"]],
-            }
-        )
+    result = [
+        {
+            "id": tag_id,
+            "name": data["name"],
+            "category": cat,
+            "models": [{"id": mid} for mid in data["models"]],
+        }
+        for (cat, tag_id), data in tags_map.items()
+    ]
 
-    return sorted(tags, key=lambda x: (x["category"], x["name"]))
+    return sorted(result, key=lambda x: (x["category"], x["name"]))
 
 
 @router.get(
@@ -297,7 +331,6 @@ def repository_model(request, owner: str, repository: str):
                 "repository",
                 "repository__organization",
                 "repository__owner",
-                "disease",
             )
             .prefetch_related("repository__repository_contributors__user")
             .annotate(predictions=models.Count("predicts"))
@@ -507,7 +540,7 @@ def repository_predictions(request, owner: str, repository: str):
         .select_related(
             "model__repository",
             "model__sprint",
-            "model__disease",
+            "disease",
             "adm0",
             "adm1",
             "adm2",
@@ -731,10 +764,10 @@ def list_models(
         qs = qs.filter(
             models.Q(repository__active=True)
             | models.Q(repository__repository_contributors__user=user)
-        ).distinct()
+        )
     else:
         qs = qs.filter(repository__active=True)
-    return list(qs.order_by("-updated"))
+    return qs.order_by("-updated").distinct()
 
 
 @router.get(
@@ -750,7 +783,16 @@ def list_predictions(
     filters: PredictionFilterSchema = Query(...),
 ):
     user = request.auth
-    qs = m.ModelPrediction.objects.all()
+    qs = m.ModelPrediction.objects.select_related(
+        "disease",
+        "model",
+        "adm0",
+        "adm1",
+        "adm2",
+        "adm3",
+        "quantitativeprediction",
+    ).all()
+
     qs = filters.filter(qs)
     qs = qs.annotate(
         start_date=models.Min("quantitativeprediction__data__date"),
@@ -766,11 +808,11 @@ def list_predictions(
                 models.Q(published=True)
                 & models.Q(model__repository__active=True)
             )
-        ).distinct()
+        )
     else:
         qs = qs.filter(published=True, model__repository__active=True)
 
-    return qs
+    return qs.distinct()
 
 
 @router.post(
@@ -804,6 +846,11 @@ def create_prediction(request, data: s.PredictionIn):
 
     if not model:
         return 422, {"message": f"Repository '{data.repository}' not found."}
+
+    try:
+        disease_obj = m.Disease.objects.get(code__iexact=data.disease)
+    except m.Disease.DoesNotExist:
+        return 422, {"message": f"Disease code '{data.disease}' not found."}
 
     if model.sprint and data.case_definition == "reported":
         return 422, {
@@ -878,60 +925,67 @@ def create_prediction(request, data: s.PredictionIn):
         return (
             403,
             {
-                "message": "You do not have write permission for this repository."
+                "message": (
+                    "You do not have write permission for this repository."
+                )
             },
         )
 
     adms = {"adm0": None, "adm1": None, "adm2": None, "adm3": None}
-    adm_config = {
-        m.RepositoryModel.AdministrativeLevel.NATIONAL: (
-            m.Adm0,
-            "adm_0",
-            "adm0",
-        ),
-        m.RepositoryModel.AdministrativeLevel.STATE: (m.Adm1, "adm_1", "adm1"),
-        m.RepositoryModel.AdministrativeLevel.MUNICIPALITY: (
-            m.Adm2,
-            "adm_2",
-            "adm2",
-        ),
-        m.RepositoryModel.AdministrativeLevel.SUB_MUNICIPALITY: (
-            m.Adm3,
-            "adm_3",
-            "adm3",
-        ),
-    }
-
-    config = adm_config.get(model.adm_level)
-    if not config:
-        return 500, {
-            "message": (
-                f"Server Error: Unknown administrative level {model.adm_level}"
-            )
-        }
-
-    Adm, payload_adm, db_field = config
-    geocode = getattr(data, payload_adm)
-
-    if not geocode:
-        return 422, {
-            "message": (
-                f"Model requires administrative level {model.adm_level},"
-                f" but '{payload_adm}' is missing."
-            )
-        }
 
     try:
-        adms[db_field] = Adm.objects.get(pk=geocode)
-    except Adm.DoesNotExist:
-        return 422, {"message": f"Administrative unit '{geocode}' not found."}
+        if data.adm_level == 0:
+            adms["adm0"] = m.Adm0.objects.get(geocode=data.adm_0)
+
+        elif data.adm_level == 1:
+            adms["adm1"] = m.Adm1.objects.get(
+                geocode=data.adm_1, country__geocode=data.adm_0
+            )
+            adms["adm0"] = adms["adm1"].country
+
+        elif data.adm_level == 2:
+            adms["adm2"] = m.Adm2.objects.get(
+                geocode=data.adm_2,
+                adm1__geocode=data.adm_1,
+                adm1__country__geocode=data.adm_0,
+            )
+            adms["adm1"] = adms["adm2"].adm1
+            adms["adm0"] = adms["adm1"].country
+
+        elif data.adm_level == 3:
+            adms["adm3"] = m.Adm3.objects.get(
+                geocode=data.adm_3,
+                adm2__geocode=data.adm_2,
+                adm2__adm1__geocode=data.adm_1,
+                adm2__adm1__country__geocode=data.adm_0,
+            )
+            adms["adm2"] = adms["adm3"].adm2
+            adms["adm1"] = adms["adm2"].adm1
+            adms["adm0"] = adms["adm1"].country
+
+    except (m.Adm0.DoesNotExist,):
+        return 422, {"message": f"adm_0 {data.adm_0} not found"}
+    except (m.Adm1.DoesNotExist,):
+        return 422, {"message": f"adm_1 {data.adm_1} - {data.adm_0} not found"}
+    except (m.Adm2.DoesNotExist,):
+        return 422, {
+            "message": (
+                f"adm_2 {data.adm_2} - {data.adm_1} - {data.adm_0} not found"
+            )
+        }
+    except (m.Adm3.DoesNotExist,):
+        return 422, {
+            "message": (f"adm_3 {data.adm_3} not found for specified city")
+        }
 
     prediction = m.QuantitativePrediction(
         model=model,
+        disease=disease_obj,
         commit=data.commit,
         description=data.description,
         case_definition=data.case_definition,
         published=data.published,
+        adm_level=data.adm_level,
         **adms,
     )
 

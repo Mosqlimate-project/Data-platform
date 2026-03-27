@@ -19,7 +19,6 @@ interface ProfileModel {
   owner: string;
   provider: string;
   category: string;
-  disease: string;
   can_manage: boolean;
   active: boolean;
 }
@@ -88,7 +87,6 @@ export default function ModelsPage() {
               <thead className="bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700">
                 <tr>
                   <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.name')}</th>
-                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.disease')}</th>
                   <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">{t('profile_models.table.category')}</th>
                   <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-center">{t('profile_models.table.status')}</th>
                   <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white text-right">{t('profile_models.table.actions')}</th>
@@ -114,11 +112,6 @@ export default function ModelsPage() {
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                        {model.disease}
-                      </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                       {model.category}

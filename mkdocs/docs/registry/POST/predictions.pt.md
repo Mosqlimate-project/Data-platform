@@ -56,16 +56,18 @@ Exemplo do objeto JSON:
 > Os métodos apresentados nesta documentação geram objetos reais no banco de dados. Para testar os métodos de requisição da API Mosqlimate sem inserir dados, consulte a [Demonstração da API](https://api.mosqlimate.org/api/docs).
 
 ## Parâmetros de Entrada
-A tabela abaixo lista os parâmetros necessários para registrar uma previsão. Se o seu modelo se refere a `adm_level = 1`, você só precisa preencher o parâmetro `adm_1` e deixar `adm_2` como nulo. O oposto se aplica se o seu modelo se refere a `adm_level = 2`.
+A tabela abaixo lista os parâmetros necessários para registrar uma previsão. Você precisa preencher os outros parametros `adm_*` anteriores dependendo do `adm_level`; se a previsão for a nivel estadual (1), o `adm_0` (país) precisa ser preenchido para garantir a localização correta do geocódigo passado.
 
 
 | Nome do Parâmetro | Tipo | Descrição |
 |---|---|---|
 | repository | str | Repositório do modelo. Formato: "{proprietário ou org}/{nome}" |
+| disease | str | Código da doença (CID-10); "A90": Dengue, "A92.0": Chikungunya, "A92.5: Zika  |
 | description | str ou None | Descrição da predição |
 | commit | str | Hash do commit Git para a versão mais recente do código da predição no repositório do modelo |
 | case_definition | str | "reported" (notificado) ou "probable" (provável). A definição de caso usada para os dados da predição. |
 | published | bool (True) | Se esta predição está visível para o público. |
+| adm_level | int (0, 1, 2, 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) |
 | adm_0 | str (BRA) | Isocódigo do país. Padrão: "BRA" |
 | adm_1 | int (UF) | Geocódigo do estado. Exemplo: 33 para RJ |
 | adm_2 | int (IBGE) | Geocódigo da cidade. Exemplo: 3304557 |
@@ -88,7 +90,9 @@ O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necess�
     repository = "luabida/.config" 
     description = "test client prediction test client prediction"
     commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d"
-    adm_1 = 33  
+    disease = "A90"
+    adm_level = 1
+    adm_1 = 33
 
     prediction = [
         {
@@ -102,16 +106,20 @@ O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necess�
             "upper_80": 1.2,
             "upper_90": 1.3,
             "upper_95": 1.4,
-        }
-    ] # Can also be a pandas DataFrame
+        },
+        ...
+    ] # pode também ser um pandas DataFrame
 
     pred = upload_prediction(
         api_key=api_key,
+        disease=disease,
         repository=repository,
         description=description,
         commit=commit,
         case_definition="probable",
         published=True,
+        adm_level=adm_level,
+        adm_0="BRA",
         adm_1=adm_1,
         prediction=prediction
     )
@@ -125,8 +133,11 @@ O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necess�
     post_prediction <- function(
         api_key,
         repository,
+        disease,
         description,
         commit,
+        adm_level,
+        adm_0,
         adm_1,
         prediction,
         case_definition = "probable",
@@ -142,10 +153,12 @@ O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necess�
       
       body_list <- list(
         repository = repository,
+        disease = disease,
         description = description,
         commit = commit,
         case_definition = case_definition,
         published = published,
+        adm_0 = adm_0,
         adm_1 = adm_1,
         prediction = prediction
       )
@@ -173,14 +186,18 @@ O pacote `mosqlient` também aceita um DataFrame do pandas com as chaves necess�
         upper_80 = 1.2,
         upper_90 = 1.3,
         upper_95 = 1.4
-      )
+      ),
+      ...
     )
 
     post_prediction(
       api_key = "your_api_key_here",
       repository = "luabida/.config",
+      disease = "A90",
       description = "test client prediction test client prediction",
       commit = "553f9072811f486631ef2ef1b8cce9b0b93fdd0d",
+      adm_level = 1,
+      adm_0 = "BRA",
       adm_1 = 33,
       prediction = prediction_data
     )

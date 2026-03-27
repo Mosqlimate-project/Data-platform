@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_BASE_URL, FRONTEND_SECRET, ADMIN_UIDKEY } from "@/lib/env";
+import { BACKEND_BASE_URL, FRONTEND_SECRET } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
-  const secret = request.headers.get("x-internal-secret")
+  const secret = request.headers.get("x-internal-secret");
+  const token = request.cookies.get("access_token")?.value;
+
   const searchParams = request.nextUrl.searchParams;
   const query = new URLSearchParams();
   const params = ["sprint", "category", "adm_level", "disease", "country", "state"];
@@ -19,14 +21,19 @@ export async function GET(request: NextRequest) {
   });
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(
       `${BACKEND_BASE_URL}/api/vis/dashboard/cities/?${query.toString()}`,
       {
         cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-          "X-UID-Key": ADMIN_UIDKEY,
-        },
+        headers: headers,
       }
     );
 

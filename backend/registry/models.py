@@ -131,12 +131,6 @@ class RepositoryModel(TimestampModel):
         MONTH = "month", _("Month")
         YEAR = "year", _("Year")
 
-    class AdministrativeLevel(models.IntegerChoices):
-        NATIONAL = 0, _("National")
-        STATE = 1, _("State")
-        MUNICIPALITY = 2, _("Municipality")
-        SUB_MUNICIPALITY = 3, _("Sub Municipality")
-
     class Category(models.TextChoices):
         QUANTITATIVE = "quantitative", _("Quantitative")
         CATEGORICAL = "categorical", _("Categorical")
@@ -211,9 +205,6 @@ class RepositoryModel(TimestampModel):
     repository = models.OneToOneField(
         Repository, on_delete=models.CASCADE, related_name="model"
     )
-    disease = models.ForeignKey(
-        Disease, related_name="models", on_delete=models.PROTECT
-    )
     description = models.TextField(max_length=500, null=True, blank=True)
     category = models.CharField(
         max_length=50,
@@ -222,7 +213,6 @@ class RepositoryModel(TimestampModel):
             "The forecasting model category based on domain and output type."
         ),
     )
-    adm_level = models.IntegerField(choices=AdministrativeLevel.choices)
     time_resolution = models.CharField(
         max_length=10, choices=Periodicity.choices
     )
@@ -239,6 +229,12 @@ class RepositoryModel(TimestampModel):
 
 
 class ModelPrediction(models.Model):
+    class AdministrativeLevel(models.IntegerChoices):
+        NATIONAL = 0, _("National")
+        STATE = 1, _("State")
+        MUNICIPALITY = 2, _("Municipality")
+        SUB_MUNICIPALITY = 3, _("Sub Municipality")
+
     class CaseDefinition(models.TextChoices):
         REPORTED = "reported", _("Reported")
         PROBABLE = "probable", _("Probable")
@@ -248,6 +244,15 @@ class ModelPrediction(models.Model):
         on_delete=models.CASCADE,
         related_name="predicts",
     )
+    disease = models.ForeignKey(
+        Disease, related_name="predictions", on_delete=models.PROTECT
+    )
+    case_definition = models.CharField(
+        max_length=20,
+        default=CaseDefinition.REPORTED,
+        choices=CaseDefinition.choices,
+    )
+    adm_level = models.IntegerField(choices=AdministrativeLevel.choices)
     adm0 = models.ForeignKey(
         Adm0, null=True, blank=True, on_delete=models.PROTECT
     )
@@ -262,11 +267,6 @@ class ModelPrediction(models.Model):
     )
     commit = models.CharField(max_length=100)
     description = models.TextField(max_length=500, null=True, blank=True)
-    case_definition = models.CharField(
-        max_length=20,
-        default=CaseDefinition.REPORTED,
-        choices=CaseDefinition.choices,
-    )
     published = models.BooleanField(null=False, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

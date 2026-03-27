@@ -12,7 +12,6 @@ class ProfileModelOut(Schema):
     owner: str
     provider: str
     category: str
-    disease: str
     can_manage: bool
     active: bool
 
