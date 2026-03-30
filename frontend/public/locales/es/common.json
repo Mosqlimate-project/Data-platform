@@ -113,6 +113,7 @@
   },
   "model_sidebar": {
     "description": "Descripción",
+    "description_placeholder": "Escriba una breve descripción para este modelo...",
     "no_description": "No se proporcionó ninguna descripción.",
     "metadata": "Metadatos",
     "contributors": "Colaboradores",
@@ -139,7 +140,7 @@
       "case_definition": "Definición de Caso",
       "reported": "Notificados",
       "probable": "Probables",
-      "imdc_sprint": "Año del Sprint IMDC"
+      "imdc_sprint": "Año del IMDC"
     },
     "chart": {
       "probable_cases": "Casos probables",
@@ -646,20 +647,23 @@
   },
   "model_predictions": {
     "empty_title": "Aún no hay predicciones publicadas",
-    "empty_desc": "Este modelo no tiene predicciones asociadas. Puede cargar pronósticos usando Python, R o directamente a través de la API.",
+    "empty_desc": "Este modelo no tiene ninguna predicción asociada. Puede cargar pronósticos usando Python, R o directamente a través de la API.",
     "python_rec": "1. Python (Recomendado)",
-    "need_api_key": "¿Necesita una clave API? Vaya a su [Perfil](/profile/auth) para generar una.",
-    "select_prediction": "Seleccionar una Predicción",
+    "need_api_key": "¿Necesita una Clave de API? Vaya a su [Perfil](/profile/auth) para generar una.",
+    "usage_examples": "Ejemplos de Uso",
+    "view_docs": "Documentación de la API",
+    "delete_confirm": "¿Está seguro de que desea eliminar la predicción #{{id}}? Esta acción no se puede deshacer.",
+    "select_prediction": "Seleccione una Predicción",
     "prediction_id": "Predicción #{{id}}",
     "unable_load": "No se pudieron cargar los datos del gráfico",
-    "select_below": "Seleccione una predicción de la lista a continuación",
-    "search_placeholder": "Buscar predicciones por ID, Nivel ADM, Fecha, Confirmación, Año IMDC...",
+    "select_below": "Seleccione una predicción de la lista a continuación para ver el gráfico",
+    "search_placeholder": "Buscar predicciones por ID, Nivel ADM, Fecha, Commit...",
     "metric_label": "Métrica:",
-    "no_matches": "Ninguna predicción coincide con su búsqueda.",
-    "no_found": "No se encontraron predicciones.",
+    "no_matches": "Ninguna predicción coincide con sus filtros de búsqueda.",
+    "no_found": "No se encontraron predicciones para este modelo.",
     "saving": "Guardando...",
     "published": "Publicado",
-    "view_dashboard": "Ver Panel Completo"
+    "view_dashboard": "Ver Dashboard Completo"
   },
   "profile": {
     "title": "Perfil",
@@ -711,23 +715,28 @@
   },
   "profile_models": {
     "title": "Modelos",
-    "description": "Modelos que posees, contribuyes o mantienes dentro de una organización.",
+    "description": "Administre sus modelos integrados y su disponibilidad.",
     "empty_title": "No se encontraron modelos",
-    "empty_desc": "Aún no has vinculado ningún modelo. Conecta un repositorio para comenzar.",
+    "empty_desc": "Aún no ha conectado ningún modelo a su perfil.",
     "table": {
       "name": "Nombre",
-      "disease": "Enfermedad",
       "category": "Categoría",
       "status": "Estado",
-      "actions": "Acciones"
+      "delete": "Eliminar"
     },
     "status": {
       "active": "Activo",
-      "inactive": "Inactivo"
+      "inactive": "Inactivo",
+      "click_to_activate": "Haga clic para Activar",
+      "click_to_deactivate": "Haga clic para Desactivar"
     },
-    "manage": "Administrar",
-    "view_only": "Solo Vista",
-    "manage_soon": "Panel de administración próximamente"
+    "modal": {
+      "title": "Acción Crítica",
+      "description": "Esto eliminará permanentemente el modelo y sus predicctiones. Para confirmar, escriba",
+      "placeholder": "Escriba el nombre del modelo aquí",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar Modelo"
+    }
   },
   "profile_account": {
     "title": "Configuración de la Cuenta",

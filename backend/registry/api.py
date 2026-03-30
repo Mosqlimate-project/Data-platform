@@ -13,6 +13,7 @@ from django.db import transaction, models
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from main.schema import (
+    SuccessSchema,
     BadRequestSchema,
     NotFoundSchema,
     ForbiddenSchema,
@@ -315,7 +316,7 @@ def repository_owner(request, owner: str):
 @router.get(
     "/model/{owner}/{repository}/",
     response={200: s.ModelOut, 404: NotFoundSchema},
-    auth=UidKeyAuth(),
+    auth=OptionalJWTAuth(),
     include_in_schema=False,
 )
 @decorate_view(never_cache)
@@ -324,6 +325,8 @@ def repository_model(request, owner: str, repository: str):
         models.Q(repository__organization__name=owner)
         | models.Q(repository__owner__username=owner)
     )
+
+    not_found = f"Model '{owner}/{repository}' not found"
 
     try:
         model = (
@@ -337,7 +340,25 @@ def repository_model(request, owner: str, repository: str):
             .get(query)
         )
     except m.RepositoryModel.DoesNotExist:
-        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+        return 404, {"message": not_found}
+
+    if not model.repository.active:
+        user = request.auth
+        print(user)
+        if not user or user.is_anonymous:
+            return 404, {"message": not_found}
+
+        perms = repository_permissions(request, owner, repository)
+
+        can_manage = (
+            perms.get("can_manage")
+            if isinstance(perms, dict)
+            else getattr(perms, "can_manage", False)
+        )
+
+        print(can_manage)
+        if not can_manage:
+            return 404, {"message": not_found}
 
     return model
 
@@ -738,6 +759,84 @@ def get_model(request, owner: str, repository: str):
         }
 
     return model
+
+
+@router.patch(
+    "/model/{owner}/{repository}/",
+    auth=JWTAuth(),
+    response={
+        201: SuccessSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+        400: BadRequestSchema,
+    },
+    include_in_schema=False,
+)
+def model_update(
+    request,
+    owner: str,
+    repository: str,
+    data: s.ModelUpdateIn,
+):
+    perms_response = repository_permissions(request, owner, repository)
+
+    if not perms_response.get("can_manage"):
+        return 403, {
+            "message": "You do not have permission to manage this model"
+        }
+
+    try:
+        query = models.Q(repository__name=repository) & (
+            models.Q(repository__organization__name=owner)
+            | models.Q(repository__owner__username=owner)
+        )
+        model = m.RepositoryModel.objects.get(query)
+
+        if data.active is not None:
+            model.active = data.active
+
+        if data.description is not None:
+            model.description = data.description
+
+        model.save()
+
+        return 201, {"message": "ok"}
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": "Model not found"}
+
+
+@router.delete(
+    "/model/{owner}/{repository}/",
+    auth=JWTAuth(),
+    response={
+        200: SuccessSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+    },
+    include_in_schema=False,
+)
+def model_delete(request, owner: str, repository: str):
+    perms_response = repository_permissions(request, owner, repository)
+
+    if isinstance(perms_response, tuple):
+        status_code, data = perms_response
+        return status_code, data
+
+    if not perms_response.get("can_manage"):
+        return 403, {
+            "message": "You do not have permission to delete this model"
+        }
+
+    try:
+        query = models.Q(repository__name=repository) & (
+            models.Q(repository__organization__name=owner)
+            | models.Q(repository__owner__username=owner)
+        )
+        model = m.RepositoryModel.objects.get(query)
+        model.delete()
+        return 200, {"message": "Model deleted successfully"}
+    except m.RepositoryModel.DoesNotExist:
+        return 404, {"message": "Model not found"}
 
 
 @router.get(

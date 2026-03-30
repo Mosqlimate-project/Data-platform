@@ -1,6 +1,7 @@
+import { cookies } from "next/headers";
 import MarkdownRenderer from "@/components/model/MarkdownRenderer";
 import ModelSidebar from "@/components/model/ModelSidebar";
-import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { getPermissions } from "@/lib/api/model";
 
 interface PageProps {
@@ -10,64 +11,42 @@ interface PageProps {
   }>;
 }
 
-async function getReadmeContent(owner: string, repository: string) {
-  try {
-    const res = await fetch(
-      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/readme`,
-      {
-        cache: "no-store",
-        headers: {
-          "x-internal-secret": FRONTEND_SECRET || ""
-        }
-      }
-    );
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    return data.content;
-  } catch (error) {
-    console.error("Failed to fetch README:", error);
-    return null;
-  }
-}
-
-async function fetchModelDetails(owner: string, repository: string) {
-  try {
-    const res = await fetch(
-      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
-      {
-        cache: "no-store",
-        headers: {
-          "x-internal-secret": FRONTEND_SECRET || ""
-        }
-      }
-    );
-
-    if (!res.ok) return null;
-
-    return await res.json();
-  } catch (error) {
-    console.error("Failed to fetch model details:", error);
-    return null;
-  }
+async function getAuthHeaders() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
 }
 
 export default async function ReadmePage({ params }: PageProps) {
   const { owner, repository } = await params;
+  const headers = await getAuthHeaders();
 
-  const [readmeContent, permissions, modelDetails] = await Promise.all([
-    getReadmeContent(owner, repository),
-    getPermissions(owner, repository),
-    fetchModelDetails(owner, repository),
+  const [detailsRes, readmeRes, permissions] = await Promise.all([
+    fetch(`${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}/`, { headers, cache: "no-store" }),
+    fetch(`${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}/readme/`, { headers, cache: "no-store" }),
+    getPermissions(owner, repository)
   ]);
+
+  if (!detailsRes.ok) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <h1 className="text-xl font-bold">Model not found</h1>
+        <p className="text-gray-500">This model is inactive or you lack permissions.</p>
+      </div>
+    );
+  }
+
+  const modelDetails = await detailsRes.json();
+  const readmeData = readmeRes.ok ? await readmeRes.json() : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-      <div className="lg:col-span-3 border p-8 rounded bg-card text-card-foreground min-w-0 break-words overflow-hidden">
-        {readmeContent ? (
+      <div className="lg:col-span-3 border p-8 rounded bg-card min-w-0 break-words">
+        {readmeData?.content ? (
           <MarkdownRenderer
-            content={readmeContent}
+            content={readmeData.content}
             owner={owner}
             repo={repository}
             branch="main"
@@ -83,14 +62,14 @@ export default async function ReadmePage({ params }: PageProps) {
         <ModelSidebar
           owner={owner}
           repository={repository}
-          initialDescription={modelDetails?.description}
-          contributors={modelDetails?.contributors}
-          canManage={permissions.can_manage}
+          initialDescription={modelDetails.description}
+          contributors={modelDetails.contributors}
+          canManage={permissions?.can_manage || false}
           tags={{
-            disease: modelDetails?.disease,
-            category: modelDetails?.category,
-            adm_level: modelDetails?.adm_level,
-            time_resolution: modelDetails?.time_resolution
+            disease: modelDetails.disease,
+            category: modelDetails.category,
+            adm_level: modelDetails.adm_level,
+            time_resolution: modelDetails.time_resolution
           }}
         />
       </aside>

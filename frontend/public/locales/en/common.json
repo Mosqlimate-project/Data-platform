@@ -113,6 +113,7 @@
   },
   "model_sidebar": {
     "description": "Description",
+    "description_placeholder": "Enter a brief description for this model...",
     "no_description": "No description provided.",
     "metadata": "Metadata",
     "contributors": "Contributors",
@@ -139,7 +140,7 @@
       "case_definition": "Case Definition",
       "reported": "Reported",
       "probable": "Probable",
-      "imdc_sprint": "IMDC Sprint Year"
+      "imdc_sprint": "IMDC Year"
     },
     "chart": {
       "probable_cases": "Probable cases",
@@ -662,14 +663,17 @@
     "empty_desc": "This model doesn't have any predictions associated with it. You can upload forecasts using Python, R, or directly via the API.",
     "python_rec": "1. Python (Recommended)",
     "need_api_key": "Need an API Key? Go to your [Profile](/profile/auth) to generate one.",
+    "usage_examples": "Usage Examples",
+    "view_docs": "See API Documentation.",
+    "delete_confirm": "Are you sure you want to delete prediction #{{id}}? This action cannot be undone.",
     "select_prediction": "Select a Prediction",
     "prediction_id": "Prediction #{{id}}",
     "unable_load": "Unable to load chart data",
-    "select_below": "Select a prediction from the list below",
-    "search_placeholder": "Search predictions by ID, ADM Level, Date, Commit, IMDC Year...",
+    "select_below": "Select a prediction from the list below to view the chart",
+    "search_placeholder": "Search predictions by ID, ADM Level, Date, Commit...",
     "metric_label": "Metric:",
-    "no_matches": "No predictions match your search.",
-    "no_found": "No predictions found.",
+    "no_matches": "No predictions match your search filters.",
+    "no_found": "No predictions found for this model.",
     "saving": "Saving...",
     "published": "Published",
     "view_dashboard": "View Full Dashboard"
@@ -724,23 +728,28 @@
   },
   "profile_models": {
     "title": "Models",
-    "description": "Models you own, contribute to, or maintain within an organization.",
+    "description": "Manage your integrated models and their availability.",
     "empty_title": "No models found",
-    "empty_desc": "You haven't linked any models yet. Connect a repository to get started.",
+    "empty_desc": "You haven't connected any models to your profile yet.",
     "table": {
       "name": "Name",
-      "disease": "Disease",
       "category": "Category",
       "status": "Status",
-      "actions": "Actions"
+      "delete": "Delete"
     },
     "status": {
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "click_to_activate": "Click to Activate",
+      "click_to_deactivate": "Click to Deactivate"
     },
-    "manage": "Manage",
-    "view_only": "View Only",
-    "manage_soon": "Management dashboard coming soon"
+    "modal": {
+      "title": "Critical Action",
+      "description": "This will permanently delete the model and all its predictions. To confirm, please type",
+      "placeholder": "Type model name here",
+      "cancel": "Cancel",
+      "confirm": "Delete Model"
+    }
   },
   "profile_account": {
     "title": "Account Settings",

@@ -1,4 +1,5 @@
-import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { cookies } from "next/headers";
+import { BACKEND_BASE_URL } from "@/lib/env";
 import { ModelTabs } from "@/components/model/tabs";
 import { notFound } from "next/navigation";
 
@@ -11,17 +12,25 @@ export default async function ModelLayout({
 }) {
   const { owner, repository } = await params;
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+
+  const headers: HeadersInit = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(
-    `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/`,
+    `${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}/`,
     {
       cache: "no-store",
-      headers: {
-        "x-internal-secret": FRONTEND_SECRET || ""
-      }
+      headers,
     }
   );
 
-  if (res.status !== 200) notFound();
+  if (res.status !== 200) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen font-sans bg-bg">
@@ -31,12 +40,16 @@ export default async function ModelLayout({
             {/* icon goes here */}
           </div>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-medium text-text">{owner}/{repository}</h1>
+            <h1 className="text-2xl font-medium text-text">
+              {owner}/{repository}
+            </h1>
           </div>
         </div>
 
         <ModelTabs owner={owner} repository={repository} />
-        {children}
+        <div className="mt-6">
+          {children}
+        </div>
       </div>
     </div>
   );

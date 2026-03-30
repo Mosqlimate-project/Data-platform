@@ -561,6 +561,11 @@ class ModelOut(Schema):
         ]
 
 
+class ModelUpdateIn(Schema):
+    active: Optional[bool] = None
+    description: Optional[str] = None
+
+
 class ModelDescriptionIn(Schema):
     description: str
 
