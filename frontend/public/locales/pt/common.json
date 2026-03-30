@@ -139,7 +139,7 @@
       "case_definition": "Definição de Caso",
       "reported": "Notificados",
       "probable": "Prováveis",
-      "imdc_sprint": "Ano do Sprint IMDC"
+      "imdc_sprint": "Ano do IMDC"
     },
     "chart": {
       "probable_cases": "Casos prováveis",
@@ -724,23 +724,28 @@
   },
   "profile_models": {
     "title": "Modelos",
-    "description": "Modelos que você possui, contribui ou mantém dentro de uma organização.",
+    "description": "Gerencie seus modelos integrados e a disponibilidade deles.",
     "empty_title": "Nenhum modelo encontrado",
-    "empty_desc": "Você ainda não vinculou nenhum modelo. Conecte um repositório para começar.",
+    "empty_desc": "Você ainda não conectou nenhum modelo ao seu perfil.",
     "table": {
       "name": "Nome",
-      "disease": "Agravo",
       "category": "Categoria",
       "status": "Status",
-      "actions": "Ações"
+      "delete": "Excluir"
     },
     "status": {
       "active": "Ativo",
-      "inactive": "Inativo"
+      "inactive": "Inativo",
+      "click_to_activate": "Clique para Ativar",
+      "click_to_deactivate": "Clique para Desativar"
     },
-    "manage": "Gerenciar",
-    "view_only": "Somente Visualização",
-    "manage_soon": "Painel de gerenciamento em breve"
+    "modal": {
+      "title": "Ação Crítica",
+      "description": "Isso excluirá permanentemente o modelo e todas as previsões associadas a ele. Para confirmar, digite",
+      "placeholder": "Digite o nome do modelo aqui",
+      "cancel": "Cancelar",
+      "confirm": "Excluir Modelo"
+    }
   },
   "profile_account": {
     "title": "Configurações da Conta",

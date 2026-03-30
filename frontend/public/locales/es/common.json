@@ -139,7 +139,7 @@
       "case_definition": "Definición de Caso",
       "reported": "Notificados",
       "probable": "Probables",
-      "imdc_sprint": "Año del Sprint IMDC"
+      "imdc_sprint": "Año del IMDC"
     },
     "chart": {
       "probable_cases": "Casos probables",
@@ -711,23 +711,28 @@
   },
   "profile_models": {
     "title": "Modelos",
-    "description": "Modelos que posees, contribuyes o mantienes dentro de una organización.",
+    "description": "Administre sus modelos integrados y su disponibilidad.",
     "empty_title": "No se encontraron modelos",
-    "empty_desc": "Aún no has vinculado ningún modelo. Conecta un repositorio para comenzar.",
+    "empty_desc": "Aún no ha conectado ningún modelo a su perfil.",
     "table": {
       "name": "Nombre",
-      "disease": "Enfermedad",
       "category": "Categoría",
       "status": "Estado",
-      "actions": "Acciones"
+      "delete": "Eliminar"
     },
     "status": {
       "active": "Activo",
-      "inactive": "Inactivo"
+      "inactive": "Inactivo",
+      "click_to_activate": "Haga clic para Activar",
+      "click_to_deactivate": "Haga clic para Desactivar"
     },
-    "manage": "Administrar",
-    "view_only": "Solo Vista",
-    "manage_soon": "Panel de administración próximamente"
+    "modal": {
+      "title": "Acción Crítica",
+      "description": "Esto eliminará permanentemente el modelo y sus predicctiones. Para confirmar, escriba",
+      "placeholder": "Escriba el nombre del modelo aquí",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar Modelo"
+    }
   },
   "profile_account": {
     "title": "Configuración de la Cuenta",

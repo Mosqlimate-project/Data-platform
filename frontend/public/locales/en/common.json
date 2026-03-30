@@ -139,7 +139,7 @@
       "case_definition": "Case Definition",
       "reported": "Reported",
       "probable": "Probable",
-      "imdc_sprint": "IMDC Sprint Year"
+      "imdc_sprint": "IMDC Year"
     },
     "chart": {
       "probable_cases": "Probable cases",
@@ -724,23 +724,28 @@
   },
   "profile_models": {
     "title": "Models",
-    "description": "Models you own, contribute to, or maintain within an organization.",
+    "description": "Manage your integrated models and their availability.",
     "empty_title": "No models found",
-    "empty_desc": "You haven't linked any models yet. Connect a repository to get started.",
+    "empty_desc": "You haven't connected any models to your profile yet.",
     "table": {
       "name": "Name",
-      "disease": "Disease",
       "category": "Category",
       "status": "Status",
-      "actions": "Actions"
+      "delete": "Delete"
     },
     "status": {
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "click_to_activate": "Click to Activate",
+      "click_to_deactivate": "Click to Deactivate"
     },
-    "manage": "Manage",
-    "view_only": "View Only",
-    "manage_soon": "Management dashboard coming soon"
+    "modal": {
+      "title": "Critical Action",
+      "description": "This will permanently delete the model and all its predictions. To confirm, please type",
+      "placeholder": "Type model name here",
+      "cancel": "Cancel",
+      "confirm": "Delete Model"
+    }
   },
   "profile_account": {
     "title": "Account Settings",

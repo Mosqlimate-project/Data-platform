@@ -3970,7 +3970,7 @@ resolved_reference = "6e273ad86aac2bd36dc1d04d58d0d4108417b938"
 
 [[package]]
 name = "mosqlimate-assistant"
-version = "1.10.2"
+version = "1.11.0"
 description = "Mosqlimate AI Assistant"
 optional = false
 python-versions = ">=3.11,<3.13"
@@ -3993,8 +3993,8 @@ types-requests = ">=2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git"
-reference = "1.10.2"
-resolved_reference = "8433e1470e57761a548d8cfd7447ebf14bde8862"
+reference = "1.11.0"
+resolved_reference = "6224233755cba5361c461b658443c37934ee9b56"
 
 [[package]]
 name = "msgpack"
@@ -7909,4 +7909,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "54d1d3886379f4ef4173b905cc9380a4521ba9111b293d7ece59b2dad33fea18"
+content-hash = "6f4549f94fe001eff58c57f483d6dcb716edae20c66d31663a186e3cec060e83"
