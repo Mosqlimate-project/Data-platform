@@ -31,8 +31,9 @@ export async function GET(
   );
 
   if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
     return NextResponse.json(
-      { error: "Failed to fetch model repository" },
+      { error: errorData.message || "Failed to fetch model repository" },
       { status: res.status }
     );
   }

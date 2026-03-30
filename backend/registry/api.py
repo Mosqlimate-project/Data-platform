@@ -326,6 +326,8 @@ def repository_model(request, owner: str, repository: str):
         | models.Q(repository__owner__username=owner)
     )
 
+    not_found = f"Model '{owner}/{repository}' not found"
+
     try:
         model = (
             m.RepositoryModel.objects.select_related(
@@ -338,12 +340,25 @@ def repository_model(request, owner: str, repository: str):
             .get(query)
         )
     except m.RepositoryModel.DoesNotExist:
-        return 404, {"message": f"Model '{owner}/{repository}' not found"}
+        return 404, {"message": not_found}
 
-    if not model.active:
+    if not model.repository.active:
+        user = request.auth
+        print(user)
+        if not user or user.is_anonymous:
+            return 404, {"message": not_found}
+
         perms = repository_permissions(request, owner, repository)
-        if not perms.can_manage:
-            return 404, {"message": f"Model '{owner}/{repository}' not found"}
+
+        can_manage = (
+            perms.get("can_manage")
+            if isinstance(perms, dict)
+            else getattr(perms, "can_manage", False)
+        )
+
+        print(can_manage)
+        if not can_manage:
+            return 404, {"message": not_found}
 
     return model
 

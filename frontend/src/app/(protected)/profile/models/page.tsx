@@ -34,10 +34,17 @@ export default function ModelsPage() {
     model: null,
   });
 
+  const internalHeaders = {
+    'Content-Type': 'application/json',
+    'x-internal-secret': process.env.NEXT_PUBLIC_FRONTEND_SECRET || '',
+  };
+
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const res = await fetch('/api/user/profile/models/');
+        const res = await fetch('/api/user/profile/models/', {
+          headers: internalHeaders
+        });
         if (res.ok) {
           const data = await res.json();
           setModels(data);
@@ -58,9 +65,7 @@ export default function ModelsPage() {
     try {
       const res = await fetch(`/api/registry/model/${model.owner}/${model.name}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: internalHeaders,
         body: JSON.stringify({
           active: newStatus,
         }),
@@ -88,6 +93,7 @@ export default function ModelsPage() {
     try {
       const res = await fetch(`/api/registry/model/${deleteModal.model.owner}/${deleteModal.model.name}/`, {
         method: 'DELETE',
+        headers: internalHeaders,
       });
 
       if (res.ok) {

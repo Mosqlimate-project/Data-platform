@@ -1,27 +1,19 @@
 import { cookies } from "next/headers";
-import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
+import { BACKEND_BASE_URL } from "@/lib/env";
 
 export async function getPermissions(owner: string, repository: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  const headers: HeadersInit = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   try {
-    const cookieStore = cookies();
-
     const res = await fetch(
-      `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/${repository}/permissions`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieStore.toString(),
-          "x-internal-secret": FRONTEND_SECRET || ""
-        },
-      }
+      `${BACKEND_BASE_URL}/api/registry/model/${owner}/${repository}/permissions/`,
+      { headers, cache: "no-store" }
     );
-
-    if (!res.ok) {
-      return { is_owner: false, can_manage: false };
-    }
-
-    return await res.json();
+    return res.ok ? await res.json() : { can_manage: false };
   } catch (error) {
-    return { is_owner: false, can_manage: false };
+    return { can_manage: false };
   }
 }
