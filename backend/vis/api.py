@@ -1,5 +1,6 @@
 from typing import List, Optional, Literal
 
+import numpy as np
 from main.schema import NotFoundSchema
 from users.auth import OptionalJWTAuth
 from datastore.models import (
@@ -610,6 +611,7 @@ def dashboard_cases(
     if df.empty:
         return list()
 
+    df = df.replace({np.nan: None})
     df = df.sort_values(by="date")
 
     res = []

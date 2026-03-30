@@ -110,7 +110,7 @@ class DashboardADMOut(Schema):
 
 class HistoricoAlertaCases(Schema):
     date: dt
-    cases: int
+    cases: Optional[int] = None
 
 
 class HistoricoAlertaCasesIn(Schema):
