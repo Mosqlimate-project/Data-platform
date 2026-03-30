@@ -776,14 +776,9 @@ def model_update(
     request,
     owner: str,
     repository: str,
-    active: bool = None,
-    description: str = None,
+    data: s.ModelUpdateIn,
 ):
     perms_response = repository_permissions(request, owner, repository)
-
-    if isinstance(perms_response, tuple):
-        status_code, data = perms_response
-        return status_code, data
 
     if not perms_response.get("can_manage"):
         return 403, {
@@ -797,11 +792,11 @@ def model_update(
         )
         model = m.RepositoryModel.objects.get(query)
 
-        if active is not None:
-            model.active = active
+        if data.active is not None:
+            model.active = data.active
 
-        if description is not None:
-            model.description = description
+        if data.description is not None:
+            model.description = data.description
 
         model.save()
 

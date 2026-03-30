@@ -113,6 +113,7 @@
   },
   "model_sidebar": {
     "description": "Description",
+    "description_placeholder": "Enter a brief description for this model...",
     "no_description": "No description provided.",
     "metadata": "Metadata",
     "contributors": "Contributors",
