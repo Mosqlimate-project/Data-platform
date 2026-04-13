@@ -796,7 +796,22 @@
     "humidity_axis": "Humidity (%)"
   },
   "charts_contaovos": {
-    "unavailable": "Visualization not available"
+    "eggs_map_title": "Total Aedes Aegypti Eggs by Brazilian State",
+    "eggs_density_title": "Egg Density by Epidemiological Week {{location}}",
+    "positivity_title": "Positivity Index {{scope}}",
+    "positivity_scope_state": "by State",
+    "positivity_scope_city": "by Municipality ({{state}})",
+    "map_tooltip_state": "{{name}}<br/>Total Eggs: <b>{{eggs}}</b><br/>Ovitraps: <b>{{traps}}</b><br/>Municipalities: <b>{{municipalities}}</b>",
+    "map_tooltip_scatter": "Ovitrap: {{id}}<br/>Municipality: {{municipality}} ({{state}})",
+    "eggs_density_xaxis": "Epidemiological Week (Year-Week)",
+    "eggs_density_yaxis": "Egg density",
+    "no_data_message": "No data available for the selected filters",
+    "positivity_tooltip": "{{name}}<br/>Positivity Index: <b>{{value}}</b>",
+    "eggs_density_tooltip": "{{name}}<br/>Egg Density: <b>{{value}}</b>",
+    "state": "State",
+    "municipality": "Municipality",
+    "brazil": "Brazil",
+    "positivity_yaxis": "% Positive"
   },
   "charts_episcanner": {
     "unavailable": "Visualization not available. Access "
