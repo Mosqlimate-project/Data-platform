@@ -796,7 +796,22 @@
     "humidity_axis": "Umidade (%)"
   },
   "charts_contaovos": {
-    "unavailable": "Visualização não disponível"
+    "eggs_map_title": "Total de Ovos do Aedes Aegypti por Estado Brasileiro",
+    "eggs_density_title": "Densidade de Ovos por Semana Epidemiológica {{location}}",
+    "positivity_title": "Índice de Positividade {{scope}}",
+    "positivity_scope_state": "por Estado",
+    "positivity_scope_city": "por Município ({{state}})",
+    "map_tooltip_state": "{{name}}<br/>Total de Ovos: <b>{{eggs}}</b><br/>Ovitrampas: <b>{{traps}}</b><br/>Municípios: <b>{{municipalities}}</b>",
+    "map_tooltip_scatter": "Ovitrampa: {{id}}<br/>Município: {{municipality}} ({{state}})",
+    "eggs_density_xaxis": "Semana Epidemiológica (Ano-Semana)",
+    "eggs_density_yaxis": "Densidade de ovos",
+    "no_data_message": "Sem dados para exibir com os filtros selecionados",
+    "positivity_tooltip": "{{name}}<br/>Índice de Positividade: <b>{{value}}</b>",
+    "eggs_density_tooltip": "{{name}}<br/>Densidade de Ovos: <b>{{value}}</b>",
+    "state": "Estado",
+    "municipality": "Município",
+    "brazil": "Brasil",
+    "positivity_yaxis": "% Positivas"
   },
   "charts_episcanner": {
     "unavailable": "Visualização não disponível. Acesse "

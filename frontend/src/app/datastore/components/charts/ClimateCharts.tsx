@@ -262,6 +262,14 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
           },
           grid: { left: '3%', right: '4%', bottom: 60, top: 100, containLabel: true },
           xAxis: {
+            name: t('charts_climate.date'),
+            nameLocation: "middle",
+            nameGap: 35,
+            nameTextStyle: {
+              fontSize: 12,
+              fontWeight: "bold",
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
             type: "category",
             data: dates,
             axisLabel: {
@@ -295,6 +303,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
               type: "line",
               data: tempMax,
               lineStyle: { color: "#6A75B7" },
+              itemStyle: { color: "#6A75B7" },
               showSymbol: false,
             },
             {
@@ -302,6 +311,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
               type: "line",
               data: tempMed,
               lineStyle: { color: "#90BE10" },
+              itemStyle: { color: "#90BE10" },
               showSymbol: false,
             },
             {
@@ -309,6 +319,7 @@ export function TemperatureChart({ geocode, start, end }: ChartProps) {
               type: "line",
               data: tempMin,
               lineStyle: { color: "#41BAC5" },
+              itemStyle: { color: "#41BAC5" },
               showSymbol: false,
             },
           ],
@@ -412,6 +423,14 @@ export function AirChart({ geocode, start, end }: ChartProps) {
           },
           grid: { left: '3%', right: '3%', bottom: 60, top: 100, containLabel: true },
           xAxis: {
+            name: t('charts_climate.date'),
+            nameLocation: "middle",
+            nameGap: 35,
+            nameTextStyle: {
+              fontSize: 12,
+              fontWeight: "bold",
+              color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280"
+            },
             type: "category",
             data: dates,
             axisLabel: {
@@ -470,6 +489,7 @@ export function AirChart({ geocode, start, end }: ChartProps) {
               data: humidity,
               yAxisIndex: 1,
               lineStyle: { color: "#81B863" },
+              itemStyle: { color: "#81B863"},
               showSymbol: false,
             },
           ],
