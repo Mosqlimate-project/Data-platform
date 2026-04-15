@@ -1,25 +1,33 @@
 from ninja import Router
-
-from django.http import HttpRequest, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
+from django.http import HttpRequest
+from django.contrib.gis.db.models.functions import AsGeoJSON
 from users.auth import UidKeyAuth
-from .views import CentroidTileView, MultiLayerTileView
-
+from vis.brasil.models import GeoCity
 
 router = Router()
-uidkey_auth = UidKeyAuth()
 
 
-@router.get("/test/{z}/{x}/{y}.pbf")
-@csrf_exempt
-def test(request: HttpRequest, z: int, x: int, y: int) -> HttpResponse:
-    view = CentroidTileView.as_view()
-    return view(request, z=z, x=x, y=y)
+@router.get(
+    "/cities/{uf}",
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def get_city_boundaries(request: HttpRequest, uf: str):
+    cities = GeoCity.objects.filter(
+        city__microregion__mesoregion__state__uf__iexact=uf
+    ).annotate(geojson=AsGeoJSON("geometry"))
 
+    features = []
+    for city in cities:
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": city.geojson,
+                "properties": {
+                    "geocode": city.city.geocode,
+                    "name": city.city.name,
+                },
+            }
+        )
 
-@router.get("/multilayertest/{z}/{x}/{y}.pbf")
-@csrf_exempt
-def multilayer(request: HttpRequest, z: int, x: int, y: int) -> HttpResponse:
-    view = MultiLayerTileView.as_view()
-    return view(request, z=z, x=x, y=y)
+    return {"type": "FeatureCollection", "features": features}

@@ -18,6 +18,7 @@ const publicPaths = [
   "/api/users/api-key",
   "/api/datastore/charts",
   "/api/datastore/cities",
+  "/api/maps/cities",
   "/api/vis/dashboard",
   "/models",
 ];

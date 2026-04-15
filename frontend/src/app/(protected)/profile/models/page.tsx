@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { FRONTEND_SECRET } from '@/lib/env';
 
 interface ProfileModel {
   id: number;
@@ -36,7 +37,7 @@ export default function ModelsPage() {
 
   const internalHeaders = {
     'Content-Type': 'application/json',
-    'x-internal-secret': process.env.NEXT_PUBLIC_FRONTEND_SECRET || '',
+    'x-internal-secret': FRONTEND_SECRET || '',
   };
 
   useEffect(() => {

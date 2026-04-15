@@ -793,7 +793,9 @@ def model_update(
         model = m.RepositoryModel.objects.get(query)
 
         if data.active is not None:
-            model.active = data.active
+            repo = model.repository
+            repo.active = data.active
+            repo.save()
 
         if data.description is not None:
             model.description = data.description
