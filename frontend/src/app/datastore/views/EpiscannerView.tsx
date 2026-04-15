@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Papa from "papaparse";
 import { FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
-import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/AuthProvider";
+import { EpiScannerChart } from "../components/charts/EpiscannerCharts";
+import { FRONTEND_SECRET } from "@/lib/env";
 
 function DownloadButtons({
   baseUrl,
@@ -160,15 +161,15 @@ function EpiScannerApiBuilder() {
   const [uf, setUf] = useState<string>("SP");
   const [year, setYear] = useState<number>(currentYear);
 
-  const baseUrl = `${NEXT_PUBLIC_BACKEND_URL}/api/datastore/episcanner/`;
+  const baseUrl = `/api/datastore/episcanner/`;
 
   const params = useMemo(() => {
     const p = new URLSearchParams();
     if (disease) p.set("disease", disease);
     if (uf) p.set("uf", uf.toUpperCase());
-    if (year) p.set("year", String(year));
+    p.set("year", String(year || currentYear));
     return p;
-  }, [disease, uf, year]);
+  }, [disease, uf, year, currentYear]);
 
   const isDownloadDisabled = !uf || uf.length < 2;
 
@@ -182,7 +183,7 @@ function EpiScannerApiBuilder() {
           className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
         >
           <option value="dengue">Dengue</option>
-          <option value="chik">Chikungunya</option>
+          <option value="chikungunya">Chikungunya</option>
           <option value="zika">Zika</option>
         </select>
       </div>
@@ -214,35 +215,74 @@ function EpiScannerApiBuilder() {
   );
 }
 
-export function EpiScannerChart() {
-  const { t } = useTranslation('common');
-
-  return (
-    <div className="w-full h-[400px] flex items-center justify-center border rounded-md bg-card text-card-foreground shadow-sm">
-      <p className="text-muted-foreground opacity-70 font-medium">
-        {t('charts_episcanner.unavailable')} <a href="https://info.dengue.mat.br/epi-scanner/" className="italic">EpiScanner</a>
-      </p>
-    </div>
-  );
-}
+type MetricType = "peak_week" | "R0" | "total_cases" | "ep_dur";
 
 export function EpiScannerView({ config }: { config: EndpointDetails }) {
   const currentYear = new Date().getFullYear();
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const [disease, setDisease] = useState<string>("dengue");
   const [uf, setUf] = useState<string>("SP");
   const [year, setYear] = useState<number>(currentYear);
+  const [metric, setMetric] = useState<MetricType>("R0");
+  const [rawData, setRawData] = useState<any[]>([]);
+  const [geoData, setGeoData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tooltip, setTooltip] = useState<{ name: string; value: string | number; x: number; y: number } | null>(null);
+
+  const chartData = useMemo(() => {
+    return rawData.map((item: any) => ({
+      id: String(item.geocode),
+      value: Number(item[metric]) || 0,
+      name: item.muni_name || "Unknown"
+    }));
+  }, [rawData, metric]);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!uf || uf.length < 2) return;
+      setIsLoading(true);
+      try {
+        const geoRes = await fetch(`/api/maps/cities?uf=${uf.toLowerCase()}`, {
+          headers: { "x-internal-secret": FRONTEND_SECRET || "" }
+        });
+        const gData = await geoRes.json();
+        setGeoData(gData);
+
+        const queryParams = new URLSearchParams({
+          disease,
+          uf: uf.toUpperCase(),
+          year: String(year || currentYear)
+        });
+
+        const dataRes = await fetch(`/api/datastore/charts/episcanner?${queryParams.toString()}`, {
+          headers: { "x-internal-secret": FRONTEND_SECRET || "" }
+        });
+
+        if (dataRes.ok) {
+          const result = await dataRes.json();
+          setRawData(result);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAllData();
+  }, [disease, uf, year, currentYear]);
 
   return (
     <EndpointLayout
       title={config.name}
       description={config.description}
-      moreInfoLink={config.more_info_link}
       endpoint={config.endpoint}
       source={config.source}
       dataVariables={config.data_variables}
+      moreInfoLink={config.more_info_link}
       apiBuilder={<EpiScannerApiBuilder />}
       controls={
-        <div className="grid grid-cols-3 gap-2 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 relative z-20">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium opacity-70">Disease</label>
             <select
@@ -251,7 +291,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
               className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="dengue">Dengue</option>
-              <option value="chik">Chikungunya</option>
+              <option value="chikungunya">Chikungunya</option>
               <option value="zika">Zika</option>
             </select>
           </div>
@@ -274,11 +314,67 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
               className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium opacity-70">Variable</label>
+            <select
+              value={metric}
+              onChange={(e) => setMetric(e.target.value as MetricType)}
+              className="border rounded-md px-2 py-1 bg-background text-foreground text-sm h-9 outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="R0">R0</option>
+              <option value="peak_week">Peak Week</option>
+              <option value="total_cases">Total Cases</option>
+              <option value="ep_dur">Duration (weeks)</option>
+            </select>
+          </div>
         </div>
       }
     >
-      <div className="flex flex-col gap-6 w-full">
-        <EpiScannerChart />
+      <div className="flex flex-col gap-6 w-full relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-md">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        )}
+        <div
+          ref={containerRef}
+          className="relative border rounded-lg overflow-hidden bg-slate-50 shadow-sm"
+        >
+          <div className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-md border text-sm font-bold shadow-sm">
+            {metric} by city in {year}
+          </div>
+
+          <EpiScannerChart
+            geoData={geoData}
+            data={chartData}
+            selectedUf={uf}
+            onHover={(name, value, clientX, clientY) => {
+              if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                setTooltip({
+                  name,
+                  value,
+                  x: clientX - rect.left,
+                  y: clientY - rect.top
+                });
+              }
+            }}
+            onLeave={() => setTooltip(null)}
+          />
+
+          {tooltip && (
+            <div
+              className="pointer-events-none absolute z-50 bg-black/90 text-white px-3 py-2 rounded-md text-xs shadow-xl flex flex-col border border-white/20 whitespace-nowrap"
+              style={{
+                left: tooltip.x + 12,
+                top: tooltip.y + 12
+              }}
+            >
+              <span className="font-bold border-b border-white/20 pb-1 mb-1">{tooltip.name}</span>
+              <span className="opacity-90">{metric}: <span className="font-mono">{typeof tooltip.value === 'number' ? tooltip.value.toFixed(2) : tooltip.value}</span></span>
+            </div>
+          )}
+        </div>
       </div>
     </EndpointLayout>
   );

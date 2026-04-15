@@ -48,6 +48,4 @@ class Migration(migrations.Migration):
         ("registry", "0030_alter_model_tags"),
     ]
 
-    operations = [
-        migrations.RunPython(populate_default_tags),
-    ]
+    operations = []
