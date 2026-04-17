@@ -53,17 +53,27 @@ const getProjectionConfig = (uf: string) => {
 };
 
 export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLeave }: EpiScannerChartProps) {
-  const maxValue = Math.max(...data.map(d => d.value), 1);
+  const values = data.map(d => d.value).filter(v => v != null && !isNaN(v));
+  const minValue = values.length > 0 ? Math.min(...values) : 0;
+  const maxValue = values.length > 0 ? Math.max(...values, 1) : 1;
 
   const colorScale = scaleLinear<string>()
-    .domain([0, maxValue])
+    .domain([minValue, maxValue])
     .range(["#f8fafc", "#ef4444"]);
 
   const { center, scale } = getProjectionConfig(selectedUf);
 
   return (
-    <div className="w-full h-[600px] flex flex-col items-center justify-center border-2 border-border rounded-xl bg-card text-card-foreground shadow-inner p-2 overflow-hidden bg-slate-50">
-      <div className="w-full h-full">
+    <div className="w-full h-[600px] flex flex-row items-center border-2 border-border rounded-xl bg-card text-card-foreground shadow-inner overflow-hidden bg-slate-50">
+      <div className="h-full flex flex-col items-center justify-center pl-4">
+        <span className="font-medium text-xs text-muted-foreground">{maxValue.toFixed(0)}</span>
+        <div 
+          className="h-24 w-3 rounded-sm" 
+          style={{ background: `linear-gradient(to bottom, #ef4444, #f8fafc)` }}
+        />
+        <span className="font-medium text-xs text-muted-foreground">{minValue.toFixed(0)}</span>
+      </div>
+      <div className="flex-1 h-full p-2">
         {geoData ? (
           <ComposableMap
             key={selectedUf}

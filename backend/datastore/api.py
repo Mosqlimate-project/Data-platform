@@ -14,6 +14,8 @@ from django.db.utils import OperationalError
 from django.db.models import F, Avg, Sum
 from django.db.models.functions import Round
 from django.conf import settings
+from django.core.cache import cache
+
 
 from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
@@ -348,11 +350,6 @@ def get_contaovos(
 
 @router.get(
     "/episcanner/",
-    response={
-        200: List[schema.EpiScannerSchema],
-        404: NotFoundSchema,
-        500: InternalErrorSchema,
-    },
     auth=uidkey_auth,
 )
 @csrf_exempt
@@ -389,11 +386,15 @@ def get_episcanner(
         "TO",
         "DF",
     ],
-    # fmt: on
     year: int = datetime.datetime.now().year,
-    # geocode: Optional[List[int]] = None
 ):
     APILog.from_request(request)
+
+    cache_key = f"episcanner:{disease}:{uf}:{year}"
+    cached_data = cache.get(cache_key)
+    if cached_data is not None:
+        return 200, cached_data
+
     db = duckdb.connect(
         str(
             settings.BACKEND_CONTAINER_DATA_PATH
@@ -408,7 +409,7 @@ def get_episcanner(
     if describe.empty:
         print("Duckdb data not found while trying to retrieve EpiScanner data")
         return 500, {
-            "message": "Internal error. Please contact the moderation"
+            "message": "Internal error. Please contact the moderation",
         }
 
     if disease == "chikungunya":
@@ -421,12 +422,12 @@ def get_episcanner(
     except duckdb.CatalogException as e:
         print(f"Duckdb error executing sql {sql}\n{e}")
         return 500, {
-            "message": "Internal error. Please contact the moderation"
+            "message": "Internal error. Please contact the moderation",
         }
     except duckdb.IOException as e:
         print(f"Duckdb IO error: {e}")
         return 500, {
-            "message": "Internal error. Please contact the moderation"
+            "message": "Internal error. Please contact the moderation",
         }
     finally:
         db.close()
@@ -434,20 +435,12 @@ def get_episcanner(
     if df.empty:
         return 200, []
 
-    # if geocode:
-    #     df = df[df['geocode'].isin(geocode)]
-
-    #     if df.empty:
-    #         return 404, {
-    #             "message": (
-    #                 f"Data not found for specific geocode(s) ({geocode})"
-    #             )
-    #         }
-
     objs = [
         schema.EpiScannerSchema(**d)
         for d in df.to_dict(orient="records")  # pyright: ignore
     ]
+
+    cache.set(cache_key, objs, timeout=86400)  # 24 hours
 
     return 200, objs
 
