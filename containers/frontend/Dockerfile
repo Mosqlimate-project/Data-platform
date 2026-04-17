@@ -18,11 +18,11 @@ RUN deluser --remove-home node \
 
 FROM base AS deps
 COPY frontend/package*.json ./
-RUN npm ci --ignore-scripts
 
+RUN npm ci --ignore-scripts
 RUN mkdir -p .next && chown -R mosqlimate:mosqlimate .next node_modules
 
-FROM base AS builder
+FROM deps AS builder
 ARG NEXT_PUBLIC_BACKEND_URL
 ARG NEXT_PUBLIC_DOCS_URL
 ARG BACKEND_PORT
@@ -32,10 +32,12 @@ ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 ENV NEXT_PUBLIC_DOCS_URL=${NEXT_PUBLIC_DOCS_URL}
 ENV BACKEND_PORT=${BACKEND_PORT}
 
+USER root
+RUN chown -R mosqlimate:mosqlimate /app
+
 USER mosqlimate
 
 COPY --chown=mosqlimate:mosqlimate frontend/ .
-COPY --chown=mosqlimate:mosqlimate --from=deps /app/node_modules ./node_modules
 
 RUN npm run build
 

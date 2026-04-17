@@ -78,7 +78,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: "asc" | "desc";
-  }>({ key: null, direction: "asc" });
+  }>({ key: "wis_score", direction: "asc" });
 
   const toggleGlobalInterval = useCallback((interval: string) => {
     setGlobalIntervals(prev => {
@@ -135,6 +135,23 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (requestRef.current !== requestId) return;
       setSprintOptions(sprints);
       setPredictions(preds);
+      if (preds.length > 0) {
+        setChartPredictions(prev => {
+          const sorted = [...preds].sort((a, b) => {
+            const scA = a.scores.find(s => s.name === "wis_score")?.score ?? null;
+            const scB = b.scores.find(s => s.name === "wis_score")?.score ?? null;
+            if (scA === null && scB === null) return 0;
+            if (scA === null) return 1;
+            if (scB === null) return -1;
+            return scA - scB;
+          });
+          const existingIds = new Set(prev.map(p => p.id));
+          const firstFive = sorted.slice(0, 5);
+          const toLoad = firstFive.filter(p => !existingIds.has(p.id));
+          toLoad.forEach(p => loadSinglePredictionData(p.id));
+          return prev;
+        });
+      }
     } finally {
       if (requestRef.current === requestId) setPredictionsLoading(false);
     }

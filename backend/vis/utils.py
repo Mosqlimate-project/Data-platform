@@ -99,7 +99,8 @@ def calculate_score(
         return scores
 
     data = prediction.data.aggregate(
-        min_date=Min("date"), max_date=Max("date")
+        min_date=Min("date"),
+        max_date=Max("date"),
     )
 
     start_window_date = data["min_date"]
@@ -109,7 +110,7 @@ def calculate_score(
         return scores
 
     data_df = hist_alerta_data(
-        sprint=prediction.model.sprint,
+        case_definition=prediction.case_definition,
         disease=disease,
         start_window_date=start_window_date,
         end_window_date=end_window_date,
