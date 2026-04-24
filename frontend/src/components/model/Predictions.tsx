@@ -276,6 +276,7 @@ pred = upload_prediction(
     api_key=api_key,
     disease="A90",
     repository=repository,
+    description=...,
     commit="e90c5c099e6d3043a41ab992bf3d9da02a83f150",
     case_definition="probable",
     published=True,

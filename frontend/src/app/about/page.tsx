@@ -144,14 +144,6 @@ const team = [
     lattes: "http://lattes.cnpq.br/4219715335109895",
   },
   {
-    id: "beatriz",
-    name: "Beatriz Laiate",
-    roleKey: "postdoc",
-    image: "/team/Beatriz.webp",
-    linkedin: "https://www.linkedin.com/in/beatrizlaiate/",
-    lattes: "http://lattes.cnpq.br/7357582113890746",
-  },
-  {
     id: "marcio",
     name: "Marcio Maciel Bastos",
     roleKey: "postdoc",
@@ -214,6 +206,14 @@ const team = [
     image: "/team/ana.jpg",
     linkedin: "https://www.linkedin.com/in/anajuliaamaropereirarocha/",
     lattes: "http://lattes.cnpq.br/1163109559638032",
+  },
+  {
+    id: "beatriz",
+    name: "Beatriz Laiate",
+    roleKey: "associated",
+    image: "/team/Beatriz.webp",
+    linkedin: "https://www.linkedin.com/in/beatrizlaiate/",
+    lattes: "http://lattes.cnpq.br/7357582113890746",
   },
   {
     id: "raquel",
