@@ -432,10 +432,15 @@ export function EggCountChart({ geocode, start, end, geoJson, data = [] }: Chart
 
   return (
     <>
-      <div ref={mapRef} style={{ width: "100%", height: 520 }} />
-      <div style={{ display: "flex", gap: 10, padding: "0 10px" }}>
-        <div ref={line1Ref} style={{ flex: 1, height: 420 }} />
-        <div ref={line2Ref} style={{ flex: 1, height: 420 }} />
+      <div ref={mapRef} style={{
+        width: "100%", height: 520, display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <span>Visualization not available</span>
+        {/* <div style={{ display: "flex", gap: 10, padding: "0 10px" }}> */}
+        {/*   <div ref={line1Ref} style={{ flex: 1, height: 420 }} /> */}
+        {/*   <div ref={line2Ref} style={{ flex: 1, height: 420 }} /> */}
       </div>
     </>
   );

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getEndpoints } from "./data";
