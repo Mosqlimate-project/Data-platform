@@ -13,16 +13,17 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const uf = searchParams.get("uf");
 
-  if (!uf) {
-    return NextResponse.json({ message: "Missing required parameter: uf" }, { status: 400 });
+  const ufs = searchParams.getAll("uf");
+
+  const url = new URL(`${BACKEND_BASE_URL}/api/maps/states`);
+
+  if (ufs.length > 0) {
+    ufs.forEach(uf => url.searchParams.append("uf", uf));
   }
 
-  const backendUrl = `${BACKEND_BASE_URL}/api/maps/cities/${uf}`;
-
   try {
-    const res = await fetch(backendUrl, {
+    const res = await fetch(url.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (err) {
-    console.error("Proxy error for city boundaries:", err);
+    console.error("Proxy error for state boundaries:", err);
     return NextResponse.json({ message: "Upstream request failed" }, { status: 502 });
   }
 }

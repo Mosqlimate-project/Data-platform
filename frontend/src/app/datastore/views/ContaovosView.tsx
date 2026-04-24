@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Papa from "papaparse";
 import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
 import { EggCountChart } from "../components/charts/ContaovosCharts";
-import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
+import { NEXT_PUBLIC_BACKEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -266,6 +266,22 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
+  const [geoJson, setGeoJson] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const secret = FRONTEND_SECRET || "";
+        const geo = await fetch("/api/maps/states", {
+          headers: { "x-internal-secret": secret }
+        }).then(r => r.json());
+        setGeoJson(geo);
+      } catch (e) {
+        console.error("Failed to load map:", e);
+      }
+    }
+    load();
+  }, []);
 
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
@@ -301,7 +317,12 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
       }
     >
       <div className="flex flex-col gap-6 w-full">
-        <EggCountChart geocode={String(geocode)} start={startDate} end={endDate} />
+        <EggCountChart
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          geoJson={geoJson}
+        />
       </div>
     </EndpointLayout>
   );

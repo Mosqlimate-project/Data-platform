@@ -9,6 +9,7 @@ import {
 } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface EpiScannerChartProps {
   geoData: any;
@@ -53,25 +54,29 @@ const getProjectionConfig = (uf: string) => {
 };
 
 export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLeave }: EpiScannerChartProps) {
+  const { resolvedTheme } = useTheme();
   const values = data.map(d => d.value).filter(v => v != null && !isNaN(v));
   const minValue = values.length > 0 ? Math.min(...values) : 0;
   const maxValue = values.length > 0 ? Math.max(...values, 1) : 1;
 
+  const isDark = resolvedTheme === "dark";
+
   const colorScale = scaleLinear<string>()
     .domain([minValue, maxValue])
-    .range(["#f8fafc", "#ef4444"]);
+    .range(isDark ? ["#f8fafc", "#ef4444"] : ["#f8fafc", "#ef4444"]);
 
   const { center, scale } = getProjectionConfig(selectedUf);
 
   return (
-    <div className="w-full h-[600px] flex flex-row items-center border-2 border-border rounded-xl bg-card text-card-foreground shadow-inner overflow-hidden bg-slate-50">
+    <div className={`w-full h-[600px] flex flex-row items-center border-2 border-border rounded-xl shadow-inner overflow-hidden bg-bg ${isDark ? "text-white" : "text-slate-900"
+      }`}>
       <div className="h-full flex flex-col items-center justify-center pl-4">
-        <span className="font-medium text-xs text-muted-foreground">{maxValue.toFixed(0)}</span>
-        <div 
-          className="h-24 w-3 rounded-sm" 
-          style={{ background: `linear-gradient(to bottom, #ef4444, #f8fafc)` }}
+        <span className={`font-medium text-xs ${isDark ? "text-slate-400" : "text-muted-foreground"}`}>{maxValue.toFixed(0)}</span>
+        <div
+          className="h-24 w-3 rounded-sm"
+          style={{ background: `linear-gradient(to bottom, #ef4444, ${isDark ? "#1e293b" : "#f8fafc"})` }}
         />
-        <span className="font-medium text-xs text-muted-foreground">{minValue.toFixed(0)}</span>
+        <span className={`font-medium text-xs ${isDark ? "text-slate-400" : "text-muted-foreground"}`}>{minValue.toFixed(0)}</span>
       </div>
       <div className="flex-1 h-full p-2">
         {geoData ? (
@@ -105,14 +110,14 @@ export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLea
                         onMouseLeave={() => {
                           if (onLeave) onLeave();
                         }}
-                        fill={itemData ? colorScale(itemData.value) : "#ffffff"}
-                        stroke="#475569"
+                        fill={itemData ? colorScale(itemData.value) : isDark ? "#1e293b" : "#ffffff"}
+                        stroke={isDark ? "#475569" : "#475569"}
                         strokeWidth={0.2}
                         style={{
                           default: { outline: "none" },
                           hover: {
                             fill: "#fbbf24",
-                            stroke: "#000000",
+                            stroke: isDark ? "#ffffff" : "#000000",
                             strokeWidth: 0.8,
                             outline: "none",
                             cursor: "pointer",

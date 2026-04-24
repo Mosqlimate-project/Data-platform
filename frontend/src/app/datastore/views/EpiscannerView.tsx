@@ -5,10 +5,10 @@ import Papa from "papaparse";
 import { FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/AuthProvider";
 import { EpiScannerChart } from "../components/charts/EpiscannerCharts";
 import { FRONTEND_SECRET } from "@/lib/env";
+import { useTheme } from "next-themes";
 
 function DownloadButtons({
   baseUrl,
@@ -220,6 +220,7 @@ type MetricType = "peak_week" | "R0" | "total_cases" | "ep_dur";
 export function EpiScannerView({ config }: { config: EndpointDetails }) {
   const currentYear = new Date().getFullYear();
   const containerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
   const [disease, setDisease] = useState<string>("dengue");
   const [uf, setUf] = useState<string>("SP");
@@ -338,9 +339,11 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
         )}
         <div
           ref={containerRef}
-          className="relative border rounded-lg overflow-hidden bg-slate-50 shadow-sm"
+          className={`relative border rounded-lg overflow-hidden shadow-sm ${resolvedTheme === "dark" ? "bg-slate-900" : "bg-slate-50"
+            }`}
         >
-          <div className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-md border text-sm font-bold shadow-sm">
+          <div className={`absolute top-4 left-4 z-10 backdrop-blur px-3 py-1.5 rounded-md border text-sm font-bold shadow-sm ${resolvedTheme === "dark" ? "bg-slate-800/80 border-slate-700 text-white" : "bg-white/80 border-slate-200 text-slate-900"
+            }`}>
             {metric} by city in {year}
           </div>
 

@@ -19,6 +19,7 @@ const publicPaths = [
   "/api/datastore/charts",
   "/api/datastore/cities",
   "/api/maps/cities",
+  "/api/maps/states",
   "/api/vis/dashboard",
   "/models",
 ];
