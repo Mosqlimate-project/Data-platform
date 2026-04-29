@@ -1,6 +1,19 @@
 Release Notes
 ---
 
+# [2.4.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.3.1...2.4.0) (2026-04-29)
+
+
+### Bug Fixes
+
+* replace sprint param by imdc_year ([#490](https://github.com/Mosqlimate-project/Data-platform/issues/490)) ([f3997f3](https://github.com/Mosqlimate-project/Data-platform/commit/f3997f3801170c90e82a83d61423c49c03a1e92d))
+
+
+### Features
+
+* contaovos charts ([#489](https://github.com/Mosqlimate-project/Data-platform/issues/489)) ([560609f](https://github.com/Mosqlimate-project/Data-platform/commit/560609ffb15f1fef79e6feb6362c88f84583fdbd))
+* **frontend:** add egg count view to the datastore tab ([#484](https://github.com/Mosqlimate-project/Data-platform/issues/484)) ([2448f64](https://github.com/Mosqlimate-project/Data-platform/commit/2448f64c119de9f23143649b26efaf1d647b1e8b))
+
 ## [2.3.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.3.0...2.3.1) (2026-03-27)
 
 
