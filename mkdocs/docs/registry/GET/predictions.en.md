@@ -12,7 +12,7 @@
 | model_time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
 | disease | no | str ("A90", "A92.0", "A92.5") | Disease code (ICD-10) |
 | model_category | no | str (iexact) | Model category |
-| model_sprint | no | int/null | Model IMDC year |
+| imdc_year | no | int/null | Model IMDC year |
 | start | no | str _(YYYY-mm-dd)_ | Prediction modeling date after than |
 | end | no | str _(YYYY-mm-dd)_ | Prediction modeling date before than |
 

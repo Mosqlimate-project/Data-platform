@@ -11,7 +11,7 @@
 | adm_level | no | int _(0, 1, 2 or 3)_ | Administrative level, options: 0, 1, 2, 3 (National, State, Municipality, Sub Municipality) found in its predictions |
 | time_resolution | no | str _(iexact)_ | Options are: day, week, month or year |
 | category | no | str (iexact) | Model category |
-| sprint | no | int/null | Model IMDC year |
+| imdc_year | no | int/null | Model IMDC year |
 
 #### Details
 `page` consists in the total amount of Models returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned Models. E.g.:
