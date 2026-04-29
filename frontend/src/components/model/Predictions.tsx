@@ -34,7 +34,7 @@ export interface ModelPrediction {
   start?: string | null;
   end?: string | null;
   case_definition: string;
-  sprint?: number | null;
+  imdc_year?: number | null;
   scores: PredictionScore[];
   published?: boolean;
   disease_code: string;
@@ -210,9 +210,9 @@ const PredictionCard = memo(function PredictionCard({
             </div>
           )}
 
-          {pred.sprint && (
+          {pred.imdc_year && (
             <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-              IMDC {pred.sprint}
+              IMDC {pred.imdc_year}
             </div>
           )}
         </div>
@@ -431,7 +431,7 @@ pred = upload_prediction(
       if (pred.start && pred.end) {
         const caseParams = new URLSearchParams({
           disease: pred.disease_code, adm_level: pred.adm_level.toString(),
-          sprint: pred.sprint ? "true" : "false", case_definition: pred.case_definition || "reported",
+          imdc_year: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
           start: pred.start, end: pred.end,
         });
         if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
@@ -454,7 +454,7 @@ pred = upload_prediction(
 
   const getDashboardLink = useCallback((pred: ModelPrediction) => {
     const p = new URLSearchParams();
-    p.set("sprint", pred.sprint ? "true" : "false");
+    p.set("imdc_year", pred.imdc_year ? "true" : "false");
     p.set("adm_level", pred.adm_level.toString());
     p.set("disease", pred.disease_code);
     p.set("prediction_id", pred.id.toString());

@@ -30,7 +30,7 @@ class ModelFilterSchema(FilterSchema):
             "spatio_temporal_categorical",
         ]
     ] = Field(None, q="category__icontains")
-    sprint: Optional[int] = Field(None, q="sprint__year__exact")
+    imdc_year: Optional[int] = Field(None, q="sprint__year__exact")
 
 
 class PredictionFilterSchema(FilterSchema):
@@ -60,7 +60,7 @@ class PredictionFilterSchema(FilterSchema):
             "spatio_temporal_categorical",
         ]
     ] = Field(None, q="model__category__icontains")
-    model_sprint: Optional[int] = Field(None, q="model__sprint__year__exact")
+    imdc_year: Optional[int] = Field(None, q="model__sprint__year__exact")
     start: Optional[date] = Field(
         None, q="quantitativeprediction__data__date__gte"
     )

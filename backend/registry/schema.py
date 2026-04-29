@@ -20,7 +20,7 @@ class Model(Schema):
     description: Optional[str] = ""
     category: str
     time_resolution: str
-    sprint: Optional[int] = None
+    imdc_year: Optional[int] = None
     predictions_count: int
     active: bool
     created_at: dt
@@ -38,7 +38,7 @@ class Model(Schema):
         return f"{owner}/{obj.repository.name}"
 
     @staticmethod
-    def resolve_sprint(obj):
+    def resolve_imdc_year(obj):
         return obj.sprint.year if obj.sprint else None
 
     @staticmethod
@@ -587,7 +587,7 @@ class ModelPredictionOut(Schema):
     created_at: datetime
     disease_code: str = Field(alias="disease.code")
     category: str = Field(alias="model.category")
-    sprint: int | None
+    imdc_year: int | None
     adm_level: int
     adm_0_name: str | None
     adm_0_code: str | None
@@ -603,7 +603,7 @@ class ModelPredictionOut(Schema):
         return obj.created_at.date()
 
     @staticmethod
-    def resolve_sprint(obj):
+    def resolve_imdc_year(obj):
         return obj.model.sprint.year if obj.model.sprint else None
 
     @staticmethod

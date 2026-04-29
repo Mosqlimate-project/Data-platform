@@ -11,7 +11,7 @@
 | adm_level | não | int (0, 1, 2 ou 3) | Nível administrativo, opções: 0, 1, 2, 3 (Nacional, Estadual, Municipal, Sub-municipal) encontrado nas previsões |
 | time_resolution | não | str (iexact) | Opções: day (dia), week (semana), month (mês) ou year (ano) |
 | category | não | str (iexact) | Categoria do modelo |
-| sprint | não | int/null | Ano IMDC do modelo |
+| imdc_year | não | int/null | Ano IMDC do modelo |
 
 #### Detalhes
 `page` consiste no total de modelos retornados pela requisição dividido por `per_page`. A informação de `pagination` é retornada junto com os modelos. Ex.:
