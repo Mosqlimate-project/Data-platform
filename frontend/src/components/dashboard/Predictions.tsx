@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Search, Loader2, ArrowUp, ArrowDown, ArrowUpDown,
   Eye, EyeOff, ChevronLeft, ChevronRight
@@ -64,13 +64,17 @@ export default function DashboardPredictions({
   const { t } = useTranslation('common');
   const INTERVAL_OPTIONS = ["50", "80", "90", "95"];
 
-  const SCORE_COLUMNS = [
-    { key: "mae_score", label: t('dashboard.score_columns.mae') },
-    { key: "mse_score", label: t('dashboard.score_columns.mse') },
-    { key: "crps_score", label: t('dashboard.score_columns.crps') },
-    { key: "interval_score", label: t('dashboard.score_columns.interval') },
-    { key: "wis_score", label: t('dashboard.score_columns.wis') },
-  ];
+  const dynamicScoreColumns = useMemo(() => {
+    const scoreNames = new Set<string>();
+    filteredAndSortedPredictions.forEach(p => {
+      p.scores?.forEach(s => scoreNames.add(s.name));
+    });
+
+    return Array.from(scoreNames).map(name => ({
+      key: name,
+      label: name.replace("_score", "").toUpperCase()
+    }));
+  }, [filteredAndSortedPredictions]);
 
   return (
     <div className="bg-bg border border-border rounded-lg shadow-sm p-4">
@@ -156,7 +160,7 @@ export default function DashboardPredictions({
                   <th className="px-3 py-2 text-center w-[10%]">
                     {t('dashboard.table.interval_bounds')}:
                   </th>
-                  {SCORE_COLUMNS.map((col) => (
+                  {dynamicScoreColumns.map((col) => (
                     <th key={col.key} className="px-3 py-2 text-right cursor-pointer hover:bg-accent" onClick={() => handleSort(col.key)}>
                       <div className="flex items-center justify-end gap-1">
                         {col.label}
@@ -210,7 +214,7 @@ export default function DashboardPredictions({
                           {boundsVisible ? <Eye size={18} /> : <EyeOff size={18} />}
                         </button>
                       </td>
-                      {SCORE_COLUMNS.map((col) => {
+                      {dynamicScoreColumns.map((col) => {
                         const score = p.scores.find((s) => s.name === col.key);
                         return (
                           <td key={col.key} className="px-3 py-2 text-right font-mono">
