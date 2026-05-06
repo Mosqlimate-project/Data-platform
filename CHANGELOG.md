@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.4.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.0...2.4.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* **dashboard:** reinclude log score on predictions list ([#491](https://github.com/Mosqlimate-project/Data-platform/issues/491)) ([374bb2a](https://github.com/Mosqlimate-project/Data-platform/commit/374bb2a45d4fc11e23de1bd86009d06459415b67))
+
 # [2.4.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.3.1...2.4.0) (2026-04-29)
 
 
