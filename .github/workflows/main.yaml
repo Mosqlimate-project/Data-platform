@@ -49,7 +49,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade virtualenv
           poetry config virtualenvs.create false
           poetry install --no-root --with pre-commit
 
