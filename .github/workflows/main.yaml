@@ -50,6 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create false
+          pip install wavedrom==2.0.3.post3
           poetry install --no-root --with pre-commit --no-interaction
 
       - name: Clean Conda Cache
