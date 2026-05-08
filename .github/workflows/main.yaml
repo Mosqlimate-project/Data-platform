@@ -49,8 +49,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project true
+          poetry config virtualenvs.create false
           poetry install --no-root --with pre-commit
 
       - name: Clean Conda Cache
@@ -59,7 +58,7 @@ jobs:
 
       - name: Linting
         run: |
-          poetry run pre-commit run --all-files
+          pre-commit run --all-files
 
       - name: TypeScript Type Check
         run: |
