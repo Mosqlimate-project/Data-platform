@@ -6,7 +6,8 @@ dependencies:
   - python >= 3.11,<=3.12.4
   - pip
   - poetry >= 1.6.1
-  - pre-commit
-  - black
-  - ruff
+  - pre-commit ==3.8.0
+  - black ==25.1.0
+  - ruff ==0.11.13
+  - pathspec ==0.12.1
   - postgresql
