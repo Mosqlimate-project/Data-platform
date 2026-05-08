@@ -7,3 +7,4 @@ dependencies:
   - pip
   - poetry >= 1.6.1
   - postgresql
+  - pre-commit
