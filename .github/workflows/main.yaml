@@ -51,6 +51,7 @@ jobs:
       run: |
         poetry config virtualenvs.create true
         poetry config virtualenvs.in-project true
+        pip install git+https://github.com/Mosqlimate-project/mosqlimate-assistant.git@1.12.0
         poetry install --no-root
 
     - name: Clean Conda Cache
