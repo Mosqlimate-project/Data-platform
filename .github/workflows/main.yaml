@@ -59,7 +59,7 @@ jobs:
 
     - name: Linting
       run: |
-        uvx pre-commit run --all-files
+        uv run pre-commit run --all-files
 
     - name: TypeScript Type Check
       run: |
