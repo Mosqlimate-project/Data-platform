@@ -68,12 +68,6 @@ python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 trio = "^0.32.0"
 
 
-[tool.poetry.group.pre-commit.dependencies]
-pre-commit = "^3.3.2"
-black = "^25.1.0"
-ruff = "^0.11.8"
-
-
 [tool.poetry.group.dev.dependencies]
 compose-go = "^2.22.0"
 containers-sugar = "^1.17.0"

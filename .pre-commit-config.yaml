@@ -1,35 +1,23 @@
 default_language_version:
   python: python3.12
 
-default_stages: [commit, push]
+default_stages: [pre-commit, pre-push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
         exclude: LICENSE
 
-  - repo: local
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
     hooks:
-    - entry: black
-      exclude: ^$
-      files: ""
-      id: black
-      language: system
-      name: black
-      args: ['--line-length=79']
-      pass_filenames: true
-      stages:
-        - commit
-      types:
-        - python
-        - file
-        - python
-      types_or: []
-    - id: ruff
-      entry: ruff check
-      exclude: ^.*/migrations/.*
-      types_or: [python, pyi]
-      name: ruff
-      language: system
+      - id: black
+        args: ['--line-length=79']
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        exclude: ^.*/migrations/.*
