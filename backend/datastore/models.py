@@ -10,8 +10,14 @@ class ContaOvos(models.Model):
     date = models.DateField()
     date_collect = models.DateField()
     eggs = models.PositiveIntegerField()
-    latitude = models.DecimalField(max_digits=12, decimal_places=9)
-    longitude = models.DecimalField(max_digits=12, decimal_places=9)
+    latitude = models.DecimalField(
+        max_digits=15,
+        decimal_places=10,
+    )
+    longitude = models.DecimalField(
+        max_digits=15,
+        decimal_places=10,
+    )
     adm2 = models.ForeignKey("datastore.Adm2", on_delete=models.PROTECT)
     ovitrap_id = models.CharField(max_length=50)
     ovitrap_website_id = models.IntegerField()
@@ -152,7 +158,8 @@ class ICD(models.Model):
 
             if len(batch) >= batch_size:
                 await Disease.objects.abulk_create(
-                    batch, ignore_conflicts=True
+                    batch,
+                    ignore_conflicts=True,
                 )
                 batch = []
 
