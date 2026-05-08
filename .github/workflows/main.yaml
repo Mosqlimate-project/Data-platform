@@ -50,8 +50,8 @@ jobs:
     - name: Install dependencies
       run: |
         poetry config virtualenvs.create false
-        poetry install --no-root --without docs
-
+        poetry install --no-root
+        
     - name: Clean Conda Cache
       run: |
         conda clean --all --yes
