@@ -51,6 +51,7 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           pip install wavedrom==2.0.3.post3
+          pip install git+https://github.com/Mosqlimate-project/mosqlimate-assistant.git@1.12.0
           poetry install --no-root --with pre-commit --no-interaction
 
       - name: Clean Conda Cache
