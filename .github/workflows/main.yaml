@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-root --with pre-commit
+          poetry install --no-root --with pre-commit --no-cache
 
       - name: Clean Conda Cache
         run: |
