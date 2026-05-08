@@ -2,9 +2,9 @@ name: build
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -20,60 +20,61 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - name: Semantic Release PR Title Check
-        uses: osl-incubator/semantic-release-pr-title-check@v1.4.2
-        with:
-          convention-name: conventionalcommits
+    - name: Semantic Release PR Title Check
+      uses: osl-incubator/semantic-release-pr-title-check@v1.4.2
+      with:
+        convention-name: conventionalcommits 
 
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
 
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniforge-version: latest
-          environment-file: conda/base.yaml
-          channels: conda-forge,nodefaults
-          activate-environment: mosqlimate
-          auto-update-conda: true
-          conda-solver: libmamba
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-version: latest
+        environment-file: conda/base.yaml
+        channels: conda-forge,nodefaults
+        activate-environment: mosqlimate
+        auto-update-conda: true
+        conda-solver: libmamba
 
-      - name: Install dependencies
-        run: |
-          poetry config virtualenvs.create false
-          pip install wavedrom==2.0.3.post3
-          pip install git+https://github.com/Mosqlimate-project/mosqlimate-assistant.git@1.12.0
-          poetry install --no-root --with pre-commit --no-interaction
+    - name: Install dependencies
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+        pip install git+https://github.com/Mosqlimate-project/mosqlimate-assistant.git@1.12.0
+        poetry install --no-root
 
-      - name: Clean Conda Cache
-        run: |
-          conda clean --all --yes
+    - name: Clean Conda Cache
+      run: |
+        conda clean --all --yes
 
-      - name: Linting
-        run: |
-          pre-commit run --all-files
+    - name: Linting
+      run: |
+        pre-commit install
+        pre-commit run --all-files
 
-      - name: TypeScript Type Check
-        run: |
-          cd frontend
-          npm install
-          npx tsc --noEmit
+    - name: TypeScript Type Check
+      run: |
+        cd frontend
+        npm install
+        npx tsc --noEmit
 
-      - name: Start containers
-        run: |
-          python contrib/scripts/do_dotenv.py
-          python contrib/scripts/do_psqlconf.py
-          docker network create infodengue-dev_infodengue
-          sugar compose up --options -d
+    - name: Start containers
+      run: |
+        python contrib/scripts/do_dotenv.py
+        python contrib/scripts/do_psqlconf.py
+        docker network create infodengue-dev_infodengue
+        sugar compose up --options -d
 
     # Datastore models mostly consist in External db connections
     # - name: Test datastore
@@ -87,7 +88,7 @@ jobs:
     # - name: Container wait
     #   run: |
     #      make container-wait-all
-
+    
     # TODO remove it
     # - name: Setup tmate session
     #   if: "${{ failure() }}"
