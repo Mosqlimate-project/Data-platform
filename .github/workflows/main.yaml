@@ -51,7 +51,7 @@ jobs:
       run: |
         poetry config virtualenvs.create true
         poetry config virtualenvs.in-project true
-        poetry install --no-root
+        poetry install --no-root --without pre-commit
 
     - name: Clean Conda Cache
       run: |
@@ -59,8 +59,7 @@ jobs:
 
     - name: Linting
       run: |
-        pre-commit install
-        pre-commit run --all-files
+        uvx pre-commit run --all-files
 
     - name: TypeScript Type Check
       run: |
