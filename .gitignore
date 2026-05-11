@@ -190,3 +190,5 @@ frontend/node_modules/*
 
 frontend/.next/*
 !frontend/.next/.keep
+
+tsconfig.tsbuildinfo
