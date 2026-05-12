@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.4.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.2...2.4.3) (2026-05-12)
+
+
+### Bug Fixes
+
+* **contaovos-charts:** make the chart loading async bc it takes too long to fetch ([#496](https://github.com/Mosqlimate-project/Data-platform/issues/496)) ([4041e83](https://github.com/Mosqlimate-project/Data-platform/commit/4041e836f9c0c67588872e47261ad24eb3daa2f9))
+
 ## [2.4.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.1...2.4.2) (2026-05-12)
 
 
