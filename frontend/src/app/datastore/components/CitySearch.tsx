@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { FRONTEND_SECRET } from "@/lib/env";
 
 interface City {
@@ -13,7 +13,7 @@ interface City {
 
 interface CitySearchProps {
   value: number | undefined;
-  onChange: (geocode: number) => void;
+  onChange: (geocode: number | undefined) => void;
 }
 
 export default function CitySearch({ value, onChange }: CitySearchProps) {
@@ -81,6 +81,14 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
     setIsOpen(false);
   };
 
+  const handleClear = () => {
+    setQuery("");
+    setResults([]);
+    onChange(undefined);
+  };
+
+  const showClear = value !== undefined && query.length > 0;
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div className="relative">
@@ -96,9 +104,17 @@ export default function CitySearch({ value, onChange }: CitySearchProps) {
             if (!isOpen) setIsOpen(true);
           }}
           placeholder="Search by name or geocode"
-          className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-4 text-sm outline-none focus:ring-1 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-9 text-sm outline-none focus:ring-1 focus:ring-ring"
         />
-        {loading && (
+        {showClear ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : loading && (
           <div className="absolute right-3 top-2.5 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         )}
       </div>

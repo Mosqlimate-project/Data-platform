@@ -1,6 +1,8 @@
 import logging
+import asyncio
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
+from typing import Optional
 
 import httpx
 from asgiref.sync import async_to_sync
@@ -31,7 +33,7 @@ app.conf.beat_schedule = {
 class ContaOvosSchema(BaseModel):
     counting_id: int
     date: date
-    date_collect: date
+    date_collect: Optional[date] = None
     eggs: int
     latitude: Decimal
     longitude: Decimal
@@ -61,6 +63,8 @@ class ContaOvosSchema(BaseModel):
             raise ValueError(f"Latitude out of bounds: {self.latitude}")
         if not (Decimal("-180") <= self.longitude <= Decimal("180")):
             raise ValueError(f"Longitude out of bounds: {self.longitude}")
+        if self.date_collect is None:
+            raise ValueError("date_collect is missing")
         return self
 
 
@@ -81,6 +85,14 @@ async def get_contaovos(dt: date) -> list[ContaOvosSchema]:
             }
 
             response = await client.get(url, params=params)
+
+            if response.status_code == 429:
+                logger.warning(
+                    "Rate limit hit on page %s for %s. Sleeping...", page, dt
+                )
+                await asyncio.sleep(5)
+                continue
+
             response.raise_for_status()
             res = response.json()
 
@@ -100,25 +112,37 @@ async def get_contaovos(dt: date) -> list[ContaOvosSchema]:
 
             page += 1
 
+            await asyncio.sleep(1)
+
     return validated_data
 
 
 @app.task(
+    bind=True,
+    rate_limit="1/s",
     autoretry_for=(
         httpx.HTTPError,
+        httpx.HTTPStatusError,
         httpx.ReadError,
         httpx.ConnectError,
         httpx.TimeoutException,
     ),
     retry_backoff=True,
     retry_jitter=True,
-    retry_kwargs={"max_retries": 5},
+    retry_kwargs={"max_retries": 10},
 )
-def sync_contaovos_for_date(dt_str: str | None = None):
+def sync_contaovos_for_date(self, dt_str: str | None = None):
     dt = date.fromisoformat(dt_str) if dt_str else timezone.localdate()
 
     logger.info("Starting ContaOvos sync for %s", dt)
-    data = async_to_sync(get_contaovos)(dt)
+
+    try:
+        data = async_to_sync(get_contaovos)(dt)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            logger.error("Rate limit hit for %s. Retrying...", dt)
+            raise self.retry(exc=e, countdown=60)
+        raise e
 
     if not data:
         logger.warning("No valid ContaOvos data found for %s", dt)

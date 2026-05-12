@@ -69,9 +69,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if user:
             messages = await sync_to_async(list)(
-                Message.objects.filter(session__user=user).order_by(
-                    "timestamp"
-                )
+                Message.objects.filter(
+                    session__user=user,
+                ).order_by("timestamp")
             )
         else:
             messages = await sync_to_async(list)(
@@ -120,7 +120,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             else:
                 qs = Message.objects.filter(session=self.session)
 
-            messages = await sync_to_async(list)(qs.order_by("-timestamp")[:5])
+            messages = await sync_to_async(list)(qs.order_by("-timestamp")[:8])
             messages.reverse()
 
             message_history = [
