@@ -11,7 +11,7 @@ from ninja.errors import HttpError
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
-from django.db.models import F, Avg, Sum
+from django.db.models import F, Avg, Sum, Count, Q
 from django.db.models.functions import Round
 from django.conf import settings
 from django.core.cache import cache
@@ -19,7 +19,7 @@ from django.core.cache import cache
 
 from users.auth import UidKeyAuth
 from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
-from main.utils import UFs
+from main.utils import UFs, UF_CODES, CODES_UF
 from main.models import APILog
 from registry.pagination import PagesPagination
 from vis.brasil.models import State, GeoMacroSaude
@@ -29,6 +29,7 @@ from .models import (
     HistoricoAlertaZika,
     HistoricoAlertaChik,
     CopernicusBrasil,
+    ContaOvos,
 )
 from datastore import schema, filters, models
 
@@ -566,6 +567,159 @@ def charts_climate_daily_umid_press_med(
             "pressao_med",
         )
     )
+
+
+@router.get(
+    "/charts/contaovos/eggs_density/",
+    response=List[schema.EggsDensitySchema],
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_contaovos(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+    uf: Optional[str] = None,
+    geocode: Optional[int] = None,
+):
+    qs = ContaOvos.objects.filter(date__range=(start, end))
+
+    if uf:
+        qs = qs.filter(adm2__adm1=UF_CODES[uf.upper()])
+    elif geocode:
+        qs = qs.filter(adm2=geocode)
+
+    qs = (
+        qs.values("year", "week")
+        .annotate(total_eggs=Sum("eggs"))
+        .order_by("year", "week")
+    )
+
+    return [
+        {
+            "epiweek": f"{row['year']}-{str(row['week']).zfill(2)}",
+            "total_eggs": row["total_eggs"],
+        }
+        for row in qs
+    ]
+
+
+@router.get(
+    "/charts/contaovos/positivity/",
+    response=List[schema.PositivitySchema],
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_contaovos_positivity(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+    uf: Optional[str] = None,
+):
+    qs = ContaOvos.objects.filter(date__range=(start, end))
+
+    if uf:
+        qs = qs.filter(adm2__adm1=UF_CODES[uf.upper()])
+
+    data = (
+        qs.annotate(group=F("adm2__name") if uf else F("adm2__adm1__geocode"))
+        .values("group")
+        .annotate(
+            total_traps=Count("ovitrap_website_id", distinct=True),
+            pos_traps=Count(
+                "ovitrap_website_id", distinct=True, filter=Q(eggs__gt=0)
+            ),
+        )
+    )
+
+    result = []
+    for row in data:
+        name = row["group"]
+        if not uf:
+            name = CODES_UF.get(int(name), str(name))
+        positivity = round(
+            (
+                (row["pos_traps"] / row["total_traps"] * 100)
+                if row["total_traps"]
+                else 0
+            ),
+            2,
+        )
+        result.append({"name": name, "positivity": positivity})
+
+    result.sort(key=lambda x: x["positivity"], reverse=True)
+    return result
+
+
+@router.get(
+    "/charts/contaovos/map/",
+    response=schema.MapOut,
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_contaovos_map(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+):
+    qs = ContaOvos.objects.filter(date__range=(start, end))
+
+    states = (
+        qs.annotate(state_code_num=F("adm2__adm1__geocode"))
+        .values("state_code_num")
+        .annotate(
+            total_eggs=Sum("eggs"),
+            trap_count=Count("ovitrap_website_id", distinct=True),
+            municipality_count=Count("adm2", distinct=True),
+        )
+    )
+
+    state_data = []
+    for row in states:
+        name = CODES_UF.get(
+            int(row["state_code_num"]),
+            str(row["state_code_num"]),
+        )
+        state_data.append(
+            {
+                "name": name,
+                "total_eggs": row["total_eggs"],
+                "trap_count": row["trap_count"],
+                "municipality_count": row["municipality_count"],
+            }
+        )
+
+    scatter_qs = (
+        qs.filter(
+            latitude__gte=-33.8,
+            latitude__lte=5.3,
+            longitude__gte=-74.0,
+            longitude__lte=-34.8,
+        )
+        .annotate(
+            state_code=F("adm2__adm1__geocode"),
+            trap_id=F("ovitrap_website_id"),
+            municipality=F("adm2__name"),
+        )
+        .values(
+            "state_code", "latitude", "longitude", "trap_id", "municipality"
+        )
+    )
+
+    scatter_data = []
+    for row in scatter_qs:
+        name = CODES_UF.get(int(row["state_code"]), str(row["state_code"]))
+        scatter_data.append(
+            {
+                "name": name,
+                "latitude": float(row["latitude"]),
+                "longitude": float(row["longitude"]),
+                "trap_id": row["trap_id"],
+                "municipality": row["municipality"],
+            }
+        )
+
+    return {"states": state_data, "scatter": scatter_data}
 
 
 @router.get(

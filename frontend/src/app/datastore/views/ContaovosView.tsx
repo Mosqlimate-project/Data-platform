@@ -263,7 +263,7 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
   const oneYearAgo = new Date();
   oneYearAgo.setDate(now.getDate() - 365);
 
-  const [geocode, setGeocode] = useState<number | undefined>(3304557);
+  const [geocode, setGeocode] = useState<number | undefined>();
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
   const [geoJson, setGeoJson] = useState<any>(null);
@@ -318,10 +318,11 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
     >
       <div className="flex flex-col gap-6 w-full">
         <EggCountChart
-          geocode={String(geocode)}
+          geocode={geocode ? String(geocode) : undefined}
           start={startDate}
           end={endDate}
           geoJson={geoJson}
+          onGeocodeClear={() => setGeocode(undefined)}
         />
       </div>
     </EndpointLayout>

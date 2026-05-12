@@ -221,6 +221,36 @@ class MunTempOut(Schema):
     temp_max: float
 
 
+class EggsDensitySchema(Schema):
+    epiweek: str
+    total_eggs: int
+
+
+class PositivitySchema(Schema):
+    name: str
+    positivity: float
+
+
+class MapStateSchema(Schema):
+    name: str
+    total_eggs: int
+    trap_count: int
+    municipality_count: int
+
+
+class MapScatterSchema(Schema):
+    name: str
+    latitude: float
+    longitude: float
+    trap_id: int
+    municipality: str
+
+
+class MapOut(Schema):
+    states: list[MapStateSchema]
+    scatter: list[MapScatterSchema]
+
+
 class MunAccWaterfallOut(Schema):
     date: date
     epiweek: int

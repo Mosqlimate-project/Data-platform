@@ -54,7 +54,9 @@ def can_manage_filter(user, prefix=""):
             | Q(
                 **{
                     f"{repo_path}__repository_contributors__user": user,
-                    f"{repo_path}__repository_contributors__permission": "ADMIN",
+                    f"{repo_path}__repository_contributors__permission": (
+                        "ADMIN"
+                    ),
                 }
             )
         )
