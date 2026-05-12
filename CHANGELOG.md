@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.4.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.3...2.4.4) (2026-05-12)
+
+
+### Bug Fixes
+
+* **contaovos-charts:** geocode selection is creating race conditions; decrease the date range to prevent high loading at first load ([#497](https://github.com/Mosqlimate-project/Data-platform/issues/497)) ([4391ec2](https://github.com/Mosqlimate-project/Data-platform/commit/4391ec233a78dabf0b899a24889602e400799bbb))
+
 ## [2.4.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.2...2.4.3) (2026-05-12)
 
 
