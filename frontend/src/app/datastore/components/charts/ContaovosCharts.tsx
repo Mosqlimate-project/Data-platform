@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import * as echarts from "echarts";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -311,8 +311,99 @@ function limitTrapsPerState(data: any[], maxPerState = 5) {
 export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: MapProps) {
   const { t } = useTranslation('common');
   const { resolvedTheme } = useTheme();
-  const [option, setOption] = useState<echarts.EChartsOption | null>(null);
+  const [states, setStates] = useState<any[] | null>(null);
+  const [scatter, setScatter] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const option = useMemo<echarts.EChartsOption | null>(() => {
+    if (!states) return null;
+
+    const mapConfig = {
+      roam: false, zoom: 1.08, center: [-55, -15] as [number, number], aspectScale: 1.1,
+      itemStyle: {
+        areaColor: resolvedTheme === "dark" ? "#1f2937" : "#e0e0e0",
+        borderColor: resolvedTheme === "dark" ? "#4b5563" : "#333",
+        borderWidth: 1,
+      },
+    };
+
+    const mapSeriesData = states.map((s: any) => ({
+      name: s.name,
+      value: s.total_eggs,
+      trap_count: s.trap_count,
+      municipalities: s.municipality_count,
+      itemStyle: s.name === selectedState ? { borderColor: "#555", borderWidth: 3 } : {},
+    }));
+
+    const scatterSeriesData = scatter.map((s: any) => ({
+      name: s.name,
+      value: [s.longitude, s.latitude] as [number, number],
+      id: s.trap_id,
+      municipality: s.municipality,
+    }));
+
+    return {
+      title: {
+        text: t('charts_contaovos.eggs_map_title'),
+        left: "center",
+        textStyle: { color: resolvedTheme === "dark" ? "#fff" : "#000", fontSize: 16, fontWeight: "bold" },
+      },
+      visualMap: {
+        min: 0,
+        max: Math.max(...states.map((s: any) => s.total_eggs), 1),
+        left: 20,
+        calculable: true,
+        inRange: { color: ["#CEF8FE", "#0F646B"] },
+        textStyle: { color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280" },
+      },
+      tooltip: {
+        formatter: (params: any) => {
+          if (params.seriesType === "map") {
+            const d = states.find((s: any) => s.name === params.name);
+            return d
+              ? t('charts_contaovos.map_tooltip_state', {
+                  name: d.name,
+                  eggs: d.total_eggs,
+                  traps: d.trap_count,
+                  municipalities: d.municipality_count,
+                })
+              : "";
+          }
+          if (params.seriesType === "scatter") {
+            const d = scatter.find((s: any) => s.trap_id === params.data.id);
+            return d
+              ? t('charts_contaovos.map_tooltip_scatter', {
+                  id: d.trap_id,
+                  municipality: d.municipality,
+                  state: d.name,
+                })
+              : "";
+          }
+          return "";
+        },
+        backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
+        borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
+        textStyle: { color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827" },
+      },
+      geo: { map: "brazil", ...mapConfig },
+      series: [
+        {
+          type: "map", map: "brazil", nameProperty: "sigla",
+          ...mapConfig,
+          data: mapSeriesData,
+        },
+        ...(scatterSeriesData.length > 0
+          ? [{
+              type: "scatter" as const, coordinateSystem: "geo" as const,
+              symbolSize: 7,
+              data: scatterSeriesData,
+              zlevel: 1,
+            }]
+          : []),
+      ],
+    };
+  }, [states, scatter, selectedState, resolvedTheme, t]);
+
   const chartRef = useChart(option, loading);
 
   useEffect(() => {
@@ -335,106 +426,37 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
   useEffect(() => {
     if (!start || !end || !geoJson) return;
     setLoading(true);
+    setStates(null);
+    setScatter([]);
 
     const params = new URLSearchParams({ start, end });
 
     fetch(`/api/datastore/charts/contaovos/map/?${params}`, { headers })
       .then((res) => res.json())
-      .then((data: { states: any[]; scatter: any[] }) => {
-        if (!data || !data.states || data.states.length === 0) {
-          setOption(null);
+      .then((data: any[]) => {
+        if (!data || data.length === 0) {
+          setStates(null);
           return;
         }
-
-        const mapConfig = {
-          roam: false, zoom: 1.08, center: [-55, -15] as [number, number], aspectScale: 1.1,
-          itemStyle: {
-            areaColor: resolvedTheme === "dark" ? "#1f2937" : "#e0e0e0",
-            borderColor: resolvedTheme === "dark" ? "#4b5563" : "#333",
-            borderWidth: 1,
-          },
-        };
-
-        const mapSeriesData = data.states.map((s: any) => ({
-          name: s.name,
-          value: s.total_eggs,
-          trap_count: s.trap_count,
-          municipalities: s.municipality_count,
-          itemStyle: s.name === selectedState ? { borderColor: "#555", borderWidth: 3 } : {},
-        }));
-
-        const scatterData = limitTrapsPerState(data.scatter, 5).map((s: any) => ({
-          name: s.name,
-          value: [s.longitude, s.latitude] as [number, number],
-          id: s.trap_id,
-          municipality: s.municipality,
-        }));
-
-        setOption({
-          title: {
-            text: t('charts_contaovos.eggs_map_title'),
-            left: "center",
-            textStyle: { color: resolvedTheme === "dark" ? "#fff" : "#000", fontSize: 16, fontWeight: "bold" },
-          },
-          visualMap: {
-            min: 0,
-            max: Math.max(...data.states.map((s: any) => s.total_eggs), 1),
-            left: 20,
-            calculable: true,
-            inRange: { color: ["#CEF8FE", "#0F646B"] },
-            textStyle: { color: resolvedTheme === "dark" ? "#9ca3af" : "#6b7280" },
-          },
-          tooltip: {
-            formatter: (params: any) => {
-              if (params.seriesType === "map") {
-                const d = data.states.find((s: any) => s.name === params.name);
-                return d
-                  ? t('charts_contaovos.map_tooltip_state', {
-                      name: d.name,
-                      eggs: d.total_eggs,
-                      traps: d.trap_count,
-                      municipalities: d.municipality_count,
-                    })
-                  : "";
-              }
-              if (params.seriesType === "scatter") {
-                const d = data.scatter.find((s: any) => s.trap_id === params.data.id);
-                return d
-                  ? t('charts_contaovos.map_tooltip_scatter', {
-                      id: d.trap_id,
-                      municipality: d.municipality,
-                      state: d.name,
-                    })
-                  : "";
-              }
-              return "";
-            },
-            backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#ffffff",
-            borderColor: resolvedTheme === "dark" ? "#374151" : "#e5e7eb",
-            textStyle: { color: resolvedTheme === "dark" ? "#f3f4f6" : "#111827" },
-          },
-          geo: { map: "brazil", ...mapConfig },
-          series: [
-            {
-              type: "map", map: "brazil", nameProperty: "sigla",
-              ...mapConfig,
-              data: mapSeriesData,
-            },
-            {
-              type: "scatter", coordinateSystem: "geo",
-              symbolSize: 7,
-              data: scatterData,
-              zlevel: 1,
-            },
-          ],
-        });
+        setStates(data);
       })
       .catch((err) => {
         console.error(err);
-        setOption(null);
+        setStates(null);
       })
       .finally(() => setLoading(false));
-  }, [start, end, geoJson, selectedState, t, resolvedTheme]);
+
+    fetch(`/api/datastore/charts/contaovos/map/scatter/?${params}`, { headers })
+      .then((res) => res.json())
+      .then((data: any[]) => {
+        if (!data || data.length === 0) {
+          setScatter([]);
+          return;
+        }
+        setScatter(limitTrapsPerState(data, 5));
+      })
+      .catch(() => setScatter([]));
+  }, [start, end, geoJson, t, resolvedTheme]);
 
   return (
     <div className="w-full overflow-hidden">

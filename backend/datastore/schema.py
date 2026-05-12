@@ -246,11 +246,6 @@ class MapScatterSchema(Schema):
     municipality: str
 
 
-class MapOut(Schema):
-    states: list[MapStateSchema]
-    scatter: list[MapScatterSchema]
-
-
 class MunAccWaterfallOut(Schema):
     date: date
     epiweek: int
