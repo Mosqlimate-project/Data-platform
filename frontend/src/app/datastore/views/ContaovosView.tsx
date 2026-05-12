@@ -5,7 +5,6 @@ import Papa from "papaparse";
 import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
-import CitySearch from "../components/CitySearch";
 import { EggCountChart } from "../components/charts/ContaovosCharts";
 import { NEXT_PUBLIC_BACKEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
@@ -260,11 +259,10 @@ function MosquitoApiBuilder() {
 export function ContaovosView({ config }: { config: EndpointDetails }) {
   const formatDateISO = (date: Date) => date.toISOString().split('T')[0];
   const now = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setDate(now.getDate() - 365);
+  const twoMonthsAgo = new Date();
+  twoMonthsAgo.setDate(now.getDate() - 60);
 
-  const [geocode, setGeocode] = useState<number | undefined>();
-  const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
+  const [startDate, setStartDate] = useState<string>(formatDateISO(twoMonthsAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
   const [geoJson, setGeoJson] = useState<any>(null);
 
@@ -303,26 +301,17 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
       dataVariables={config.data_variables}
       apiBuilder={<MosquitoApiBuilder />}
       controls={
-        <>
-          <div className="flex flex-col gap-1 relative z-20">
-            <label className="text-xs font-medium opacity-70">Municipality</label>
-            <CitySearch value={geocode} onChange={setGeocode} />
-          </div>
-
-          <div className="flex gap-2 relative">
-            <LocalizedDateInput label="Start Date" value={startDate} onChange={handleStartDateChange} />
-            <LocalizedDateInput label="End Date" value={endDate} onChange={handleEndDateChange} />
-          </div>
-        </>
+        <div className="flex gap-2 relative">
+          <LocalizedDateInput label="Start Date" value={startDate} onChange={handleStartDateChange} />
+          <LocalizedDateInput label="End Date" value={endDate} onChange={handleEndDateChange} />
+        </div>
       }
     >
       <div className="flex flex-col gap-6 w-full">
         <EggCountChart
-          geocode={geocode ? String(geocode) : undefined}
           start={startDate}
           end={endDate}
           geoJson={geoJson}
-          onGeocodeClear={() => setGeocode(undefined)}
         />
       </div>
     </EndpointLayout>

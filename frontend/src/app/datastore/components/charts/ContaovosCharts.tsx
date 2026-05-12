@@ -55,6 +55,7 @@ export function EggsDensityChart({ geocode, uf, start, end }: ChartProps) {
 
   useEffect(() => {
     if (!start || !end) return;
+    let cancelled = false;
     setLoading(true);
 
     const params = new URLSearchParams({ start, end });
@@ -67,6 +68,7 @@ export function EggsDensityChart({ geocode, uf, start, end }: ChartProps) {
     fetch(`/api/datastore/charts/contaovos/eggs-density/?${params}`, { headers })
       .then((res) => res.json())
       .then((data: { epiweek: string; total_eggs: number }[]) => {
+        if (cancelled) return;
         if (!data || data.length === 0) {
           setOption(null);
           return;
@@ -152,22 +154,26 @@ export function EggsDensityChart({ geocode, uf, start, end }: ChartProps) {
         });
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error(err);
         setOption(null);
       })
-      .finally(() => setLoading(false));
-  }, [geocode, start, end, t, resolvedTheme]);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [geocode, uf, start, end, t, resolvedTheme]);
 
   const chartRef = useChart(option, loading);
 
   return (
-    <div className="w-full overflow-hidden">
-      {!loading && !option ? (
-        <div className="h-[350px] flex items-center justify-center text-secondary opacity-60 text-sm">
+    <div className="w-full overflow-hidden relative">
+      <div ref={chartRef} style={{ width: "100%", height: "420px", minWidth: "0" }} />
+      {!loading && !option && (
+        <div className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
           {t('charts_contaovos.no_data_message')}
         </div>
-      ) : (
-        <div ref={chartRef} style={{ width: "100%", height: "420px", minWidth: "0" }} />
       )}
     </div>
   );
@@ -181,6 +187,7 @@ export function PositivityChart({ uf, start, end }: PositivityProps) {
 
   useEffect(() => {
     if (!start || !end) return;
+    let cancelled = false;
     setLoading(true);
 
     const params = new URLSearchParams({ start, end });
@@ -189,6 +196,7 @@ export function PositivityChart({ uf, start, end }: PositivityProps) {
     fetch(`/api/datastore/charts/contaovos/positivity/?${params}`, { headers })
       .then((res) => res.json())
       .then((data: { name: string; positivity: number }[]) => {
+        if (cancelled) return;
         if (!data || data.length === 0) {
           setOption(null);
           return;
@@ -266,22 +274,26 @@ export function PositivityChart({ uf, start, end }: PositivityProps) {
         });
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error(err);
         setOption(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [uf, start, end, t, resolvedTheme]);
 
   const chartRef = useChart(option, loading);
 
   return (
-    <div className="w-full overflow-hidden">
-      {!loading && !option ? (
-        <div className="h-[350px] flex items-center justify-center text-secondary opacity-60 text-sm">
+    <div className="w-full overflow-hidden relative">
+      <div ref={chartRef} style={{ width: "100%", height: "420px", minWidth: "0" }} />
+      {!loading && !option && (
+        <div className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
           {t('charts_contaovos.no_data_message')}
         </div>
-      ) : (
-        <div ref={chartRef} style={{ width: "100%", height: "420px", minWidth: "0" }} />
       )}
     </div>
   );
@@ -425,6 +437,7 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
 
   useEffect(() => {
     if (!start || !end || !geoJson) return;
+    let cancelled = false;
     setLoading(true);
     setStates(null);
     setScatter([]);
@@ -434,6 +447,7 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
     fetch(`/api/datastore/charts/contaovos/map/?${params}`, { headers })
       .then((res) => res.json())
       .then((data: any[]) => {
+        if (cancelled) return;
         if (!data || data.length === 0) {
           setStates(null);
           return;
@@ -441,55 +455,51 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
         setStates(data);
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error(err);
         setStates(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     fetch(`/api/datastore/charts/contaovos/map/scatter/?${params}`, { headers })
       .then((res) => res.json())
       .then((data: any[]) => {
+        if (cancelled) return;
         if (!data || data.length === 0) {
           setScatter([]);
           return;
         }
         setScatter(limitTrapsPerState(data, 5));
       })
-      .catch(() => setScatter([]));
+      .catch(() => {
+        if (cancelled) return;
+        setScatter([]);
+      });
+
+    return () => { cancelled = true; };
   }, [start, end, geoJson, t, resolvedTheme]);
 
   return (
-    <div className="w-full overflow-hidden">
-      {!loading && !option ? (
-        <div className="h-[400px] flex items-center justify-center text-secondary opacity-60 text-sm">
+    <div className="w-full overflow-hidden relative">
+      <div ref={chartRef} style={{ width: "100%", height: "520px", minWidth: "0" }} />
+      {!loading && !option && (
+        <div className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
           {t('charts_contaovos.no_data_message')}
         </div>
-      ) : (
-        <div ref={chartRef} style={{ width: "100%", height: "520px", minWidth: "0" }} />
       )}
     </div>
   );
 }
 
-export function EggCountChart({ geocode, start, end, geoJson, onGeocodeClear }: {
-  geocode?: string;
+export function EggCountChart({ start, end, geoJson }: {
   start: string;
   end: string;
   geoJson?: any;
-  onGeocodeClear?: () => void;
 }) {
-  const uf = getUFfromGeocode(geocode);
   const [selectedState, setSelectedState] = useState<string | null>(null);
-
-  const handleStateSelect = (state: string | null) => {
-    if (state === null && selectedState !== null) {
-      onGeocodeClear?.();
-    }
-    setSelectedState(state);
-  };
-
-  const activeUf = selectedState || uf || undefined;
-  const activeGeocode = selectedState ? undefined : geocode;
+  const uf = selectedState || undefined;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -498,11 +508,11 @@ export function EggCountChart({ geocode, start, end, geoJson, onGeocodeClear }: 
         end={end}
         geoJson={geoJson}
         selectedState={selectedState}
-        onStateSelect={handleStateSelect}
+        onStateSelect={setSelectedState}
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-        <EggsDensityChart geocode={activeGeocode} uf={activeUf} start={start} end={end} />
-        <PositivityChart uf={activeUf} start={start} end={end} />
+        <EggsDensityChart uf={uf} start={start} end={end} />
+        <PositivityChart uf={uf} start={start} end={end} />
       </div>
     </div>
   );

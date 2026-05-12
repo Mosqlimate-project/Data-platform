@@ -20,16 +20,24 @@ export function useChart(options: echarts.EChartsOption | null, loading: boolean
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
-    if (chartRef.current && !chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current);
+    if (!chartRef.current) return;
+    const dom = chartRef.current;
 
-      const handleResize = () => chartInstance.current?.resize();
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        window.removeEventListener("resize", handleResize);
-      };
+    if (chartInstance.current && chartInstance.current.getDom() !== dom) {
+      chartInstance.current.dispose();
+      chartInstance.current = null;
     }
+
+    if (!chartInstance.current) {
+      chartInstance.current = echarts.init(dom);
+    }
+
+    const handleResize = () => chartInstance.current?.resize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [options, loading]);
 
   useEffect(() => {
@@ -50,6 +58,8 @@ export function useChart(options: echarts.EChartsOption | null, loading: boolean
 
         chartInstance.current.setOption(finalOptions, { notMerge: true });
         chartInstance.current.resize();
+      } else {
+        chartInstance.current.clear();
       }
     }
   }, [loading, options]);
