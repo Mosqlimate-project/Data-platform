@@ -653,7 +653,7 @@ def charts_contaovos_positivity(
 
 @router.get(
     "/charts/contaovos/map/",
-    response=schema.MapOut,
+    response=List[schema.MapStateSchema],
     auth=UidKeyAuth(),
     include_in_schema=False,
 )
@@ -689,6 +689,22 @@ def charts_contaovos_map(
             }
         )
 
+    return state_data
+
+
+@router.get(
+    "/charts/contaovos/map/scatter/",
+    response=List[schema.MapScatterSchema],
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_contaovos_map_scatter(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+):
+    qs = ContaOvos.objects.filter(date__range=(start, end))
+
     scatter_qs = (
         qs.filter(
             latitude__gte=-33.8,
@@ -719,7 +735,7 @@ def charts_contaovos_map(
             }
         )
 
-    return {"states": state_data, "scatter": scatter_data}
+    return scatter_data
 
 
 @router.get(
