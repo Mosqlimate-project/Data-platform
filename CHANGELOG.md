@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.4.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.1...2.4.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **charts:** fix the query of contaovos on the endpoint charts ([#495](https://github.com/Mosqlimate-project/Data-platform/issues/495)) ([d9711d7](https://github.com/Mosqlimate-project/Data-platform/commit/d9711d7eb42c94a4d09d14b6b1d87947da1c6b4a))
+
 ## [2.4.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.0...2.4.1) (2026-05-06)
 
 
