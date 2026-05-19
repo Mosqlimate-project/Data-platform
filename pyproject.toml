@@ -66,6 +66,7 @@ httpx = "^0.28.1"
 email-validator = "^2.3.0"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 trio = "^0.32.0"
+yarl = "<1.24.0"
 
 
 [tool.poetry.group.dev.dependencies]
