@@ -56,9 +56,7 @@ ENV PATH ${CONDA_PREFIX}/bin:$PATH
 COPY --chown=mosqlimate:mosqlimate pyproject.toml /opt/services/mosqlimate
 
 # https://github.com/yaml/pyyaml/issues/724
-RUN pip install "cython<3.0.0" \
-  && pip install --no-build-isolation "pyyaml<6.0" \ 
-  && poetry config virtualenvs.create false \
+RUN poetry config virtualenvs.create false \
   && poetry install --no-root --without dev,docs
 
 COPY --chown=mosqlimate:mosqlimate containers/entrypoint.sh /opt/entrypoint.sh
