@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.4.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.4...2.4.5) (2026-05-19)
+
+
+### Bug Fixes
+
+* **api:** fix readme fetch 401 error ([#498](https://github.com/Mosqlimate-project/Data-platform/issues/498)) ([dcf0117](https://github.com/Mosqlimate-project/Data-platform/commit/dcf011701a21fd78b651a00f3741f6b0d2034b3d))
+
 ## [2.4.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.3...2.4.4) (2026-05-12)
 
 
