@@ -404,7 +404,7 @@ def update_repository_model_description(
 @router.get(
     "/model/{owner}/{repository}/readme/",
     response={200: dict, 404: NotFoundSchema},
-    auth=UidKeyAuth(),
+    auth=OptionalJWTAuth(),
     include_in_schema=False,
 )
 def repository_readme(request, owner: str, repository: str):
