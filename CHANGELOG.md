@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.5.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.5...2.5.0) (2026-05-29)
+
+
+### Features
+
+* **dashboard:** rework of the dashboard parameters lookup ([#501](https://github.com/Mosqlimate-project/Data-platform/issues/501)) ([e3cfc86](https://github.com/Mosqlimate-project/Data-platform/commit/e3cfc86703d2490ad6847a33288cf36cdd5b5152))
+
 ## [2.4.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.4...2.4.5) (2026-05-19)
 
 
