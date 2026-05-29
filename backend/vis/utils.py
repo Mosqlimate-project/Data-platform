@@ -25,7 +25,7 @@ def hist_alerta_data(
     disease: str,
     start_window_date: date,
     end_window_date: date,
-    adm_level: Literal[1, 2],
+    adm_level: int,
     adm_1: Optional[str] = None,
     adm_2: Optional[int] = None,
 ) -> pd.DataFrame:

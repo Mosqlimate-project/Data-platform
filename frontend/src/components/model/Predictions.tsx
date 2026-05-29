@@ -84,6 +84,18 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+const subDay = (d: string) => {
+  if (!d) return d;
+  const [y, m, day] = d.split('-');
+  if (!y || !m || !day) return d;
+  const date = new Date(+y, +m - 1, +day);
+  date.setDate(date.getDate() + 1);
+  const yy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+};
+
 const PredictionCard = memo(function PredictionCard({
   pred,
   canManage,
@@ -196,9 +208,9 @@ const PredictionCard = memo(function PredictionCard({
         {pred.start && pred.end && (
           <div className="space-y-1">
             <div className="text-sm flex items-center gap-2">
-              <span className="text-foreground" suppressHydrationWarning>{formatDate(pred.start)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatDate(subDay(pred.start))}</span>
               <span className="text-muted-foreground">→</span>
-              <span className="text-foreground" suppressHydrationWarning>{formatDate(pred.end)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatDate(subDay(pred.end))}</span>
             </div>
           </div>
         )}
@@ -431,7 +443,7 @@ pred = upload_prediction(
       if (pred.start && pred.end) {
         const caseParams = new URLSearchParams({
           disease: pred.disease_code, adm_level: pred.adm_level.toString(),
-          imdc_year: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
+          sprint: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
           start: pred.start, end: pred.end,
         });
         if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
@@ -454,7 +466,7 @@ pred = upload_prediction(
 
   const getDashboardLink = useCallback((pred: ModelPrediction) => {
     const p = new URLSearchParams();
-    p.set("imdc_year", pred.imdc_year ? "true" : "false");
+    p.set("sprint", pred.imdc_year ? "true" : "false");
     p.set("adm_level", pred.adm_level.toString());
     p.set("disease", pred.disease_code);
     p.set("prediction_id", pred.id.toString());

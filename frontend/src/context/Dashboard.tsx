@@ -42,6 +42,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const updateState = (updates: Partial<DashboardState>) => {
     setState((prev) => ({ ...prev, ...updates }));
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === "" || value === null || value === undefined) params.delete(key);
+      else params.set(key, String(value));
+    }
+    const qs = params.toString();
+    const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
   };
 
   return (
