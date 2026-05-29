@@ -75,6 +75,7 @@ containers-sugar = "^1.17.0"
 makim = ">=1.15.2"
 pygments = "^2.15.1"
 wavedrom = "^2.0.3.post3"
+django-stubs = "^6.0.5"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -88,3 +89,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 80
+exclude = [
+    "**/migrations/",
+    "**/__pycache__/",
+    "**/*.pyc",
+    ".ruff_cache/",
+    ".git/",
+    "staticfiles/",
+]

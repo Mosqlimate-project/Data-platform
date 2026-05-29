@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List, Optional, Literal
 
 import numpy as np
@@ -622,3 +623,111 @@ def dashboard_cases(
             schema.HistoricoAlertaCases(date=row["date"], cases=row["target"])
         )
     return res
+
+
+CATEGORY_GROUPS = {
+    RepositoryModel.Category.QUANTITATIVE: "quantitative",
+    RepositoryModel.Category.SPATIAL_QUANTITATIVE: "quantitative",
+    RepositoryModel.Category.SPATIO_TEMPORAL_QUANTITATIVE: "quantitative",
+    RepositoryModel.Category.CATEGORICAL: "categorical",
+    RepositoryModel.Category.SPATIAL_CATEGORICAL: "categorical",
+    RepositoryModel.Category.SPATIO_TEMPORAL_CATEGORICAL: "categorical",
+}
+
+
+@router.get(
+    "/dashboard/tree/",
+    response=dict,
+    auth=auth,
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def dashboard_tree(request):
+    perm = can_manage_filter(request.auth)
+
+    diseases = defaultdict(dict)
+    countries = defaultdict(dict)
+    states = defaultdict(dict)
+    cities = defaultdict(dict)
+
+    qs = ModelPrediction.objects.filter(perm).select_related(
+        "disease",
+        "model",
+        "model__sprint",
+        "adm0",
+        "adm1",
+        "adm1__country",
+        "adm2",
+        "adm2__adm1",
+        "adm2__adm1__country",
+    )
+
+    for p in qs.iterator():
+        cat = CATEGORY_GROUPS.get(p.model.category)
+        if not cat:
+            continue
+
+        imdc = str(p.model.sprint.year) if p.model.sprint_id else "none"
+        dcode = p.disease.code
+
+        dk = f"{cat}|{p.adm_level}|{imdc}"
+        diseases[dk][dcode] = p.disease.name
+
+        country_code = None
+        if p.adm_level == 0 and p.adm0:
+            country_code = p.adm0.geocode
+            country_name = p.adm0.name
+        elif p.adm_level == 1 and p.adm1 and p.adm1.country:
+            country_code = p.adm1.country.geocode
+            country_name = p.adm1.country.name
+        elif (
+            p.adm_level == 2 and p.adm2 and p.adm2.adm1 and p.adm2.adm1.country
+        ):
+            country_code = p.adm2.adm1.country.geocode
+            country_name = p.adm2.adm1.country.name
+        else:
+            country_name = None
+
+        if country_code:
+            ck = f"{cat}|{p.adm_level}|{dcode}|{imdc}"
+            countries[ck][country_code] = country_name
+
+        state_code = state_name = None
+        if p.adm_level == 1 and p.adm1:
+            state_code = p.adm1.geocode
+            state_name = p.adm1.name
+        elif p.adm_level == 2 and p.adm2 and p.adm2.adm1:
+            state_code = p.adm2.adm1.geocode
+            state_name = p.adm2.adm1.name
+
+        if state_code and country_code:
+            sk = f"{cat}|{p.adm_level}|{dcode}|{country_code}|{imdc}"
+            states[sk][state_code] = state_name
+
+        if p.adm_level == 2 and p.adm2 and state_code and country_code:
+            ck2 = f"{cat}|2|{dcode}|{country_code}|{state_code}|{imdc}"
+            cities[ck2][p.adm2.geocode] = p.adm2.name
+
+    def to_list(d, key_name="geocode"):
+        sk = "code" if key_name == "code" else "geocode"
+        return {
+            k: sorted(
+                (
+                    (
+                        {"code": vv, "name": nn}
+                        if key_name == "code"
+                        else {"geocode": vv, "name": nn}
+                    )
+                    for vv, nn in v.items()
+                ),
+                key=lambda x: x[sk],
+            )
+            for k, v in d.items()
+        }
+
+    return {
+        "diseases": to_list(diseases, "code"),
+        "countries": to_list(countries),
+        "states": to_list(states),
+        "cities": to_list(cities),
+    }

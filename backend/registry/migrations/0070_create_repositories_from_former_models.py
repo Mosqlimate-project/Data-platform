@@ -13,14 +13,16 @@ def migrate_legacy_models(apps, schema_editor):
     Sprint = apps.get_model("registry", "Sprint")
     User = apps.get_model("users", "CustomUser")
 
-    cid10 = ICD.objects.get(system="ICD-10", version="2010")
+    cid10, _ = ICD.objects.get_or_create(system="ICD-10", version="2010")
     diseases = {}
-    for dis, cid in [
-        ("dengue", "A90"),
-        ("zika", "A92.5"),
-        ("chikungunya", "A92.0"),
+    for dis, cid, name in [
+        ("dengue", "A90", "Dengue"),
+        ("zika", "A92.5", "Zika"),
+        ("chikungunya", "A92.0", "Chikungunya"),
     ]:
-        obj = Disease.objects.get(icd=cid10, code=cid)
+        obj, _ = Disease.objects.get_or_create(
+            icd=cid10, code=cid, defaults={"name": name, "description": ""}
+        )
         diseases[dis] = obj
 
     sprint_2024 = Sprint.objects.filter(year=2024).first()
