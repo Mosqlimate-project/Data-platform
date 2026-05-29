@@ -1,24 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { BACKEND_BASE_URL, FRONTEND_SECRET } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
   const secret = request.headers.get("x-internal-secret");
   const token = request.cookies.get("access_token")?.value;
 
-  const searchParams = request.nextUrl.searchParams;
-  const query = new URLSearchParams();
-  const params = ["sprint", "category", "adm_level", "disease"];
-
   if (!FRONTEND_SECRET || secret !== FRONTEND_SECRET) {
     return NextResponse.json({ message: "Unauthorized [f]" }, { status: 401 });
   }
-
-  params.forEach((key) => {
-    const value = searchParams.get(key);
-    if (value) {
-      query.append(key, value);
-    }
-  });
 
   try {
     const headers: Record<string, string> = {
@@ -29,27 +18,23 @@ export async function GET(request: NextRequest) {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(
-      `${BACKEND_BASE_URL}/api/vis/dashboard/countries/?${query.toString()}`,
-      {
-        cache: "no-store",
-        headers: headers,
-      }
-    );
+    const res = await fetch(`${BACKEND_BASE_URL}/api/vis/dashboard/tree/`, {
+      headers: headers,
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: "Failed to fetch countries" },
+        { message: "Upstream error" },
         { status: res.status }
       );
     }
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+
+  } catch (err) {
+    console.error("Models proxy error:", err);
+    return NextResponse.json({ message: "Upstream request failed" }, { status: 502 });
   }
 }

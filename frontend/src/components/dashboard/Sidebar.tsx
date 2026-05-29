@@ -143,7 +143,7 @@ export function DashboardSidebar({ sections }: SidebarProps) {
                     {(cat.levels || []).map((level) => (
                       <Link
                         key={level.id}
-                        href={`/dashboard/${cat.id}`}
+                        href={`/dashboard/${cat.id}?adm_level=${LEVEL_TO_INT[level.id]}&sprint=${section.id === "sprint"}`}
                         onClick={() => handleLevelClick(level.id, section.id === "sprint")}
                         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap ${isLevelActive(cat.id, level.id, section.id)
                           ? "bg-accent text-white font-medium"

@@ -443,7 +443,7 @@ pred = upload_prediction(
       if (pred.start && pred.end) {
         const caseParams = new URLSearchParams({
           disease: pred.disease_code, adm_level: pred.adm_level.toString(),
-          imdc_year: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
+          sprint: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
           start: pred.start, end: pred.end,
         });
         if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
@@ -466,7 +466,7 @@ pred = upload_prediction(
 
   const getDashboardLink = useCallback((pred: ModelPrediction) => {
     const p = new URLSearchParams();
-    p.set("imdc_year", pred.imdc_year ? "true" : "false");
+    p.set("sprint", pred.imdc_year ? "true" : "false");
     p.set("adm_level", pred.adm_level.toString());
     p.set("disease", pred.disease_code);
     p.set("prediction_id", pred.id.toString());

@@ -5,18 +5,18 @@ import { Series, QuantitativePrediction } from "@/components/dashboard/Quantitat
 import { Loader2 } from "lucide-react";
 import { useDashboard } from "@/context/Dashboard";
 import {
-  fetchDiseases,
-  fetchCountries,
-  fetchStates,
-  fetchCities,
+  fetchTree,
   fetchSprints,
   fetchPredictions,
   fetchCases,
   fetchPredictionData,
+  fetchPredictionMetadata,
+  type TreeData,
   type Prediction,
   type DiseaseOption,
   type Option,
-  type SprintOption
+  type SprintOption,
+  type AdmLevel,
 } from "@/lib/dashboard/api";
 import DashboardChart from "./Chart";
 import DashboardPredictions from "./Predictions";
@@ -52,16 +52,14 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [globalIntervals, setGlobalIntervals] = useState<Set<string>>(new Set(["50", "90"]));
   const [visibleBounds, setVisibleBounds] = useState<Set<number>>(new Set());
 
+  const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [diseaseOptions, setDiseaseOptions] = useState<DiseaseOption[]>([]);
   const [countryOptions, setCountryOptions] = useState<Option[]>([]);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
   const [cityOptions, setCityOptions] = useState<Option[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
 
-  const [diseasesLoading, setDiseasesLoading] = useState(false);
-  const [countriesLoading, setCountriesLoading] = useState(false);
-  const [statesLoading, setStatesLoading] = useState(false);
-  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [treeLoading, setTreeLoading] = useState(true);
   const [predictionsLoading, setPredictionsLoading] = useState(false);
 
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -75,10 +73,42 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const requestRef = useRef(0);
   const chartRequestRef = useRef(0);
 
+  function treeSectionOptions<T extends { code?: string; geocode?: string }>(
+    section: Record<string, T[]>,
+    prefixParts: string[],
+    sprint: boolean,
+  ): T[] {
+    const prefix = prefixParts.join("|");
+    if (!sprint) {
+      return section[`${prefix}|none`] || [];
+    }
+    const seen = new Set<string>();
+    const result: T[] = [];
+    for (const [key, items] of Object.entries(section)) {
+      if (key.startsWith(`${prefix}|`) && !key.endsWith("|none")) {
+        for (const item of items) {
+          const id = item.code ?? item.geocode;
+          if (id != null && !seen.has(id)) {
+            seen.add(id);
+            result.push(item);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: "asc" | "desc";
   }>({ key: "wis_score", direction: "asc" });
+
+  useEffect(() => {
+    fetchTree().then((data) => {
+      setTreeData(data);
+      setTreeLoading(false);
+    });
+  }, []);
 
   const toggleGlobalInterval = useCallback((interval: string) => {
     setGlobalIntervals(prev => {
@@ -135,7 +165,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       if (requestRef.current !== requestId) return;
       setSprintOptions(sprints);
       setPredictions(preds);
-      if (preds.length > 0) {
+      if (preds.length > 0 && !initialPredId.current) {
         setChartPredictions(prev => {
           const sorted = [...preds].sort((a, b) => {
             const scA = a.scores.find(s => s.name === "wis_score")?.score ?? null;
@@ -158,65 +188,131 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.case_definition, inputs.sprint]);
 
   useEffect(() => {
+    if (!treeData) return;
+
     const requestId = ++requestRef.current;
 
     const runInitialization = async () => {
-      setDiseasesLoading(true);
       let { disease: d, adm_0: a0, adm_1: a1, adm_2: a2 } = inputs;
+      let useMetadata = false;
 
-      try {
-        const diseases = await fetchDiseases(category, inputs.adm_level, inputs.sprint);
-        if (requestRef.current !== requestId) return;
-        setDiseaseOptions(diseases);
+      if (initialPredId.current) {
+        try {
+          const meta = await fetchPredictionMetadata(initialPredId.current);
+          if (requestRef.current !== requestId) return;
+          d = meta.disease_code;
+          a0 = meta.adm_0_code || a0;
+          a1 = meta.adm_1_code || a1;
+          a2 = meta.adm_2_code || a2;
+          useMetadata = true;
+
+          if (meta.adm_level !== inputs.adm_level || meta.sprint !== inputs.sprint) {
+            setInputs({ disease: d, adm_level: meta.adm_level as AdmLevel, sprint: meta.sprint, adm_0: a0, adm_1: a1, adm_2: a2 });
+            return;
+          }
+        } catch {
+          if (requestRef.current !== requestId) return;
+        }
+      }
+
+      const diseases = treeSectionOptions(treeData.diseases, [category, String(inputs.adm_level)], inputs.sprint) as DiseaseOption[];
+      if (requestRef.current !== requestId) return;
+      setDiseaseOptions(diseases);
+      if (!useMetadata) {
         if (diseases.length > 0 && !d) d = diseases[0].code;
+        else if (diseases.length > 0 && !diseases.some((x) => x.code === d)) d = diseases[0].code;
+      }
 
-        if (d) {
-          setCountriesLoading(true);
-          const countries = await fetchCountries(category, inputs.adm_level, d, inputs.sprint);
-          if (requestRef.current !== requestId) return;
-          setCountryOptions(countries);
-          if (countries.length > 0 && !a0) a0 = countries[0].geocode;
+      if (useMetadata && !a0 && a2 && inputs.adm_level >= 2) {
+        const countryEntries = treeSectionOptions(treeData.countries, [category, String(inputs.adm_level), d], inputs.sprint) as Option[];
+        for (const country of countryEntries) {
+          const stateEntries = treeSectionOptions(treeData.states, [category, String(inputs.adm_level), d, country.geocode], inputs.sprint) as Option[];
+          for (const state of stateEntries) {
+            const cityEntries = treeSectionOptions(treeData.cities, [category, "2", d, country.geocode, state.geocode], inputs.sprint) as Option[];
+            if (cityEntries.some(c => c.geocode === a2)) {
+              a0 = country.geocode;
+              a1 = state.geocode;
+              break;
+            }
+          }
+          if (a0) break;
         }
+      } else if (useMetadata && a0 && !a1 && a2 && inputs.adm_level >= 2) {
+        const stateEntries = treeSectionOptions(treeData.states, [category, String(inputs.adm_level), d, a0], inputs.sprint) as Option[];
+        for (const state of stateEntries) {
+          const cityEntries = treeSectionOptions(treeData.cities, [category, "2", d, a0, state.geocode], inputs.sprint) as Option[];
+          if (cityEntries.some(c => c.geocode === a2)) {
+            a1 = state.geocode;
+            break;
+          }
+        }
+      }
 
-        if (d && a0 && inputs.adm_level >= 1) {
-          setStatesLoading(true);
-          const states = await fetchStates(category, inputs.adm_level, d, a0, inputs.sprint);
-          if (requestRef.current !== requestId) return;
-          setStateOptions(states);
+      if (d) {
+        const countries = treeSectionOptions(treeData.countries, [category, String(inputs.adm_level), d], inputs.sprint) as Option[];
+        if (requestRef.current !== requestId) return;
+        setCountryOptions(countries);
+        if (!useMetadata) {
+          if (countries.length > 0 && !a0) {
+            if (a1 && inputs.adm_level >= 1) {
+              for (const country of countries) {
+                const stateOptions = treeSectionOptions(treeData.states, [category, String(inputs.adm_level), d, country.geocode], inputs.sprint) as Option[];
+                if (stateOptions.some(s => s.geocode === a1)) {
+                  a0 = country.geocode;
+                  break;
+                }
+              }
+            }
+            if (!a0) a0 = countries[0].geocode;
+          } else if (countries.length > 0 && !countries.some((x) => x.geocode === a0)) a0 = countries[0].geocode;
+        }
+      } else {
+        setCountryOptions([]);
+      }
+
+      if (d && a0 && inputs.adm_level >= 1) {
+        const states = treeSectionOptions(treeData.states, [category, String(inputs.adm_level), d, a0], inputs.sprint) as Option[];
+        if (requestRef.current !== requestId) return;
+        setStateOptions(states);
+        if (!useMetadata) {
           if (states.length > 0 && !a1) a1 = states[0].geocode;
+          else if (states.length > 0 && !states.some((x) => x.geocode === a1)) a1 = states[0].geocode;
         }
+      } else {
+        setStateOptions([]);
+      }
 
-        if (d && a0 && a1 && inputs.adm_level >= 2) {
-          setCitiesLoading(true);
-          const cities = await fetchCities(category, inputs.adm_level, d, a0, a1, inputs.sprint);
-          if (requestRef.current !== requestId) return;
-          setCityOptions(cities);
+      if (d && a0 && a1 && inputs.adm_level >= 2) {
+        const cities = treeSectionOptions(treeData.cities, [category, "2", d, a0, a1], inputs.sprint) as Option[];
+        if (requestRef.current !== requestId) return;
+        setCityOptions(cities);
+        if (!useMetadata) {
           if (cities.length > 0 && !a2) a2 = cities[0].geocode;
+          else if (cities.length > 0 && !cities.some((x) => x.geocode === a2)) a2 = cities[0].geocode;
         }
+      } else {
+        setCityOptions([]);
+      }
 
+      if (d !== inputs.disease || a0 !== inputs.adm_0 || a1 !== inputs.adm_1 || a2 !== inputs.adm_2) {
         setInputs({ disease: d, adm_0: a0, adm_1: a1, adm_2: a2 });
-        await syncPredictions(requestId);
+        return;
+      }
 
-        if (initialPredId.current) {
-          const targetId = parseInt(initialPredId.current);
-          await loadSinglePredictionData(targetId);
-          initialPredId.current = null;
-          setInputs({ prediction_id: null });
-        }
-      } finally {
-        if (requestRef.current === requestId) {
-          setDiseasesLoading(false);
-          setCountriesLoading(false);
-          setStatesLoading(false);
-          setCitiesLoading(false);
-        }
+      await syncPredictions(requestId);
+
+      if (initialPredId.current) {
+        const targetId = parseInt(initialPredId.current);
+        await loadSinglePredictionData(targetId);
+        initialPredId.current = null;
+        setInputs({ prediction_id: null });
       }
     };
 
     setChartPredictions([]);
     setVisibleBounds(new Set());
     runInitialization();
-  }, [category, inputs.adm_level, inputs.sprint, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.case_definition]);
+  }, [treeData, category, inputs.adm_level, inputs.sprint, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.case_definition]);
 
   const loadChartData = useCallback(async () => {
     const requestId = ++chartRequestRef.current;
@@ -285,7 +381,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
   }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions, predictionSearch, inputs.sprint, inputs.case_definition]);
 
-  const isConfigLoading = diseasesLoading || countriesLoading || statesLoading || citiesLoading;
+  const isConfigLoading = treeLoading;
 
   return (
     <div className="p-4 relative space-y-6 min-h-[500px] max-w-full">
