@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.5.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.0...2.5.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **backend:** replace default JSON parser due to math.NaN not being properly handle on json body ([#503](https://github.com/Mosqlimate-project/Data-platform/issues/503)) ([06f30af](https://github.com/Mosqlimate-project/Data-platform/commit/06f30af7076802e4998ee43d5f5fa123a49025fa))
+
 # [2.5.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.4.5...2.5.0) (2026-05-29)
 
 
