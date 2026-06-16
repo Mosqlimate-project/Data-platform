@@ -74,7 +74,7 @@ def model_add(request, payload: s.ModelIncludeInit):
         else:
             org, _ = m.Organization.objects.get_or_create(name=owner_name)
             m.OrganizationMembership.objects.get_or_create(
-                user=request.user,
+                user=request.auth,
                 organization=org,
                 defaults={"role": m.OrganizationMembership.Roles.CONTRIBUTOR},
             )
@@ -633,7 +633,10 @@ def repository_permissions(request, owner: str, repository: str):
         can_manage = True
 
     elif repo.organization:
-        membership = repo.organization.members.filter(user=user).first()
+        membership = m.OrganizationMembership.objects.filter(
+            organization=repo.organization, user=user
+        ).first()
+
         if membership and membership.role in ["OWNER", "ADMIN"]:
             can_manage = True
 
