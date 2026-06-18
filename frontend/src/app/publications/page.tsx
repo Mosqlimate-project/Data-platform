@@ -225,6 +225,10 @@ export default function PublicationsPage() {
   ];
 
   const seminars = [
+    { date: "05/03/2026", title: "CLiDENGO: A Climate-Informed Stochastic Logistic Model for Dengue Outbreak Forecasting", speaker: "Américo Cunha (LNCC - Laboratório Nacional de Computação Científica)", link: "https://www.youtube.com/watch?v=4OZDny5m1FQ" },
+    { date: "09/04/2026", title: "Power Laws and Prediction Gaps: A Statistical Framework for Extreme Dengue Outbreaks in Brazilian Cities", speaker: "Flávio Codeço Coelho (FGV/EMAp)", link: "https://www.youtube.com/watch?v=qF_Qkv4Qj0I" },
+    { date: "07/05/2026", title: "Modelagem Paramétrica de Ciclos Epidêmicos: Previsão Sazonal de Arboviroses nos municípios brasileiros", speaker: "Zuilho Segundo (FGV/EMAp)", link: "https://www.youtube.com/watch?v=UyKU2C9LEBs" },
+    { date: "11/06/2026", title: "Unlocking Citizen Science Data for Mosquito Vector Surveillance and Modelling", speaker: "Frederic Bartumeus (CSIC/CEAB)", link: "https://www.youtube.com/watch?v=jk_eFhLkY7c" },
     { date: "06/02/2025", title: t('publications.items.sem_julie'), speaker: "Julie Souza, Ph.D. (FGV/EMAp)" },
     { date: "03/04/2025", title: t('publications.items.sem_caio'), speaker: "Caio Souza Rauh (UFBA)" },
     { date: "08/05/2025", title: t('publications.items.sem_davide'), speaker: "Davide Nicola (UniTo)" },
@@ -433,11 +437,16 @@ export default function PublicationsPage() {
               <div className="space-y-3">
                 {seminars.map((sem, idx) => (
                   <div key={idx} className="bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-[var(--color-border)] flex gap-4 items-center">
-                    <div className="flex flex-col items-center justify-center min-w-[3rem] h-12 bg-white dark:bg-black/30 rounded border border-[var(--color-border)]">
-                      <span className="text-[10px] font-bold uppercase text-gray-400">
+                    <div className="flex flex-col items-center justify-center min-w-[3.2rem] h-14 bg-white dark:bg-black/30 rounded border border-[var(--color-border)] text-center p-1">
+                      <span className="text-[9px] font-bold uppercase text-gray-400 block tracking-wider leading-none mb-0.5">
                         {sem.date.split('/')[1]}
                       </span>
-                      <span className="text-sm font-bold">{sem.date.split('/')[0]}</span>
+                      <span className="text-sm font-bold block leading-none">
+                        {sem.date.split('/')[0]}
+                      </span>
+                      <span className="text-[9px] text-gray-500 dark:text-gray-400 font-semibold block leading-none mt-0.5">
+                        {sem.date.split('/')[2]}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm leading-tight truncate" title={sem.title}>{sem.title}</h4>
