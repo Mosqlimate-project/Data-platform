@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.5.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.1...2.5.2) (2026-06-18)
+
+
+### Bug Fixes
+
+* **registry:** fix model add error when logging with Organization ([#504](https://github.com/Mosqlimate-project/Data-platform/issues/504)) ([7ec7c36](https://github.com/Mosqlimate-project/Data-platform/commit/7ec7c36686c525533ba0da468a98409506251504))
+
 ## [2.5.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.0...2.5.1) (2026-06-15)
 
 
