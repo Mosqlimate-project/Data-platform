@@ -916,7 +916,7 @@ def list_predictions(
     else:
         qs = qs.filter(published=True, model__repository__active=True)
 
-    return qs.distinct()
+    return qs.distinct().order_by("id")
 
 
 @router.post(
