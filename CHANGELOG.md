@@ -1,6 +1,18 @@
 Release Notes
 ---
 
+# [2.6.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.2...2.6.0) (2026-06-19)
+
+
+### Bug Fixes
+
+* **predictions:** pagination was trimming some objects from the api when query is not orderded for some reason ([#507](https://github.com/Mosqlimate-project/Data-platform/issues/507)) ([171ea94](https://github.com/Mosqlimate-project/Data-platform/commit/171ea94af1856d5c6c05aeb5369a2d26e30226d5))
+
+
+### Features
+
+* **api:** include vegetation_metrics_index table on the api; also fix some errors related to model create by org ([#508](https://github.com/Mosqlimate-project/Data-platform/issues/508)) ([7354540](https://github.com/Mosqlimate-project/Data-platform/commit/735454082b533d5dd6f488469227735611d7df11))
+
 ## [2.5.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.1...2.5.2) (2026-06-18)
 
 
