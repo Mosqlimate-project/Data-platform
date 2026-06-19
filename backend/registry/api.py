@@ -781,33 +781,56 @@ def model_update(
     repository: str,
     data: s.ModelUpdateIn,
 ):
-    perms_response = repository_permissions(request, owner, repository)
-
-    if not perms_response.get("can_manage"):
-        return 403, {
-            "message": "You do not have permission to manage this model"
-        }
-
     try:
         query = models.Q(repository__name=repository) & (
             models.Q(repository__organization__name=owner)
             | models.Q(repository__owner__username=owner)
         )
-        model = m.RepositoryModel.objects.get(query)
-
-        if data.active is not None:
-            repo = model.repository
-            repo.active = data.active
-            repo.save()
-
-        if data.description is not None:
-            model.description = data.description
-
-        model.save()
-
-        return 201, {"message": "ok"}
+        model = m.RepositoryModel.objects.select_related(
+            "repository__owner", "repository__organization"
+        ).get(query)
     except m.RepositoryModel.DoesNotExist:
         return 404, {"message": "Model not found"}
+
+    user = request.auth
+    repo = model.repository
+    can_manage = False
+
+    if user.is_superuser:
+        can_manage = True
+
+    if repo.owner and repo.owner == user:
+        can_manage = True
+
+    elif repo.organization:
+        membership = m.OrganizationMembership.objects.filter(
+            organization=repo.organization, user=user
+        ).first()
+        if membership and membership.role in ["OWNER", "ADMIN"]:
+            can_manage = True
+
+    if not can_manage:
+        is_admin = m.RepositoryContributor.objects.filter(
+            repository=repo, user=user, permission="ADMIN"
+        ).exists()
+        if is_admin:
+            can_manage = True
+
+    if not can_manage:
+        return 403, {
+            "message": "You do not have permission to manage this model"
+        }
+
+    if data.active is not None:
+        repo.active = data.active
+        repo.save()
+
+    if data.description is not None:
+        model.description = data.description
+
+    model.save()
+
+    return 201, {"message": "ok"}
 
 
 @router.delete(
@@ -821,27 +844,48 @@ def model_update(
     include_in_schema=False,
 )
 def model_delete(request, owner: str, repository: str):
-    perms_response = repository_permissions(request, owner, repository)
-
-    if isinstance(perms_response, tuple):
-        status_code, data = perms_response
-        return status_code, data
-
-    if not perms_response.get("can_manage"):
-        return 403, {
-            "message": "You do not have permission to delete this model"
-        }
-
     try:
         query = models.Q(repository__name=repository) & (
             models.Q(repository__organization__name=owner)
             | models.Q(repository__owner__username=owner)
         )
-        model = m.RepositoryModel.objects.get(query)
-        model.delete()
-        return 200, {"message": "Model deleted successfully"}
+        model = m.RepositoryModel.objects.select_related(
+            "repository__owner", "repository__organization"
+        ).get(query)
     except m.RepositoryModel.DoesNotExist:
         return 404, {"message": "Model not found"}
+
+    user = request.auth
+    repo = model.repository
+    can_manage = False
+
+    if user.is_superuser:
+        can_manage = True
+
+    if repo.owner and repo.owner == user:
+        can_manage = True
+
+    elif repo.organization:
+        membership = m.OrganizationMembership.objects.filter(
+            organization=repo.organization, user=user
+        ).first()
+        if membership and membership.role in ["OWNER", "ADMIN"]:
+            can_manage = True
+
+    if not can_manage:
+        is_admin = m.RepositoryContributor.objects.filter(
+            repository=repo, user=user, permission="ADMIN"
+        ).exists()
+        if is_admin:
+            can_manage = True
+
+    if not can_manage:
+        return 403, {
+            "message": "You do not have permission to delete this model"
+        }
+
+    model.delete()
+    return 200, {"message": "Model deleted successfully"}
 
 
 @router.get(

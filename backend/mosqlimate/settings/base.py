@@ -144,7 +144,7 @@ DATABASES = {
     "infodengue": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "options": '-c search_path="Municipio","Dengue_global",weather'
+            "options": '-c search_path="Municipio","Dengue_global",weather,vegetation_indices'
         },
         "NAME": INFODENGUE_URI.path.replace("/", ""),
         "USER": INFODENGUE_URI.username,
@@ -157,6 +157,8 @@ DATABASES = {
 DATABASE_ROUTERS = (
     "datastore.routers.MunicipioRouter",
     "datastore.routers.WeatherRouter",
+    "datastore.routers.VegetationIndicesRouter",
+    "datastore.routers.DengueGlobalRouter",
 )
 
 BACKEND_PORT = env("BACKEND_PORT")

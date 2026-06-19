@@ -40,6 +40,77 @@ paginator = PagesPagination
 uidkey_auth = UidKeyAuth()
 
 
+@router.get(
+    "/vegetation/",
+    response={
+        200: List[schema.VegetationIndexMetricSchema],
+        404: NotFoundSchema,
+        500: InternalErrorSchema,
+    },
+    auth=uidkey_auth,
+)
+@paginate(paginator)
+@csrf_exempt
+def get_vegetation_metrics(
+    request,
+    filters: filters.VegetationIndexMetricFilterSchema = Query(...),
+    uf: Optional[
+        Literal[
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+            "DF",
+        ]
+    ] = None,
+    **kwargs,
+):
+    APILog.from_request(request)
+
+    try:
+        data = models.VegetationIndexMetric.objects.using("infodengue").all()
+    except OperationalError:
+        return 500, {"message": "Server error. Please contact the moderation"}
+
+    if uf:
+        uf: str = uf.upper()
+        if uf not in list(UFs):
+            return 404, {"message": "Unknown UF. Format: SP"}
+
+        uf_name = UFs[uf]
+        geocodes = (
+            Municipio.objects.using("infodengue")
+            .filter(uf=uf_name)
+            .values_list("geocodigo", flat=True)
+        )
+        data = data.filter(geocode__in=geocodes)
+
+    data = filters.filter(data)
+    return data
+
+
 def get_infodengue_queryset(
     disease: Literal["dengue", "chikungunya", "zika"], uf: str = None
 ):

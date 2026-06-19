@@ -1,9 +1,19 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 
 from ninja import Field, FilterSchema
 from pydantic import field_validator
 from django.db.models import Q
+
+
+class VegetationIndexMetricFilterSchema(FilterSchema):
+    start: date = Field("2024-01-01", q="date__gte")
+    end: date = Field("2024-02-01", q="date__lte")
+    geocode: Optional[int] = Field(None, q="geocode")
+    collection: Optional[str] = Field(None, q="collection")
+    attribute: Optional[str] = Field(None, q="attribute")
+    collections: Optional[List[str]] = Field(None, q="collection__in")
+    attributes: Optional[List[str]] = Field(None, q="attribute__in")
 
 
 class HistoricoAlertaFilterSchema(FilterSchema):

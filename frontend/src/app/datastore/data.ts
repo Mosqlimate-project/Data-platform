@@ -253,6 +253,76 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     ],
   },
   {
+    endpoint: "/vegetation/",
+    name: t("datastore.vegetation.title"),
+    description: t("datastore.vegetation.description"),
+    source: "https://api.mosqlimate.org/",
+    more_info_link: "https://api.mosqlimate.org/docs/datastore/GET/vegetation/",
+    tags: ["Vegetation", "Municipal", "Daily"],
+    data_variables: [
+      {
+        variable: "date",
+        type: "date (YYYY-mm-dd)",
+        description: t("datastore.vegetation.variables.date"),
+      },
+      {
+        variable: "geocode",
+        type: "int",
+        description: t("datastore.vegetation.variables.geocode"),
+      },
+      {
+        variable: "collection",
+        type: "str",
+        description: t("datastore.vegetation.variables.collection"),
+      },
+      {
+        variable: "attribute",
+        type: "str",
+        description: t("datastore.vegetation.variables.attribute"),
+      },
+      {
+        variable: "mean",
+        type: "float",
+        description: t("datastore.vegetation.variables.mean"),
+      },
+      {
+        variable: "std",
+        type: "float",
+        description: t("datastore.vegetation.variables.std"),
+      },
+      {
+        variable: "median",
+        type: "float",
+        description: t("datastore.vegetation.variables.median"),
+      },
+      {
+        variable: "q25",
+        type: "float",
+        description: t("datastore.vegetation.variables.q25"),
+      },
+      {
+        variable: "q75",
+        type: "float",
+        description: t("datastore.vegetation.variables.q75"),
+      },
+      {
+        variable: "min",
+        type: "float",
+        description: t("datastore.vegetation.variables.min"),
+      },
+      {
+        variable: "max",
+        type: "float",
+        description: t("datastore.vegetation.variables.max"),
+      },
+    ],
+    chart_options: [
+      { option: "geocode", type: "int" },
+      { option: "start", type: "date" },
+      { option: "end", type: "date" },
+    ],
+  },
+  {
     endpoint: "/mosquito/",
     name: t("datastore.mosquito.title"),
     description: t("datastore.mosquito.description"),
