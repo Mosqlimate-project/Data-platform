@@ -18,21 +18,21 @@ These series are on a daily timescale. Details about how the satellite data are 
 ### Output (items)
 | Parameter name | Type | Description |
 | -- | -- | -- |
-| date | date _(YYYY-mm-dd)_ | Day of the year
-| geocodigo | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code
-| temp_min | float _(°C)_ | Minimum daily temperature
-| temp_med | float _(°C)_ | Average daily temperature
-| temp_max | float _(°C)_ | Maximum daily temperature
-| precip_min | float _(mm)_ | Minimum daily precipitation
-| precip_med | float _(mm)_ | Average daily precipitation
-| precip_max | float _(mm)_ | Maximum daily precipitation
-| precip_tot | float _(mm)_ | Total daily precipitation
-| pressao_min | float _(atm)_ | Minimum daily sea level pressure
-| pressao_med | float _(atm)_ | Average daily sea level pressure
-| pressao_max | float _(atm)_ | Maximum daily sea level pressure
-| umid_min | float _(%)_ | Minimum daily relative humidity 
-| umid_med | float _(%)_ | Average daily relative humidity
-| umid_max | float _(%)_ | Maximum daily relative humidity
+| date | date _(YYYY-mm-dd)_ | Day of the year |
+| geocodigo | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
+| temp_min | float _(°C)_ | Minimum daily temperature |
+| temp_med | float _(°C)_ | Average daily temperature |
+| temp_max | float _(°C)_ | Maximum daily temperature |
+| precip_min | float _(mm)_ | Minimum daily precipitation |
+| precip_med | float _(mm)_ | Average daily precipitation |
+| precip_max | float _(mm)_ | Maximum daily precipitation |
+| precip_tot | float _(mm)_ | Total daily precipitation |
+| pressao_min | float _(atm)_ | Minimum daily sea level pressure |
+| pressao_med | float _(atm)_ | Average daily sea level pressure |
+| pressao_max | float _(atm)_ | Maximum daily sea level pressure |
+| umid_min | float _(%)_ | Minimum daily relative humidity  |
+| umid_med | float _(%)_ | Average daily relative humidity |
+| umid_max | float _(%)_ | Maximum daily relative humidity |
 
 #### Details
 `page` consists in the total amount of Items returned by the request divided by `per_page`.  The `pagination` information is returned alongside with the returned request. E.g.:

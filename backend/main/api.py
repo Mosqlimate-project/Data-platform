@@ -3,7 +3,6 @@ import json
 import math
 from typing import Any
 
-import orjson
 from ninja import Router, Swagger
 from ninja import NinjaAPI as API
 from ninja.renderers import BaseRenderer
@@ -12,6 +11,7 @@ from django.views.decorators.cache import never_cache
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
+from django.core.serializers.json import DjangoJSONEncoder
 
 from registry.api import router as registry_router
 from datastore.api import router as datastore_router
@@ -30,24 +30,21 @@ with open(MUN_FILE, "r") as file:
     MUN_DATA = json.load(file)
 
 
-class ORJSONRenderer(BaseRenderer):
+class SafeJSONRenderer(BaseRenderer):
     media_type = "application/json"
 
     def render(self, request, data, *, response_status):
-        def clean_nans(obj: Any) -> Any:
+        def clean_data(obj: Any) -> Any:
             if isinstance(obj, float) and math.isnan(obj):
                 return None
             elif isinstance(obj, dict):
-                return {k: clean_nans(v) for k, v in obj.items()}
+                return {k: clean_data(v) for k, v in obj.items()}
             elif isinstance(obj, list):
-                return [clean_nans(v) for v in obj]
+                return [clean_data(v) for v in obj]
             return obj
 
-        cleaned_data = clean_nans(data)
-        return orjson.dumps(
-            cleaned_data,
-            option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_NON_STR_KEYS,
-        )
+        cleaned_data = clean_data(data)
+        return json.dumps(cleaned_data, cls=DjangoJSONEncoder)
 
 
 class NinjaAPI(API):
@@ -72,7 +69,7 @@ api = NinjaAPI(
     version="1",
     docs=Swagger(),
     docs_url="/docs",
-    renderer=ORJSONRenderer(),
+    renderer=SafeJSONRenderer(),
 )
 
 router = Router()

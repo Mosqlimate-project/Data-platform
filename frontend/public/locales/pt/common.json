@@ -394,6 +394,23 @@
     }
   },
   "datastore": {
+    "vegetation": {
+      "title": "Índices de Vegetação",
+      "description": "Este endpoint fornece acesso a métricas de índices de vegetação (como NDVI e EVI) com resolução diária, abrangendo todos os municípios brasileiros. Os valores são extraídos de imagens de satélite e agregados em nível municipal para apoiar a modelagem ambiental e de saúde pública. Para detalhes de uso, parâmetros de requisição e exemplos, consulte a documentação da API",
+      "variables": {
+        "date": "Data da observação",
+        "geocode": "Código do município no IBGE",
+        "collection": "Identificador da coleção de dados de satélite",
+        "attribute": "Tipo de métrica ou banda observada (ex: ndvi, evi)",
+        "mean": "Valor médio do atributo dentro da área do município",
+        "std": "Valor do desvio padrão do atributo dentro da área do município",
+        "median": "Valor da mediana do atributo dentro da área do município",
+        "q25": "Primeiro quartil (percentil 25) do atributo dentro da área do município",
+        "q75": "Terceiro quartil (percentil 75) do atributo dentro da área do município",
+        "min": "Valor mínimo registrado dentro da área do município",
+        "max": "Valor máximo registrado dentro da área do município"
+      }
+    },
     "infodengue": {
       "title": "Doenças transmitidas por mosquitos",
       "description": "Este endpoint disponibiliza, via Mosqlimate, o conjunto de dados epidemiológicos do projeto InfoDengue em escala semanal, com cobertura de todos os municípios brasileiros. Os indicadores e variáveis disponíveis são derivados de dados oficiais de vigilância em saúde do Brasil e processados/padronizados pelo InfoDengue para apoiar o monitoramento e a modelagem de arboviroses. Para detalhes de uso, parâmetros e exemplos, consulte a documentação da API",

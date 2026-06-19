@@ -1,8 +1,22 @@
 from typing import Optional
 
 from datetime import date
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from ninja import Field, Schema
+
+
+class VegetationIndexMetricSchema(Schema):
+    date: date
+    geocode: int
+    collection: str
+    attribute: str
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    median: Optional[float] = None
+    q25: Optional[float] = None
+    q75: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
 
 
 class EndpointDataVar(Schema):
@@ -91,19 +105,19 @@ class CopernicusBrasilWeeklyParams(BaseModel):
     uf: Optional[str] = None
     # fmt: on
 
-    @validator("geocode")
+    @field_validator("geocode")
     def validate_geocode(cls, value):
         if len(str(value)) != 7:
             raise ValueError("Municipality geocode must contain 7 digits")
         return value
 
-    @validator("macro_health_code")
+    @field_validator("macro_health_code")
     def validate_macro_health_code(cls, value):
         if len(str(value)) != 4:
             raise ValueError("Macro Health code must contain 4 digits")
         return value
 
-    @validator("uf")
+    @field_validator("uf")
     def validate_uf(cls, value):
         if value.upper() not in [
             "AC",

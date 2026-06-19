@@ -1,6 +1,21 @@
-from .models import HistoricoAlerta, CopernicusBrasil
+from .models import (
+    HistoricoAlerta,
+    CopernicusBrasil,
+    VegetationIndexMetric,
+    Municipio,
+)
 
-ROUTED_MODELS = [HistoricoAlerta, CopernicusBrasil]
+WEATHER_MODELS = [CopernicusBrasil]
+MUNICIPIO_MODELS = [HistoricoAlerta]
+VEG_INDICEDS_MODELS = [VegetationIndexMetric]
+DENGUE_GLOBAL_MODELS = [Municipio]
+
+
+class VegetationIndicesRouter(object):
+    def db_for_read(self, model, **hints):
+        if model in VEG_INDICEDS_MODELS:
+            return "vegetation_indices"
+        return None
 
 
 class WeatherRouter(object):
@@ -9,7 +24,7 @@ class WeatherRouter(object):
     """
 
     def db_for_read(self, model, **hints):
-        if model in ROUTED_MODELS:
+        if model in WEATHER_MODELS:
             return "weather"
         return None
 
@@ -20,7 +35,7 @@ class MunicipioRouter(object):
     """
 
     def db_for_read(self, model, **hints):
-        if model in ROUTED_MODELS:
+        if model in MUNICIPIO_MODELS:
             return '"Municipio"'
         return None
 
@@ -31,6 +46,6 @@ class DengueGlobalRouter(object):
     """
 
     def db_for_read(self, model, **hints):
-        if model in ROUTED_MODELS:
+        if model in DENGUE_GLOBAL_MODELS:
             return '"Dengue_global"'
         return None

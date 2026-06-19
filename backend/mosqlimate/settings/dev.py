@@ -1,5 +1,10 @@
 from .base import *  # noqa: F403
 import mimetypes
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-uid-key",
+]
 
 HOST_SCHEME = "http://"
 SECURE_SSL_REDIRECT = False

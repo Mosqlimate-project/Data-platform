@@ -5,6 +5,33 @@ from django.contrib.postgres.indexes import GinIndex
 from .utils.fetch_icd import get_diseases
 
 
+class VegetationIndexMetric(models.Model):
+    date = models.DateField(primary_key=True)
+    geocode = models.IntegerField()
+    collection = models.CharField(max_length=255)
+    attribute = models.CharField(max_length=50)
+    mean = models.FloatField(null=True, blank=True)
+    std = models.FloatField(null=True, blank=True)
+    median = models.FloatField(null=True, blank=True)
+    q25 = models.FloatField(null=True, blank=True)
+    q75 = models.FloatField(null=True, blank=True)
+    min = models.FloatField(null=True, blank=True)
+    max = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "vegetation_index_metrics"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["date", "geocode", "collection", "attribute"],
+                name="unique_vegetation_index_metric",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.geocode} - {self.collection} - {self.attribute} ({self.date})"
+
+
 class ContaOvos(models.Model):
     counting_id = models.BigIntegerField(unique=True, primary_key=True)
     date = models.DateField()
