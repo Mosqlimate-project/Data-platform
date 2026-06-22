@@ -22,6 +22,7 @@ from main.APILog.api import router as log_router
 from users.auth import InvalidUIDKey
 from main.schema import NotFoundSchema, MunicipalityInfoSchema, StateInfoSchema
 from main.utils import UF_CODES, UFs
+from main.throttle import APIThrottle
 
 os.environ["NINJA_SKIP_REGISTRY"] = "yes"
 
@@ -77,7 +78,7 @@ router = Router()
 api.add_router("/", router=router)
 api.add_router("/registry/", router=registry_router)
 api.add_router("/user/", router=users_router)
-api.add_router("/datastore/", router=datastore_router)
+api.add_router("/datastore/", router=datastore_router, throttle=APIThrottle())
 api.add_router("/vis/", router=vis_router)
 api.add_router("/maps/", router=maps_router)
 api.add_router("/log/", router=log_router)

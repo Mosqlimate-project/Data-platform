@@ -2,6 +2,7 @@ from ninja.security import APIKeyHeader, HttpBearer
 
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from .jwt import decode_token
 
@@ -63,8 +64,6 @@ class InvalidUIDKey(Exception):
 
 
 class UidKeyAuth(APIKeyHeader):
-    """Returns UID:Key pair if valid and (401, Unauthorized) if invalid"""
-
     param_name = "X-UID-Key"
 
     def authenticate(self, request, uidkey):
@@ -89,6 +88,10 @@ class UidKeyAuth(APIKeyHeader):
 
         try:
             user = User.objects.get(username=uid, uuid=key)
+
+            if user.expires_at and timezone.now() > user.expires_at:
+                raise InvalidUIDKey
+
             request.user = user
             return user
         except User.DoesNotExist:
