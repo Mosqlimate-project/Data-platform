@@ -1,6 +1,18 @@
 Release Notes
 ---
 
+# [2.8.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.7.0...2.8.0) (2026-06-23)
+
+
+### Bug Fixes
+
+* **users:** fix get rate limit endpoint ([#510](https://github.com/Mosqlimate-project/Data-platform/issues/510)) ([027ee2f](https://github.com/Mosqlimate-project/Data-platform/commit/027ee2f1204ded4a113e07a83c2f57fe01872e15))
+
+
+### Features
+
+* **log:** include the APILog page back with some extra features ([#511](https://github.com/Mosqlimate-project/Data-platform/issues/511)) ([0ea39ea](https://github.com/Mosqlimate-project/Data-platform/commit/0ea39eab8edaeb584dc23142aa75bda8deac57c1))
+
 # [2.7.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.6.0...2.7.0) (2026-06-23)
 
 
