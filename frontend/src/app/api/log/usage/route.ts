@@ -1,18 +1,18 @@
 import { BACKEND_BASE_URL } from "@/lib/env";
 import { NextRequest, NextResponse } from "next/server";
-import { verifyUser } from "../auth/verify";
 
-export async function GET(req: NextRequest) {
-  const result = await verifyUser(req);
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get("access_token")?.value;
 
-  if (!result) {
-    return new NextResponse("Unauthorized", { status: 401 });
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const token = req.cookies.get("access_token")?.value;
+  const queryString = request.nextUrl.searchParams.toString();
+  const url = `${BACKEND_BASE_URL}/api/log/usage/${queryString ? `?${queryString}` : ""}`;
 
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/user/me/`, {
+    const res = await fetch(url, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -23,17 +23,13 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { message: "Failed to fetch user profile" },
+        { message: "Failed to fetch usage stats" },
         { status: res.status }
       );
     }
 
     const data = await res.json();
-
-    return NextResponse.json(data, {
-      status: 200,
-      headers: result.headers,
-    });
+    return NextResponse.json(data);
 
   } catch (error) {
     console.error("Proxy Error:", error);

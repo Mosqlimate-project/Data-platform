@@ -1,4 +1,5 @@
 from ninja.security import APIKeyHeader, HttpBearer
+from ninja.errors import HttpError
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
@@ -45,15 +46,29 @@ class JWTAuth(HttpBearer):
 
         try:
             user = User.objects.get(pk=user_id)
+
+            if not user.is_active:
+                return None
+
             return user
         except User.DoesNotExist:
             return None
 
 
+class AdminJWTAuth(JWTAuth):
+    def authenticate(self, request, token):
+        user = super().authenticate(request, token)
+
+        if user and not (user.is_staff or user.is_superuser):
+            raise HttpError(403, "Forbidden")
+
+        return user
+
+
 class OptionalJWTAuth(JWTAuth):
     def __call__(self, request):
         user = super().__call__(request)
-        if user is None:
+        if user is None or isinstance(user, AnonymousUser):
             return AnonymousUser()
         return user
 
@@ -69,7 +84,7 @@ class UidKeyAuth(APIKeyHeader):
         session = request.session
         user = request.user
 
-        if user.is_authenticated:
+        if user.is_authenticated and user.is_active:
             if not session.session_key:
                 session.save()
             cache.set(session.session_key, user.api_key(), timeout=3600)
@@ -87,6 +102,9 @@ class UidKeyAuth(APIKeyHeader):
 
         try:
             user = User.objects.get(username=uid, uuid=key)
+
+            if not user.is_active:
+                raise InvalidUIDKey
 
             if user.expires_at and timezone.now() > user.expires_at:
                 raise InvalidUIDKey

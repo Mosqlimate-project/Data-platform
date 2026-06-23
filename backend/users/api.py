@@ -465,10 +465,16 @@ def oauth_decode(request, data: str):
     auth=JWTAuth(),
     include_in_schema=False,
 )
+@decorate_view(never_cache)
 def me(request):
     user = request.auth
+
     if not user:
         return 400, {"message": "Invalid or expired token"}
+
+    if hasattr(user, "is_superuser") and user.is_superuser:
+        user.is_staff = True
+
     return user
 
 
