@@ -26,7 +26,7 @@ from registry.models import (
     OrganizationMembership,
 )
 from .models import OAuthAccount
-from .auth import JWTAuth, OptionalJWTAuth
+from .auth import JWTAuth, OptionalUidKeyAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
@@ -122,14 +122,14 @@ def create_temp_user(request):
 @router.get(
     "/rate-limit/",
     response={200: dict, 400: BadRequestSchema},
-    auth=OptionalJWTAuth(),
+    auth=OptionalUidKeyAuth(),
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def get_rate_limit(request):
     user = request.auth
 
-    if not user or not user.is_authenticated:
+    if not user or not getattr(user, "is_authenticated", False):
         ip = get_client_ip(request)
         one_day_ago = timezone.now() - timedelta(days=1)
 
