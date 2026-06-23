@@ -154,24 +154,46 @@ export default function Navbar() {
             <div className="absolute right-0 top-full mt-2 w-56 bg-bg border border-border rounded-lg shadow-xl z-50 overflow-hidden py-1">
               <ul className="flex flex-col text-sm">
                 {user && (
-                  <li>
-                    <Link
-                      href="/profile"
-                      className={clsx(
-                        "flex items-center px-4 py-2 transition-colors",
-                        isActive('/profile')
-                          ? "bg-hover text-text font-bold"
-                          : "text-text/70 hover:bg-hover hover:text-text font-medium"
-                      )}
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/profile') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-                        <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
-                      </svg>
-                      {t("navbar.profile")}
-                    </Link>
-                  </li>
+                  <>
+                    <li>
+                      <Link
+                        href="/profile"
+                        className={clsx(
+                          "flex items-center px-4 py-2 transition-colors",
+                          isActive('/profile')
+                            ? "bg-hover text-text font-bold"
+                            : "text-text/70 hover:bg-hover hover:text-text font-medium"
+                        )}
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/profile') ? "text-text" : "text-text/70")} fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                          <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                        </svg>
+                        {t("navbar.profile")}
+                      </Link>
+                    </li>
+                    {user.is_staff && (
+                      <li>
+                        <Link
+                          href="/admin"
+                          className={clsx(
+                            "flex items-center px-4 py-2 transition-colors",
+                            isActive('/admin')
+                              ? "bg-hover text-text font-bold"
+                              : "text-text/70 hover:bg-hover hover:text-text font-medium"
+                          )}
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className={clsx("w-4 h-4 mr-3", isActive('/admin') ? "text-text" : "text-text/70")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Admin
+                        </Link>
+                      </li>
+                    )}
+                  </>
                 )}
                 <li>
                   <Link

@@ -3,7 +3,10 @@ from typing import Literal
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.core.signals import request_started
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 
 class CustomUserManager(BaseUserManager):
@@ -70,6 +73,11 @@ class CustomUser(AbstractUser):
         return None
 
     objects = CustomUserManager()
+
+
+@receiver(request_started)
+def delete_expired_users(sender, **kwargs):
+    CustomUser.objects.filter(expires_at__lt=timezone.now()).delete()
 
 
 class OAuthAccount(models.Model):

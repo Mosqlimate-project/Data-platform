@@ -66,8 +66,13 @@ class RegisterIn(Schema):
 
 
 class UserOut(Schema):
+    id: int
     username: str
     email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    is_staff: bool
+    avatar_url: Optional[str] = None
 
 
 class RefreshIn(Schema):
