@@ -20,6 +20,14 @@ type UsageDay = { day: string; count: number };
 type UsageUser = { username: string; count: number };
 type UsageEndpoint = Record<string, number>;
 
+type LiveLog = {
+  username: string;
+  method: string;
+  endpoint: string;
+  count: number;
+  latest_timestamp: string;
+};
+
 type OverviewMetrics = {
   total_requests: number;
   unique_users_count: number;
@@ -33,6 +41,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"users" | "analytics">("users");
   const [users, setUsers] = useState<User[]>([]);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [liveLogs, setLiveLogs] = useState<LiveLog[]>([]);
+  const [logLimit, setLiveLogLimit] = useState<50 | 100 | 300>(100);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -92,6 +102,14 @@ export default function AdminDashboard() {
     }
   }, [activeTab, startDate, groupBy, appFilter, endpointFilter, isAuthorized]);
 
+  useEffect(() => {
+    if (activeTab === "analytics" && isAuthorized) {
+      fetchLiveLogs();
+      const interval = setInterval(fetchLiveLogs, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, logLimit, isAuthorized]);
+
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/log/users");
@@ -117,6 +135,18 @@ export default function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         setUsageData(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchLiveLogs = async () => {
+    try {
+      const res = await fetch(`/api/log/history?limit=${logLimit}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLiveLogs(data);
       }
     } catch (err) {
       console.error(err);
@@ -567,6 +597,78 @@ export default function AdminDashboard() {
                     <div className="h-80 w-full">
                       <ReactECharts option={getOverviewDistributionOption()} style={{ height: "100%", width: "100%" }} />
                     </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden">
+                  <div className="p-5 border-b border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      Live Traffic (30s refresh)
+                    </h2>
+                    <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                      {([50, 100, 300] as const).map((limit) => (
+                        <button
+                          key={limit}
+                          onClick={() => setLiveLogLimit(limit)}
+                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${logLimit === limit
+                            ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                            }`}
+                        >
+                          {limit} rows
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="p-6 overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium text-xs uppercase tracking-wider">
+                          <th className="pb-3">User</th>
+                          <th className="pb-3">Method</th>
+                          <th className="pb-3">Endpoint Target</th>
+                          <th className="pb-3 text-center">Hits</th>
+                          <th className="pb-3 text-right">Latest Occurrence</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        {liveLogs.map((log, index) => (
+                          <tr key={index} className="text-slate-700 dark:text-slate-300 hover:bg-slate-50/30 dark:hover:bg-slate-800/10">
+                            <td className="py-3 font-semibold text-slate-900 dark:text-white">{log.username}</td>
+                            <td className="py-3">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${log.method === "GET"
+                                ? "bg-blue-50 text-blue-700 border-blue-200/40 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30"
+                                : log.method === "POST"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200/40 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30"
+                                  : "bg-slate-50 text-slate-700 border-slate-200/40 dark:bg-slate-950/20 dark:text-slate-400 dark:border-slate-900/30"
+                                }`}>
+                                {log.method}
+                              </span>
+                            </td>
+                            <td className="py-3 font-mono text-xs max-w-xs md:max-w-md truncate text-slate-500 dark:text-slate-400">{log.endpoint}</td>
+                            <td className="py-3 text-center">
+                              <span className={`inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-xs font-bold rounded-full ${log.count > 1
+                                ? "bg-blue-600 text-white animate-pulse"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                }`}>
+                                {log.count}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right text-xs font-mono text-slate-400 dark:text-slate-500">
+                              {new Date(log.latest_timestamp).toLocaleTimeString()}
+                            </td>
+                          </tr>
+                        ))}
+                        {liveLogs.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="text-center py-6 text-xs text-slate-400 dark:text-slate-500 italic">
+                              No metrics streaming activity registered.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
