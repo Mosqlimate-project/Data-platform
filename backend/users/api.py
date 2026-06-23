@@ -1,4 +1,5 @@
 import os
+import uuid
 from typing import Literal, Optional
 from datetime import timedelta
 
@@ -25,7 +26,7 @@ from registry.models import (
     OrganizationMembership,
 )
 from .models import OAuthAccount
-from .auth import JWTAuth
+from .auth import JWTAuth, OptionalJWTAuth
 from .jwt import create_access_token, create_refresh_token, decode_token
 from .providers import OAuthProvider
 from .adapters import OAuthAdapter
@@ -81,6 +82,76 @@ def check_username(request, username: str):
 def check_email(request, email: str):
     exists = User.objects.filter(email__iexact=email).exists()
     return {"available": not exists}
+
+
+@router.post(
+    "/create-temp-user/",
+    auth=None,
+    response={200: dict},
+    include_in_schema=True,
+)
+def create_temp_user(request):
+    ip = get_client_ip(request)
+    one_day_ago = timezone.now() - timedelta(days=1)
+
+    existing_user = User.objects.filter(
+        created_ip=ip, date_joined__gte=one_day_ago
+    ).first()
+
+    if existing_user:
+        return 200, {
+            "api_key": existing_user.api_key(),
+            "status": "retrieved",
+        }
+
+    expiration_time = timezone.now() + timedelta(hours=24)
+    temp_username = f"guest_{uuid.uuid4().hex[:8]}"
+
+    temp_user = User.objects.create_user(
+        username=temp_username,
+        email=f"{temp_username}@temp.local",
+        password=uuid.uuid4().hex,
+        expires_at=expiration_time,
+        created_ip=ip,
+        rate_limit="100/d",
+    )
+
+    return 200, {"api_key": temp_user.api_key(), "status": "created"}
+
+
+@router.get(
+    "/rate-limit/",
+    response={200: dict, 400: BadRequestSchema},
+    auth=OptionalJWTAuth(),
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def get_rate_limit(request):
+    user = request.auth
+
+    if not user or not user.is_authenticated:
+        ip = get_client_ip(request)
+        one_day_ago = timezone.now() - timedelta(days=1)
+
+        temp_user = User.objects.filter(
+            created_ip=ip, date_joined__gte=one_day_ago
+        ).first()
+
+        if not temp_user:
+            return 400, {
+                "message": "No valid token and no active temporary session found for this IP."
+            }
+
+        user = temp_user
+
+    if getattr(user, "is_staff", False) or getattr(
+        user, "is_superuser", False
+    ):
+        rate_limit = "unlimited"
+    else:
+        rate_limit = getattr(user, "rate_limit", "60/m")
+
+    return 200, {"rate_limit": rate_limit}
 
 
 @router.get(

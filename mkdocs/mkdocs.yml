@@ -138,6 +138,7 @@ nav:
     - "Climate": "datastore/GET/climate.md"
     - "Climate Weekly": "datastore/GET/climate-weekly.md"
     - "Mosquito": "datastore/GET/mosquito.md"
+    - "Vegetation Metrix": "datastore/GET/vegetation.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
   - "Dashboard":
     - "How to use": "vis/dashboard/how_to_use.md"

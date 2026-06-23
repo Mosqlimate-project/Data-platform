@@ -1,4 +1,6 @@
 import uuid
+from typing import Literal
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -32,6 +34,21 @@ class CustomUser(AbstractUser):
     homepage = models.URLField(max_length=255, null=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     avatar_url = models.URLField(blank=True, null=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_ip = models.GenericIPAddressField(null=True, blank=True)
+    rate_limit = models.CharField(max_length=20, default="10/s")
+
+    def set_rate_limit(self, value: int, unit: Literal["s", "m", "d"]):
+        units = {"s", "m", "d"}  # second, minute, day
+
+        if unit not in units:
+            raise ValueError("Unit must be (s)econd, (m)inute, or (d)ay.")
+
+        if not isinstance(value, int) or value < 0:
+            raise ValueError("Value must be a positive integer.")
+
+        self.rate_limit = f"{value}/{unit}"
+        self.save(update_fields=["rate_limit"])
 
     def save(self, *args, **kwargs):
         # To change User name, change first_name and last_name
