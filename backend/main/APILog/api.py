@@ -7,6 +7,7 @@ from ninja import Router, Schema
 from django.db.models.functions import TruncDate
 from django.db.models import Count, F
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 from main.models import APILog
@@ -31,6 +32,14 @@ class UserOutSchema(Schema):
 class UserUpdateSchema(Schema):
     is_active: Optional[bool] = None
     rate_limit: Optional[str] = None
+
+
+class LiveLogOutSchema(Schema):
+    username: str
+    method: str
+    endpoint: str
+    count: int
+    latest_timestamp: str
 
 
 @router.get(
@@ -144,3 +153,58 @@ def update_user_account(request, user_id: int, data: UserUpdateSchema):
         user.save(update_fields=update_fields)
 
     return user
+
+
+@router.get(
+    "/history/",
+    response=List[LiveLogOutSchema],
+    include_in_schema=False,
+)
+def get_live_condensed_history(request, limit: int = 100):
+    if limit not in [50, 100, 300]:
+        limit = 100
+
+    raw_logs = (
+        APILog.objects.select_related("user")
+        .order_by("-date")
+        .values(
+            "method",
+            "endpoint",
+            username=F("user__username"),
+            timestamp=F("date"),
+        )[: limit * 2]
+    )
+
+    condensed_logs = []
+
+    for log in reversed(raw_logs):
+        base_endpoint = log["endpoint"].split("?")[0]
+
+        if condensed_logs:
+            last_entry = condensed_logs[-1]
+
+            if (
+                last_entry["username"] == log["username"]
+                and last_entry["method"] == log["method"]
+                and last_entry["endpoint"] == base_endpoint
+            ):
+                last_entry["count"] += 1
+                last_entry["latest_timestamp"] = log["timestamp"].isoformat()
+                continue
+
+        condensed_logs.append(
+            {
+                "username": log["username"] or "Anonymous",
+                "method": log["method"],
+                "endpoint": base_endpoint,
+                "count": 1,
+                "latest_timestamp": (
+                    log["timestamp"]
+                    .astimezone(timezone.get_current_timezone())
+                    .isoformat()
+                ),
+            }
+        )
+
+    condensed_logs.reverse()
+    return condensed_logs[:limit]
