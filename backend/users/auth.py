@@ -1,5 +1,6 @@
 from ninja.security import APIKeyHeader, HttpBearer
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -53,8 +54,6 @@ class OptionalJWTAuth(JWTAuth):
     def __call__(self, request):
         user = super().__call__(request)
         if user is None:
-            from django.contrib.auth.models import AnonymousUser
-
             return AnonymousUser()
         return user
 
@@ -98,3 +97,14 @@ class UidKeyAuth(APIKeyHeader):
             pass
 
         raise InvalidUIDKey
+
+
+class OptionalUidKeyAuth(UidKeyAuth):
+    def __call__(self, request):
+        try:
+            user = super().__call__(request)
+            if user is None:
+                return AnonymousUser()
+            return user
+        except InvalidUIDKey:
+            return AnonymousUser()
