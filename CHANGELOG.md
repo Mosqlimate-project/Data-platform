@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.7.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.6.0...2.7.0) (2026-06-23)
+
+
+### Features
+
+* **api:** include temporary users and throttle to the datastore endpoints ([#509](https://github.com/Mosqlimate-project/Data-platform/issues/509)) ([d5adb44](https://github.com/Mosqlimate-project/Data-platform/commit/d5adb4484117b01923d24e78bbed1c11352c8bc2))
+
 # [2.6.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.5.2...2.6.0) (2026-06-19)
 
 
