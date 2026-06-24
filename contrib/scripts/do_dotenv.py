@@ -281,6 +281,13 @@ backup_dir_host = var_in(
 )
 Path(str(backup_dir_host)).mkdir(exist_ok=True, parents=True)
 
+sentry_dsn = var_in(
+    "SENTRY_DSN",
+    input_text="  Sentry DSN (leave empty to disable): ",
+    required=False,
+    default="",
+)
+
 print("\nDjango Email config")
 dj_default_from_email = var_in(
     "DEFAULT_FROM_EMAIL",
@@ -380,6 +387,7 @@ variables = {
     "MOSQLIENT_API_URL": "http://localhost:$BACKEND_PORT/api/",
     # [Backups]
     "BACKUP_DIR_HOST": str(backup_dir_host),
+    "SENTRY_DSN": sentry_dsn,
 }
 
 if not CI:
