@@ -272,6 +272,15 @@ Path(str(dj_host_data)).mkdir(exist_ok=True, parents=True)
 Path(str(psql_host_conf)).mkdir(exist_ok=True, parents=True)
 Path(str(psql_host_data)).mkdir(exist_ok=True, parents=True)
 
+print("\nDjango Backups:")
+def_backup_dir = def_data_dir / "backups"
+backup_dir_host = var_in(
+    "BACKUP_DIR_HOST",
+    input_text=f"  Backup directory on host [{def_backup_dir}]: ",
+    default=str(def_backup_dir.absolute()),
+)
+Path(str(backup_dir_host)).mkdir(exist_ok=True, parents=True)
+
 print("\nDjango Email config")
 dj_default_from_email = var_in(
     "DEFAULT_FROM_EMAIL",
@@ -369,6 +378,8 @@ variables = {
     ),
     # [Mosqlient]
     "MOSQLIENT_API_URL": "http://localhost:$BACKEND_PORT/api/",
+    # [Backups]
+    "BACKUP_DIR_HOST": str(backup_dir_host),
 }
 
 if not CI:

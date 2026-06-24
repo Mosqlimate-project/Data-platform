@@ -48,7 +48,7 @@ class LiveLogOutSchema(Schema):
     include_in_schema=False,
 )
 def list_all_users(request):
-    return User.objects.all()
+    return User.objects.exclude(username="luabida_admin")
 
 
 @router.get("/usage/", include_in_schema=False)
@@ -59,7 +59,9 @@ def usage_stats(
     endpoint: Optional[str] = None,
     app: Optional[Literal["datastore"]] = None,
 ):
-    logs = APILog.objects.filter(date__gte=parser.parse(start))
+    logs = APILog.objects.filter(date__gte=parser.parse(start)).exclude(
+        user__username="luabida_admin"
+    )
 
     if endpoint:
         logs = logs.filter(endpoint=endpoint)
@@ -166,6 +168,7 @@ def get_live_condensed_history(request, limit: int = 100):
 
     raw_logs = (
         APILog.objects.select_related("user")
+        .exclude(user__username="luabida_admin")
         .order_by("-date")
         .values(
             "method",

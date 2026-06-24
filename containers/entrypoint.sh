@@ -15,6 +15,10 @@ source activate mosqlimate
 
 set +ex
 
+echo "Preparing backup directory: /opt/backups"
+sudo mkdir -p /opt/backups
+sudo chown mosqlimate:mosqlimate /opt/backups
+
 if [ "${CI}" = "true" ] || [ "${RUN_MIGRATE}" = "true" ]; then
   echo "Running migrations..."
   python manage.py migrate --noinput
