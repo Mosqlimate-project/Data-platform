@@ -24,6 +24,8 @@ BACKEND_CONTAINER_DATA_PATH = Path(
     env("BACKEND_CONTAINER_DATA_PATH", default=str(BASE_DIR / "staticfiles"))
 )
 
+BACKUP_DIR = Path("/opt/backups")
+
 ALLOWED_HOSTS = [
     "*",  #
     "0.0.0.0",

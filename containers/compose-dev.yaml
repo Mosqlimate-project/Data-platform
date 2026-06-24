@@ -23,6 +23,8 @@ services:
     command: python manage.py runserver 0.0.0.0:8042
 
   worker:
+    volumes:
+      - backend_data:/opt/services/storage
     networks:
       - infodengue
       - default

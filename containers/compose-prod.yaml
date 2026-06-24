@@ -13,6 +13,8 @@ services:
       - infodengue
 
   worker:
+    volumes:
+      - ${BACKEND_HOST_DATA_PATH}:${BACKEND_CONTAINER_DATA_PATH}
     networks:
       - infodengue
 

@@ -51,6 +51,7 @@ services:
     user: "mosqlimate:mosqlimate"
     volumes:
       - ${EPISCANNER_HOST_DATA_DIR}:${BACKEND_CONTAINER_DATA_PATH}/episcanner
+      - ${BACKUP_DIR_HOST}:/opt/backups
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}/api/status/"]
@@ -80,6 +81,8 @@ services:
     ports:
       - ${WORKER_PORT}:${WORKER_PORT}
     user: "mosqlimate:mosqlimate"
+    volumes:
+      - ${BACKUP_DIR_HOST}:/opt/backups
     command: celery -A mosqlimate worker -l INFO -E -B --scheduler django_celery_beat.schedulers:DatabaseScheduler
     healthcheck:
       test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
