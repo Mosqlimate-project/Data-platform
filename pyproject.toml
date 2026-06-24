@@ -67,6 +67,7 @@ python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 trio = "^0.32.0"
 yarl = "<1.24.0"
 django-environ = "^0.13.0"
+sentry-sdk = {extras = ["django", "celery"], version = "^2.0.0"}
 
 
 [tool.poetry.group.dev.dependencies]

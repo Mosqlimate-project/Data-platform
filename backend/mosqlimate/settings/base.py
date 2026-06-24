@@ -1,5 +1,6 @@
 from pathlib import Path
 from urllib.parse import urlparse
+import logging
 
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
@@ -25,6 +26,8 @@ BACKEND_CONTAINER_DATA_PATH = Path(
 )
 
 BACKUP_DIR = Path("/opt/backups")
+
+SENTRY_DSN = env("SENTRY_DSN", default="")
 
 ALLOWED_HOSTS = [
     "*",  #
@@ -349,3 +352,23 @@ LOGGING = {
         },
     },
 }
+
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),
+            LoggingIntegration(
+                level=logging.INFO,
+                event_level=logging.WARNING,
+            ),
+        ],
+        environment=ENV,
+        send_default_pii=False,
+    )
