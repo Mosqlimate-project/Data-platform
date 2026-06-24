@@ -4585,7 +4585,7 @@ analyze = ["altair (>=5.3.0,<6.0.0)", "matplotlib (>=3.9.0,<4.0.0)", "pmdarima (
 
 [[package]]
 name = "mosqlimate-assistant"
-version = "1.14.1"
+version = "1.14.2"
 description = "Mosqlimate AI Assistant"
 optional = false
 python-versions = ">=3.11,<3.13"
@@ -4609,8 +4609,8 @@ requests-cache = ">=1.3.0"
 [package.source]
 type = "git"
 url = "https://github.com/Mosqlimate-project/mosqlimate-assistant.git"
-reference = "1.14.1"
-resolved_reference = "eb3c0bf6fc720ed7ee6ff216b01a4e86cf28869b"
+reference = "1.14.2"
+resolved_reference = "3a3edd2a895699adaa89bc0c6fe67bed38fada4b"
 
 [[package]]
 name = "msgpack"
@@ -9590,4 +9590,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11.0,<=3.12.4"
-content-hash = "183dcdd19246c8abeb667da14f85b0df3f8fef152d10cb98f81f74e74b952b80"
+content-hash = "6421788e38e8afee015ed119dd72d11e5a99a293b4fadf17903cf260720b76b9"
