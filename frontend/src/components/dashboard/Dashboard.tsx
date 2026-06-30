@@ -381,6 +381,21 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     });
   }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions, predictionSearch, inputs.sprint, inputs.case_definition]);
 
+  const uniqueModels = useMemo(() => {
+    let result = predictions;
+    if (selectedSprints.length > 0) {
+      result = result.filter(p => p.sprint && selectedSprints.includes(p.sprint));
+    }
+    if (!inputs.sprint) {
+      result = result.filter(p => p.case_definition === inputs.case_definition);
+    }
+    return Array.from(new Set(result.map(p => p.repository))).sort();
+  }, [predictions, selectedSprints, inputs.sprint, inputs.case_definition]);
+
+  useEffect(() => {
+    setSelectedModels(prev => prev.filter(model => uniqueModels.includes(model)));
+  }, [uniqueModels]);
+
   const isConfigLoading = treeLoading;
 
   return (
@@ -424,7 +439,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       />
 
       <DashboardPredictions
-        uniqueModels={Array.from(new Set(predictions.map(p => p.repository))).sort()}
+        uniqueModels={uniqueModels.filter(m => m.toLowerCase().includes(modelSearch.toLowerCase()))}
         modelSearch={modelSearch}
         setModelSearch={setModelSearch}
         selectedModels={selectedModels}
