@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 app.conf.beat_schedule = {
-    "update-prediction-scores-daily": {
-        "task": "vis.tasks.update_prediction_scores",
-        "schedule": crontab(hour=3, minute=0),
+    "update-prediction-scores-weekly": {
+        "task": "registry.tasks.update_prediction_scores",
+        "schedule": crontab(day_of_week=5, hour=3, minute=0),
     },
     "update-contaovos-daily": {
         "task": "datastore.tasks.sync_contaovos_for_date",

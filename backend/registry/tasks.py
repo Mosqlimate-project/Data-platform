@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from typing import Optional
 
 from django.core.cache import cache
-from django.db.models import Min
+from django.db.models import Max
 from django.utils import timezone
 
 from mosqlimate.celeryapp import app
@@ -14,16 +14,16 @@ from vis.utils import calculate_score
 
 @app.task
 def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
-    six_months_ago = timezone.now().date() - relativedelta(months=6)
+    year_ago = timezone.now().date() - relativedelta(years=1)
 
     if not prediction_ids:
         predictions = QuantitativePrediction.objects.annotate(
-            start_date=Min("data__date")
-        ).filter(start_date__gte=six_months_ago)
+            end_date=Max("data__date")
+        ).filter(end_date__gte=year_ago)
     else:
         predictions = QuantitativePrediction.objects.annotate(
-            start_date=Min("data__date")
-        ).filter(id__in=prediction_ids, start_date__gte=six_months_ago)
+            end_date=Max("data__date")
+        ).filter(id__in=prediction_ids, end_date__gte=year_ago)
 
     for prediction in predictions:
         try:
