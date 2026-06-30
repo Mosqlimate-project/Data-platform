@@ -1,6 +1,18 @@
 Release Notes
 ---
 
+# [2.9.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.8.0...2.9.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* **worker:** fix wrongly overriten beat_schedule on tasks.py ([#517](https://github.com/Mosqlimate-project/Data-platform/issues/517)) ([2c751f3](https://github.com/Mosqlimate-project/Data-platform/commit/2c751f35aef784a8b5ad9481b84ae1bfd8f15deb))
+
+
+### Features
+
+* include backup task ([#514](https://github.com/Mosqlimate-project/Data-platform/issues/514)) ([372ae6c](https://github.com/Mosqlimate-project/Data-platform/commit/372ae6c7b3e69ff8a4472516a93f6958ef5a2185))
+
 # [2.8.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.7.0...2.8.0) (2026-06-23)
 
 
