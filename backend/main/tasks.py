@@ -13,7 +13,16 @@ from mosqlimate.celeryapp import app
 
 logger = logging.getLogger(__name__)
 
+
 app.conf.beat_schedule = {
+    "update-prediction-scores-daily": {
+        "task": "vis.tasks.update_prediction_scores",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "update-contaovos-daily": {
+        "task": "datastore.tasks.sync_contaovos_for_date",
+        "schedule": crontab(hour=1, minute=0),
+    },
     "backup-databases-daily": {
         "task": "main.tasks.backup_databases",
         "schedule": crontab(hour=23, minute=0),
