@@ -1,38 +1,183 @@
-## [Vegetation Indices](https://api.mosqlimate.org/api/docs#/datastore/datastore_api_get_vegetation_metrics)
-Through this API endpoint, you can fetch several vegetation index metrics (such as NDVI or EVI) that have been extracted for Brazilian municipalities from satellite imagery.
+# Vegetation Indices
 
-These series are on a daily timescale. Details about how the satellite data are processed and aggregated at municipality level are available on our documentation repository.
+This API endpoint provides vegetation index metrics extracted for Brazilian municipalities from satellite imagery acquired by the **MODIS (Moderate Resolution Imaging Spectroradiometer)** sensor onboard the **Terra** satellite.
 
-## Parameters Table 
-### Input
-| Parameter name | Required | Type | Description |
-|--|--|--|--|
-| *page | yes | int | Page to be displayed |
-| *per_page | yes | int | How many items will be displayed per page (up to 100) |
-| start | yes | str _(YYYY-mm-dd)_ | Start date |
-| end | yes | str _(YYYY-mm-dd)_ | End date |
-| geocode | no | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
-| uf | no | str _(UF)_ | Two letters Brazilian's state abbreviation. E.g: SP |
-| collection | no | str | Specific satellite dataset collection name |
-| attribute | no | str | Specific vegetation index metric or bands name |
+The metrics are obtained from the **MOD13Q1 v6.1** product, available through the **WTSS (Web Time Series Service)** maintained by the Brazilian National Institute for Space Research (INPE).
 
-### Output (items)
-| Parameter name | Type | Description |
-| -- | -- | -- |
-| date | date _(YYYY-mm-dd)_ | Day of the observation |
-| geocode | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
-| collection | str | Satellite dataset collection identifier |
-| attribute | str | Observed metric type (e.g., ndvi, evi) |
-| mean | float | Mean value of the attribute inside the municipality area, rounded to 4 decimals |
-| std | float | Standard deviation value, rounded to 4 decimals |
-| median | float | Median value, rounded to 4 decimals |
-| q25 | float | First quartile (25th percentile) value, rounded to 4 decimals |
-| q75 | float | Third quartile (75th percentile) value, rounded to 4 decimals |
-| min | float | Minimum recorded value, rounded to 4 decimals |
-| max | float | Maximum recorded value, rounded to 4 decimals |
+The MOD13Q1 product provides the **NDVI** and **EVI** vegetation indices directly, as well as spectral reflectance bands used to derive additional indicators such as **SAVI** and **NDWI**.
 
-#### Details
-`page` consists in the total amount of Items returned by the request divided by `per_page`. The `pagination` information is returned alongside with the returned request. E.g.:
+Each observation in the original product corresponds to a **16-day composite**, generated using a *best-pixel compositing* algorithm that prioritizes observations with:
+
+- lower cloud coverage;
+- lower viewing angle;
+- higher spectral quality.
+
+Before being made available through this endpoint, the original observations are spatially aggregated to Brazilian municipalities using the official IBGE municipal boundaries while preserving the original temporal resolution of the product.
+
+---
+
+## Source Product
+
+| Characteristic | Value |
+| --- | --- |
+| Source | INPE / WTSS |
+| Product | MOD13Q1 v6.1 |
+| Sensor | MODIS (Terra) |
+| Spatial resolution | 250 meters |
+| Temporal resolution | 16 days |
+| Geographic coverage | Brazil |
+| Data type | Raster |
+
+---
+
+## Data Processing
+
+Before publication through the API, the data undergo the following processing steps.
+
+### Spatial aggregation
+
+For each Brazilian municipality:
+
+1. the municipal geometry is obtained from IBGE;
+2. the geometry is converted to WGS84 (EPSG:4326);
+3. a spatial query is performed against the WTSS service;
+4. summary statistics are computed considering all pixels within the municipality.
+
+### Duplicate removal
+
+Duplicate records are removed considering:
+
+- observation date;
+- attribute;
+- collection.
+
+Only the first valid occurrence is retained.
+
+### Derived indices
+
+In addition to the indices directly provided by MOD13Q1, the following derived indices are calculated:
+
+- **SAVI (Soil Adjusted Vegetation Index)**
+- **NDWI (Normalized Difference Water Index)**
+
+These indices are computed from the spectral reflectance bands provided by the original product.
+
+### Numerical safeguards
+
+To prevent division-by-zero during the computation of derived indices, a minimum value of
+
+```python
+1e-6
+```
+
+is applied to the following reflectance bands:
+
+- NIR Reflectance;
+- Red Reflectance;
+- MIR Reflectance.
+
+---
+
+## Available Metrics
+
+Each observation contains spatial summary statistics computed over the municipality.
+
+Available statistics include:
+
+- mean (`mean`)
+- standard deviation (`std`)
+- median (`median`)
+- first quartile (`q25`)
+- third quartile (`q75`)
+- minimum (`min`)
+- maximum (`max`)
+
+---
+
+## Available Indices
+
+### NDVI
+
+Index used to estimate vegetation vigor and density.
+
+\[
+NDVI = \frac{NIR - RED}{NIR + RED}
+\]
+
+### EVI
+
+Vegetation index designed to reduce atmospheric effects and minimize saturation in densely vegetated areas.
+
+\[
+EVI = 2.5 \times \frac{NIR - RED}{NIR + 6 \times RED - 7.5 \times BLUE + 1}
+\]
+
+### SAVI
+
+Vegetation index designed to reduce the influence of exposed soil.
+
+\[
+SAVI = 1.5 \times \frac{NIR - RED}{NIR + RED + 0.5}
+\]
+
+### NDWI
+
+Index used to estimate vegetation and surface water content.
+
+\[
+NDWI = \frac{NIR - MIR}{NIR + MIR}
+\]
+
+---
+
+## Endpoint
+
+```
+GET /api/datastore/vegetation/
+```
+
+---
+
+## Input Parameters
+
+| Parameter | Required | Type | Description |
+| --- | --- | --- | --- |
+| page | Yes | int | Page number |
+| per_page | Yes | int | Number of items per page (maximum 100) |
+| start | Yes | string (YYYY-mm-dd) | Start date |
+| end | Yes | string (YYYY-mm-dd) | End date |
+| geocode | No | int | IBGE municipality code |
+| uf | No | string | Two-letter Brazilian state abbreviation |
+| collection | No | string | Satellite data collection |
+| attribute | No | string | Vegetation index or spectral band |
+
+---
+
+## Response Structure
+
+### Items
+
+| Field | Type | Description |
+| --- | --- | --- |
+| date | date | Observation date |
+| geocode | int | IBGE municipality code |
+| collection | string | Source collection |
+| attribute | string | Vegetation index or spectral band |
+| mean | float | Mean value across the municipality |
+| std | float | Standard deviation |
+| median | float | Median |
+| q25 | float | First quartile |
+| q75 | float | Third quartile |
+| min | float | Minimum value |
+| max | float | Maximum value |
+
+All numeric values are rounded to four decimal places.
+
+---
+
+## Pagination
+
+Pagination information is included in the response.
 
 ```json
 "pagination": {
@@ -44,54 +189,78 @@ These series are on a daily timescale. Details about how the satellite data are 
 }
 ```
 
-## Usage examples
+---
+
+## Examples
 
 === "Python"
-    ```python
-    import mosqlient
 
-    mosqlient.get_vegetation(
-        api_key = api_key,
-        start_date = "2024-01-01",
-        end_date = "2024-02-01",
-        geocode = 3304557,
-    )
-    ```
+```python
+import mosqlient
+
+mosqlient.get_vegetation(
+    api_key=api_key,
+    start_date="2024-01-01",
+    end_date="2024-02-01",
+    geocode=3304557,
+)
+```
 
 === "R"
-    ```R
-    library(httr)
-    library(jsonlite)
 
-    veg_api <- "https://api.mosqlimate.org/api/datastore/vegetation/"
-    page <- "1"
-    pagination <- paste0("?page=", page, "&per_page=100&")
-    filters <- paste0("start=2024-01-01&end=2024-02-01")
+```R
+library(httr)
+library(jsonlite)
 
-    headers <- add_headers(
-      `X-UID-Key` = API_KEY
-    )
+veg_api <- "https://api.mosqlimate.org/api/datastore/vegetation/"
+page <- "1"
 
-    url <- paste0(veg_api, pagination, filters)
-    resp <- GET(url, headers)
-    content <- content(resp, "text")
-    json_content <- fromJSON(content)
+pagination <- paste0("?page=", page, "&per_page=100&")
+filters <- paste0("start=2024-01-01&end=2024-02-01")
 
-    items <- json_content$items
-    pagination_data <- json_content$pagination
-    ```
+headers <- add_headers(
+    `X-UID-Key` = API_KEY
+)
+
+url <- paste0(veg_api, pagination, filters)
+
+resp <- GET(url, headers)
+
+content <- content(resp, "text")
+
+json_content <- fromJSON(content)
+
+items <- json_content$items
+pagination_data <- json_content$pagination
+```
 
 === "curl"
-    ```sh
-    curl -X 'GET' \
-      'https://api.mosqlimate.org/api/datastore/vegetation/?start=2024-01-01&end=2024-02-01&page=1&per_page=100' \
-      -H 'accept: application/json' \
-      -H 'X-UID-Key: See X-UID-Key documentation'
 
-    curl -X 'GET' \
-      'https://api.mosqlimate.org/api/datastore/vegetation/?start=2024-01-01&end=2024-02-01&geocode=3304557&page=1&per_page=100' \
-      -H 'accept: application/json' \
-      -H 'X-UID-Key: See X-UID-Key documentation'
-    ```
+```bash
+curl -X GET \
+'https://api.mosqlimate.org/api/datastore/vegetation/?start=2024-01-01&end=2024-02-01&page=1&per_page=100' \
+-H 'accept: application/json' \
+-H 'X-UID-Key: YOUR_API_KEY'
+```
 
-*The response's pagination contain information about the amount of items returned by the API call. These information can be used to navigate between the queried data by changing the `page` parameter on the URL. [See details](#details)
+Querying a specific municipality:
+
+```bash
+curl -X GET \
+'https://api.mosqlimate.org/api/datastore/vegetation/?start=2024-01-01&end=2024-02-01&geocode=3304557&page=1&per_page=100' \
+-H 'accept: application/json' \
+-H 'X-UID-Key: YOUR_API_KEY'
+```
+
+---
+
+## Notes
+
+- The data originate from the **MOD13Q1 v6.1** product derived from the **MODIS/Terra** sensor.
+- The original spatial resolution is **250 meters**.
+- The original temporal resolution is **16 days**.
+- Statistics are computed over the entire area of each Brazilian municipality.
+- Municipal boundaries are based on the official IBGE municipal boundary dataset.
+- **NDVI** and **EVI** are directly provided by the MOD13Q1 product.
+- **SAVI** and **NDWI** are derived during preprocessing from the spectral reflectance bands.
+- All metrics are spatially aggregated before being published through the API.

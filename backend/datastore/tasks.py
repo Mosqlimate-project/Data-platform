@@ -7,7 +7,6 @@ from typing import Optional
 import httpx
 from asgiref.sync import async_to_sync
 from celery import group
-from celery.schedules import crontab
 from dateutil import parser
 from django.utils import timezone
 from pydantic import (
@@ -21,13 +20,6 @@ from mosqlimate.celeryapp import app
 from .models import Adm2, ContaOvos
 
 logger = logging.getLogger(__name__)
-
-app.conf.beat_schedule = {
-    "update-contaovos-daily": {
-        "task": "datastore.tasks.sync_contaovos_for_date",
-        "schedule": crontab(hour=1, minute=0),
-    },
-}
 
 
 class ContaOvosSchema(BaseModel):

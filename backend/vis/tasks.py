@@ -1,30 +1,29 @@
 import logging
+from dateutil.relativedelta import relativedelta
 from typing import Optional
 
-from celery.schedules import crontab
 from django.core.cache import cache
+from django.db.models import Min
+from django.utils import timezone
 
 from mosqlimate.celeryapp import app
 
 from registry.models import QuantitativePrediction
 from vis.utils import calculate_score
 
-app.conf.beat_schedule = {
-    "update-prediction-scores-daily": {
-        "task": "vis.tasks.update_prediction_scores",
-        "schedule": crontab(hour=3, minute=0),
-    },
-}
-
 
 @app.task
 def update_prediction_scores(prediction_ids: Optional[list[int]] = None):
+    six_months_ago = timezone.now().date() - relativedelta(months=6)
+
     if not prediction_ids:
-        predictions = QuantitativePrediction.objects.all()
+        predictions = QuantitativePrediction.objects.annotate(
+            start_date=Min("data__date")
+        ).filter(start_date__gte=six_months_ago)
     else:
-        predictions = QuantitativePrediction.objects.filter(
-            id__in=prediction_ids
-        )
+        predictions = QuantitativePrediction.objects.annotate(
+            start_date=Min("data__date")
+        ).filter(id__in=prediction_ids, start_date__gte=six_months_ago)
 
     for prediction in predictions:
         try:
