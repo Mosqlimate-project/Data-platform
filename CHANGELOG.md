@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.9.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.0...2.9.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **dashboard:** fix dashboard models not updating when changing the IMDC year selection ([#519](https://github.com/Mosqlimate-project/Data-platform/issues/519)) ([05b7855](https://github.com/Mosqlimate-project/Data-platform/commit/05b7855015ab4bf83bceccba270ab00590546180))
+
 # [2.9.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.8.0...2.9.0) (2026-06-30)
 
 
