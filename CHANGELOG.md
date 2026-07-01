@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.9.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.1...2.9.2) (2026-07-01)
+
+
+### Bug Fixes
+
+* **registry:** fix missing repository deletion on model deletion endpoint ([#520](https://github.com/Mosqlimate-project/Data-platform/issues/520)) ([ab55222](https://github.com/Mosqlimate-project/Data-platform/commit/ab5522287ba184a89e2bd06e5cbb5f5d5548d27d))
+
 ## [2.9.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.0...2.9.1) (2026-06-30)
 
 
