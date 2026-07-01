@@ -884,6 +884,7 @@ def model_delete(request, owner: str, repository: str):
             "message": "You do not have permission to delete this model"
         }
 
+    repo.delete()
     model.delete()
     return 200, {"message": "Model deleted successfully"}
 
