@@ -18,6 +18,29 @@ const nextConfig = {
 
   compress: true,
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'secure.gravatar.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gitlab.com',
+        port: '',
+        pathname: '/**',
+      }
+    ],
+  },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.optimization.splitChunks = {

@@ -10,7 +10,6 @@ from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
-from django.core.files.base import ContentFile
 from django.utils import timezone
 from main.schema import (
     SuccessSchema,
@@ -120,29 +119,83 @@ def model_add(request, payload: s.ModelIncludeInit):
             },
         )
 
-        if payload.repo_avatar_url:
-            try:
-                with httpx.Client() as client:
-                    response = client.get(payload.repo_avatar_url, timeout=5)
-                    if response.status_code == 200:
-                        ext = "png"
-                        if "jpeg" in response.headers.get("content-type", ""):
-                            ext = "jpg"
-
-                        img = (
-                            f"{repository.provider}_{repository.repo_id}.{ext}"
-                        )
-
-                        model.avatar.save(
-                            img, ContentFile(response.content), save=True
-                        )
-            except (httpx.RequestError, httpx.TimeoutException):
-                pass
-
     return 201, {
         "success": True,
         "model_id": model.id,
         "action": "created" if created else "updated",
+    }
+
+
+@router.post(
+    "/model/{owner}/{repository}/refresh-avatar/",
+    auth=JWTAuth(),
+    response={200: dict, 400: dict, 403: dict, 404: dict},
+    include_in_schema=False,
+)
+def model_refresh_avatar(request, owner: str, repository: str):
+    query_filter = models.Q(repository__name__iexact=repository)
+
+    if owner.lower() == request.auth.username.lower():
+        query_filter &= models.Q(repository__owner=request.auth)
+    else:
+        query_filter &= models.Q(repository__organization__name__iexact=owner)
+
+    model_instance = m.RepositoryModel.objects.filter(query_filter).first()
+
+    if not model_instance:
+        return 404, {"message": "Model not found."}
+
+    repo = model_instance.repository
+
+    is_admin = m.RepositoryContributor.objects.filter(
+        user=request.auth,
+        repository=repo,
+        permission=m.RepositoryContributor.Permissions.ADMIN,
+    ).exists()
+
+    is_staff = getattr(request.auth, "is_staff", False)
+
+    if not is_admin and not is_staff:
+        return 403, {
+            "message": "You do not have permission to refresh this avatar."
+        }
+
+    target_avatar_url = None
+    provider_type = repo.provider.lower()
+
+    try:
+        if provider_type == "github":
+            url = f"https://api.github.com/users/{owner}"
+            with httpx.Client() as client:
+                res = client.get(url, timeout=5)
+                if res.status_code == 200:
+                    target_avatar_url = res.json().get("avatar_url")
+
+        elif provider_type == "gitlab":
+            url = f"https://gitlab.com/api/v4/namespaces/{owner}"
+            with httpx.Client() as client:
+                res = client.get(url, timeout=5)
+                if res.status_code == 200:
+                    target_avatar_url = res.json().get("avatar_url")
+    except (httpx.RequestError, httpx.TimeoutException) as e:
+        return 400, {"message": f"Failed to connect to provider API: {str(e)}"}
+
+    if not target_avatar_url:
+        return 400, {"message": "Could not retrieve avatar URL from provider."}
+
+    if repo.organization:
+        repo.organization.avatar = None
+        repo.organization.avatar_url = target_avatar_url
+        repo.organization.save(update_fields=["avatar", "avatar_url"])
+    elif repo.owner:
+        repo.owner.avatar = None
+        repo.owner.avatar_url = target_avatar_url
+        repo.owner.save(update_fields=["avatar", "avatar_url"])
+
+    return 200, {
+        "success": True,
+        "avatar_url": target_avatar_url,
+        "message": f"Successfully updated avatar for {owner}.",
     }
 
 
