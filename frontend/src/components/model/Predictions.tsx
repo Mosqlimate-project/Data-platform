@@ -13,7 +13,15 @@ import {
   LineChart as ChartIcon,
   Download,
   Info,
-  BookOpen
+  BookOpen,
+  Copy,
+  Check,
+  ArrowUpDown,
+  Grid3x3,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -96,7 +104,257 @@ const subDay = (d: string) => {
   return `${yy}-${mm}-${dd}`;
 };
 
+function CopyButton({ text, label }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(String(text));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [text]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+      title={copied ? "✓ Copied" : (label || "Copy")}
+    >
+      {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+    </button>
+  );
+}
+
+function ScoreBar({ value, min, max }: { value: number; min: number; max: number }) {
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 50;
+  let color: string;
+  if (pct < 33) color = 'linear-gradient(90deg, #10b981, #34d399)';
+  else if (pct < 66) color = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+  else color = 'linear-gradient(90deg, #ef4444, #f87171)';
+
+  return (
+    <div className="w-full h-1.5 bg-muted/40 rounded-full overflow-hidden">
+      <div
+        className="h-full rounded-full transition-all duration-300"
+        style={{ width: `${pct}%`, minWidth: 4, background: color }}
+      />
+    </div>
+  );
+}
+
+interface StatCardProps {
+  value: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+function StatCard({ value, label, icon }: StatCardProps) {
+  return (
+    <div className="border rounded-lg p-4 bg-card flex items-center gap-3">
+      <div className="p-2 rounded-md bg-muted/50 text-muted-foreground">
+        {icon}
+      </div>
+      <div>
+        <div className="text-xl font-bold text-foreground">{value}</div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+      </div>
+    </div>
+  );
+}
+
 const PredictionCard = memo(function PredictionCard({
+  pred,
+  canManage,
+  selectedMetric,
+  isUpdating,
+  isActiveChart,
+  scoreMin,
+  scoreMax,
+  onToggle,
+  onDeleteRequest,
+  onViewChart,
+  formatDate,
+  formatScoreName,
+  getDashboardLink,
+  t,
+}: {
+  pred: ModelPrediction;
+  canManage: boolean;
+  selectedMetric: string;
+  isUpdating: boolean;
+  isActiveChart: boolean;
+  scoreMin: number | null;
+  scoreMax: number | null;
+  onToggle: (id: number, status: boolean) => void;
+  onDeleteRequest: (id: number) => void;
+  onViewChart: (pred: ModelPrediction) => void;
+  formatDate: (d: string) => string;
+  formatScoreName: (s: string) => string;
+  getDashboardLink: (pred: ModelPrediction) => string;
+  t: (key: string, options?: any) => string;
+}) {
+  const activeScore = pred.scores?.find((s) => s.name === selectedMetric);
+  const dashboardUrl = getDashboardLink(pred);
+  const locationParts = [
+    pred.adm_0_name,
+    pred.adm_1_name,
+    pred.adm_2_name,
+    pred.adm_3_name,
+  ].filter(Boolean);
+
+  return (
+    <div
+      onClick={() => onViewChart(pred)}
+      className={`group flex flex-col border rounded-xl overflow-hidden bg-card transition-all duration-200 cursor-pointer ${isActiveChart
+        ? "ring-2 ring-primary border-primary shadow-lg"
+        : "hover:shadow-md hover:border-foreground/10"
+        } ${canManage && !pred.published ? "border-dashed border-yellow-400/50 bg-yellow-50/10 dark:bg-yellow-950/10" : ""}`}
+    >
+      <div className="px-4 py-2.5 bg-muted/20 border-b flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-mono text-xs text-muted-foreground shrink-0">
+            #{pred.id}
+          </span>
+          <CopyButton text={String(pred.id)} label={t("model_predictions.copy_id", "Copy prediction ID")} />
+          {pred.published ? (
+            <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              {t("model_predictions.published")}
+            </span>
+          ) : (
+            <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+              {t("model_predictions.draft", "Draft")}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {canManage && (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={!!pred.published}
+                  disabled={isUpdating}
+                  onChange={() => onToggle(pred.id, !!pred.published)}
+                  className="h-3.5 h-3.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50"
+                  id={`publish-${pred.id}`}
+                />
+                <label
+                  htmlFor={`publish-${pred.id}`}
+                  className={`text-[10px] font-medium text-muted-foreground cursor-pointer select-none ${isUpdating ? "opacity-50" : ""}`}
+                >
+                  {isUpdating ? t("model_predictions.saving") : t("model_predictions.pub_label", "Pub")}
+                </label>
+              </div>
+              <button
+                onClick={() => onDeleteRequest(pred.id)}
+                className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                title={t("common:actions.delete")}
+              >
+                <Trash2 size={14} className="hover:stroke-red-500" />
+              </button>
+            </div>
+          )}
+
+          {pred.published && (
+            <>
+              <div className="h-4 w-px bg-border" />
+              <Link
+                href={dashboardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-muted-foreground hover:text-primary transition-colors p-0.5"
+                title={t("model_predictions.view_dashboard")}
+              >
+                <LayoutDashboard size={15} />
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="p-5 flex-1 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="font-semibold text-foreground" suppressHydrationWarning>
+            {formatDate(pred.date)}
+          </div>
+          <div
+            className="px-2 py-0.5 bg-muted rounded text-[10px] font-mono text-muted-foreground shrink-0"
+            title={pred.commit}
+          >
+            {pred.commit.substring(0, 7)}
+          </div>
+        </div>
+
+        {locationParts.length > 0 && (
+          <div className="text-sm">
+            {locationParts.map((name, i) => (
+              <span key={i}>
+                {i > 0 && <span className="text-muted-foreground/50 mx-0.5">/</span>}
+                <span className={i === 0 ? "font-medium text-foreground" : "text-muted-foreground"}>
+                  {name}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {pred.start && pred.end && (
+          <div className="text-sm flex items-center gap-2">
+            <span className="text-foreground font-mono text-xs" suppressHydrationWarning>
+              {formatDate(subDay(pred.start))}
+            </span>
+            <span className="text-muted-foreground">→</span>
+            <span className="text-foreground font-mono text-xs" suppressHydrationWarning>
+              {formatDate(subDay(pred.end))}
+            </span>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {pred.disease_code && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border uppercase tracking-wider">
+              {pred.disease_code}
+            </span>
+          )}
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted/60 text-muted-foreground border">
+            ADM {pred.adm_level}
+          </span>
+          {pred.case_definition && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted/60 text-muted-foreground border">
+              {pred.case_definition}
+            </span>
+          )}
+          {pred.imdc_year && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+              IMDC {pred.imdc_year}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-muted/30 p-4 border-t space-y-1.5">
+        <ScoreBar
+          value={activeScore?.score ?? 0}
+          min={scoreMin ?? 0}
+          max={scoreMax ?? 0}
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">
+            {selectedMetric ? formatScoreName(selectedMetric) : t("model_predictions.score_label", "SCORE")}
+          </span>
+          <span className="text-lg font-bold font-mono text-primary">
+            {activeScore ? activeScore.score.toFixed(4) : "-"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+function PredictionListRow({
   pred,
   canManage,
   selectedMetric,
@@ -125,128 +383,108 @@ const PredictionCard = memo(function PredictionCard({
 }) {
   const activeScore = pred.scores?.find((s) => s.name === selectedMetric);
   const dashboardUrl = getDashboardLink(pred);
+  const locationParts = [
+    pred.adm_0_name,
+    pred.adm_1_name,
+    pred.adm_2_name,
+  ].filter(Boolean);
 
   return (
-    <div
+    <tr
       onClick={() => onViewChart(pred)}
-      className={`group flex flex-col border rounded-xl overflow-hidden bg-card transition-all duration-200 cursor-pointer ${isActiveChart ? "ring-2 ring-primary border-primary" : "hover:shadow-md"
-        } ${canManage && !pred.published ? "opacity-75 border-dashed border-yellow-400/50" : ""}`}
+      className={`group cursor-pointer transition-colors hover:bg-muted/30 border-b last:border-0 ${isActiveChart ? "bg-primary/5 ring-1 ring-inset ring-primary/20" : ""
+        } ${canManage && !pred.published ? "opacity-70" : ""}`}
     >
-      <div className="px-4 py-2 bg-muted/20 border-b flex items-center justify-between">
-        <span className="font-mono text-xs text-muted-foreground">
-          #{pred.id}
+      <td className="p-3 whitespace-nowrap">
+        <div className="flex items-center gap-1">
+          <span className="font-mono text-xs text-muted-foreground">#{pred.id}</span>
+          <CopyButton text={String(pred.id)} />
+        </div>
+      </td>
+      <td className="p-3 whitespace-nowrap text-sm text-foreground" suppressHydrationWarning>
+        {formatDate(pred.date)}
+      </td>
+      <td className="p-3 whitespace-nowrap">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border uppercase tracking-wider">
+          {pred.disease_code}
         </span>
-
-        <div className="flex items-center gap-3">
+      </td>
+      <td className="p-3 whitespace-nowrap text-sm text-muted-foreground max-w-[200px] truncate">
+        {locationParts.join(" / ")}
+      </td>
+      <td className="p-3 whitespace-nowrap text-center">
+        <span className="text-xs font-mono text-muted-foreground">{pred.adm_level}</span>
+      </td>
+      <td className="p-3 whitespace-nowrap text-right">
+        <span className="text-sm font-bold font-mono text-primary">
+          {activeScore ? activeScore.score.toFixed(4) : "-"}
+        </span>
+        <div className="text-[10px] text-muted-foreground">
+          {selectedMetric ? formatScoreName(selectedMetric) : ""}
+        </div>
+      </td>
+      <td className="p-3 whitespace-nowrap">
+        {pred.published ? (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            {t("model_predictions.published")}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+            {t("model_predictions.draft", "Draft")}
+          </span>
+        )}
+      </td>
+      <td className="p-3 whitespace-nowrap">
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           {canManage && (
-            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={!!pred.published}
-                  disabled={isUpdating}
-                  onChange={() => onToggle(pred.id, !!pred.published)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50"
-                  id={`publish-${pred.id}`}
-                />
-                <label
-                  htmlFor={`publish-${pred.id}`}
-                  className={`text-[10px] uppercase font-semibold text-muted-foreground cursor-pointer select-none ${isUpdating ? "opacity-50" : ""}`}
-                >
-                  {isUpdating ? t("model_predictions.saving") : t("model_predictions.published")}
-                </label>
-              </div>
+            <>
+              <input
+                type="checkbox"
+                checked={!!pred.published}
+                disabled={isUpdating}
+                onChange={() => onToggle(pred.id, !!pred.published)}
+                className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer disabled:opacity-50"
+              />
               <button
                 onClick={() => onDeleteRequest(pred.id)}
                 className="p-1 text-muted-foreground hover:text-destructive transition-colors"
                 title={t("common:actions.delete")}
               >
-                <Trash2 size={14} color="red" />
+                <Trash2 size={14} className="hover:stroke-red-500" />
               </button>
-            </div>
-          )}
-
-          {pred.published && (
-            <>
-              <div className="h-4 w-px bg-border mx-1"></div>
-              <Link
-                href={dashboardUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-muted-foreground hover:text-primary transition-colors"
-                title={t("model_predictions.view_dashboard")}
-              >
-                <LayoutDashboard size={16} />
-              </Link>
             </>
           )}
-        </div>
-      </div>
-
-      <div className="p-5 flex-1 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="font-semibold text-foreground" suppressHydrationWarning>
-              {formatDate(pred.date)}
-            </div>
-          </div>
-          <div className="px-2 py-1 bg-muted rounded text-xs font-mono text-muted-foreground">
-            {pred.commit.substring(0, 7)}
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <div className="text-sm">
-            {pred.adm_0_name && <span className="font-medium text-foreground"> {pred.adm_0_name} </span>}
-            {pred.adm_1_name && <span className="text-muted-foreground"> {pred.adm_1_name}</span>}
-            {pred.adm_2_name && <span className="text-muted-foreground"> {pred.adm_2_name}</span>}
-            {pred.adm_3_name && <span className="text-muted-foreground"> {pred.adm_3_name}</span>}
-          </div>
-        </div>
-
-        {pred.start && pred.end && (
-          <div className="space-y-1">
-            <div className="text-sm flex items-center gap-2">
-              <span className="text-foreground" suppressHydrationWarning>{formatDate(subDay(pred.start))}</span>
-              <span className="text-muted-foreground">→</span>
-              <span className="text-foreground" suppressHydrationWarning>{formatDate(subDay(pred.end))}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2">
-          {pred.disease_code && (
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border uppercase tracking-wider">
-              {pred.disease_code}
-            </div>
-          )}
-
-          {pred.imdc_year && (
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-              IMDC {pred.imdc_year}
-            </div>
+          {pred.published && (
+            <Link
+              href={dashboardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors p-0.5 ml-1"
+              title={t("model_predictions.view_dashboard")}
+            >
+              <LayoutDashboard size={15} />
+            </Link>
           )}
         </div>
-      </div>
-
-      <div className="bg-muted/30 p-4 border-t flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">
-          {selectedMetric ? formatScoreName(selectedMetric) : "SCORE"}
-        </span>
-        <span className="text-xl font-bold font-mono text-primary">
-          {activeScore ? activeScore.score.toFixed(4) : "-"}
-        </span>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
-});
+}
 
-export default function PredictionsList({ predictions, canManage = false, owner = "", modelName = "" }: PredictionsListProps) {
+export default function PredictionsList({
+  predictions,
+  canManage = false,
+  owner = "",
+  modelName = "",
+}: PredictionsListProps) {
   const { t, i18n } = useTranslation(['common', 'models']);
   const router = useRouter();
+
   const [localPredictions, setLocalPredictions] = useState<ModelPrediction[]>(predictions || []);
-  const availableScores = localPredictions.find((p) => p.scores && p.scores.length > 0)?.scores.map((s) => s.name) || [];
+  const availableScores =
+    localPredictions.find((p) => p.scores && p.scores.length > 0)?.scores.map((s) => s.name) || [];
   const [selectedMetric, setSelectedMetric] = useState<string>(availableScores[0] || "");
   const [selectedDisease, setSelectedDisease] = useState<string>("all");
   const [isUpdating, setIsUpdating] = useState<number | null>(null);
@@ -260,6 +498,16 @@ export default function PredictionsList({ predictions, canManage = false, owner 
   const [hasInitialized, setHasInitialized] = useState(false);
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [visibleIntervals, setVisibleIntervals] = useState<string[]>(["50", "90"]);
+  const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [sortField, setSortField] = useState<"date" | "score" | "id">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [viewLayout, setViewLayout] = useState<"grid" | "list">("grid");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [filterPublished, setFilterPublished] = useState<"all" | "published" | "draft">("all");
+  const [filterAdmLevel, setFilterAdmLevel] = useState<number | null>(null);
 
   const repoPath = `${owner}/${modelName}`;
 
@@ -301,8 +549,13 @@ pred = upload_prediction(
 `;
 
   const uniqueDiseases = useMemo(() => {
-    const diseases = localPredictions.map(p => p.disease_code).filter(Boolean);
+    const diseases = localPredictions.map((p) => p.disease_code).filter(Boolean);
     return Array.from(new Set(diseases));
+  }, [localPredictions]);
+
+  const uniqueAdmLevels = useMemo(() => {
+    const levels = localPredictions.map((p) => p.adm_level).filter((l) => l != null);
+    return Array.from(new Set(levels)).sort();
   }, [localPredictions]);
 
   const availableBounds = useMemo(() => {
@@ -316,14 +569,11 @@ pred = upload_prediction(
     return bounds;
   }, [rawTableData]);
 
-  const activeIntervalsSet = useMemo(() => {
-    return new Set(visibleIntervals);
-  }, [visibleIntervals]);
+  const activeIntervalsSet = useMemo(() => new Set(visibleIntervals), [visibleIntervals]);
 
   const filteredChartData = useMemo(() => {
     if (!chartData) return null;
     const keep = (i: string) => activeIntervalsSet.has(i);
-
     return {
       ...chartData,
       data: {
@@ -336,43 +586,71 @@ pred = upload_prediction(
         upper_90: keep("90") ? chartData.data.upper_90 : null,
         lower_95: keep("95") ? chartData.data.lower_95 : null,
         upper_95: keep("95") ? chartData.data.upper_95 : null,
-      }
+      },
     };
   }, [chartData, activeIntervalsSet]);
 
   const toggleInterval = (key: string) => {
-    setVisibleIntervals(prev =>
-      prev.includes(key) ? prev.filter(i => i !== key) : [...prev, key]
+    setVisibleIntervals((prev) =>
+      prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
     );
   };
 
-  const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  useEffect(() => {
+    setLocalPredictions(predictions || []);
+  }, [predictions]);
 
-  useEffect(() => { setLocalPredictions(predictions || []); }, [predictions]);
-  const formatScoreName = useCallback((name: string) => name.replace("_score", "").toUpperCase(), []);
-  const formatDate = useCallback((d: string) => d ? new Date(d).toLocaleDateString(i18n.language, { year: "numeric", month: "numeric", day: "numeric" }) : "", [i18n.language]);
+  const formatScoreName = useCallback(
+    (name: string) => name.replace("_score", "").toUpperCase(),
+    []
+  );
+  const formatDate = useCallback(
+    (d: string) =>
+      d
+        ? new Date(d).toLocaleDateString(i18n.language, {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        })
+        : "",
+    [i18n.language]
+  );
 
-  const handlePublishToggle = useCallback(async (id: number, current: boolean) => {
-    const next = !current;
-    setLocalPredictions(prev => prev.map(p => p.id === id ? { ...p, published: next } : p));
-    setIsUpdating(id);
-    try {
-      const res = await fetch(`/api/registry/prediction/${id}/published`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ published: next }) });
-      if (!res.ok) throw new Error();
-      router.refresh();
-    } catch {
-      setLocalPredictions(prev => prev.map(p => p.id === id ? { ...p, published: current } : p));
-    } finally { setIsUpdating(null); }
-  }, [router]);
+  const handlePublishToggle = useCallback(
+    async (id: number, current: boolean) => {
+      const next = !current;
+      setLocalPredictions((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, published: next } : p))
+      );
+      setIsUpdating(id);
+      try {
+        const res = await fetch(`/api/registry/prediction/${id}/published`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ published: next }),
+        });
+        if (!res.ok) throw new Error();
+        router.refresh();
+      } catch {
+        setLocalPredictions((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, published: current } : p))
+        );
+      } finally {
+        setIsUpdating(null);
+      }
+    },
+    [router]
+  );
 
   const handleDeletePrediction = async () => {
     if (!deleteModalId) return;
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/registry/predictions/${deleteModalId}`, { method: "DELETE" });
+      const res = await fetch(`/api/registry/predictions/${deleteModalId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error();
-      setLocalPredictions(prev => prev.filter(p => p.id !== deleteModalId));
+      setLocalPredictions((prev) => prev.filter((p) => p.id !== deleteModalId));
       if (activeChartId === deleteModalId) {
         setActiveChartId(null);
         setChartData(null);
@@ -390,16 +668,21 @@ pred = upload_prediction(
 
   const downloadCSV = () => {
     if (!rawTableData.length) return;
-    const headers = ["date", "pred", "lower_50", "upper_50", "lower_80", "upper_80", "lower_90", "upper_90", "lower_95", "upper_95"];
+    const headers = [
+      "date", "pred", "lower_50", "upper_50", "lower_80", "upper_80",
+      "lower_90", "upper_90", "lower_95", "upper_95",
+    ];
     const csvContent = [
       headers.join(","),
-      ...rawTableData.map(d => [
-        `"${d.date}"`, d.pred,
-        d.lower_50 ?? "", d.upper_50 ?? "",
-        d.lower_80 ?? "", d.upper_80 ?? "",
-        d.lower_90 ?? "", d.upper_90 ?? "",
-        d.lower_95 ?? "", d.upper_95 ?? ""
-      ].join(","))
+      ...rawTableData.map((d) =>
+        [
+          `"${d.date}"`, d.pred,
+          d.lower_50 ?? "", d.upper_50 ?? "",
+          d.lower_80 ?? "", d.upper_80 ?? "",
+          d.lower_90 ?? "", d.upper_90 ?? "",
+          d.lower_95 ?? "", d.upper_95 ?? "",
+        ].join(",")
+      ),
     ].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -409,60 +692,87 @@ pred = upload_prediction(
     link.click();
   };
 
-  const handleViewChart = useCallback(async (pred: ModelPrediction) => {
-    if (activeChartId === pred.id) return;
-    setActiveChartId(pred.id); setIsChartLoading(true);
-    setChartData(null);
-    setRawTableData([]);
-    setHistoricalCases({ labels: [], data: [] });
+  const handleViewChart = useCallback(
+    async (pred: ModelPrediction) => {
+      if (activeChartId === pred.id) return;
+      setActiveChartId(pred.id);
+      setIsChartLoading(true);
+      setChartData(null);
+      setRawTableData([]);
+      setHistoricalCases({ labels: [], data: [] });
 
-    try {
-      const predRes = await fetch(`/api/vis/dashboard/prediction/${pred.id}`, {
-        headers: { "Content-Type": "application/json", "x-internal-secret": FRONTEND_SECRET || "" }
-      });
-      if (!predRes.ok) throw new Error("Failed to fetch prediction");
-      const jsonResponse = await predRes.json();
-      const data: PredictionRowData[] = jsonResponse.data || jsonResponse;
-      setRawTableData(data);
-      setChartData({
-        id: pred.id, color: "#2563eb",
-        data: {
-          labels: data.map(d => new Date(d.date)),
-          data: data.map(d => d.pred),
-          lower_50: data.map(d => d.lower_50 ?? null),
-          upper_50: data.map(d => d.upper_50 ?? null),
-          lower_80: data.map(d => d.lower_80 ?? null),
-          upper_80: data.map(d => d.upper_80 ?? null),
-          lower_90: data.map(d => d.lower_90 ?? null),
-          upper_90: data.map(d => d.upper_90 ?? null),
-          lower_95: data.map(d => d.lower_95 ?? null),
-          upper_95: data.map(d => d.upper_95 ?? null),
-        },
-      });
+      try {
+        const predRes = await fetch(`/api/vis/dashboard/prediction/${pred.id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": FRONTEND_SECRET || "",
+          },
+        });
+        if (!predRes.ok) throw new Error("Failed to fetch prediction");
+        const jsonResponse = await predRes.json();
+        const data: PredictionRowData[] = jsonResponse.data || jsonResponse;
+        setRawTableData(data);
+        setChartData({
+          id: pred.id,
+          color: "#2563eb",
+          data: {
+            labels: data.map((d) => new Date(d.date)),
+            data: data.map((d) => d.pred),
+            lower_50: data.map((d) => d.lower_50 ?? null),
+            upper_50: data.map((d) => d.upper_50 ?? null),
+            lower_80: data.map((d) => d.lower_80 ?? null),
+            upper_80: data.map((d) => d.upper_80 ?? null),
+            lower_90: data.map((d) => d.lower_90 ?? null),
+            upper_90: data.map((d) => d.upper_90 ?? null),
+            lower_95: data.map((d) => d.lower_95 ?? null),
+            upper_95: data.map((d) => d.upper_95 ?? null),
+          },
+        });
 
-      if (pred.start && pred.end) {
-        const caseParams = new URLSearchParams({
-          disease: pred.disease_code, adm_level: pred.adm_level.toString(),
-          sprint: pred.imdc_year ? "true" : "false", case_definition: pred.case_definition || "reported",
-          start: pred.start, end: pred.end,
-        });
-        if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
-        if (pred.adm_1_code) caseParams.set("adm_1", String(pred.adm_1_code));
-        const casesRes = await fetch(`/api/vis/dashboard/cases?${caseParams.toString()}`, {
-          headers: { "Content-Type": "application/json", "x-internal-secret": FRONTEND_SECRET || "" }
-        });
-        if (casesRes.ok) {
-          const cases: CaseData[] = await casesRes.json();
-          setHistoricalCases({
-            labels: cases.map(c => new Date(c.date)),
-            data: cases.map(c => c.cases)
+        if (pred.start && pred.end) {
+          const caseParams = new URLSearchParams({
+            disease: pred.disease_code,
+            adm_level: pred.adm_level.toString(),
+            sprint: pred.imdc_year ? "true" : "false",
+            case_definition: pred.case_definition || "reported",
+            start: pred.start,
+            end: pred.end,
           });
+          if (pred.adm_0_code) caseParams.set("adm_0", String(pred.adm_0_code));
+          if (pred.adm_1_code) caseParams.set("adm_1", String(pred.adm_1_code));
+          const casesRes = await fetch(
+            `/api/vis/dashboard/cases?${caseParams.toString()}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "x-internal-secret": FRONTEND_SECRET || "",
+              },
+            }
+          );
+          if (casesRes.ok) {
+            const cases: CaseData[] = await casesRes.json();
+            setHistoricalCases({
+              labels: cases.map((c) => new Date(c.date)),
+              data: cases.map((c) => c.cases),
+            });
+          }
         }
+      } catch (error) {
+        setChartData(null);
+      } finally {
+        setIsChartLoading(false);
       }
-    } catch (error) { setChartData(null); } finally { setIsChartLoading(false); }
-  }, [activeChartId]);
+    },
+    [activeChartId]
+  );
 
-  useEffect(() => { if (!hasInitialized && localPredictions.length > 0) { const f = localPredictions.find(p => p.published); if (f) handleViewChart(f); setHasInitialized(true); } }, [localPredictions, hasInitialized, handleViewChart]);
+  useEffect(() => {
+    if (!hasInitialized && localPredictions.length > 0) {
+      const f = localPredictions.find((p) => p.published);
+      if (f) handleViewChart(f);
+      setHasInitialized(true);
+    }
+  }, [localPredictions, hasInitialized, handleViewChart]);
 
   const getDashboardLink = useCallback((pred: ModelPrediction) => {
     const p = new URLSearchParams();
@@ -478,25 +788,93 @@ pred = upload_prediction(
     return `/dashboard/${pred.category === "categorical" ? "categorical" : "quantitative"}?${p.toString()}`;
   }, []);
 
-  const filtered = useMemo(() => localPredictions.filter(p => {
-    if (!canManage && !p.published) return false;
+  const scoreRange = useMemo(() => {
+    const scores = localPredictions
+      .map((p) => p.scores?.find((s) => s.name === selectedMetric)?.score)
+      .filter((s): s is number => s != null);
+    if (!scores.length) return { min: null, max: null };
+    return { min: Math.min(...scores), max: Math.max(...scores) };
+  }, [localPredictions, selectedMetric]);
 
-    const matchesDisease = selectedDisease === "all" || p.disease_code === selectedDisease;
-    if (!matchesDisease) return false;
+  const filtered = useMemo(
+    () =>
+      localPredictions.filter((p) => {
+        if (!canManage && !p.published) return false;
+        if (selectedDisease !== "all" && p.disease_code !== selectedDisease) return false;
+        if (filterPublished === "published" && !p.published) return false;
+        if (filterPublished === "draft" && p.published) return false;
+        if (filterAdmLevel !== null && p.adm_level !== filterAdmLevel) return false;
 
-    if (!debouncedSearchQuery) return true;
-    const q = debouncedSearchQuery.toLowerCase();
-    const metricValue = p.scores?.find(s => s.name === selectedMetric)?.score.toString() || "";
-    const searchableFields = [p.id, p.commit, p.description, p.disease_code, p.case_definition, p.adm_0_name, p.adm_1_name, p.adm_2_name, p.adm_3_name, p.adm_0_code, p.adm_1_code, p.adm_2_code, p.adm_3_code, metricValue];
-    return searchableFields.some(field => field !== null && field !== undefined && String(field).toLowerCase().includes(q));
-  }), [localPredictions, debouncedSearchQuery, canManage, selectedMetric, selectedDisease]);
+        if (!debouncedSearchQuery) return true;
+        const q = debouncedSearchQuery.toLowerCase();
+        const metricValue =
+          p.scores?.find((s) => s.name === selectedMetric)?.score.toString() || "";
+        const searchableFields = [
+          p.id, p.commit, p.description, p.disease_code, p.case_definition,
+          p.adm_0_name, p.adm_1_name, p.adm_2_name, p.adm_3_name,
+          p.adm_0_code, p.adm_1_code, p.adm_2_code, p.adm_3_code, metricValue,
+        ];
+        return searchableFields.some(
+          (field) => field !== null && field !== undefined && String(field).toLowerCase().includes(q)
+        );
+      }),
+    [
+      localPredictions, debouncedSearchQuery, canManage, selectedMetric,
+      selectedDisease, filterPublished, filterAdmLevel,
+    ]
+  );
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "date":
+          cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case "score": {
+          const sa = a.scores?.find((s) => s.name === selectedMetric)?.score ?? 0;
+          const sb = b.scores?.find((s) => s.name === selectedMetric)?.score ?? 0;
+          cmp = sa - sb;
+          break;
+        }
+        case "id":
+          cmp = a.id - b.id;
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [filtered, sortField, sortDir, selectedMetric]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginated = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const showingStart = sorted.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const showingEnd = Math.min(safePage * pageSize, sorted.length);
+
+  useEffect(() => { setPage(1); }, [selectedDisease, filterPublished, filterAdmLevel, debouncedSearchQuery]);
+
+  const stats = useMemo(() => {
+    const total = localPredictions.length;
+    const published = localPredictions.filter((p) => p.published).length;
+    const diseases = uniqueDiseases.length;
+    if (!scoreRange.min || !scoreRange.max) return { total, published, diseases };
+    return { total, published, diseases, scoreMin: scoreRange.min, scoreMax: scoreRange.max };
+  }, [localPredictions, uniqueDiseases, scoreRange]);
+
+  const activePrediction = activeChartId
+    ? localPredictions.find((p) => p.id === activeChartId) ?? null
+    : null;
 
   if (!predictions || predictions.length === 0) {
     return (
       <div className="w-full bg-card border rounded-xl p-12">
         <div className="max-w-4xl mx-auto space-y-10">
           <div className="text-center">
-            <MarkdownRenderer content={`# ${t("model_predictions.empty_title")}\n${t("model_predictions.empty_desc")} [${t("model_predictions.view_docs")}](https://api.mosqlimate.org/docs/${i18n.language}/registry/POST/predictions/)`} />
+            <MarkdownRenderer
+              content={`# ${t("model_predictions.empty_title")}\n${t("model_predictions.empty_desc")} [${t("model_predictions.view_docs")}](https://api.mosqlimate.org/docs/${i18n.language}/registry/POST/predictions/)`}
+            />
           </div>
           {canManage && (
             <div className="pt-8 border-t space-y-6">
@@ -523,30 +901,289 @@ pred = upload_prediction(
   return (
     <div className="space-y-6">
       {deleteModalId && (
-        <div className="fixed bg-bg inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-bg border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3 text-destructive">
                 <div className="p-2 bg-destructive/10 rounded-full">
-                  <AlertTriangle size={24} color="red" />
+                  <AlertTriangle size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-foreground">{t("common.actions.delete")}</h3>
+                <h3 className="text-lg font-bold text-foreground">
+                  {t("common.actions.delete")}
+                </h3>
               </div>
-              <p className="text-muted-foreground text-sm">{t("models.predictions.delete_confirm", { id: deleteModalId })}</p>
+              <p className="text-muted-foreground text-sm">
+                {t("models.predictions.delete_confirm", { id: deleteModalId })}
+              </p>
             </div>
             <div className="flex items-center justify-end gap-3 p-4 bg-muted/30 border-t">
-              <button disabled={isDeleting} onClick={() => setDeleteModalId(null)} className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50">{t("common.actions.cancel")}</button>
-              <button disabled={isDeleting} onClick={handleDeletePrediction} className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50">{isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} color="red" />}{t("common.actions.delete")}</button>
+              <button
+                disabled={isDeleting}
+                onClick={() => setDeleteModalId(null)}
+                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md transition-colors disabled:opacity-50"
+              >
+                {t("common.actions.cancel")}
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={handleDeletePrediction}
+                className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                {t("common.actions.delete")}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="min-h-[550px] w-full bg-card border rounded-xl p-4 relative flex flex-col">
+      {/* Stats summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard
+          value={String(stats.total)}
+          label={t("model_predictions.total_pred", "Total")}
+          icon={<Layers size={18} />}
+        />
+        <StatCard
+          value={String(stats.published)}
+          label={t("model_predictions.published")}
+          icon={<Check size={18} />}
+        />
+        <StatCard
+          value={String(stats.diseases)}
+          label={t("model_predictions.diseases", "Diseases")}
+          icon={<Info size={18} />}
+        />
+        {scoreRange.min != null && scoreRange.max != null && (
+          <StatCard
+            value={`${scoreRange.min.toFixed(3)} - ${scoreRange.max.toFixed(3)}`}
+            label={t("model_predictions.score_range", "Score range")}
+            icon={<ChartIcon size={18} />}
+          />
+        )}
+      </div>
+
+      {/* Controls bar */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder={t("model_predictions.search_placeholder")}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary"
+            />
+            {inputValue && (
+              <button
+                onClick={() => setInputValue("")}
+                className="absolute right-2 top-2.5 text-muted-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {uniqueDiseases.length > 1 && (
+              <div className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border">
+                <span className="text-xs font-medium text-muted-foreground pl-1">
+                  {t("model_predictions.disease_filter", "Disease")}:
+                </span>
+                <select
+                  value={selectedDisease}
+                  onChange={(e) => setSelectedDisease(e.target.value)}
+                  className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground"
+                >
+                  <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {t("common:all", "All")}
+                  </option>
+                  {uniqueDiseases.map((d) => (
+                    <option
+                      key={d}
+                      value={d}
+                      className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    >
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border">
+              <span className="text-xs font-medium text-muted-foreground pl-1">
+                {t("model_predictions.metric_label")}
+              </span>
+              <select
+                value={selectedMetric}
+                onChange={(e) => setSelectedMetric(e.target.value)}
+                className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground"
+              >
+                {availableScores.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                    className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  >
+                    {formatScoreName(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border">
+              <ArrowUpDown size={14} className="text-muted-foreground ml-1" />
+              <select
+                value={`${sortField}-${sortDir}`}
+                onChange={(e) => {
+                  const [field, dir] = e.target.value.split("-") as ["date" | "score" | "id", "asc" | "desc"];
+                  setSortField(field);
+                  setSortDir(dir);
+                }}
+                className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground"
+              >
+                <option value="date-desc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_newest", "Newest first")}
+                </option>
+                <option value="date-asc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_oldest", "Oldest first")}
+                </option>
+                <option value="score-asc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_best", "Best score")}
+                </option>
+                <option value="score-desc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_worst", "Worst score")}
+                </option>
+                <option value="id-desc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_id_desc", "Highest ID")}
+                </option>
+                <option value="id-asc" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {t("model_predictions.sort_id_asc", "Lowest ID")}
+                </option>
+              </select>
+            </div>
+
+            <div className="flex items-center bg-muted/40 p-1 rounded-lg border">
+              <button
+                onClick={() => setViewLayout("grid")}
+                className={`p-1.5 rounded transition-all ${viewLayout === "grid"
+                  ? "bg-background shadow-sm text-primary ring-1 ring-border"
+                  : "text-muted-foreground hover:bg-muted"
+                  }`}
+                title={t("model_predictions.grid_view", "Grid view")}
+              >
+                <Grid3x3 size={16} />
+              </button>
+              <button
+                onClick={() => setViewLayout("list")}
+                className={`p-1.5 rounded transition-all ${viewLayout === "list"
+                  ? "bg-background shadow-sm text-primary ring-1 ring-border"
+                  : "text-muted-foreground hover:bg-muted"
+                  }`}
+                title={t("model_predictions.list_view", "List view")}
+              >
+                <List size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick filter chips */}
+        {(uniqueAdmLevels.length > 1 || canManage) && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {canManage && (
+              <>
+                <button
+                  onClick={() =>
+                    setFilterPublished((prev) => (prev === "all" ? "published" : "all"))
+                  }
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${filterPublished === "published"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 ring-1 ring-emerald-300 dark:ring-emerald-800"
+                    : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  {t("model_predictions.published")} ({localPredictions.filter((p) => p.published).length})
+                </button>
+                <button
+                  onClick={() =>
+                    setFilterPublished((prev) => (prev === "all" ? "draft" : "all"))
+                  }
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${filterPublished === "draft"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 ring-1 ring-amber-300 dark:ring-amber-800"
+                    : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  {t("model_predictions.draft", "Draft")} ({localPredictions.filter((p) => !p.published).length})
+                </button>
+              </>
+            )}
+            {uniqueAdmLevels.map((level) => (
+              <button
+                key={level}
+                onClick={() =>
+                  setFilterAdmLevel((prev) => (prev === level ? null : level))
+                }
+                className={`inline-flex items-center border gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${filterAdmLevel === level
+                  ? "bg-primary/10 text-primary ring-1 ring-primary/30"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+              >
+                ADM {level}
+              </button>
+            ))}
+            {(filterPublished !== "all" || filterAdmLevel !== null) && (
+              <button
+                onClick={() => {
+                  setFilterPublished("all");
+                  setFilterAdmLevel(null);
+                }}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={12} />
+                {t("model_predictions.clear_filters", "Clear")}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Chart area */}
+      <div className="min-h-[300px] w-full bg-card border rounded-xl p-4 relative flex flex-col">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-          <h3 className="font-semibold text-sm">
-            {activeChartId ? t("model_predictions.prediction_id", { id: activeChartId }) : t("model_predictions.select_prediction")}
-          </h3>
+          <div className="space-y-1">
+            <h3 className="font-semibold text-sm">
+              {activePrediction
+                ? t("model_predictions.prediction_id", { id: activePrediction.id })
+                : t("model_predictions.select_prediction")}
+            </h3>
+            {activePrediction && (
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  🦟 {activePrediction.disease_code}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  📍
+                  {[
+                    activePrediction.adm_0_name,
+                    activePrediction.adm_1_name,
+                    activePrediction.adm_2_name,
+                  ]
+                    .filter(Boolean)
+                    .join(" / ")}
+                </span>
+                <span>|</span>
+                <span>{activePrediction.case_definition} {t("model_predictions.cases_label", "cases")}</span>
+              </div>
+            )}
+          </div>
 
           {activeChartId && (
             <div className="flex flex-wrap items-center gap-2">
@@ -555,24 +1192,55 @@ pred = upload_prediction(
                   <button
                     key={interval}
                     onClick={() => toggleInterval(interval)}
-                    className={`px-3 py-1 text-[11px] rounded transition-all ${visibleIntervals.includes(interval) ? "bg-primary text-primary-foreground font-black shadow-md ring-2 ring-primary/20 scale-105" : "text-muted-foreground hover:bg-muted"}`}
+                    className={`px-3 py-1 text-[11px] rounded transition-all ${visibleIntervals.includes(interval)
+                      ? "bg-primary text-primary-foreground font-bold shadow-sm ring-2 ring-primary/20 scale-105"
+                      : "text-muted-foreground hover:bg-muted"
+                      }`}
                   >
                     {interval}%
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-2 border rounded-lg p-1 bg-muted/20">
-                <button onClick={() => setViewMode("chart")} className={`p-1.5 rounded-md transition-all ${viewMode === "chart" ? "bg-background shadow-md text-primary ring-1 ring-border" : "text-muted-foreground hover:bg-muted"}`} title="View Chart"><ChartIcon size={16} /></button>
-                <button onClick={() => setViewMode("table")} className={`p-1.5 rounded-md transition-all ${viewMode === "table" ? "bg-background shadow-md text-primary ring-1 ring-border" : "text-muted-foreground hover:bg-muted"}`} title="View Data Table"><TableIcon size={16} /></button>
+                <button
+                  onClick={() => setViewMode("chart")}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === "chart"
+                    ? "bg-background shadow-sm text-primary ring-1 ring-border"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  title={t("model_predictions.view_chart", "View Chart")}
+                >
+                  <ChartIcon size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === "table"
+                    ? "bg-background shadow-sm text-primary ring-1 ring-border"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  title={t("model_predictions.view_table", "View Data Table")}
+                >
+                  <TableIcon size={16} />
+                </button>
                 <div className="w-px h-4 bg-border mx-1" />
-                <button onClick={downloadCSV} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-all" title="Download CSV"><Download size={16} /></button>
+                <button
+                  onClick={downloadCSV}
+                  className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                  title={t("model_predictions.download_csv", "Download CSV")}
+                >
+                  <Download size={16} />
+                </button>
               </div>
             </div>
           )}
         </div>
 
         <div className="flex-1 relative">
-          {isChartLoading && (<div className="absolute inset-0 flex items-center justify-center bg-card/80 z-20"><Loader2 className="animate-spin text-primary" /></div>)}
+          {isChartLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-card/80 z-20">
+              <Loader2 className="animate-spin text-primary" size={32} />
+            </div>
+          )}
 
           {chartData ? (
             viewMode === "chart" ? (
@@ -590,19 +1258,37 @@ pred = upload_prediction(
                 <table className="w-full text-[11px] text-left border-separate border-spacing-0">
                   <thead className="sticky top-0 z-10 bg-bg">
                     <tr>
-                      <th className="p-2 font-bold whitespace-nowrap bg-card border-b">date</th>
-                      <th className="p-2 font-bold whitespace-nowrap text-primary bg-card border-b">pred</th>
-                      {availableBounds.map(b => (<th key={b} className="p-2 font-bold whitespace-nowrap text-muted-foreground bg-card border-b">lower_{b} - upper_{b}</th>))}
+                      <th className="p-2 font-bold whitespace-nowrap bg-card border-b">{t("model_predictions.table_date", "date")}</th>
+                      <th className="p-2 font-bold whitespace-nowrap text-primary bg-card border-b">{t("model_predictions.table_pred", "pred")}</th>
+                      {availableBounds.map((b) => (
+                        <th
+                          key={b}
+                          className="p-2 font-bold whitespace-nowrap text-muted-foreground bg-card border-b"
+                        >
+                          {t("model_predictions.lower_upper_bounds", "lower_{{b}} - upper_{{b}}", { b })}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {rawTableData.map((row, i) => (
-                      <tr key={i} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                      <tr
+                        key={i}
+                        className="hover:bg-muted/30 transition-colors border-b last:border-0"
+                      >
                         <td className="p-2 whitespace-nowrap">{formatDate(row.date)}</td>
-                        <td className="p-2 font-mono font-medium text-primary">{row.pred.toFixed(2)}</td>
-                        {availableBounds.map(b => (
+                        <td className="p-2 font-mono font-medium text-primary">
+                          {row.pred.toFixed(2)}
+                        </td>
+                        {availableBounds.map((b) => (
                           <td key={b} className="p-2 font-mono text-muted-foreground">
-                            {typeof row[`lower_${b}` as keyof PredictionRowData] === 'number' ? row[`lower_${b}` as keyof PredictionRowData] : "-"} / {typeof row[`upper_${b}` as keyof PredictionRowData] === 'number' ? row[`upper_${b}` as keyof PredictionRowData] : "-"}
+                            {typeof row[`lower_${b}` as keyof PredictionRowData] === "number"
+                              ? row[`lower_${b}` as keyof PredictionRowData]
+                              : "-"}{" "}
+                            /{" "}
+                            {typeof row[`upper_${b}` as keyof PredictionRowData] === "number"
+                              ? row[`upper_${b}` as keyof PredictionRowData]
+                              : "-"}
                           </td>
                         ))}
                       </tr>
@@ -612,50 +1298,187 @@ pred = upload_prediction(
               </div>
             )
           ) : !isChartLoading && (
-            <div className="flex items-center justify-center h-[400px] text-muted-foreground text-sm">
-              {activeChartId ? t("model_predictions.unable_load") : t("model_predictions.select_below")}
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
+              {activeChartId
+                ? t("model_predictions.unable_load")
+                : t("model_predictions.select_below")}
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative flex-1 max-md">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input type="text" placeholder={t("model_predictions.search_placeholder")} value={inputValue} onChange={e => setInputValue(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm border rounded-md bg-background focus:ring-1 focus:ring-primary" />
-            {inputValue && (<button onClick={() => setInputValue("")} className="absolute right-2 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>)}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {uniqueDiseases.length > 1 && (
-              <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
-                <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_sidebar.tags.disease", "Disease")}:</span>
-                <select value={selectedDisease} onChange={e => setSelectedDisease(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground dark:text-slate-100">
-                  <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{t("common:all", "All")}</option>
-                  {uniqueDiseases.map(d => (<option key={d} value={d} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{d}</option>))}
-                </select>
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 bg-muted/40 p-2 rounded-lg border">
-              <span className="text-sm font-medium text-muted-foreground pl-2">{t("model_predictions.metric_label")}</span>
-              <select value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)} className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer text-foreground dark:text-slate-100">
-                {availableScores.map(s => (<option key={s} value={s} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{formatScoreName(s)}</option>))}
-              </select>
-            </div>
-          </div>
-        </div>
+      {/* Results count */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          {sorted.length > 0
+            ? t("dashboard.pagination.showing", {
+              start: showingStart,
+              end: showingEnd,
+              total: sorted.length,
+            })
+            : debouncedSearchQuery
+              ? t("model_predictions.no_matches")
+              : t("model_predictions.no_found")}
+        </span>
+        {totalPages > 1 && (
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+            className="bg-muted/40 border rounded px-2 py-1 text-xs focus:outline-none cursor-pointer"
+          >
+            <option value={12}>{t("model_predictions.per_page", "{{size}} / page", { size: 12 })}</option>
+            <option value={24}>{t("model_predictions.per_page", "{{size}} / page", { size: 24 })}</option>
+            <option value={48}>{t("model_predictions.per_page", "{{size}} / page", { size: 48 })}</option>
+          </select>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filtered.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">{debouncedSearchQuery ? t("model_predictions.no_matches") : t("model_predictions.no_found")}</div>
-        ) : (
-          filtered.map(p => (
-            <PredictionCard key={p.id} pred={p} canManage={canManage} selectedMetric={selectedMetric} isUpdating={isUpdating === p.id} isActiveChart={activeChartId === p.id} onToggle={handlePublishToggle} onDeleteRequest={setDeleteModalId} onViewChart={handleViewChart} formatDate={formatDate} formatScoreName={formatScoreName} getDashboardLink={getDashboardLink} t={t} />
-          ))
-        )}
+      {/* Cards grid or list */}
+      {sorted.length > 0 && viewLayout === "grid" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {paginated.map((p) => (
+            <PredictionCard
+              key={p.id}
+              pred={p}
+              canManage={canManage}
+              selectedMetric={selectedMetric}
+              isUpdating={isUpdating === p.id}
+              isActiveChart={activeChartId === p.id}
+              scoreMin={scoreRange.min}
+              scoreMax={scoreRange.max}
+              onToggle={handlePublishToggle}
+              onDeleteRequest={setDeleteModalId}
+              onViewChart={handleViewChart}
+              formatDate={formatDate}
+              formatScoreName={formatScoreName}
+              getDashboardLink={getDashboardLink}
+              t={t}
+            />
+          ))}
+        </div>
+      )}
+
+      {sorted.length > 0 && viewLayout === "list" && (
+        <div className="border rounded-xl overflow-hidden bg-card">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/20 border-b">
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_id", "ID")}
+                  </th>
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_date", "Date")}
+                  </th>
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_disease", "Disease")}
+                  </th>
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_location", "Location")}
+                  </th>
+                  <th className="p-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_adm", "ADM")}
+                  </th>
+                  <th className="p-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_score", "Score")}
+                  </th>
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_status", "Status")}
+                  </th>
+                  <th className="p-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t("model_predictions.col_actions", "Actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {paginated.map((p) => (
+                  <PredictionListRow
+                    key={p.id}
+                    pred={p}
+                    canManage={canManage}
+                    selectedMetric={selectedMetric}
+                    isUpdating={isUpdating === p.id}
+                    isActiveChart={activeChartId === p.id}
+                    onToggle={handlePublishToggle}
+                    onDeleteRequest={setDeleteModalId}
+                    onViewChart={handleViewChart}
+                    formatDate={formatDate}
+                    formatScoreName={formatScoreName}
+                    getDashboardLink={getDashboardLink}
+                    t={t}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {sorted.length === 0 && (
+        <div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">
+          {debouncedSearchQuery
+            ? t("model_predictions.no_matches")
+            : t("model_predictions.no_found")}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            className="p-2 rounded-md border hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => {
+                if (totalPages <= 7) return true;
+                if (p === 1 || p === totalPages) return true;
+                if (Math.abs(p - safePage) <= 1) return true;
+                return false;
+              })
+              .map((p, idx, arr) => {
+                const showEllipsis =
+                  idx > 0 && p - arr[idx - 1] > 1;
+                return (
+                  <span key={p} className="flex items-center">
+                    {showEllipsis && (
+                      <span className="px-1 text-muted-foreground text-xs">...</span>
+                    )}
+                    <button
+                      onClick={() => setPage(p)}
+                      className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${safePage === p
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "hover:bg-muted text-foreground"
+                        }`}
+                    >
+                      {p}
+                    </button>
+                  </span>
+                );
+              })}
+          </div>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            className="p-2 rounded-md border hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+
+      <div className="text-xs text-muted-foreground text-center">
+        {t("model_predictions.pred_count", {
+          default: "{{count}} predictions loaded",
+          count: sorted.length
+        })}
       </div>
     </div>
   );
