@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.10.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.2...2.10.0) (2026-07-06)
+
+
+### Features
+
+* **registry:** include repository link on models page and fix avatars ([#523](https://github.com/Mosqlimate-project/Data-platform/issues/523)) ([7545d95](https://github.com/Mosqlimate-project/Data-platform/commit/7545d9528ee85f6ca7d2add77205096d783636aa))
+
 ## [2.9.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.1...2.9.2) (2026-07-01)
 
 
