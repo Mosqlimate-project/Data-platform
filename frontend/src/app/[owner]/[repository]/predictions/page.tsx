@@ -1,3 +1,5 @@
+import { LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { FRONTEND_SECRET, NEXT_PUBLIC_FRONTEND_URL } from "@/lib/env";
 import PredictionsList, { ModelPrediction } from "@/components/model/Predictions";
 import { getPermissions } from "@/lib/api/model";
@@ -39,11 +41,26 @@ export default async function PredictionsPage({ params }: PageProps) {
   ]);
 
   return (
-    <PredictionsList
-      predictions={predictions}
-      canManage={permissions.can_manage}
-      owner={owner}
-      modelName={repository}
-    />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold text-foreground">
+            {repository} predictions
+          </h1>
+        </div>
+        {predictions.length > 0 && (
+          <div className="text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-lg border">
+            {predictions.length} prediction{predictions.length !== 1 ? "s" : ""}
+          </div>
+        )}
+      </div>
+
+      <PredictionsList
+        predictions={predictions}
+        canManage={permissions.can_manage}
+        owner={owner}
+        modelName={repository}
+      />
+    </div>
   );
 }
