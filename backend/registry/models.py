@@ -34,6 +34,12 @@ class Organization(TimestampModel):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def get_avatar(self):
+        if self.avatar:
+            return self.avatar.url
+        if self.avatar_url:
+            return self.avatar_url
+
 
 class OrganizationMembership(TimestampModel):
     class Roles(models.TextChoices):
@@ -118,12 +124,20 @@ class Repository(TimestampModel):
                     )
                 ),
                 name="repo_owner_or_org_xor",
-            ),
+            ),  # type: ignore
         ]
 
     def __str__(self):
         owner = self.owner.username if self.owner else self.organization.name
         return f"{owner}/{self.name} ({self.provider})"
+
+    @property
+    def avatar_url(self):
+        if self.organization:
+            return self.organization.get_avatar()
+        if self.owner:
+            return self.owner.get_avatar()
+        return None
 
 
 class RepositoryModel(TimestampModel):

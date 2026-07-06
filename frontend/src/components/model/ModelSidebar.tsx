@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { Pencil, Check, X, Loader2 } from "lucide-react";
+import { Pencil, Check, X, Loader2, Github, ExternalLink } from "lucide-react";
 
 interface Contributor {
   username: string;
@@ -15,12 +15,14 @@ interface ModelSidebarProps {
   repository: string;
   initialDescription?: string;
   contributors?: Contributor[];
+  githubUrl?: string;
   canManage: boolean;
   tags?: {
     disease?: string;
     category?: string;
     adm_level?: number;
     time_resolution?: string;
+    license?: string;
   };
 }
 
@@ -29,6 +31,7 @@ export default function ModelSidebar({
   repository,
   initialDescription,
   contributors,
+  githubUrl,
   canManage,
   tags
 }: ModelSidebarProps) {
@@ -38,6 +41,22 @@ export default function ModelSidebar({
   const [loading, setLoading] = useState(false);
 
   const MAX_CHARS = 500;
+
+  const getGithubUrl = () => {
+    if (githubUrl) return githubUrl;
+
+    let repoName = repository;
+
+    if (/^d-fense(-\d+)?$/i.test(repository)) {
+      repoName = "D-FENSE";
+    } else if (/^dengue-oracle(-\d+)?$/i.test(repository)) {
+      repoName = "dengue-oracle";
+    }
+
+    return `https://github.com/${owner}/${repoName}`;
+  };
+
+  const fallbackGithubUrl = getGithubUrl();
 
   const handleUpdateDescription = async () => {
     if (description.length > MAX_CHARS) return;
@@ -67,6 +86,10 @@ export default function ModelSidebar({
 
   const tagList = [
     {
+      label: "Repository Owner",
+      value: owner
+    },
+    {
       label: t('model_sidebar.tags.disease'),
       value: tags?.disease
     },
@@ -82,19 +105,23 @@ export default function ModelSidebar({
       label: t('model_sidebar.tags.resolution'),
       value: tags?.time_resolution
     },
+    {
+      label: "License",
+      value: tags?.license
+    }
   ].filter(t => t.value);
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-full">
-      <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden break-words relative group">
+    <div className="flex flex-col gap-5 w-full max-w-full">
+      <div className="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-sm overflow-hidden break-words relative group">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
             {t('model_sidebar.description')}
           </h3>
           {canManage && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors text-gray-400 hover:text-blue-600"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors text-gray-400 hover:text-blue-600"
             >
               <Pencil size={14} />
             </button>
@@ -107,7 +134,7 @@ export default function ModelSidebar({
               value={description}
               maxLength={MAX_CHARS}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-sm p-2 bg-gray-50 dark:bg-neutral-900 border border-[var(--color-border)] rounded-md focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] text-text resize-none"
+              className="w-full text-sm p-2.5 bg-gray-50 dark:bg-neutral-900 border border-[var(--color-border)] rounded-md focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] text-text resize-none"
               placeholder={t('model_sidebar.description_placeholder')}
               autoFocus
             />
@@ -122,14 +149,14 @@ export default function ModelSidebar({
                     setDescription(initialDescription || "");
                   }}
                   disabled={loading}
-                  className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors"
+                  className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
                 >
                   <X size={16} />
                 </button>
                 <button
                   onClick={handleUpdateDescription}
                   disabled={loading || description.length > MAX_CHARS}
-                  className="p-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded disabled:opacity-50 transition-colors"
+                  className="p-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md disabled:opacity-50 transition-colors"
                 >
                   {loading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                 </button>
@@ -143,12 +170,30 @@ export default function ModelSidebar({
         )}
       </div>
 
+      <a
+        href={fallbackGithubUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all duration-200 group/link shadow-sm"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100">
+            <Github size={20} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-400 font-medium">Source Code</span>
+            <span className="text-sm font-semibold text-[var(--color-text)] tracking-tight">View Repository</span>
+          </div>
+        </div>
+        <ExternalLink size={16} className="text-gray-400 group-hover/link:text-blue-500 group-hover/link:translate-x-0.5 transition-all" />
+      </a>
+
       {tagList.length > 0 && (
-        <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+        <div className="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-sm overflow-hidden">
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">
             {t('model_sidebar.metadata')}
           </h3>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3.5">
             {tagList.map((tag) => (
               <div key={tag.label} className="flex flex-col border-b border-[var(--color-border)] last:border-0 pb-3 last:pb-0">
                 <span className="text-[10px] text-gray-400 uppercase font-bold mb-1">
@@ -164,18 +209,18 @@ export default function ModelSidebar({
       )}
 
       {contributors && contributors.length > 0 && (
-        <div className="p-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+        <div className="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] shadow-sm overflow-hidden">
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">
             {t('model_sidebar.contributors')}
           </h3>
           <div className="flex flex-col gap-3">
             {contributors.map((c) => (
               <div key={c.username} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full border border-border overflow-hidden bg-hover shrink-0">
+                <div className="w-8 h-8 rounded-full border border-border overflow-hidden bg-hover shrink-0 relative">
                   {c.avatar_url ? (
-                    <Image src={c.avatar_url} alt={c.username} width={32} height={32} />
+                    <Image src={c.avatar_url} alt={c.username} width={32} height={32} className="object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold bg-gray-100 dark:bg-neutral-800">
                       {c.username.substring(0, 2).toUpperCase()}
                     </div>
                   )}

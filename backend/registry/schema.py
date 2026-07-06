@@ -434,9 +434,14 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_avatar_url(obj):
-        if obj.avatar:
-            return obj.avatar.url
-        return None
+        if hasattr(obj, "avatar") and obj.avatar:
+            try:
+                if obj.avatar.storage.exists(obj.avatar.name):
+                    return obj.avatar.url
+            except Exception:
+                pass
+
+        return obj.repository.avatar_url
 
     @staticmethod
     def resolve_diseases(obj):
@@ -502,6 +507,7 @@ class ContributorOut(Schema):
 class ModelOut(Schema):
     owner: str
     repository: str
+    avatar_url: str | None = None
     description: str | None
     diseases: list[str]
     category: str
@@ -519,6 +525,16 @@ class ModelOut(Schema):
         raise ValueError("Owner not found")
 
     @staticmethod
+    def resolve_avatar_url(obj):
+        if hasattr(obj, "avatar") and obj.avatar:
+            try:
+                if obj.avatar.storage.exists(obj.avatar.name):
+                    return obj.avatar.url
+            except Exception:
+                pass
+        return obj.repository.avatar_url
+
+    @staticmethod
     def resolve_diseases(obj):
         return list(
             obj.predicts.values_list("disease__code", flat=True).distinct()
@@ -526,7 +542,7 @@ class ModelOut(Schema):
 
     @staticmethod
     def resolve_adm_levels(obj):
-        return (
+        return list(
             obj.predicts.values_list("adm_level", flat=True)
             .distinct()
             .order_by("adm_level")

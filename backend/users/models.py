@@ -70,7 +70,6 @@ class CustomUser(AbstractUser):
             return self.avatar.url
         if self.avatar_url:
             return self.avatar_url
-        return None
 
     objects = CustomUserManager()
 
