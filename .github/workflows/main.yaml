@@ -67,12 +67,32 @@ jobs:
         npm install
         npx tsc --noEmit
 
-    - name: Start containers
+    - name: Setup containers
+      id: setup
       run: |
         python contrib/scripts/do_dotenv.py
         python contrib/scripts/do_psqlconf.py
         docker network create infodengue-dev_infodengue
-        sugar compose up --options -d
+
+    - name: Start containers
+      id: start
+      continue-on-error: true
+      run: |
+        sugar compose up --options -d 2>&1 | tee /tmp/container-start.log
+
+    - name: Collect errors
+      if: steps.start.outcome != 'success'
+      run: |
+        echo "::group::Container Start Errors (only relevant lines)"
+        echo ""
+        echo "--- Failed / Unhealthy Services ---"
+        sugar compose ps --options "-a" 2>/dev/null | grep -E "Exit|unhealthy|starting" || echo "(no containers running)"
+        echo ""
+        echo "--- Error Lines ---"
+        grep -iE 'error[^a-z]|fatal|traceback|exception|denied|failed to|cannot|could not|invalid' /tmp/container-start.log | head -40
+        echo ""
+        echo "::endgroup::"
+        exit 1
 
     - name: Migration check
       run: |

@@ -42,6 +42,8 @@ class SafeJSONRenderer(BaseRenderer):
                 return {k: clean_data(v) for k, v in obj.items()}
             elif isinstance(obj, list):
                 return [clean_data(v) for v in obj]
+            elif hasattr(obj, "model_dump"):
+                return clean_data(obj.model_dump())
             return obj
 
         cleaned_data = clean_data(data)
