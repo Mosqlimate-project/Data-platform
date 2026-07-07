@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.10.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.0...2.10.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* **registry:** update model's updated date when a prediction is included ([#525](https://github.com/Mosqlimate-project/Data-platform/issues/525)) ([e8a3ab9](https://github.com/Mosqlimate-project/Data-platform/commit/e8a3ab9c1c0734f0cd15d787faa2c558879650e8))
+
 # [2.10.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.9.2...2.10.0) (2026-07-06)
 
 
