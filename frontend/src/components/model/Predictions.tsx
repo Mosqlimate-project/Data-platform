@@ -92,16 +92,9 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-const subDay = (d: string) => {
-  if (!d) return d;
-  const [y, m, day] = d.split('-');
-  if (!y || !m || !day) return d;
-  const date = new Date(+y, +m - 1, +day);
-  date.setDate(date.getDate() + 1);
-  const yy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yy}-${mm}-${dd}`;
+const parseLocalDate = (d: string) => {
+  const [y, m, day] = d.split('-').map(Number);
+  return new Date(y, m - 1, day);
 };
 
 function CopyButton({ text, label }: { text: string; label?: string }) {
@@ -304,11 +297,11 @@ const PredictionCard = memo(function PredictionCard({
         {pred.start && pred.end && (
           <div className="text-sm flex items-center gap-2">
             <span className="text-foreground font-mono text-xs" suppressHydrationWarning>
-              {formatDate(subDay(pred.start))}
+              {formatDate(pred.start)}
             </span>
             <span className="text-muted-foreground">→</span>
             <span className="text-foreground font-mono text-xs" suppressHydrationWarning>
-              {formatDate(subDay(pred.end))}
+              {formatDate(pred.end)}
             </span>
           </div>
         )}
@@ -607,7 +600,7 @@ pred = upload_prediction(
   const formatDate = useCallback(
     (d: string) =>
       d
-        ? new Date(d).toLocaleDateString(i18n.language, {
+        ? parseLocalDate(d).toLocaleDateString(i18n.language, {
           year: "numeric",
           month: "numeric",
           day: "numeric",
@@ -1283,11 +1276,11 @@ pred = upload_prediction(
                         {availableBounds.map((b) => (
                           <td key={b} className="p-2 font-mono text-muted-foreground">
                             {typeof row[`lower_${b}` as keyof PredictionRowData] === "number"
-                              ? row[`lower_${b}` as keyof PredictionRowData]
+                              ? (row[`lower_${b}` as keyof PredictionRowData] as number).toFixed(2)
                               : "-"}{" "}
                             /{" "}
                             {typeof row[`upper_${b}` as keyof PredictionRowData] === "number"
-                              ? row[`upper_${b}` as keyof PredictionRowData]
+                              ? (row[`upper_${b}` as keyof PredictionRowData] as number).toFixed(2)
                               : "-"}
                           </td>
                         ))}
