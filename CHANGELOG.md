@@ -1,6 +1,14 @@
 Release Notes
 ---
 
+## [2.10.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.1...2.10.2) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** fix predictions displaying wrong date on model page ([#529](https://github.com/Mosqlimate-project/Data-platform/issues/529)) ([704f643](https://github.com/Mosqlimate-project/Data-platform/commit/704f6434d7890f59ed574c112a90f62ac33a5e8a))
+* **scores:** include rule to calculate scores even for predictions >= 1 year ago if scores are None ([#527](https://github.com/Mosqlimate-project/Data-platform/issues/527)) ([8354f7c](https://github.com/Mosqlimate-project/Data-platform/commit/8354f7cabbd26104746b052f93087a91ad6d209f))
+
 ## [2.10.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.0...2.10.1) (2026-07-07)
 
 
