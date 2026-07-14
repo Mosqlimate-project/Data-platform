@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from datetime import date
 from pydantic import BaseModel, field_validator
@@ -286,3 +286,76 @@ class CityOut(Schema):
     name: str
     adm1: str = Field(..., alias="adm1.name")
     country: str = Field(..., alias="adm1.country.name")
+
+
+class EpiScannerStateSchema(Schema):
+    code: str
+    name: str
+
+
+class EpiScannerCitySchema(Schema):
+    geocode: str
+    name: str
+
+
+class EpiScannerParameterSchema(Schema):
+    cid10: str
+    geocode: int
+    year: int
+    ep_ini: Optional[str] = None
+    ep_pw: str
+    ep_end: Optional[str] = None
+    ep_dur: Optional[int] = None
+    peak_week: float
+    beta: float
+    gamma: float
+    r0: float
+    total_cases: float
+    alpha: float
+    sum_res: float
+
+
+class EpiScannerTimeseriesRow(Schema):
+    date: date
+    casos: Optional[int] = None
+    casos_est: Optional[float] = None
+    casos_cum: Optional[int] = None
+
+
+class EpiScannerTopCitySchema(Schema):
+    name_muni: str
+    transmissao: int
+    code_muni: str
+
+
+class EpiScannerMapsWeeksItem(Schema):
+    code_muni: str
+    transmissao: Optional[int] = None
+
+
+class EpiScannerR0MapItem(Schema):
+    code_muni: str
+    R0: float
+
+
+class EpiScannerR0MapResponse(Schema):
+    r0Data: List[EpiScannerR0MapItem]
+    topR0: List[EpiScannerR0MapItem]
+
+
+class EpiScannerModelEvalItem(Schema):
+    code_muni: str
+    observed_cases: int
+    total_cases: float
+    rate: Optional[float] = None
+
+
+class EpiScannerModelEvalBin(Schema):
+    range: str
+    count: int
+    percentage: float
+
+
+class EpiScannerModelEvalResponse(Schema):
+    rateMap: List[EpiScannerModelEvalItem]
+    table: List[EpiScannerModelEvalBin]

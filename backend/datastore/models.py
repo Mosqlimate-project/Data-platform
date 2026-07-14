@@ -5,6 +5,39 @@ from django.contrib.postgres.indexes import GinIndex
 from .utils.fetch_icd import get_diseases
 
 
+class EpiscannerSirParams(models.Model):
+    cid10 = models.CharField(max_length=10)
+    geocode = models.ForeignKey(
+        "datastore.Adm2",
+        to_field="geocode",
+        db_column="geocode",
+        on_delete=models.DO_NOTHING,
+    )
+    year = models.IntegerField()
+    ep_ini = models.CharField(max_length=20, null=True, blank=True)
+    ep_pw = models.CharField(max_length=20)
+    ep_end = models.CharField(max_length=20, null=True, blank=True)
+    ep_dur = models.IntegerField(null=True, blank=True)
+    peak_week = models.FloatField()
+    beta = models.FloatField()
+    gamma = models.FloatField()
+    r0 = models.FloatField()
+    total_cases = models.FloatField()
+    alpha = models.FloatField()
+    sum_res = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "sir_params"
+        app_label = "datastore"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cid10", "geocode", "year"],
+                name="uq_sir_params_cid10_geocode_year",
+            ),
+        ]
+
+
 class VegetationIndexMetric(models.Model):
     date = models.DateField(primary_key=True)
     geocode = models.IntegerField()
