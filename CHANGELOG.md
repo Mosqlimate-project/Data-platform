@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.10.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.2...2.10.3) (2026-07-14)
+
+
+### Bug Fixes
+
+* **registry:** fix false positives on checking Prediction duplications ([#531](https://github.com/Mosqlimate-project/Data-platform/issues/531)) ([28b822e](https://github.com/Mosqlimate-project/Data-platform/commit/28b822ee4e75fdafea5d58e23ea1891c606faa4c))
+
 ## [2.10.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.1...2.10.2) (2026-07-13)
 
 
