@@ -1,5 +1,3 @@
-import hashlib
-import json
 from collections import defaultdict
 from typing import List
 from urllib.parse import urlparse
@@ -1070,30 +1068,6 @@ def create_prediction(request, data: s.PredictionIn):
     except ValidationError as e:
         return 422, {"message": e.errors()}
 
-    incoming_preds = [row.pred for row in data.prediction]
-    incoming_hash = hashlib.sha256(
-        json.dumps(incoming_preds).encode()
-    ).hexdigest()
-
-    existing_predictions = m.QuantitativePrediction.objects.filter(
-        model=model
-    ).prefetch_related("data")
-
-    for pred in existing_predictions:
-        existing_preds = list(
-            pred.data.values_list("pred", flat=True).order_by("date")
-        )
-        existing_hash = hashlib.sha256(
-            json.dumps(existing_preds).encode()
-        ).hexdigest()
-
-        if incoming_hash == existing_hash:
-            return 422, {
-                "message": (
-                    "Duplication found for this Prediction within the Model"
-                )
-            }
-
     repo = model.repository
     has_permission = False
 
@@ -1179,6 +1153,44 @@ def create_prediction(request, data: s.PredictionIn):
         return 422, {
             "message": (f"adm_3 {data.adm_3} not found for specified city")
         }
+
+    existing_predictions = m.QuantitativePrediction.objects.filter(
+        model=model,
+        adm_level=data.adm_level,
+        adm0=adms["adm0"],
+        adm1=adms["adm1"],
+        adm2=adms["adm2"],
+        adm3=adms["adm3"],
+    ).prefetch_related(
+        models.Prefetch(
+            "data",
+            queryset=m.QuantitativePredictionRow.objects.order_by("date"),
+        )
+    )
+
+    incoming = [
+        (row.date, row.pred)
+        for row in sorted(data.prediction, key=lambda r: r.date)
+    ]
+
+    for pred in existing_predictions:
+        existing = [(row.date, row.pred) for row in pred.data.all()]
+
+        if incoming == existing:
+            return 422, {
+                "message": (
+                    f"Duplicate prediction detected. Prediction {pred.id} already "
+                    f"exists for disease '{pred.disease.code}', "
+                    f"ADM level {pred.adm_level}, "
+                    f"location "
+                    f"({pred.adm0.geocode}"
+                    f"{f'/{pred.adm1.name}' if pred.adm1 else ''}"
+                    f"{f'/{pred.adm2.name}' if pred.adm2 else ''}"
+                    f"{f'/{pred.adm3.name}' if pred.adm3 else ''}), "
+                    f"covering {existing[0][0]} to {existing[-1][0]} "
+                    f"with the same prediction values."
+                )
+            }
 
     prediction = m.QuantitativePrediction(
         model=model,
