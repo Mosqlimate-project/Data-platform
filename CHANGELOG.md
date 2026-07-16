@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.11.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.0...2.11.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **episcanner:** minor fix on episcanner output ([#533](https://github.com/Mosqlimate-project/Data-platform/issues/533)) ([a7e015b](https://github.com/Mosqlimate-project/Data-platform/commit/a7e015b958930ddbacf9d25365c2f35e8ea4b5dc))
+
 # [2.11.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.3...2.11.0) (2026-07-16)
 
 
