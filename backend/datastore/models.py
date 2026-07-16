@@ -6,30 +6,31 @@ from .utils.fetch_icd import get_diseases
 
 
 class EpiscannerSirParams(models.Model):
-    cid10 = models.CharField(max_length=10)
-    geocode = models.ForeignKey(
+    cid10 = models.CharField(max_length=10)  # type: ignore[var-annotated]
+    geocode = models.ForeignKey(  # type: ignore[var-annotated]
         "datastore.Adm2",
         to_field="geocode",
         db_column="geocode",
         on_delete=models.DO_NOTHING,
     )
-    year = models.IntegerField()
-    ep_ini = models.CharField(max_length=20, null=True, blank=True)
-    ep_pw = models.CharField(max_length=20)
-    ep_end = models.CharField(max_length=20, null=True, blank=True)
-    ep_dur = models.IntegerField(null=True, blank=True)
-    peak_week = models.FloatField()
-    beta = models.FloatField()
-    gamma = models.FloatField()
-    r0 = models.FloatField()
-    total_cases = models.FloatField()
-    alpha = models.FloatField()
-    sum_res = models.FloatField()
+    year = models.IntegerField()  # type: ignore[var-annotated]
+    ep_ini = models.CharField(max_length=20, null=True, blank=True)  # type: ignore[var-annotated]
+    ep_pw = models.CharField(max_length=20)  # type: ignore[var-annotated]
+    ep_end = models.CharField(max_length=20, null=True, blank=True)  # type: ignore[var-annotated]
+    ep_dur = models.IntegerField(null=True, blank=True)  # type: ignore[var-annotated]
+    peak_week = models.FloatField()  # type: ignore[var-annotated]
+    beta = models.FloatField()  # type: ignore[var-annotated]
+    gamma = models.FloatField()  # type: ignore[var-annotated]
+    r0 = models.FloatField()  # type: ignore[var-annotated]
+    total_cases = models.FloatField()  # type: ignore[var-annotated]
+    alpha = models.FloatField()  # type: ignore[var-annotated]
+    sum_res = models.FloatField()  # type: ignore[var-annotated]
+    t_ini = models.IntegerField(null=True, blank=True)  # type: ignore[var-annotated]
+    t_end = models.IntegerField(null=True, blank=True)  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
-        db_table = "sir_params"
-        app_label = "datastore"
+        db_table = '"episcanner"."sir_params"'
         constraints = [
             models.UniqueConstraint(
                 fields=["cid10", "geocode", "year"],
@@ -39,17 +40,17 @@ class EpiscannerSirParams(models.Model):
 
 
 class VegetationIndexMetric(models.Model):
-    date = models.DateField(primary_key=True)
-    geocode = models.IntegerField()
-    collection = models.CharField(max_length=255)
-    attribute = models.CharField(max_length=50)
-    mean = models.FloatField(null=True, blank=True)
-    std = models.FloatField(null=True, blank=True)
-    median = models.FloatField(null=True, blank=True)
-    q25 = models.FloatField(null=True, blank=True)
-    q75 = models.FloatField(null=True, blank=True)
-    min = models.FloatField(null=True, blank=True)
-    max = models.FloatField(null=True, blank=True)
+    date = models.DateField(primary_key=True)  # type: ignore[var-annotated]
+    geocode = models.IntegerField()  # type: ignore[var-annotated]
+    collection = models.CharField(max_length=255)  # type: ignore[var-annotated]
+    attribute = models.CharField(max_length=50)  # type: ignore[var-annotated]
+    mean = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    std = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    median = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    q25 = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    q75 = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    min = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
+    max = models.FloatField(null=True, blank=True)  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
@@ -66,24 +67,24 @@ class VegetationIndexMetric(models.Model):
 
 
 class ContaOvos(models.Model):
-    counting_id = models.BigIntegerField(unique=True, primary_key=True)
-    date = models.DateField()
-    date_collect = models.DateField()
-    eggs = models.PositiveIntegerField()
-    latitude = models.DecimalField(
+    counting_id = models.BigIntegerField(unique=True, primary_key=True)  # type: ignore[var-annotated]
+    date = models.DateField()  # type: ignore[var-annotated]
+    date_collect = models.DateField()  # type: ignore[var-annotated]
+    eggs = models.PositiveIntegerField()  # type: ignore[var-annotated]
+    latitude = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=15,
         decimal_places=10,
     )
-    longitude = models.DecimalField(
+    longitude = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=15,
         decimal_places=10,
     )
-    adm2 = models.ForeignKey("datastore.Adm2", on_delete=models.PROTECT)
-    ovitrap_id = models.CharField(max_length=50)
-    ovitrap_website_id = models.IntegerField()
-    time = models.DateTimeField()
-    week = models.PositiveSmallIntegerField()
-    year = models.PositiveSmallIntegerField()
+    adm2 = models.ForeignKey("datastore.Adm2", on_delete=models.PROTECT)  # type: ignore[var-annotated]
+    ovitrap_id = models.CharField(max_length=50)  # type: ignore[var-annotated]
+    ovitrap_website_id = models.IntegerField()  # type: ignore[var-annotated]
+    time = models.DateTimeField()  # type: ignore[var-annotated]
+    week = models.PositiveSmallIntegerField()  # type: ignore[var-annotated]
+    year = models.PositiveSmallIntegerField()  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"Count {self.counting_id} - {self.adm2.geocode} ({self.date})"
@@ -95,8 +96,8 @@ class ContaOvos(models.Model):
 
 
 class Adm0(models.Model):
-    geocode = models.CharField(primary_key=True, max_length=3, unique=True)
-    name = models.CharField(null=False, max_length=100)
+    geocode = models.CharField(primary_key=True, max_length=3, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False, max_length=100)  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"{self.name} ({self.geocode})"
@@ -107,9 +108,9 @@ class Adm0(models.Model):
 
 
 class Adm1(models.Model):
-    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
-    name = models.CharField(null=False, max_length=100)
-    country = models.ForeignKey(
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False, max_length=100)  # type: ignore[var-annotated]
+    country = models.ForeignKey(  # type: ignore[var-annotated]
         Adm0, on_delete=models.PROTECT, related_name="states"
     )
 
@@ -122,9 +123,9 @@ class Adm1(models.Model):
 
 
 class Adm2(models.Model):
-    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
-    name = models.CharField(null=False, max_length=100)
-    adm1 = models.ForeignKey(
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False, max_length=100)  # type: ignore[var-annotated]
+    adm1 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm1, on_delete=models.PROTECT, related_name="cities"
     )
 
@@ -141,9 +142,9 @@ class Adm2(models.Model):
 
 
 class Adm3(models.Model):
-    geocode = models.CharField(primary_key=True, max_length=20, unique=True)
-    name = models.CharField(null=False, max_length=100)
-    adm2 = models.ForeignKey(
+    geocode = models.CharField(primary_key=True, max_length=20, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False, max_length=100)  # type: ignore[var-annotated]
+    adm2 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm2, on_delete=models.PROTECT, related_name="districts"
     )
 
@@ -164,9 +165,9 @@ class ICD(models.Model):
         ICD10 = "ICD-10", _("ICD-10")
         ICD11 = "ICD-11", _("ICD-11")
 
-    system = models.CharField(max_length=10, choices=ICDSystems.choices)
-    version = models.CharField(max_length=50)
-    release_date = models.DateField(null=True)
+    system = models.CharField(max_length=10, choices=ICDSystems.choices)  # type: ignore[var-annotated]
+    version = models.CharField(max_length=50)  # type: ignore[var-annotated]
+    release_date = models.DateField(null=True)  # type: ignore[var-annotated]
 
     class Meta:
         unique_together = ("system", "version")
@@ -228,12 +229,12 @@ class ICD(models.Model):
 
 
 class Disease(models.Model):
-    icd = models.ForeignKey(
+    icd = models.ForeignKey(  # type: ignore[var-annotated]
         ICD, on_delete=models.CASCADE, related_name="diseases"
     )
-    code = models.CharField(max_length=20)
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+    code = models.CharField(max_length=20)  # type: ignore[var-annotated]
+    name = models.CharField(max_length=255)  # type: ignore[var-annotated]
+    description = models.TextField(blank=True, null=True)  # type: ignore[var-annotated]
 
     class Meta:
         verbose_name = "Disease"
@@ -257,12 +258,12 @@ class Disease(models.Model):
 
 
 class Municipio(models.Model):
-    geocodigo = models.IntegerField(
+    geocodigo = models.IntegerField(  # type: ignore[var-annotated]
         primary_key=True, db_column="geocodigo", db_index=True
     )
-    nome = models.CharField(db_column="nome")
-    uf = models.CharField(db_column="uf")
-    regional_code = models.IntegerField(db_column="id_regional")
+    nome = models.CharField(db_column="nome")  # type: ignore[var-annotated]
+    uf = models.CharField(db_column="uf")  # type: ignore[var-annotated]
+    regional_code = models.IntegerField(db_column="id_regional")  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
@@ -270,61 +271,61 @@ class Municipio(models.Model):
 
 
 class HistoricoAlerta(models.Model):
-    data_iniSE = models.DateField(
+    data_iniSE = models.DateField(  # type: ignore[var-annotated]
         null=False, db_column="data_iniSE", db_index=True
     )
-    SE = models.IntegerField(null=False, db_column="SE")
-    casos_est = models.FloatField(db_column="casos_est")
-    casos_est_min = models.IntegerField(db_column="casos_est_min")
-    casos_est_max = models.IntegerField(db_column="casos_est_max")
-    casos = models.IntegerField(db_column="casos")
-    municipio_geocodigo = models.IntegerField(
+    SE = models.IntegerField(null=False, db_column="SE")  # type: ignore[var-annotated]
+    casos_est = models.FloatField(db_column="casos_est")  # type: ignore[var-annotated]
+    casos_est_min = models.IntegerField(db_column="casos_est_min")  # type: ignore[var-annotated]
+    casos_est_max = models.IntegerField(db_column="casos_est_max")  # type: ignore[var-annotated]
+    casos = models.IntegerField(db_column="casos")  # type: ignore[var-annotated]
+    municipio_geocodigo = models.IntegerField(  # type: ignore[var-annotated]
         null=False, db_column="municipio_geocodigo"
     )
-    p_rt1 = models.FloatField(db_column="p_rt1")
-    p_inc100k = models.FloatField(db_column="p_inc100k")
-    Localidade_id = models.IntegerField(db_column="Localidade_id")
-    nivel = models.SmallIntegerField(db_column="nivel")
-    id = models.BigAutoField(primary_key=True, db_column="id")
-    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(
+    p_rt1 = models.FloatField(db_column="p_rt1")  # type: ignore[var-annotated]
+    p_inc100k = models.FloatField(db_column="p_inc100k")  # type: ignore[var-annotated]
+    Localidade_id = models.IntegerField(db_column="Localidade_id")  # type: ignore[var-annotated]
+    nivel = models.SmallIntegerField(db_column="nivel")  # type: ignore[var-annotated]
+    id = models.BigAutoField(primary_key=True, db_column="id")  # type: ignore[var-annotated]
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")  # type: ignore[var-annotated]
+    municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
     )
-    tweet = models.DecimalField(
+    tweet = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=5,
         decimal_places=0,
         null=True,
         default=None,
         db_column="tweet",
     )
-    Rt = models.FloatField(null=True, default=None, db_column="Rt")
-    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]
+    tempmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmin"
     )
-    umidmax = models.DecimalField(
+    umidmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmax"
     )
-    receptivo = models.SmallIntegerField(db_column="receptivo")
-    transmissao = models.SmallIntegerField(db_column="transmissao")
-    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(
+    receptivo = models.SmallIntegerField(db_column="receptivo")  # type: ignore[var-annotated]
+    transmissao = models.SmallIntegerField(db_column="transmissao")  # type: ignore[var-annotated]
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")  # type: ignore[var-annotated]
+    umidmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmed"
     )
-    umidmin = models.DecimalField(
+    umidmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmin"
     )
-    tempmed = models.DecimalField(
+    tempmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmed"
     )
-    tempmax = models.DecimalField(
+    tempmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmax"
     )
-    casprov = models.IntegerField(db_column="casprov")
-    casprov_est = models.FloatField(db_column="casprov_est")
-    casprov_est_min = models.IntegerField(db_column="casprov_est_min")
-    casprov_est_max = models.IntegerField(db_column="casprov_est_max")
-    casconf = models.IntegerField(db_column="casconf")
+    casprov = models.IntegerField(db_column="casprov")  # type: ignore[var-annotated]
+    casprov_est = models.FloatField(db_column="casprov_est")  # type: ignore[var-annotated]
+    casprov_est_min = models.IntegerField(db_column="casprov_est_min")  # type: ignore[var-annotated]
+    casprov_est_max = models.IntegerField(db_column="casprov_est_max")  # type: ignore[var-annotated]
+    casconf = models.IntegerField(db_column="casconf")  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
@@ -332,61 +333,61 @@ class HistoricoAlerta(models.Model):
 
 
 class HistoricoAlertaChik(models.Model):
-    data_iniSE = models.DateField(
+    data_iniSE = models.DateField(  # type: ignore[var-annotated]
         null=False, db_column="data_iniSE", db_index=True
     )
-    SE = models.IntegerField(null=False, db_column="SE")
-    casos_est = models.FloatField(db_column="casos_est")
-    casos_est_min = models.IntegerField(db_column="casos_est_min")
-    casos_est_max = models.IntegerField(db_column="casos_est_max")
-    casos = models.IntegerField(db_column="casos")
-    municipio_geocodigo = models.IntegerField(
+    SE = models.IntegerField(null=False, db_column="SE")  # type: ignore[var-annotated]
+    casos_est = models.FloatField(db_column="casos_est")  # type: ignore[var-annotated]
+    casos_est_min = models.IntegerField(db_column="casos_est_min")  # type: ignore[var-annotated]
+    casos_est_max = models.IntegerField(db_column="casos_est_max")  # type: ignore[var-annotated]
+    casos = models.IntegerField(db_column="casos")  # type: ignore[var-annotated]
+    municipio_geocodigo = models.IntegerField(  # type: ignore[var-annotated]
         null=False, db_column="municipio_geocodigo"
     )
-    p_rt1 = models.FloatField(db_column="p_rt1")
-    p_inc100k = models.FloatField(db_column="p_inc100k")
-    Localidade_id = models.IntegerField(db_column="Localidade_id")
-    nivel = models.SmallIntegerField(db_column="nivel")
-    id = models.BigAutoField(primary_key=True, db_column="id")
-    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(
+    p_rt1 = models.FloatField(db_column="p_rt1")  # type: ignore[var-annotated]
+    p_inc100k = models.FloatField(db_column="p_inc100k")  # type: ignore[var-annotated]
+    Localidade_id = models.IntegerField(db_column="Localidade_id")  # type: ignore[var-annotated]
+    nivel = models.SmallIntegerField(db_column="nivel")  # type: ignore[var-annotated]
+    id = models.BigAutoField(primary_key=True, db_column="id")  # type: ignore[var-annotated]
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")  # type: ignore[var-annotated]
+    municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
     )
-    tweet = models.DecimalField(
+    tweet = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=5,
         decimal_places=0,
         null=True,
         default=None,
         db_column="tweet",
     )
-    Rt = models.FloatField(null=True, default=None, db_column="Rt")
-    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]
+    tempmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmin"
     )
-    umidmax = models.DecimalField(
+    umidmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmax"
     )
-    receptivo = models.SmallIntegerField(db_column="receptivo")
-    transmissao = models.SmallIntegerField(db_column="transmissao")
-    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(
+    receptivo = models.SmallIntegerField(db_column="receptivo")  # type: ignore[var-annotated]
+    transmissao = models.SmallIntegerField(db_column="transmissao")  # type: ignore[var-annotated]
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")  # type: ignore[var-annotated]
+    umidmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmed"
     )
-    umidmin = models.DecimalField(
+    umidmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmin"
     )
-    tempmed = models.DecimalField(
+    tempmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmed"
     )
-    tempmax = models.DecimalField(
+    tempmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmax"
     )
-    casprov = models.IntegerField(db_column="casprov")
-    casprov_est = models.FloatField(db_column="casprov_est")
-    casprov_est_min = models.IntegerField(db_column="casprov_est_min")
-    casprov_est_max = models.IntegerField(db_column="casprov_est_max")
-    casconf = models.IntegerField(db_column="casconf")
+    casprov = models.IntegerField(db_column="casprov")  # type: ignore[var-annotated]
+    casprov_est = models.FloatField(db_column="casprov_est")  # type: ignore[var-annotated]
+    casprov_est_min = models.IntegerField(db_column="casprov_est_min")  # type: ignore[var-annotated]
+    casprov_est_max = models.IntegerField(db_column="casprov_est_max")  # type: ignore[var-annotated]
+    casconf = models.IntegerField(db_column="casconf")  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
@@ -394,61 +395,61 @@ class HistoricoAlertaChik(models.Model):
 
 
 class HistoricoAlertaZika(models.Model):
-    data_iniSE = models.DateField(
+    data_iniSE = models.DateField(  # type: ignore[var-annotated]
         null=False, db_column="data_iniSE", db_index=True
     )
-    SE = models.IntegerField(null=False, db_column="SE")
-    casos_est = models.FloatField(db_column="casos_est")
-    casos_est_min = models.IntegerField(db_column="casos_est_min")
-    casos_est_max = models.IntegerField(db_column="casos_est_max")
-    casos = models.IntegerField(db_column="casos")
-    municipio_geocodigo = models.IntegerField(
+    SE = models.IntegerField(null=False, db_column="SE")  # type: ignore[var-annotated]
+    casos_est = models.FloatField(db_column="casos_est")  # type: ignore[var-annotated]
+    casos_est_min = models.IntegerField(db_column="casos_est_min")  # type: ignore[var-annotated]
+    casos_est_max = models.IntegerField(db_column="casos_est_max")  # type: ignore[var-annotated]
+    casos = models.IntegerField(db_column="casos")  # type: ignore[var-annotated]
+    municipio_geocodigo = models.IntegerField(  # type: ignore[var-annotated]
         null=False, db_column="municipio_geocodigo"
     )
-    p_rt1 = models.FloatField(db_column="p_rt1")
-    p_inc100k = models.FloatField(db_column="p_inc100k")
-    Localidade_id = models.IntegerField(db_column="Localidade_id")
-    nivel = models.SmallIntegerField(db_column="nivel")
-    id = models.BigAutoField(primary_key=True, db_column="id")
-    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")
-    municipio_nome = models.CharField(
+    p_rt1 = models.FloatField(db_column="p_rt1")  # type: ignore[var-annotated]
+    p_inc100k = models.FloatField(db_column="p_inc100k")  # type: ignore[var-annotated]
+    Localidade_id = models.IntegerField(db_column="Localidade_id")  # type: ignore[var-annotated]
+    nivel = models.SmallIntegerField(db_column="nivel")  # type: ignore[var-annotated]
+    id = models.BigAutoField(primary_key=True, db_column="id")  # type: ignore[var-annotated]
+    versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")  # type: ignore[var-annotated]
+    municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
     )
-    tweet = models.DecimalField(
+    tweet = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=5,
         decimal_places=0,
         null=True,
         default=None,
         db_column="tweet",
     )
-    Rt = models.FloatField(null=True, default=None, db_column="Rt")
-    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")
-    tempmin = models.DecimalField(
+    Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
+    pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]
+    tempmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmin"
     )
-    umidmax = models.DecimalField(
+    umidmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmax"
     )
-    receptivo = models.SmallIntegerField(db_column="receptivo")
-    transmissao = models.SmallIntegerField(db_column="transmissao")
-    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")
-    umidmed = models.DecimalField(
+    receptivo = models.SmallIntegerField(db_column="receptivo")  # type: ignore[var-annotated]
+    transmissao = models.SmallIntegerField(db_column="transmissao")  # type: ignore[var-annotated]
+    nivel_inc = models.SmallIntegerField(db_column="nivel_inc")  # type: ignore[var-annotated]
+    umidmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmed"
     )
-    umidmin = models.DecimalField(
+    umidmin = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="umidmin"
     )
-    tempmed = models.DecimalField(
+    tempmed = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmed"
     )
-    tempmax = models.DecimalField(
+    tempmax = models.DecimalField(  # type: ignore[var-annotated]
         max_digits=10, decimal_places=2, db_column="tempmax"
     )
-    casprov = models.IntegerField(db_column="casprov")
-    casprov_est = models.FloatField(db_column="casprov_est")
-    casprov_est_min = models.IntegerField(db_column="casprov_est_min")
-    casprov_est_max = models.IntegerField(db_column="casprov_est_max")
-    casconf = models.IntegerField(db_column="casconf")
+    casprov = models.IntegerField(db_column="casprov")  # type: ignore[var-annotated]
+    casprov_est = models.FloatField(db_column="casprov_est")  # type: ignore[var-annotated]
+    casprov_est_min = models.IntegerField(db_column="casprov_est_min")  # type: ignore[var-annotated]
+    casprov_est_max = models.IntegerField(db_column="casprov_est_max")  # type: ignore[var-annotated]
+    casconf = models.IntegerField(db_column="casconf")  # type: ignore[var-annotated]
 
     class Meta:
         managed = False
@@ -456,22 +457,22 @@ class HistoricoAlertaZika(models.Model):
 
 
 class CopernicusBrasil(models.Model):
-    date = models.DateField(db_column="date", primary_key=True)
-    geocodigo = models.BigIntegerField(db_column="geocode")
-    epiweek = models.IntegerField(db_column="epiweek")
-    temp_min = models.FloatField(db_column="temp_min")
-    temp_med = models.FloatField(db_column="temp_med")
-    temp_max = models.FloatField(db_column="temp_max")
-    precip_min = models.FloatField(db_column="precip_min")
-    precip_med = models.FloatField(db_column="precip_med")
-    precip_max = models.FloatField(db_column="precip_max")
-    precip_tot = models.FloatField(db_column="precip_tot")
-    pressao_min = models.FloatField(db_column="pressao_min")
-    pressao_med = models.FloatField(db_column="pressao_med")
-    pressao_max = models.FloatField(db_column="pressao_max")
-    umid_min = models.FloatField(db_column="umid_min")
-    umid_med = models.FloatField(db_column="umid_med")
-    umid_max = models.FloatField(db_column="umid_max")
+    date = models.DateField(db_column="date", primary_key=True)  # type: ignore[var-annotated]
+    geocodigo = models.BigIntegerField(db_column="geocode")  # type: ignore[var-annotated]
+    epiweek = models.IntegerField(db_column="epiweek")  # type: ignore[var-annotated]
+    temp_min = models.FloatField(db_column="temp_min")  # type: ignore[var-annotated]
+    temp_med = models.FloatField(db_column="temp_med")  # type: ignore[var-annotated]
+    temp_max = models.FloatField(db_column="temp_max")  # type: ignore[var-annotated]
+    precip_min = models.FloatField(db_column="precip_min")  # type: ignore[var-annotated]
+    precip_med = models.FloatField(db_column="precip_med")  # type: ignore[var-annotated]
+    precip_max = models.FloatField(db_column="precip_max")  # type: ignore[var-annotated]
+    precip_tot = models.FloatField(db_column="precip_tot")  # type: ignore[var-annotated]
+    pressao_min = models.FloatField(db_column="pressao_min")  # type: ignore[var-annotated]
+    pressao_med = models.FloatField(db_column="pressao_med")  # type: ignore[var-annotated]
+    pressao_max = models.FloatField(db_column="pressao_max")  # type: ignore[var-annotated]
+    umid_min = models.FloatField(db_column="umid_min")  # type: ignore[var-annotated]
+    umid_med = models.FloatField(db_column="umid_med")  # type: ignore[var-annotated]
+    umid_max = models.FloatField(db_column="umid_max")  # type: ignore[var-annotated]
 
     class Meta:
         managed = False

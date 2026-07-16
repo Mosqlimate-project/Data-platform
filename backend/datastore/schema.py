@@ -221,8 +221,8 @@ class Sprint202425Schema(Schema):
 
 
 class ContaOvosParams(BaseModel):
-    date_start: date = Field("2025-01-01")
-    date_end: date = Field("2025-01-30")
+    date_start: date = Field(default_factory=lambda: date(2025, 1, 1))
+    date_end: date = Field(default_factory=lambda: date(2025, 1, 30))
     page: Optional[int] = Field(1)
     state: Optional[str] = Field("MG")
 

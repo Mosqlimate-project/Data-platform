@@ -7,7 +7,7 @@ from typing import Optional
 import httpx
 from asgiref.sync import async_to_sync
 from celery import group
-from dateutil import parser
+from dateutil import parser  # type: ignore[import-untyped]
 from django.utils import timezone
 from pydantic import (
     BaseModel,
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class ContaOvosSchema(BaseModel):
     counting_id: int
     date: date
-    date_collect: Optional[date] = None
+    date_collect: Optional[date] = None  # type: ignore[valid-type]
     eggs: int
     latitude: Decimal
     longitude: Decimal

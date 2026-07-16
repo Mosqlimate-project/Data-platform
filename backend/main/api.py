@@ -51,7 +51,7 @@ class SafeJSONRenderer(BaseRenderer):
 
 
 class NinjaAPI(API):
-    def get_openapi_schema(self, **kwargs) -> dict:
+    def get_openapi_schema(self, **kwargs) -> dict:  # type: ignore[override]
         schema = super().get_openapi_schema(**kwargs)
         schema.pop("BadRequestSchema", None)
         return schema

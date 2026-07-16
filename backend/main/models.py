@@ -6,10 +6,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class TimestampModel(models.Model):
-    created = models.DateTimeField(
+    created = models.DateTimeField(  # type: ignore[var-annotated]
         auto_now_add=True, help_text=_("Creation timestamp")
     )
-    updated = models.DateTimeField(
+    updated = models.DateTimeField(  # type: ignore[var-annotated]
         auto_now=True, help_text=_("Last update timestamp")
     )
 
@@ -25,31 +25,31 @@ class APILog(models.Model):
         ("DELETE", "delete"),
     ]
 
-    date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(
+    date = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
+    user = models.ForeignKey(  # type: ignore[var-annotated]
         to="users.CustomUser",
         on_delete=models.CASCADE,
         related_name="logs",
         null=False,
     )
-    method = models.CharField(
+    method = models.CharField(  # type: ignore[var-annotated]
         max_length=10, choices=METHODS, blank=False, null=False
     )
-    endpoint = models.CharField(max_length=512, null=False, blank=False)
+    endpoint = models.CharField(max_length=512, null=False, blank=False)  # type: ignore[var-annotated]
     params = models.JSONField()
 
     def __str__(self):
         return f"[{self.method}] {self.endpoint} {self.user.username}"
 
     @staticmethod
-    def from_request(request: HttpRequest, user: Optional = None):
+    def from_request(request: HttpRequest, user: Optional = None):  # type: ignore[valid-type]
         if not request.path.startswith("/api/"):
             return
 
         method = request.method
 
         if not user:
-            user = request.auth
+            user = request.auth  # type: ignore[attr-defined]
 
         match method:
             case "GET":

@@ -1,6 +1,6 @@
 import datetime
 import requests
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 
 from epiweeks import Week
 
@@ -94,8 +94,8 @@ def get_vegetation_metrics(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf: str = uf.upper()
-        if uf not in list(UFs):
+        uf_upper = uf.upper()  # type: ignore[no-redef]
+        if uf_upper not in list(UFs):
             return 404, {"message": "Unknown UF. Format: SP"}
 
         uf_name = UFs[uf]
@@ -111,21 +111,21 @@ def get_vegetation_metrics(
 
 
 def get_infodengue_queryset(
-    disease: Literal["dengue", "chikungunya", "zika"], uf: str = None
+    disease: Literal["dengue", "chikungunya", "zika"], uf: Optional[str] = None
 ):
-    disease = disease.lower()
+    disease = disease.lower()  # type: ignore[assignment]
 
     if disease in ["chik", "chikungunya"]:
-        qs = HistoricoAlertaChik.objects.using("infodengue").all()
+        qs: Any = HistoricoAlertaChik.objects.using("infodengue").all()
     elif disease in ["deng", "dengue"]:
-        qs = HistoricoAlerta.objects.using("infodengue").all()
+        qs = HistoricoAlerta.objects.using("infodengue").all()  # type: ignore[assignment]
     elif disease == "zika":
-        qs = HistoricoAlertaZika.objects.using("infodengue").all()
+        qs = HistoricoAlertaZika.objects.using("infodengue").all()  # type: ignore[assignment]
     else:
         return None
 
     if uf:
-        uf = uf.upper()
+        uf = uf.upper()  # type: ignore[no-redef]
         if uf in UFs:
             uf_name = UFs[uf]
             geocodes = (
@@ -191,10 +191,10 @@ def get_infodengue(
     **kwargs,
 ):
     APILog.from_request(request)
-    disease = disease.lower()
+    disease = disease.lower()  # type: ignore[assignment]
 
     try:
-        data = get_infodengue_queryset(disease, uf)
+        data = get_infodengue_queryset(disease, uf)  # type: ignore[arg-type]
     except ValueError:
         return 404, {"message": f"Unknown UF '{uf}'"}
     except OperationalError:
@@ -264,7 +264,7 @@ def get_copernicus_brasil(
         return 500, {"message": "Server error. Please contact the moderation"}
 
     if uf:
-        uf = uf.upper()
+        uf = uf.upper()  # type: ignore[assignment,no-redef]
         if uf not in list(UFs):
             return 404, {"message": "Unkown UF. Format: SP"}
         uf_name = UFs[uf]
@@ -468,29 +468,59 @@ def get_episcanner(
         return 200, cached_data
 
     cid10 = DISEASE_CID10[disease]
-    uf_name = UFs[uf]
 
-    rows = EpiscannerSirParams.objects.select_related("geocode").filter(
-        cid10=cid10, geocode__adm1__name=uf_name, year=year
+    geocodes_in_state = [
+        int(g)
+        for g in Adm2.objects.filter(adm1__name=UFs[uf]).values_list(
+            "geocode", flat=True
+        )
+    ]
+
+    rows = (
+        EpiscannerSirParams.objects.using("infodengue")
+        .filter(cid10=cid10, year=year, geocode__in=geocodes_in_state)
+        .values(
+            "cid10",
+            "geocode",
+            "year",
+            "ep_ini",
+            "ep_pw",
+            "ep_end",
+            "ep_dur",
+            "peak_week",
+            "beta",
+            "gamma",
+            "r0",
+            "total_cases",
+            "alpha",
+            "sum_res",
+        )
     )
+
+    adm2_names = {
+        a.geocode: a.name
+        for a in Adm2.objects.filter(
+            geocode__in=[str(g) for g in geocodes_in_state]
+        )
+    }
 
     objs = [
         schema.EpiScannerSchema(
             disease=disease,
-            CID10=r.cid10,
-            year=r.year,
-            geocode=int(r.geocode_id),
-            muni_name=r.geocode.name if r.geocode_id else "",
-            peak_week=r.peak_week,
-            beta=r.beta,
-            gamma=r.gamma,
-            R0=r.r0,
-            total_cases=r.total_cases,
-            alpha=r.alpha,
-            sum_res=r.sum_res,
-            ep_ini=r.ep_ini,
-            ep_end=r.ep_end,
-            ep_dur=r.ep_dur,
+            CID10=r["cid10"],
+            year=r["year"],
+            geocode=r["geocode"],
+            muni_name=adm2_names.get(str(r["geocode"]), ""),
+            peak_week=r["peak_week"],
+            beta=r["beta"],
+            gamma=r["gamma"],
+            R0=r["r0"],
+            total_cases=r["total_cases"],
+            alpha=r["alpha"],
+            sum_res=r["sum_res"],
+            ep_ini=r["ep_ini"],
+            ep_end=r["ep_end"],
+            ep_dur=r["ep_dur"],
         )
         for r in rows
     ]
@@ -511,7 +541,7 @@ def charts_infodengue_rt(
     start: datetime.date,
     end: datetime.date,
 ):
-    qs = get_infodengue_queryset(disease)
+    qs = get_infodengue_queryset(disease)  # type: ignore[arg-type]
 
     if qs is None:
         return 404, {"message": "Unknown disease"}
@@ -541,7 +571,7 @@ def charts_infodengue_total_cases(
     start: datetime.date,
     end: datetime.date,
 ):
-    qs = get_infodengue_queryset(disease)
+    qs = get_infodengue_queryset(disease)  # type: ignore[arg-type]
 
     if qs is None:
         return 404, {"message": "Unknown disease"}
@@ -643,15 +673,15 @@ def charts_contaovos(
         qs = qs.filter(adm2=geocode)
 
     qs = (
-        qs.values("year", "week")
+        qs.values("year", "week")  # type: ignore[assignment]
         .annotate(total_eggs=Sum("eggs"))
         .order_by("year", "week")
     )
 
     return [
         {
-            "epiweek": f"{row['year']}-{str(row['week']).zfill(2)}",
-            "total_eggs": row["total_eggs"],
+            "epiweek": f"{row['year']}-{str(row['week']).zfill(2)}",  # type: ignore[index]
+            "total_eggs": row["total_eggs"],  # type: ignore[index]
         }
         for row in qs
     ]
@@ -858,7 +888,7 @@ def _get_alert_geocodes_for_uf(uf: str):
     return [int(g) for g in geocodes]
 
 
-def _get_alert_queryset(disease: str, uf: str = None):
+def _get_alert_queryset(disease: str, uf: Optional[str] = None):
     disease = disease.lower()
     model = DISEASE_ALERT_MODEL.get(disease)
     if not model:
@@ -990,11 +1020,17 @@ def episcanner_parameters(
     ],
 ):
     cid10 = DISEASE_CID10[disease]
-    uf_name = UFs[uf]
+
+    geocodes_in_state = [
+        int(g)
+        for g in Adm2.objects.filter(adm1__name=UFs[uf]).values_list(
+            "geocode", flat=True
+        )
+    ]
 
     qs = (
-        EpiscannerSirParams.objects.select_related("geocode__adm1")
-        .filter(cid10=cid10, geocode__adm1__name=uf_name)
+        EpiscannerSirParams.objects.using("infodengue")
+        .filter(cid10=cid10, geocode__in=geocodes_in_state)
         .values(
             "cid10",
             "geocode",
@@ -1263,11 +1299,17 @@ def episcanner_maps_r0(
     year: int = datetime.datetime.now().year,
 ):
     cid10 = DISEASE_CID10[disease]
-    uf_name = UFs[uf]
+
+    geocodes_in_state = [
+        int(g)
+        for g in Adm2.objects.filter(adm1__name=UFs[uf]).values_list(
+            "geocode", flat=True
+        )
+    ]
 
     params = (
-        EpiscannerSirParams.objects.select_related("geocode")
-        .filter(cid10=cid10, geocode__adm1__name=uf_name, year=year)
+        EpiscannerSirParams.objects.using("infodengue")
+        .filter(cid10=cid10, year=year, geocode__in=geocodes_in_state)
         .annotate(r0_val=F("r0"))
         .values("geocode", "r0_val")
     )
@@ -1336,9 +1378,9 @@ def episcanner_maps_model_eval(
 
     sir_params = {
         str(r["geocode"]): r["total_cases"]
-        for r in EpiscannerSirParams.objects.filter(
-            cid10=cid10, year=year
-        ).values("geocode", "total_cases")
+        for r in EpiscannerSirParams.objects.using("infodengue")
+        .filter(cid10=cid10, year=year)
+        .values("geocode", "total_cases")
     }
 
     qs = _get_alert_queryset(disease, uf).filter(data_iniSE__year=year)

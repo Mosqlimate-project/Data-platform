@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal
+from typing import Any, Literal
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
@@ -32,14 +32,14 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    homepage = models.URLField(max_length=255, null=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(max_length=255, blank=True, null=True)  # type: ignore[var-annotated]
+    homepage = models.URLField(max_length=255, null=True)  # type: ignore[var-annotated]
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
-    avatar_url = models.URLField(blank=True, null=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
-    created_ip = models.GenericIPAddressField(null=True, blank=True)
-    rate_limit = models.CharField(max_length=20, default="10/s")
+    avatar_url = models.URLField(blank=True, null=True)  # type: ignore[var-annotated]
+    expires_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
+    created_ip = models.GenericIPAddressField(null=True, blank=True)  # type: ignore[var-annotated]
+    rate_limit = models.CharField(max_length=20, default="10/s")  # type: ignore[var-annotated]
 
     def set_rate_limit(self, value: int, unit: Literal["s", "m", "d"]):
         units = {"s", "m", "d"}  # second, minute, day
@@ -71,7 +71,7 @@ class CustomUser(AbstractUser):
         if self.avatar_url:
             return self.avatar_url
 
-    objects = CustomUserManager()
+    objects: Any = CustomUserManager()  # type: ignore[misc]  # type: ignore[misc]
 
 
 @receiver(request_started)
@@ -85,21 +85,21 @@ class OAuthAccount(models.Model):
         GITHUB = "github", "GitHub"
         GITLAB = "gitlab", "GitLab"
 
-    user = models.ForeignKey(
+    user = models.ForeignKey(  # type: ignore[var-annotated]
         CustomUser, on_delete=models.CASCADE, related_name="oauth_accounts"
     )
-    provider = models.CharField(max_length=20, choices=Providers.choices)
-    provider_id = models.CharField(max_length=255)
+    provider = models.CharField(max_length=20, choices=Providers.choices)  # type: ignore[var-annotated]
+    provider_id = models.CharField(max_length=255)  # type: ignore[var-annotated]
     raw_info = models.JSONField()
-    access_token = models.TextField(null=True, blank=True)
-    refresh_token = models.TextField(null=True, blank=True)
-    access_token_expires_at = models.DateTimeField(null=True, blank=True)
-    installation_id = models.CharField(max_length=255, null=True, blank=True)
-    installation_access_token = models.TextField(null=True, blank=True)
-    installation_token_expires_at = models.DateTimeField(null=True, blank=True)
+    access_token = models.TextField(null=True, blank=True)  # type: ignore[var-annotated]
+    refresh_token = models.TextField(null=True, blank=True)  # type: ignore[var-annotated]
+    access_token_expires_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
+    installation_id = models.CharField(max_length=255, null=True, blank=True)  # type: ignore[var-annotated]
+    installation_access_token = models.TextField(null=True, blank=True)  # type: ignore[var-annotated]
+    installation_token_expires_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
     installation_metadata = models.JSONField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
+    updated = models.DateTimeField(auto_now=True)  # type: ignore[var-annotated]
 
     def __str__(self):
         return self.provider

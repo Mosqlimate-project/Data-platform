@@ -46,10 +46,10 @@ class OAuthProvider(ABC):
             "gitlab": GitlabProvider,
             "google": GoogleProvider,
         }
-        provider = providers.get(provider)
+        provider = providers.get(provider)  # type: ignore[assignment]
         if not provider:
             raise ValueError(f"Unsupported provider: {provider}")
-        return provider(request, extra_state=extra_state)
+        return provider(request, extra_state=extra_state)  # type: ignore[misc]
 
     @property
     def state(self):
@@ -115,7 +115,7 @@ class GoogleProvider(OAuthProvider):
         "https://www.googleapis.com/auth/userinfo.profile",
     ]
 
-    def get_token(self, code: str) -> dict:
+    def get_token(self, code: str) -> dict:  # type: ignore[override]
         flow = Flow.from_client_config(
             {
                 "web": {
@@ -169,9 +169,9 @@ class GoogleProvider(OAuthProvider):
             resp.raise_for_status()
             return resp.json()
 
-    def get_readme(
+    def get_readme(  # type: ignore[override]
         self, repository: "Repository", access_token: Optional[str] = None
-    ) -> str:
+    ) -> Optional[str]:
         return None
 
 
@@ -452,7 +452,7 @@ class GitlabProvider(OAuthProvider):
     user_url = "https://gitlab.com/api/v4/user"
     scopes = ["read_user", "read_api"]
 
-    def get_auth_url(self, state: str = None) -> str:
+    def get_auth_url(self, state: Optional[str] = None) -> str:
         state = state or self.state
         params = {
             "client_id": self.client_id,
@@ -525,9 +525,9 @@ class GitlabProvider(OAuthProvider):
             resp.raise_for_status()
             return resp.json()
 
-    def get_readme(
+    def get_readme(  # type: ignore[override]
         self, repository: "Repository", access_token: Optional[str] = None
-    ) -> str:
+    ) -> Optional[str]:
         headers = {}
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"

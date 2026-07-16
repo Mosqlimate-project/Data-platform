@@ -1,12 +1,26 @@
 from django.test import Client, TestCase
+from users.models import CustomUser
 
 
 class EpiScannerAPITest(TestCase):
+    databases = {"default", "infodengue"}
+
     def setUp(self):
         self.client = Client()
+        self.user = CustomUser.objects.create_user(
+            username="testuser",
+            email="test@test.com",
+            password="testpass",
+            is_active=True,
+        )
+        self.auth_headers = {"HTTP_X_UID_KEY": self.user.api_key()}
 
     def test_states(self):
-        r = self.client.get("/api/datastore/episcanner/states/", timeout=30)
+        r = self.client.get(
+            "/api/datastore/episcanner/states/",
+            **self.auth_headers,
+            timeout=30,
+        )
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertIsInstance(data, list)
@@ -17,6 +31,7 @@ class EpiScannerAPITest(TestCase):
     def test_cities_dengue_ce(self):
         r = self.client.get(
             "/api/datastore/episcanner/cities/?disease=dengue&uf=CE",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -29,6 +44,7 @@ class EpiScannerAPITest(TestCase):
     def test_cities_missing_params(self):
         r = self.client.get(
             "/api/datastore/episcanner/cities/?disease=dengue",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertNotEqual(r.status_code, 200)
@@ -36,6 +52,7 @@ class EpiScannerAPITest(TestCase):
     def test_parameters_dengue_ce(self):
         r = self.client.get(
             "/api/datastore/episcanner/parameters/?disease=dengue&uf=CE",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -50,6 +67,7 @@ class EpiScannerAPITest(TestCase):
         r = self.client.get(
             "/api/datastore/episcanner/timeseries/"
             "?disease=dengue&uf=CE&geocode=2300101&year=2024",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -62,6 +80,7 @@ class EpiScannerAPITest(TestCase):
     def test_timeseries_missing_geocode(self):
         r = self.client.get(
             "/api/datastore/episcanner/timeseries/" "?disease=dengue&uf=CE",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertNotEqual(r.status_code, 200)
@@ -70,6 +89,7 @@ class EpiScannerAPITest(TestCase):
         r = self.client.get(
             "/api/datastore/episcanner/top-cities/"
             "?disease=dengue&uf=CE&limit=5",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -83,6 +103,7 @@ class EpiScannerAPITest(TestCase):
     def test_maps_weeks_dengue_ce(self):
         r = self.client.get(
             "/api/datastore/episcanner/maps/weeks/?disease=dengue&uf=CE",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -96,6 +117,7 @@ class EpiScannerAPITest(TestCase):
         r = self.client.get(
             "/api/datastore/episcanner/maps/r0/"
             "?disease=dengue&uf=CE&year=2024",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -109,6 +131,7 @@ class EpiScannerAPITest(TestCase):
         r = self.client.get(
             "/api/datastore/episcanner/maps/model-eval/"
             "?disease=dengue&uf=CE&year=2024",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)
@@ -119,6 +142,7 @@ class EpiScannerAPITest(TestCase):
     def test_get_episcanner_dengue_ce(self):
         r = self.client.get(
             "/api/datastore/episcanner/?disease=dengue&uf=CE&year=2024",
+            **self.auth_headers,
             timeout=30,
         )
         self.assertEqual(r.status_code, 200)

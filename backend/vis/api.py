@@ -346,6 +346,7 @@ def dashboard_cases(
     request,
     payload: schema.HistoricoAlertaCasesIn = Query(...),  # type: ignore
 ):
+    disease: str | None = None
     match payload.disease:
         case "A90":
             disease = "dengue"

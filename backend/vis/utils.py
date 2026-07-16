@@ -46,7 +46,9 @@ def hist_alerta_data(
             Adm2.objects.filter(adm1=adm_1).values_list("geocode", flat=True)
         )
     elif str(adm_level) == "2":
-        geocodes = [int(adm_2)]
+        if adm_2 is None:
+            raise ValueError("adm_2 required when adm_level=2")
+        geocodes = [adm_2]
     else:
         raise ValueError("Incorrect adm_level value. Expecting: [1, 2]")
 
@@ -73,10 +75,10 @@ def hist_alerta_data(
 def calculate_score(
     prediction_id: int,
     confidence_level: float = 0.9,
-) -> dict[str, float]:
+) -> dict[str, float | None]:
     prediction = QuantitativePrediction.objects.get(id=prediction_id)
 
-    scores = dict(
+    scores: dict[str, float | None] = dict(
         mae=None,
         mse=None,
         crps=None,
@@ -85,6 +87,7 @@ def calculate_score(
         wis=None,
     )
 
+    disease: str | None = None
     match prediction.disease.code:
         case "A90":
             disease = "dengue"
@@ -140,7 +143,7 @@ def calculate_score(
     if not staff_user:
         return scores
 
-    score = Scorer(staff_user.api_key, df_true=data_df, pred=pred_df)
+    score = Scorer(staff_user.api_key, df_true=data_df, pred=pred_df)  # type: ignore[attr-defined]
 
     for s in ["mae", "mse", "crps", "log_score", "interval_score", "wis"]:
         if s in score.summary and "pred" in score.summary[s]:

@@ -27,7 +27,7 @@ class OAuthAdapter(ABC):
         adapter = adapters.get(provider)
         if not adapter:
             raise ValueError(f"Unsupported provider: {provider}")
-        return adapter(request, data)
+        return adapter(request, data)  # type: ignore[abstract]
 
     @property
     @abstractmethod

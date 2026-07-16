@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import Any, List
 from urllib.parse import urlparse
 from datetime import timedelta
 
@@ -283,7 +283,9 @@ def models_tags(request, ids: List[int] = Query(None)):
         qs = qs.filter(id__in=ids)
 
     model_ids = qs.values_list("id", flat=True)
-    tags_map = defaultdict(lambda: {"name": "", "models": set()})
+    tags_map: dict[Any, dict[str, Any]] = defaultdict(
+        lambda: {"name": "", "models": set()}
+    )
 
     disease_data = (
         m.ModelPrediction.objects.filter(model_id__in=model_ids)
@@ -645,7 +647,7 @@ def repository_predictions(request, owner: str, repository: str):
     )
 
     for p in predictions:
-        p.category = p.category_group
+        p.category = p.category_group  # type: ignore[attr-defined]
 
     return predictions
 
@@ -1066,7 +1068,7 @@ def create_prediction(request, data: s.PredictionIn):
             },
         )
     except ValidationError as e:
-        return 422, {"message": e.errors()}
+        return 422, {"message": e.errors()}  # type: ignore[operator]
 
     repo = model.repository
     has_permission = False
@@ -1117,7 +1119,7 @@ def create_prediction(request, data: s.PredictionIn):
             adms["adm1"] = m.Adm1.objects.get(
                 geocode=data.adm_1, country__geocode=data.adm_0
             )
-            adms["adm0"] = adms["adm1"].country
+            adms["adm0"] = adms["adm1"].country  # type: ignore[attr-defined]
 
         elif data.adm_level == 2:
             adms["adm2"] = m.Adm2.objects.get(
@@ -1125,8 +1127,8 @@ def create_prediction(request, data: s.PredictionIn):
                 adm1__geocode=data.adm_1,
                 adm1__country__geocode=data.adm_0,
             )
-            adms["adm1"] = adms["adm2"].adm1
-            adms["adm0"] = adms["adm1"].country
+            adms["adm1"] = adms["adm2"].adm1  # type: ignore[attr-defined]
+            adms["adm0"] = adms["adm1"].country  # type: ignore[attr-defined]
 
         elif data.adm_level == 3:
             adms["adm3"] = m.Adm3.objects.get(
@@ -1135,9 +1137,9 @@ def create_prediction(request, data: s.PredictionIn):
                 adm2__adm1__geocode=data.adm_1,
                 adm2__adm1__country__geocode=data.adm_0,
             )
-            adms["adm2"] = adms["adm3"].adm2
-            adms["adm1"] = adms["adm2"].adm1
-            adms["adm0"] = adms["adm1"].country
+            adms["adm2"] = adms["adm3"].adm2  # type: ignore[attr-defined]
+            adms["adm1"] = adms["adm2"].adm1  # type: ignore[attr-defined]
+            adms["adm0"] = adms["adm1"].country  # type: ignore[attr-defined]
 
     except (m.Adm0.DoesNotExist,):
         return 422, {"message": f"adm_0 {data.adm_0} not found"}
@@ -1174,12 +1176,12 @@ def create_prediction(request, data: s.PredictionIn):
     ]
 
     for pred in existing_predictions:
-        existing = [(row.date, row.pred) for row in pred.data.all()]
+        existing = [(row.date, row.pred) for row in pred.data.all()]  # type: ignore[attr-defined]
 
         if incoming == existing:
             return 422, {
                 "message": (
-                    f"Duplicate prediction detected. Prediction {pred.id} already "
+                    f"Duplicate prediction detected. Prediction {pred.id} already "  # type: ignore[attr-defined]
                     f"exists for disease '{pred.disease.code}', "
                     f"ADM level {pred.adm_level}, "
                     f"location "
@@ -1224,9 +1226,9 @@ def create_prediction(request, data: s.PredictionIn):
         prediction.save()
         m.QuantitativePredictionRow.objects.bulk_create(rows)
     else:
-        prediction.id = 0
+        prediction.id = 0  # type: ignore[attr-defined]
 
-    return 201, {"id": prediction.id}
+    return 201, {"id": prediction.id}  # type: ignore[attr-defined]
 
 
 @router.get(
@@ -1355,4 +1357,4 @@ def get_prediction_data(request, id: int):
     if not prediction:
         return 404, {"message": f"Prediction '{id}' not found"}
 
-    return prediction.data.all().order_by("date")
+    return prediction.data.all().order_by("date")  # type: ignore[attr-defined]
