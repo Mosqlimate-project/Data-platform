@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.11.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.3...2.11.0) (2026-07-16)
+
+
+### Features
+
+* **datastore:** include episcanner endpoints using the new table ([#532](https://github.com/Mosqlimate-project/Data-platform/issues/532)) ([caa39a2](https://github.com/Mosqlimate-project/Data-platform/commit/caa39a2d7861f129c28973ffc23884cfd50fd2b3))
+
 ## [2.10.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.10.2...2.10.3) (2026-07-14)
 
 
