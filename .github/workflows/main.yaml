@@ -56,16 +56,13 @@ jobs:
       run: |
         conda clean --all --yes
 
-    - name: Linting
-      run: |
-        pre-commit install
-        pre-commit run --all-files
-
-    - name: TypeScript Type Check
+    - name: Install frontend deps
       run: |
         cd frontend
         npm install
-        npx tsc --noEmit
+
+    - name: Lint
+      run: make lint
 
     - name: Setup containers
       id: setup
@@ -98,6 +95,6 @@ jobs:
       run: |
         sugar compose exec --service backend --options "-T" --cmd "python manage.py makemigrations --check --dry-run"
 
-    - name: Test vis
+    - name: Test
       run: |
-        sugar compose exec --service backend --options "-T" --cmd "python manage.py test vis.tests --verbosity=2"
+        make test SUGAR=true

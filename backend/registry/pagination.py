@@ -16,7 +16,7 @@ class PagesPagination(PaginationBase):
         message: Optional[str] = None
         error: Optional[str] = None
 
-    def paginate_queryset(
+    def paginate_queryset(  # type: ignore[override]
         self,
         queryset,
         pagination: Input,

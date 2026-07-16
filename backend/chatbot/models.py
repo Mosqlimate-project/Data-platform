@@ -6,15 +6,15 @@ User = get_user_model()
 
 
 class ChatSession(models.Model):
-    user = models.ForeignKey(
+    user = models.ForeignKey(  # type: ignore[var-annotated]
         User, on_delete=models.SET_NULL, null=True, related_name="chats"
     )
-    session_key = models.CharField(
+    session_key = models.CharField(  # type: ignore[var-annotated]
         unique=True, db_index=True, null=False, max_length=255
     )
-    language = models.CharField(max_length=10, default="en")
-    start_time = models.DateTimeField(auto_now_add=True)
-    last_activity = models.DateTimeField(auto_now_add=True)
+    language = models.CharField(max_length=10, default="en")  # type: ignore[var-annotated]
+    start_time = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
+    last_activity = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
 
     class Meta:
         verbose_name = "Chat Session"
@@ -32,16 +32,16 @@ class ChatSession(models.Model):
 
 
 class Message(models.Model):
-    session = models.ForeignKey(
+    session = models.ForeignKey(  # type: ignore[var-annotated]
         ChatSession, on_delete=models.CASCADE, related_name="messages"
     )
-    content = models.TextField()
-    sender = models.CharField(
+    content = models.TextField()  # type: ignore[var-annotated]
+    sender = models.CharField(  # type: ignore[var-annotated]
         null=False,
         default="bot",
         choices=[("user", "User"), ("bot", "Bot"), ("system", "System")],
     )
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
 
     class Meta:
         verbose_name = "Message"

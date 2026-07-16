@@ -3,12 +3,21 @@ from .models import (
     CopernicusBrasil,
     VegetationIndexMetric,
     Municipio,
+    EpiscannerSirParams,
 )
 
 WEATHER_MODELS = [CopernicusBrasil]
 MUNICIPIO_MODELS = [HistoricoAlerta]
 VEG_INDICEDS_MODELS = [VegetationIndexMetric]
 DENGUE_GLOBAL_MODELS = [Municipio]
+EPISCANNER_MODELS = [EpiscannerSirParams]
+
+
+class EpiscannerRouter(object):
+    def db_for_read(self, model, **hints):
+        if model in EPISCANNER_MODELS:
+            return "episcanner"
+        return None
 
 
 class VegetationIndicesRouter(object):

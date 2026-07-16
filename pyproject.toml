@@ -98,3 +98,12 @@ exclude = [
     ".git/",
     "staticfiles/",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+strict_optional = true
+ignore_missing_imports = true
+exclude = ["migrations", "tests", "test_runner"]
+
+[tool.django-stubs]
+django_settings_module = "mosqlimate.settings.base"

@@ -7,9 +7,9 @@ from datastore.models import Disease
 
 
 class Sprint(models.Model):
-    year = models.IntegerField()
-    start_date = models.DateField(help_text="Start submission date")
-    end_date = models.DateField(help_text="End submission date")
+    year = models.IntegerField()  # type: ignore[var-annotated]
+    start_date = models.DateField(help_text="Start submission date")  # type: ignore[var-annotated]
+    end_date = models.DateField(help_text="End submission date")  # type: ignore[var-annotated]
 
     class Meta:
         ordering = ["-start_date"]
@@ -19,8 +19,8 @@ class Sprint(models.Model):
 
 
 class Organization(TimestampModel):
-    name = models.CharField(max_length=100, unique=True)
-    members = models.ManyToManyField(
+    name = models.CharField(max_length=100, unique=True)  # type: ignore[var-annotated]
+    members = models.ManyToManyField(  # type: ignore[var-annotated]
         "users.CustomUser",
         through="OrganizationMembership",
         related_name="organizations",
@@ -29,10 +29,10 @@ class Organization(TimestampModel):
     avatar = models.ImageField(
         upload_to="model_avatars/", null=True, blank=True
     )
-    avatar_url = models.URLField(blank=True, null=True)
+    avatar_url = models.URLField(blank=True, null=True)  # type: ignore[var-annotated]
 
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
+    updated = models.DateTimeField(auto_now=True)  # type: ignore[var-annotated]
 
     def get_avatar(self):
         if self.avatar:
@@ -47,14 +47,14 @@ class OrganizationMembership(TimestampModel):
         MAINTAINER = "maintainer", _("Maintainer")
         CONTRIBUTOR = "contributor", _("Contributor")
 
-    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)
-    organization = models.ForeignKey(
+    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)  # type: ignore[var-annotated]
+    organization = models.ForeignKey(  # type: ignore[var-annotated]
         "Organization", on_delete=models.CASCADE, related_name="memberships"
     )
-    role = models.CharField(
+    role = models.CharField(  # type: ignore[var-annotated]
         max_length=20, choices=Roles.choices, default="contributor"
     )
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
 
     class Meta:
         unique_together = ("user", "organization")
@@ -65,14 +65,14 @@ class RepositoryContributor(TimestampModel):
         ADMIN = "admin", "Admin"
         WRITE = "write", _("Write")
 
-    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)
-    repository = models.ForeignKey(
+    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE)  # type: ignore[var-annotated]
+    repository = models.ForeignKey(  # type: ignore[var-annotated]
         "Repository",
         on_delete=models.CASCADE,
         related_name="repository_contributors",
     )
-    permission = models.CharField(max_length=10, choices=Permissions.choices)
-    added_at = models.DateTimeField(auto_now_add=True)
+    permission = models.CharField(max_length=10, choices=Permissions.choices)  # type: ignore[var-annotated]
+    added_at = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
 
     class Meta:
         unique_together = ("user", "repository")
@@ -83,24 +83,24 @@ class Repository(TimestampModel):
         GITHUB = "github", "GitHub"
         GITLAB = "gitlab", "GitLab"
 
-    repo_id = models.CharField(max_length=100)
-    name = models.CharField(max_length=100)
-    provider = models.CharField(max_length=10, choices=Providers.choices)
-    owner = models.ForeignKey(
+    repo_id = models.CharField(max_length=100)  # type: ignore[var-annotated]
+    name = models.CharField(max_length=100)  # type: ignore[var-annotated]
+    provider = models.CharField(max_length=10, choices=Providers.choices)  # type: ignore[var-annotated]
+    owner = models.ForeignKey(  # type: ignore[var-annotated]
         "users.CustomUser",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="repos",
     )
-    organization = models.ForeignKey(
+    organization = models.ForeignKey(  # type: ignore[var-annotated]
         Organization,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="repos",
     )
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=True)  # type: ignore[var-annotated]
 
     class Meta:
         constraints = [
@@ -175,7 +175,7 @@ class RepositoryModel(TimestampModel):
                 f"Ex: {m['example']}"
             )
 
-    Category.CategoryMeta = {
+    Category.CategoryMeta = {  # type: ignore[attr-defined]
         Category.QUANTITATIVE: {
             "domain": _("Time"),
             "output": _("Numeric (vectorial or scalar)"),
@@ -218,21 +218,21 @@ class RepositoryModel(TimestampModel):
         },
     }
 
-    repository = models.OneToOneField(
+    repository = models.OneToOneField(  # type: ignore[var-annotated]
         Repository, on_delete=models.CASCADE, related_name="model"
     )
-    description = models.TextField(max_length=500, null=True, blank=True)
-    category = models.CharField(
+    description = models.TextField(max_length=500, null=True, blank=True)  # type: ignore[var-annotated]
+    category = models.CharField(  # type: ignore[var-annotated]
         max_length=50,
         choices=Category.choices,
         help_text=_(
             "The forecasting model category based on domain and output type."
         ),
     )
-    time_resolution = models.CharField(
+    time_resolution = models.CharField(  # type: ignore[var-annotated]
         max_length=10, choices=Periodicity.choices
     )
-    sprint = models.ForeignKey(
+    sprint = models.ForeignKey(  # type: ignore[var-annotated]
         Sprint, null=True, on_delete=models.PROTECT, default=None
     )
 
@@ -255,45 +255,45 @@ class ModelPrediction(models.Model):
         REPORTED = "reported", _("Reported")
         PROBABLE = "probable", _("Probable")
 
-    model = models.ForeignKey(
+    model = models.ForeignKey(  # type: ignore[var-annotated]
         RepositoryModel,
         on_delete=models.CASCADE,
         related_name="predicts",
     )
-    disease = models.ForeignKey(
+    disease = models.ForeignKey(  # type: ignore[var-annotated]
         Disease, related_name="predictions", on_delete=models.PROTECT
     )
-    case_definition = models.CharField(
+    case_definition = models.CharField(  # type: ignore[var-annotated]
         max_length=20,
         default=CaseDefinition.REPORTED,
         choices=CaseDefinition.choices,
     )
-    adm_level = models.IntegerField(choices=AdministrativeLevel.choices)
-    adm0 = models.ForeignKey(
+    adm_level = models.IntegerField(choices=AdministrativeLevel.choices)  # type: ignore[var-annotated]
+    adm0 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm0, null=True, blank=True, on_delete=models.PROTECT
     )
-    adm1 = models.ForeignKey(
+    adm1 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm1, null=True, blank=True, on_delete=models.PROTECT
     )
-    adm2 = models.ForeignKey(
+    adm2 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm2, null=True, blank=True, on_delete=models.PROTECT
     )
-    adm3 = models.ForeignKey(
+    adm3 = models.ForeignKey(  # type: ignore[var-annotated]
         Adm3, null=True, blank=True, on_delete=models.PROTECT
     )
-    commit = models.CharField(max_length=100)
-    description = models.TextField(max_length=500, null=True, blank=True)
-    published = models.BooleanField(null=False, default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    commit = models.CharField(max_length=100)  # type: ignore[var-annotated]
+    description = models.TextField(max_length=500, null=True, blank=True)  # type: ignore[var-annotated]
+    published = models.BooleanField(null=False, default=True)  # type: ignore[var-annotated]
+    created_at = models.DateTimeField(auto_now_add=True)  # type: ignore[var-annotated]
 
 
 class QuantitativePrediction(ModelPrediction):
-    mae_score = models.FloatField(null=True, default=None)
-    mse_score = models.FloatField(null=True, default=None)
-    crps_score = models.FloatField(null=True, default=None)
-    log_score = models.FloatField(null=True, default=None)
-    interval_score = models.FloatField(null=True, default=None)
-    wis_score = models.FloatField(null=True, default=None)
+    mae_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
+    mse_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
+    crps_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
+    log_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
+    interval_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
+    wis_score = models.FloatField(null=True, default=None)  # type: ignore[var-annotated]
 
     @property
     def scores(self) -> dict:
@@ -310,19 +310,19 @@ class QuantitativePrediction(ModelPrediction):
 
 
 class QuantitativePredictionRow(models.Model):
-    prediction = models.ForeignKey(
+    prediction = models.ForeignKey(  # type: ignore[var-annotated]
         QuantitativePrediction, on_delete=models.CASCADE, related_name="data"
     )
-    date = models.DateField(null=False)
-    pred = models.FloatField(null=False)
-    lower_95 = models.FloatField(null=True)
-    lower_90 = models.FloatField(null=False)
-    lower_80 = models.FloatField(null=True)
-    lower_50 = models.FloatField(null=True)
-    upper_50 = models.FloatField(null=True)
-    upper_80 = models.FloatField(null=True)
-    upper_90 = models.FloatField(null=False)
-    upper_95 = models.FloatField(null=True)
+    date = models.DateField(null=False)  # type: ignore[var-annotated]
+    pred = models.FloatField(null=False)  # type: ignore[var-annotated]
+    lower_95 = models.FloatField(null=True)  # type: ignore[var-annotated]
+    lower_90 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    lower_80 = models.FloatField(null=True)  # type: ignore[var-annotated]
+    lower_50 = models.FloatField(null=True)  # type: ignore[var-annotated]
+    upper_50 = models.FloatField(null=True)  # type: ignore[var-annotated]
+    upper_80 = models.FloatField(null=True)  # type: ignore[var-annotated]
+    upper_90 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    upper_95 = models.FloatField(null=True)  # type: ignore[var-annotated]
 
     class Meta:
         ordering = ["date"]
@@ -340,28 +340,28 @@ class Publication(TimestampModel):
         REPORT = "report", _("Technical Report")
         OTHER = "other", _("Other")
 
-    title = models.CharField(
+    title = models.CharField(  # type: ignore[var-annotated]
         max_length=500,
         help_text=_("The full title of the publication."),
     )
-    authors_list = models.TextField(
+    authors_list = models.TextField(  # type: ignore[var-annotated]
         help_text=_(
             "Full list of authors as they appear in the citation "
             "(e.g., 'Silva, J.; Doe, J.')."
         )
     )
-    publication_type = models.CharField(
+    publication_type = models.CharField(  # type: ignore[var-annotated]
         max_length=20, choices=Type.choices, default=Type.JOURNAL
     )
-    year = models.IntegerField(help_text=_("Year of publication"))
-    date = models.DateField(
+    year = models.IntegerField(help_text=_("Year of publication"))  # type: ignore[var-annotated]
+    date = models.DateField(  # type: ignore[var-annotated]
         null=True,
         blank=True,
         help_text=_(
             "Specific publication date if available (e.g. for preprints)."
         ),
     )
-    venue = models.CharField(
+    venue = models.CharField(  # type: ignore[var-annotated]
         max_length=255,
         null=True,
         blank=True,
@@ -369,29 +369,29 @@ class Publication(TimestampModel):
             "Name of the Journal, Conference, or Institution (for theses)."
         ),
     )
-    volume = models.CharField(max_length=50, null=True, blank=True)
-    issue = models.CharField(max_length=50, null=True, blank=True)
-    pages = models.CharField(max_length=50, null=True, blank=True)
-    doi = models.CharField(
+    volume = models.CharField(max_length=50, null=True, blank=True)  # type: ignore[var-annotated]
+    issue = models.CharField(max_length=50, null=True, blank=True)  # type: ignore[var-annotated]
+    pages = models.CharField(max_length=50, null=True, blank=True)  # type: ignore[var-annotated]
+    doi = models.CharField(  # type: ignore[var-annotated]
         max_length=100,
         null=True,
         blank=True,
         verbose_name="DOI",
         help_text=_("Digital Object Identifier (e.g., 10.1098/rsos.241261)"),
     )
-    url = models.URLField(
+    url = models.URLField(  # type: ignore[var-annotated]
         max_length=500,
         null=True,
         blank=True,
         help_text=_("Link to the paper or PDF."),
     )
-    related_models = models.ManyToManyField(
+    related_models = models.ManyToManyField(  # type: ignore[var-annotated]
         RepositoryModel,
         blank=True,
         related_name="publications",
         help_text=_("Models discussed or used in this publication."),
     )
-    related_sprints = models.ManyToManyField(
+    related_sprints = models.ManyToManyField(  # type: ignore[var-annotated]
         Sprint,
         blank=True,
         related_name="publications",

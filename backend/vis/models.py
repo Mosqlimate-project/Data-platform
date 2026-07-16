@@ -44,18 +44,18 @@ class Diseases(models.TextChoices):
 
 
 class TotalCases(models.Model):
-    uf = models.CharField(choices=UFs.choices, null=False)
-    year = models.PositiveIntegerField(
+    uf = models.CharField(choices=UFs.choices, null=False)  # type: ignore[var-annotated]
+    year = models.PositiveIntegerField(  # type: ignore[var-annotated]
         null=False,
         validators=[
             MinValueValidator(1980),
             MaxValueValidator(datetime.now().year),
         ],
     )
-    disease = models.CharField(
+    disease = models.CharField(  # type: ignore[var-annotated]
         choices=Diseases.choices, null=False, default="dengue"
     )
-    total_cases = models.PositiveIntegerField(null=False)
+    total_cases = models.PositiveIntegerField(null=False)  # type: ignore[var-annotated]
 
     class Meta:
         constraints = [
@@ -69,18 +69,18 @@ class TotalCases(models.Model):
 
 
 class TotalCases100kHab(models.Model):
-    uf = models.CharField(choices=UFs.choices, null=False)
-    year = models.PositiveIntegerField(
+    uf = models.CharField(choices=UFs.choices, null=False)  # type: ignore[var-annotated]
+    year = models.PositiveIntegerField(  # type: ignore[var-annotated]
         null=False,
         validators=[
             MinValueValidator(1980),
             MaxValueValidator(datetime.now().year),
         ],
     )
-    disease = models.CharField(
+    disease = models.CharField(  # type: ignore[var-annotated]
         choices=Diseases.choices, null=False, default="dengue"
     )
-    total_cases = models.FloatField(null=False)
+    total_cases = models.FloatField(null=False)  # type: ignore[var-annotated]
 
     class Meta:
         constraints = [
@@ -95,22 +95,22 @@ class TotalCases100kHab(models.Model):
 
 
 class ResultsProbForecast(models.Model):
-    date = models.DateField(db_column="date")
-    disease = models.CharField(
+    date = models.DateField(db_column="date")  # type: ignore[var-annotated]
+    disease = models.CharField(  # type: ignore[var-annotated]
         choices=Diseases.choices, null=False, default=Diseases.DENGUE
     )
-    geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)
-    lower_2_5 = models.FloatField(null=False)
-    lower_25 = models.FloatField(null=False)
-    forecast = models.FloatField(null=False)
-    upper_75 = models.FloatField(null=False)
-    upper_97_5 = models.FloatField(null=False)
-    prob_high = models.FloatField(null=False)
-    prob_low = models.FloatField(null=False)
-    high_threshold = models.FloatField(null=False)
-    low_threshold = models.FloatField(null=False)
-    high_incidence_threshold = models.FloatField(null=False)
-    low_incidence_threshold = models.FloatField(null=False)
+    geocode = models.ForeignKey(GeoMacroSaude, on_delete=models.PROTECT)  # type: ignore[var-annotated]
+    lower_2_5 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    lower_25 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    forecast = models.FloatField(null=False)  # type: ignore[var-annotated]
+    upper_75 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    upper_97_5 = models.FloatField(null=False)  # type: ignore[var-annotated]
+    prob_high = models.FloatField(null=False)  # type: ignore[var-annotated]
+    prob_low = models.FloatField(null=False)  # type: ignore[var-annotated]
+    high_threshold = models.FloatField(null=False)  # type: ignore[var-annotated]
+    low_threshold = models.FloatField(null=False)  # type: ignore[var-annotated]
+    high_incidence_threshold = models.FloatField(null=False)  # type: ignore[var-annotated]
+    low_incidence_threshold = models.FloatField(null=False)  # type: ignore[var-annotated]
 
     class Meta:
         app_label = "vis"

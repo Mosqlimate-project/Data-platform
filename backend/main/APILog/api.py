@@ -1,5 +1,5 @@
-from typing import Optional, Literal, List
-from dateutil import parser
+from typing import Any, Optional, Literal, List
+from dateutil import parser  # type: ignore[import-untyped]
 
 from ninja.errors import HttpError
 from pydantic import UUID4
@@ -138,7 +138,7 @@ def update_user_account(request, user_id: int, data: UserUpdateSchema):
     except User.DoesNotExist:
         raise HttpError(404, "User not found")
 
-    if user.is_staff or user.is_superuser:
+    if user.is_staff or user.is_superuser:  # type: ignore[attr-defined]
         raise HttpError(403, "Cannot modify staff accounts.")
 
     update_fields = []
@@ -148,7 +148,7 @@ def update_user_account(request, user_id: int, data: UserUpdateSchema):
         update_fields.append("is_active")
 
     if data.rate_limit is not None:
-        user.rate_limit = data.rate_limit
+        user.rate_limit = data.rate_limit  # type: ignore[attr-defined]
         update_fields.append("rate_limit")
 
     if update_fields:
@@ -178,7 +178,7 @@ def get_live_condensed_history(request, limit: int = 100):
         )[: limit * 2]
     )
 
-    condensed_logs = []
+    condensed_logs: list[dict[str, Any]] = []
 
     for log in reversed(raw_logs):
         base_endpoint = log["endpoint"].split("?")[0]

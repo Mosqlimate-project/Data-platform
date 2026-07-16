@@ -8,8 +8,8 @@ class Macroregion(models.Model):
     geocode: "1" to "5"
     """
 
-    geocode = geomodels.CharField(primary_key=True, max_length=1, unique=True)
-    name = models.CharField(null=False)
+    geocode = geomodels.CharField(primary_key=True, max_length=1, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False)  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"{self.name}"
@@ -24,10 +24,10 @@ class State(models.Model):
     geocode: UF geocode (example: "33")
     """
 
-    geocode = geomodels.CharField(primary_key=True, max_length=2, unique=True)
-    name = models.CharField(null=False)
-    uf = models.CharField(max_length=2, null=False)
-    macroregion = models.ForeignKey(Macroregion, on_delete=models.PROTECT)
+    geocode = geomodels.CharField(primary_key=True, max_length=2, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False)  # type: ignore[var-annotated]
+    uf = models.CharField(max_length=2, null=False)  # type: ignore[var-annotated]
+    macroregion = models.ForeignKey(Macroregion, on_delete=models.PROTECT)  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"{self.name}"
@@ -42,9 +42,9 @@ class Mesoregion(models.Model):
     geocode: UF geocode + inner code (example: "3301")
     """
 
-    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
-    name = models.CharField(null=False)
-    state = models.ForeignKey(State, on_delete=models.PROTECT)
+    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False)  # type: ignore[var-annotated]
+    state = models.ForeignKey(State, on_delete=models.PROTECT)  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"{self.name}"
@@ -59,9 +59,9 @@ class Microregion(models.Model):
     geocode: UF geocode + inner code (example: "33001")
     """
 
-    geocode = geomodels.CharField(primary_key=True, max_length=5, unique=True)
-    name = models.CharField(null=False)
-    mesoregion = models.ForeignKey(Mesoregion, on_delete=models.PROTECT)
+    geocode = geomodels.CharField(primary_key=True, max_length=5, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False)  # type: ignore[var-annotated]
+    mesoregion = models.ForeignKey(Mesoregion, on_delete=models.PROTECT)  # type: ignore[var-annotated]
 
     def __str__(self):
         return f"{self.name}"
@@ -76,10 +76,10 @@ class City(models.Model):
     geocode: https://www.ibge.gov.br/explica/codigos-dos-municipios.php
     """
 
-    geocode = geomodels.CharField(primary_key=True, max_length=7, unique=True)
-    name = models.CharField(null=False)
-    microregion = models.ForeignKey(Microregion, on_delete=models.PROTECT)
-    macro_health = models.ForeignKey(
+    geocode = geomodels.CharField(primary_key=True, max_length=7, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=False)  # type: ignore[var-annotated]
+    microregion = models.ForeignKey(Microregion, on_delete=models.PROTECT)  # type: ignore[var-annotated]
+    macro_health = models.ForeignKey(  # type: ignore[var-annotated]
         "GeoMacroSaude",
         on_delete=models.PROTECT,
         related_name="cities",
@@ -103,10 +103,10 @@ class City(models.Model):
 
 
 class GeoMacroregion(geomodels.Model):
-    macroregion = geomodels.ForeignKey(
+    macroregion = geomodels.ForeignKey(  # type: ignore[var-annotated]
         Macroregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.GeometryField(null=False)
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)
@@ -118,8 +118,8 @@ class GeoMacroregion(geomodels.Model):
 
 
 class GeoState(geomodels.Model):
-    state = geomodels.ForeignKey(State, on_delete=geomodels.PROTECT)
-    geometry = geomodels.GeometryField(null=False)
+    state = geomodels.ForeignKey(State, on_delete=geomodels.PROTECT)  # type: ignore[var-annotated]
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)
@@ -131,8 +131,8 @@ class GeoState(geomodels.Model):
 
 
 class GeoMesoregion(geomodels.Model):
-    mesoregion = geomodels.ForeignKey(Mesoregion, on_delete=geomodels.PROTECT)
-    geometry = geomodels.GeometryField(null=False)
+    mesoregion = geomodels.ForeignKey(Mesoregion, on_delete=geomodels.PROTECT)  # type: ignore[var-annotated]
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)
@@ -144,10 +144,10 @@ class GeoMesoregion(geomodels.Model):
 
 
 class GeoMicroregion(geomodels.Model):
-    microregion = geomodels.ForeignKey(
+    microregion = geomodels.ForeignKey(  # type: ignore[var-annotated]
         Microregion, on_delete=geomodels.PROTECT
     )
-    geometry = geomodels.GeometryField(null=False)
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)
@@ -159,8 +159,8 @@ class GeoMicroregion(geomodels.Model):
 
 
 class GeoCity(geomodels.Model):
-    city = geomodels.ForeignKey(City, on_delete=geomodels.PROTECT)
-    geometry = geomodels.GeometryField(null=False)
+    city = geomodels.ForeignKey(City, on_delete=geomodels.PROTECT)  # type: ignore[var-annotated]
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)
@@ -172,10 +172,10 @@ class GeoCity(geomodels.Model):
 
 
 class GeoMacroSaude(geomodels.Model):
-    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)
-    name = models.CharField(null=True)
-    state = models.ForeignKey(State, on_delete=models.PROTECT)
-    geometry = geomodels.GeometryField(null=False)
+    geocode = geomodels.CharField(primary_key=True, max_length=4, unique=True)  # type: ignore[var-annotated]
+    name = models.CharField(null=True)  # type: ignore[var-annotated]
+    state = models.ForeignKey(State, on_delete=models.PROTECT)  # type: ignore[var-annotated]
+    geometry = geomodels.GeometryField(null=False)  # type: ignore[var-annotated]
 
     def save(self, *args, **kwargs):
         self.geometry = GEOSGeometry(self.geometry.wkt)

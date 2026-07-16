@@ -106,8 +106,8 @@ async def get_diseases(
     client_secret: str,
     language: str = "en",
 ) -> AsyncGenerator[DiseaseSchema, None]:
-    todo = asyncio.Queue()
-    result = asyncio.Queue()
+    todo: asyncio.Queue = asyncio.Queue()
+    result: asyncio.Queue = asyncio.Queue()
     todo.put_nowait(root_url)
 
     token = await get_auth_token(client_id, client_secret)

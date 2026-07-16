@@ -6,10 +6,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 if not settings.DEBUG:
-    admin.site.login = login_required(admin.site.login)
+    admin.site.login = login_required(admin.site.login)  # type: ignore[method-assign]
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("main.urls")),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # type: ignore[arg-type]

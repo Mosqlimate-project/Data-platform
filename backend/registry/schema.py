@@ -221,7 +221,7 @@ class PredictionDataRowSchema(Schema):
                     "Prediction bounds are not in the correct order or "
                     "contain negative values"
                 ),
-            )
+            )  # type: ignore[call-overload]
         return values
 
 
@@ -230,44 +230,44 @@ class PredictionIn(Schema):
         ...,
         description="The full repository name in 'owner/name' format.",
         examples="owner/repository-name",
-    )
+    )  # type: ignore[call-overload]
     disease: str = Field(
         description=(
             "The Disease code. Example: \n"
             "Dengue fever (classic): 'A90'\n"
             "Chikungunya fever: 'A92.0'"
-        )
-    )
+        )  # type: ignore[call-overload]
+    )  # type: ignore[call-overload]
     description: str = Field(
-        "",
+        default="",
         description="A brief description of this specific prediction.",
-    )
+    )  # type: ignore[call-overload]
     commit: str = Field(
         ...,
         description="The full 40-character commit hash",
         examples="8843d7f92416211de9ebb963ff4ce28125932878",
         pattern=r"^[0-9a-fA-F]{40}$",
-    )
+    )  # type: ignore[call-overload]
     case_definition: Literal["reported", "probable"] = Field(
-        "probable",
+        default="probable",
         description="The case definition used for the prediction data.",
-    )
+    )  # type: ignore[call-overload]
     published: bool = Field(
         True, description="Whether this prediction is visible to the public."
-    )
+    )  # type: ignore[call-overload]
     adm_level: Literal[0, 1, 2, 3] = Field(
         description=(
             "Administrative level: National (0), State (1),"
             " Municipality (2), Sub-municipality (3)"
-        )
-    )
-    adm_0: str = Field("BRA", description="Country ISO code", examples="BRA")
+        )  # type: ignore[call-overload]
+    )  # type: ignore[call-overload]
+    adm_0: str = Field(default="BRA", description="Country ISO code", examples="BRA")  # type: ignore[call-overload]
     adm_1: Optional[int] = Field(
         None, description="State geocode", examples="33"
-    )
+    )  # type: ignore[call-overload]
     adm_2: Optional[int] = Field(
         None, description="Municipality geocode", examples="3304557"
-    )
+    )  # type: ignore[call-overload]
     adm_3: Optional[int] = Field(None, description="Sub-municipality geocode")
     prediction: List[PredictionDataRowSchema]
 
@@ -276,18 +276,15 @@ class PredictionIn(Schema):
         if self.adm_level >= 0 and not self.adm_0:
             raise HttpError(
                 422, "adm_0 is required for all administrative levels."
-            )
-
+            )  # type: ignore[call-overload]
         if self.adm_level >= 1 and self.adm_1 is None:
             raise HttpError(
                 422, "adm_1 is required when adm_level is 1 or higher."
-            )
-
+            )  # type: ignore[call-overload]
         if self.adm_level >= 2 and self.adm_2 is None:
             raise HttpError(
                 422, "adm_2 is required when adm_level is 2 or higher."
-            )
-
+            )  # type: ignore[call-overload]
         if self.adm_level >= 3 and self.adm_3 is None:
             raise HttpError(422, "adm_3 is required when adm_level is 3.")
 
@@ -316,8 +313,7 @@ class PredictionIn(Schema):
                 start=Week(year - 1, 41).startdate(),
                 end=Week(year, 40).startdate(),
                 freq="W-SUN",
-            )
-
+            )  # type: ignore[call-overload]
             missing_dates = expected_range.difference(df_dates)
 
             if not missing_dates.empty:
@@ -328,8 +324,7 @@ class PredictionIn(Schema):
                         "The following dates are missing from your"
                         f" predictions: {missing_str}."
                     ),
-                )
-
+                )  # type: ignore[call-overload]
         for i in range(len(dates) - 1):
             diff = dates[i + 1] - dates[i]
             if time_res == "week" and diff != timedelta(weeks=1):
@@ -339,7 +334,7 @@ class PredictionIn(Schema):
                         "Gap detected: missing week "
                         f"between {dates[i]} and {dates[i + 1]}."
                     ),
-                )
+                )  # type: ignore[call-overload]
             elif time_res == "day" and diff != timedelta(days=1):
                 raise HttpError(
                     422,
@@ -347,8 +342,7 @@ class PredictionIn(Schema):
                         f"Gap detected: missing day between "
                         f"{dates[i]} and {dates[i + 1]}."
                     ),
-                )
-
+                )  # type: ignore[call-overload]
         for p in self.prediction:
             ew = Week.fromdate(p.date)
             if time_res == "week" and ew.startdate() != p.date:
@@ -358,8 +352,7 @@ class PredictionIn(Schema):
                         f"Date {p.date} is not the start of CDC "
                         f"week {ew.week} (Sunday)."
                     ),
-                )
-
+                )  # type: ignore[call-overload]
         return self
 
     @field_validator("repository")
@@ -447,7 +440,7 @@ class ModelThumbs(Schema):
     def resolve_diseases(obj):
         return list(
             obj.predicts.values_list("disease__code", flat=True).distinct()
-        )
+        )  # type: ignore[call-overload]
 
     @staticmethod
     def resolve_predictions(obj):
@@ -465,7 +458,7 @@ class ModelThumbs(Schema):
     def resolve_time_resolution_display(obj):
         return (
             obj.get_time_resolution_display() if obj.time_resolution else None
-        )
+        )  # type: ignore[call-overload]
 
     @staticmethod
     def resolve_adm_levels(obj):
@@ -473,8 +466,7 @@ class ModelThumbs(Schema):
             obj.predicts.values_list("adm_level", flat=True)
             .distinct()
             .order_by("adm_level")
-        )
-
+        )  # type: ignore[call-overload]
         choices = dict(ModelPrediction.AdministrativeLevel.choices)
 
         return [str(choices.get(level, level)) for level in levels]
@@ -538,7 +530,7 @@ class ModelOut(Schema):
     def resolve_diseases(obj):
         return list(
             obj.predicts.values_list("disease__code", flat=True).distinct()
-        )
+        )  # type: ignore[call-overload]
 
     @staticmethod
     def resolve_adm_levels(obj):
@@ -546,7 +538,7 @@ class ModelOut(Schema):
             obj.predicts.values_list("adm_level", flat=True)
             .distinct()
             .order_by("adm_level")
-        )
+        )  # type: ignore[call-overload]
 
     @staticmethod
     def resolve_repository(obj):
