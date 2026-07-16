@@ -1196,7 +1196,7 @@ def episcanner_top_cities(
                 str(r["municipio_geocodigo"]), str(r["municipio_geocodigo"])
             ),
             transmissao=r["total_transmissao"],
-            code_muni=str(r["municipio_geocodigo"]),
+            geocode=str(r["municipio_geocodigo"]),
         )
         for r in aggregated
     ]
@@ -1251,7 +1251,7 @@ def episcanner_maps_weeks(
 
     return [
         schema.EpiScannerMapsWeeksItem(
-            code_muni=str(r["municipio_geocodigo"]),
+            geocode=str(r["municipio_geocodigo"]),
             transmissao=r["sum_transmissao"],
         )
         for r in aggregated
@@ -1316,17 +1316,24 @@ def episcanner_maps_r0(
 
     top_r0 = sorted(params, key=lambda x: x["r0_val"], reverse=True)[:10]
 
+    top_geocodes = [str(r["geocode"]) for r in top_r0]
+    adm2_names = {
+        a.geocode: a.name
+        for a in Adm2.objects.filter(geocode__in=top_geocodes)
+    }
+
     return schema.EpiScannerR0MapResponse(
         r0Data=[
             schema.EpiScannerR0MapItem(
-                code_muni=str(r["geocode"]),
+                geocode=str(r["geocode"]),
                 R0=r["r0_val"],
             )
             for r in params
         ],
         topR0=[
             schema.EpiScannerR0MapItem(
-                code_muni=str(r["geocode"]),
+                geocode=str(r["geocode"]),
+                name=adm2_names.get(str(r["geocode"]), str(r["geocode"])),
                 R0=r["r0_val"],
             )
             for r in top_r0
@@ -1401,7 +1408,7 @@ def episcanner_maps_model_eval(
             rate = None
         rate_map.append(
             schema.EpiScannerModelEvalItem(
-                code_muni=geocode_str,
+                geocode=geocode_str,
                 observed_cases=obs,
                 total_cases=total or 0,
                 rate=round(rate, 4) if rate is not None else None,
