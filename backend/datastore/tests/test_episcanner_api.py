@@ -110,7 +110,7 @@ class EpiScannerAPITest(TestCase):
         data = r.json()
         self.assertIsInstance(data, list)
         if data:
-            self.assertIn("code_muni", data[0])
+            self.assertIn("geocode", data[0])
             self.assertIn("transmissao", data[0])
 
     def test_maps_r0_dengue_ce(self):

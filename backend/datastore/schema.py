@@ -325,17 +325,18 @@ class EpiScannerTimeseriesRow(Schema):
 class EpiScannerTopCitySchema(Schema):
     name_muni: str
     transmissao: int
-    code_muni: str
+    geocode: str
 
 
 class EpiScannerMapsWeeksItem(Schema):
-    code_muni: str
+    geocode: str
     transmissao: Optional[int] = None
 
 
 class EpiScannerR0MapItem(Schema):
-    code_muni: str
+    geocode: str
     R0: float
+    name: Optional[str] = None
 
 
 class EpiScannerR0MapResponse(Schema):
@@ -344,7 +345,7 @@ class EpiScannerR0MapResponse(Schema):
 
 
 class EpiScannerModelEvalItem(Schema):
-    code_muni: str
+    geocode: str
     observed_cases: int
     total_cases: float
     rate: Optional[float] = None
