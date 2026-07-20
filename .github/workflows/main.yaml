@@ -98,3 +98,11 @@ jobs:
     - name: Test
       run: |
         make test SUGAR=true
+
+    - name: Install coverage
+      run: |
+        sugar compose exec --service backend --options "-T" --cmd "pip install coverage"
+
+    - name: Coverage
+      run: |
+        make test-cov SUGAR=true
