@@ -19,6 +19,7 @@ interface DashboardParametersProps {
     sprint: boolean;
     case_definition: string;
   };
+  availableCaseDefinitions: Set<string>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleCaseDefinitionChange: (def: string) => void;
   toggleSprint: (year: number) => void;
@@ -33,6 +34,7 @@ interface DashboardParametersProps {
 export default function DashboardParameters({
   isConfigLoading,
   inputs,
+  availableCaseDefinitions,
   handleChange,
   handleCaseDefinitionChange,
   toggleSprint,
@@ -125,18 +127,24 @@ export default function DashboardParameters({
             <div className="flex flex-col gap-2">
               <h3 className="text-sm font-semibold mb-1 text-text">{t('dashboard.filters.case_definition')}</h3>
               <div className="flex bg-hover p-1 rounded-lg w-full">
-                {["reported", "probable"].map((def) => (
-                  <button
-                    key={def}
-                    onClick={() => handleCaseDefinitionChange(def)}
-                    className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === def
-                      ? "bg-bg text-blue-600 shadow-sm border border-border"
-                      : "text-secondary hover:text-text"
-                      }`}
-                  >
-                    {t(`dashboard.filters.${def}`)}
-                  </button>
-                ))}
+                {["reported", "probable"].map((def) => {
+                  const isAvailable = availableCaseDefinitions.has(def);
+                  return (
+                    <button
+                      key={def}
+                      onClick={() => isAvailable && handleCaseDefinitionChange(def)}
+                      disabled={!isAvailable}
+                      className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${inputs.case_definition === def
+                        ? "bg-bg text-blue-600 shadow-sm border border-border"
+                        : isAvailable
+                          ? "text-secondary hover:text-text"
+                          : "text-secondary/40 cursor-not-allowed"
+                        }`}
+                    >
+                      {t(`dashboard.filters.${def}`)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
