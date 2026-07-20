@@ -87,6 +87,13 @@ class OrganizationMembershipTest(TestCase):
 
 
 class RepositoryTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@test.com",
+            password="testpass",
+        )
+        self.org = m.Organization.objects.create(name="testorg")
 
     def test_repository_creation_with_owner(self):
         repo = m.Repository.objects.create(

@@ -17,10 +17,15 @@ else
   BACKEND_SHELL = docker compose $(COMPOSE_OPTS) exec backend python manage.py shell
 endif
 
-.PHONY: test lint migrate migrations build up down start shell
+.PHONY: test lint migrate migrations build up down start shell test-cov
 
 test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
+
+test-cov:
+	$(BACKEND_RUN) coverage run manage.py test $(TEST_ARGS) registry
+	$(BACKEND_RUN) coverage report -m
+	$(BACKEND_RUN) coverage erase
 
 lint:
 	pre-commit run --all-files

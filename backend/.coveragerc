@@ -1,0 +1,14 @@
+[run]
+source = registry
+branch = true
+omit =
+    */migrations/*
+    */tests/*
+    */test_*
+
+[report]
+show_missing = true
+fail_under = 50
+
+[html]
+directory = coverage_html
