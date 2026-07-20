@@ -17,6 +17,7 @@ import {
   type Option,
   type SprintOption,
   type AdmLevel,
+  type CaseDefinition,
 } from "@/lib/dashboard/api";
 import DashboardChart from "./Chart";
 import DashboardPredictions from "./Predictions";
@@ -63,6 +64,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const [predictionsLoading, setPredictionsLoading] = useState(false);
 
   const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [availableCaseDefinitions, setAvailableCaseDefinitions] = useState<Set<CaseDefinition>>(new Set(["reported", "probable"]));
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedSprints, setSelectedSprints] = useState<number[]>([]);
   const [modelSearch, setModelSearch] = useState("");
@@ -158,11 +160,30 @@ export default function DashboardClient({ category }: DashboardClientProps) {
   const syncPredictions = useCallback(async (requestId: number) => {
     setPredictionsLoading(true);
     try {
-      const [sprints, preds] = await Promise.all([
+      const otherDef: CaseDefinition = inputs.case_definition === "reported" ? "probable" : "reported";
+      const [sprints, preds, otherPreds] = await Promise.all([
         fetchSprints(category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2),
         fetchPredictions(category, inputs.adm_level, inputs.disease, inputs.case_definition, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint),
+        !inputs.sprint
+          ? fetchPredictions(category, inputs.adm_level, inputs.disease, otherDef, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.sprint).catch(() => [] as Prediction[])
+          : Promise.resolve([] as Prediction[]),
       ]);
       if (requestRef.current !== requestId) return;
+
+      if (!inputs.sprint) {
+        const newAvailable = new Set<CaseDefinition>();
+        if (preds.length > 0) newAvailable.add(inputs.case_definition);
+        if (otherPreds.length > 0) newAvailable.add(otherDef);
+        setAvailableCaseDefinitions(newAvailable);
+
+        if (preds.length === 0 && otherPreds.length > 0) {
+          setPredictions([]);
+          setSprintOptions(sprints);
+          setInputs({ case_definition: otherDef });
+          return;
+        }
+      }
+
       setSprintOptions(sprints);
       setPredictions(preds);
       if (preds.length > 0 && !initialPredId.current) {
@@ -185,7 +206,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
     } finally {
       if (requestRef.current === requestId) setPredictionsLoading(false);
     }
-  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.case_definition, inputs.sprint]);
+  }, [category, inputs.adm_level, inputs.disease, inputs.adm_0, inputs.adm_1, inputs.adm_2, inputs.case_definition, inputs.sprint, loadSinglePredictionData]);
 
   useEffect(() => {
     if (!treeData) return;
@@ -409,6 +430,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       <DashboardParameters
         isConfigLoading={isConfigLoading}
         inputs={inputs}
+        availableCaseDefinitions={availableCaseDefinitions}
         handleChange={(e) => {
           const { name, value } = e.target;
           const updates: any = { ...inputs, [name]: value };
