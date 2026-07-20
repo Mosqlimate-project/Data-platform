@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.11.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.1...2.11.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* **dashboard:** disable Notified or Probable cases buttons when theres no predictions for it ([#534](https://github.com/Mosqlimate-project/Data-platform/issues/534)) ([e77fe2d](https://github.com/Mosqlimate-project/Data-platform/commit/e77fe2dcb68b5260e6bb6ab5b11eac4f92b5ff46))
+
 ## [2.11.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.0...2.11.1) (2026-07-16)
 
 
