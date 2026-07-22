@@ -409,14 +409,19 @@ def get_contaovos(
     response = requests.get(url, params=params, timeout=20)
 
     if response.status_code == 200:
-        return 200, [schema.ContaOvosSchema(**i) for i in response.json()]
+        data = response.json()
+        if not isinstance(data, list):
+            return 402, {"message": data}
+        return 200, [
+            schema.ContaOvosSchema(**i) for i in data if isinstance(i, dict)
+        ]
 
-    if response.status_code == 500:
-        return 500, {
-            "message": "Internal error. Please contact the moderation"
-        }
+    try:
+        message = response.json()
+    except Exception:
+        message = response.text
 
-    return 404, {"message": response.json()}
+    return response.status_code, {"message": message}
 
 
 @router.get(
