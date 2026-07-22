@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.11.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.2...2.11.3) (2026-07-22)
+
+
+### Bug Fixes
+
+* **episcanner:** adjust the date range for the data shown in the episcanner ([#536](https://github.com/Mosqlimate-project/Data-platform/issues/536)) ([e6db9e4](https://github.com/Mosqlimate-project/Data-platform/commit/e6db9e4a6456840bb798219aa1b10cbd1c7cf472))
+
 ## [2.11.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.1...2.11.2) (2026-07-20)
 
 
