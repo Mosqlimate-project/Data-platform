@@ -1059,6 +1059,38 @@ def episcanner_parameters(
         )
     )
 
+    rows = list(qs)
+
+    years = sorted({r["year"] for r in rows})
+    if years:
+        overall_start = Week(years[0] - 1, 45).startdate()
+        overall_end = Week(years[-1], 45).startdate()
+    else:
+        overall_start = overall_end = None
+
+    reported: dict[tuple, int] = {}
+    if overall_start and overall_end:
+        alert_qs = get_infodengue_queryset(disease)  # type: ignore[arg-type]
+        if alert_qs is not None:
+            week_ends = {y: Week(y, 45).startdate() for y in years}
+            sorted_years = sorted(years)
+            alert_rows = alert_qs.filter(
+                municipio_geocodigo__in=geocodes_in_state,
+                data_iniSE__gte=overall_start,
+                data_iniSE__lt=overall_end,
+            ).values("municipio_geocodigo", "data_iniSE", "casos")
+            for ar in alert_rows:
+                d = ar["data_iniSE"]
+                ep_year = None
+                for y in sorted_years:
+                    if d < week_ends[y]:
+                        ep_year = y
+                        break
+                if ep_year is None:
+                    ep_year = sorted_years[-1] + 1
+                key = (ar["municipio_geocodigo"], ep_year)
+                reported[key] = reported.get(key, 0) + (ar["casos"] or 0)
+
     return [
         schema.EpiScannerParameterSchema(
             cid10=r["cid10"],
@@ -1075,8 +1107,9 @@ def episcanner_parameters(
             total_cases=r["total_cases"],
             alpha=r["alpha"],
             sum_res=r["sum_res"],
+            reported_cases=reported.get((r["geocode"], r["year"]), 0),
         )
-        for r in qs
+        for r in rows
     ]
 
 
@@ -1089,35 +1122,6 @@ def episcanner_parameters(
 def episcanner_timeseries(
     request,
     disease: Literal["dengue", "zika", "chikungunya"],
-    uf: Literal[
-        "AC",
-        "AL",
-        "AP",
-        "AM",
-        "BA",
-        "CE",
-        "ES",
-        "GO",
-        "MA",
-        "MT",
-        "MS",
-        "MG",
-        "PA",
-        "PB",
-        "PR",
-        "PE",
-        "PI",
-        "RJ",
-        "RN",
-        "RS",
-        "RO",
-        "RR",
-        "SC",
-        "SP",
-        "SE",
-        "TO",
-        "DF",
-    ],
     geocode: int,
     year: int = datetime.datetime.now().year,
 ):

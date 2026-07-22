@@ -313,6 +313,7 @@ class EpiScannerParameterSchema(Schema):
     total_cases: float
     alpha: float
     sum_res: float
+    reported_cases: Optional[int] = None
 
 
 class EpiScannerTimeseriesRow(Schema):
