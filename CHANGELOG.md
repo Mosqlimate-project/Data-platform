@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.11.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.3...2.11.4) (2026-07-22)
+
+
+### Bug Fixes
+
+* **mosquito:** fix 500 error on /mosquito/ endpoint ([#537](https://github.com/Mosqlimate-project/Data-platform/issues/537)) ([0015bbf](https://github.com/Mosqlimate-project/Data-platform/commit/0015bbfd0739ef37139c3048fb22b5173ef15a0b))
+
 ## [2.11.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.11.2...2.11.3) (2026-07-22)
 
 
