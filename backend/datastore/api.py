@@ -478,7 +478,11 @@ def get_episcanner(
 
     rows = (
         EpiscannerSirParams.objects.using("infodengue")
-        .filter(cid10=cid10, year=year, geocode__in=geocodes_in_state)
+        .filter(
+            cid10=cid10,
+            year=year,
+            geocode__in=geocodes_in_state,
+        )
         .values(
             "cid10",
             "geocode",
@@ -951,6 +955,7 @@ def episcanner_cities(
         "TO",
         "DF",
     ],
+    year: int = datetime.datetime.now().year,
 ):
     uf_name = UFs[uf]
     adm2_geocodes = Adm2.objects.filter(adm1__name=uf_name).values_list(
@@ -958,8 +963,13 @@ def episcanner_cities(
     )
     geocodes_int = [int(g) for g in adm2_geocodes]
 
+    start_date = Week(year - 1, 45).startdate()
+    end_date = Week(year, 45).startdate()
+
     qs = _get_alert_queryset(disease).filter(
-        municipio_geocodigo__in=geocodes_int
+        municipio_geocodigo__in=geocodes_int,
+        data_iniSE__gte=start_date,
+        data_iniSE__lt=end_date,
     )
 
     municipality_geocodes = (
@@ -1109,12 +1119,17 @@ def episcanner_timeseries(
         "DF",
     ],
     geocode: int,
-    year: int = 0,
+    year: int = datetime.datetime.now().year,
 ):
     qs = _get_alert_queryset(disease).filter(municipio_geocodigo=geocode)
 
     if year > 0:
-        qs = qs.filter(data_iniSE__year=year)
+        start_date = Week(year - 1, 45).startdate()
+        end_date = Week(year, 45).startdate()
+        qs = qs.filter(
+            data_iniSE__gte=start_date,
+            data_iniSE__lt=end_date,
+        )
 
     rows = qs.values("data_iniSE", "casos", "casos_est").order_by("data_iniSE")
 
@@ -1175,8 +1190,16 @@ def episcanner_top_cities(
         "DF",
     ],
     limit: int = 20,
+    year: int = datetime.datetime.now().year,
 ):
+    start_date = Week(year - 1, 45).startdate()
+    end_date = Week(year, 45).startdate()
     qs = _get_alert_queryset(disease, uf)
+
+    qs = qs.filter(
+        data_iniSE__gte=start_date,
+        data_iniSE__lt=end_date,
+    )
 
     aggregated = (
         qs.values("municipio_geocodigo")
@@ -1240,10 +1263,18 @@ def episcanner_maps_weeks(
         "TO",
         "DF",
     ],
+    year: int = datetime.datetime.now().year,
 ):
     APILog.from_request(request)
 
+    start_date = Week(year - 1, 45).startdate()
+    end_date = Week(year, 45).startdate()
     qs = _get_alert_queryset(disease, uf)
+
+    qs = qs.filter(
+        data_iniSE__gte=start_date,
+        data_iniSE__lt=end_date,
+    )
 
     aggregated = qs.values("municipio_geocodigo").annotate(
         sum_transmissao=Sum("transmissao")
@@ -1309,7 +1340,11 @@ def episcanner_maps_r0(
 
     params = (
         EpiscannerSirParams.objects.using("infodengue")
-        .filter(cid10=cid10, year=year, geocode__in=geocodes_in_state)
+        .filter(
+            cid10=cid10,
+            year=year,
+            geocode__in=geocodes_in_state,
+        )
         .annotate(r0_val=F("r0"))
         .values("geocode", "r0_val")
     )
@@ -1390,7 +1425,12 @@ def episcanner_maps_model_eval(
         .values("geocode", "total_cases")
     }
 
-    qs = _get_alert_queryset(disease, uf).filter(data_iniSE__year=year)
+    start_date = Week(year - 1, 45).startdate()
+    end_date = Week(year, 45).startdate()
+    qs = _get_alert_queryset(disease, uf).filter(
+        data_iniSE__gte=start_date,
+        data_iniSE__lt=end_date,
+    )
 
     observed = qs.values("municipio_geocodigo").annotate(
         obs_cases=Sum("casos")
