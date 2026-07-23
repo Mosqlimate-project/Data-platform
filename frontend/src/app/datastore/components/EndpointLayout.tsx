@@ -186,6 +186,14 @@ export function EndpointLayout({
             </div>
           </AccordionCard>
         )}
+
+        <div className="flex justify-center py-3">
+          <iframe
+            src="https://epidbot.kwar-ai.com.br/badge.html"
+            style={{ border: "none", width: 280, height: 60 }}
+            title="EpidBot"
+          />
+        </div>
       </div>
     </div>
   );

@@ -9,10 +9,15 @@ else
   BACKEND_SHELL = docker exec -it mosqlimate-2-backend-1 python manage.py shell
 endif
 
-.PHONY: test lint migrate migrations build up down shell
+.PHONY: test lint migrate migrations build up down shell test-cov
 
 test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
+
+test-cov:
+	$(BACKEND_RUN) coverage run manage.py test $(TEST_ARGS) registry
+	$(BACKEND_RUN) coverage report -m
+	$(BACKEND_RUN) coverage erase
 
 lint:
 	pre-commit run --all-files
