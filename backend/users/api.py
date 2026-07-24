@@ -507,6 +507,44 @@ def refresh_api_key(request):
     return 201, {"api_key": user.api_key()}
 
 
+@router.get(
+    "/sdk-key/",
+    response={200: dict, 400: BadRequestSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def get_sdk_key(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    sdk_key = user.get_or_create_sdk_key()
+    return 200, {
+        "sdk_key": sdk_key,
+        "expires_at": user.sdk_key_created_at,
+        "ttl_days": 7,
+    }
+
+
+@router.post(
+    "/sdk-key/rotate/",
+    response={201: dict, 400: BadRequestSchema},
+    auth=JWTAuth(),
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def rotate_sdk_key(request):
+    user = request.auth
+    if not user:
+        return 400, {"message": "Invalid or expired token"}
+    sdk_key = user.rotate_sdk_key()
+    return 201, {
+        "sdk_key": sdk_key,
+        "expires_at": user.sdk_key_created_at,
+        "ttl_days": 7,
+    }
+
+
 @router.post(
     "/login/",
     response={200: s.LoginOut, 403: ForbiddenSchema},

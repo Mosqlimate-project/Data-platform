@@ -19,7 +19,7 @@ from vis.api import router as vis_router
 from users.api import router as users_router
 from maps.api import router as maps_router
 from main.APILog.api import router as log_router
-from users.auth import InvalidUIDKey
+from users.auth import InvalidUIDKey, ChartAuthFailed
 from main.schema import NotFoundSchema, MunicipalityInfoSchema, StateInfoSchema
 from main.utils import UF_CODES, UFs
 from main.throttle import APIThrottle
@@ -120,6 +120,15 @@ def get_csrf_token(request):
 
 @api.exception_handler(InvalidUIDKey)
 def on_invalid_token(request, exc):
+    return api.create_response(
+        request,
+        {"detail": "Unauthorized. See documentation"},
+        status=401,
+    )
+
+
+@api.exception_handler(ChartAuthFailed)
+def on_chart_auth_failed(request, exc):
     return api.create_response(
         request,
         {"detail": "Unauthorized. See documentation"},

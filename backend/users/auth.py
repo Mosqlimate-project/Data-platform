@@ -126,3 +126,75 @@ class OptionalUidKeyAuth(UidKeyAuth):
             return user
         except InvalidUIDKey:
             return AnonymousUser()
+
+
+class SdkKeyAuth(APIKeyHeader):
+    """Auth via X-SDK-Key header. Returns the user if the key is valid and not expired."""
+
+    param_name = "X-SDK-Key"
+
+    def authenticate(self, request, sdk_key):
+        if not sdk_key:
+            return None
+
+        try:
+            user = User.objects.get(sdk_key=sdk_key)
+        except User.DoesNotExist:
+            return None
+
+        if not user.is_active:
+            return None
+
+        if user.sdk_key_is_expired():
+            return None
+
+        return user
+
+
+class ChartAuthFailed(Exception):
+    pass
+
+
+class ChartAuth(APIKeyHeader):
+    """Accept either X-UID-Key or X-SDK-Key for chart endpoints.
+
+    Staff and superusers bypass key authentication entirely.
+    """
+
+    param_name = "X-SDK-Key"
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        if (
+            user
+            and user.is_authenticated
+            and (user.is_staff or user.is_superuser)
+        ):
+            return user
+        return super().__call__(request)
+
+    def authenticate(self, request, sdk_key=None):
+        # Try SDK key first
+        if sdk_key:
+            try:
+                user = User.objects.get(sdk_key=sdk_key)
+                if user.is_active and not user.sdk_key_is_expired():
+                    return user
+            except (User.DoesNotExist, Exception):
+                pass
+
+        # Fall back to UID key
+        uidkey = request.headers.get("X-UID-Key")
+        if uidkey and ":" in str(uidkey):
+            uid, key = str(uidkey).split(":", 1)
+            try:
+                user = User.objects.get(username=uid, uuid=key)
+                if user.is_active:
+                    if not (
+                        user.expires_at and timezone.now() > user.expires_at
+                    ):
+                        return user
+            except (User.DoesNotExist, Exception):
+                pass
+
+        raise ChartAuthFailed
