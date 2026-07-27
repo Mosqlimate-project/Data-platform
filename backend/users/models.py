@@ -31,6 +31,9 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+SDK_KEY_TTL_DAYS = 7
+
+
 class CustomUser(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # type: ignore[var-annotated]
     name = models.CharField(max_length=255, blank=True, null=True)  # type: ignore[var-annotated]
@@ -40,6 +43,8 @@ class CustomUser(AbstractUser):
     expires_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
     created_ip = models.GenericIPAddressField(null=True, blank=True)  # type: ignore[var-annotated]
     rate_limit = models.CharField(max_length=20, default="10/s")  # type: ignore[var-annotated]
+    sdk_key = models.UUIDField(null=True, blank=True, unique=True)  # type: ignore[var-annotated]
+    sdk_key_created_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
 
     def set_rate_limit(self, value: int, unit: Literal["s", "m", "d"]):
         units = {"s", "m", "d"}  # second, minute, day
@@ -64,6 +69,24 @@ class CustomUser(AbstractUser):
     def refresh_api_key(self):
         self.uuid = uuid.uuid4()
         self.save()
+
+    def sdk_key_is_expired(self):
+        if not self.sdk_key or not self.sdk_key_created_at:
+            return True
+        return (
+            timezone.now() - self.sdk_key_created_at
+        ).days >= SDK_KEY_TTL_DAYS
+
+    def get_or_create_sdk_key(self):
+        if self.sdk_key_is_expired():
+            self.rotate_sdk_key()
+        return str(self.sdk_key)
+
+    def rotate_sdk_key(self):
+        self.sdk_key = uuid.uuid4()
+        self.sdk_key_created_at = timezone.now()
+        self.save(update_fields=["sdk_key", "sdk_key_created_at"])
+        return str(self.sdk_key)
 
     def get_avatar(self):
         if self.avatar:

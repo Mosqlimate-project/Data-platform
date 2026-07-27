@@ -13,6 +13,11 @@ from registry.models import (
 )
 from vis.utils import hist_alerta_data
 from vis import schema
+from vis.charts import (
+    infodengue_router,
+    climate_router,
+    contaovos_router,
+)
 
 from ninja import Router, Query
 from ninja.decorators import decorate_view
@@ -21,6 +26,9 @@ from django.db.models import Max, Min, Q
 
 
 router = Router()
+router.add_router("", infodengue_router)
+router.add_router("", climate_router)
+router.add_router("", contaovos_router)
 auth = OptionalJWTAuth()
 
 
