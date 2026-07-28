@@ -3,6 +3,7 @@ from corsheaders.defaults import default_headers
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-uid-key",
+    "x-sdk-key",
 ]
 
 USE_X_FORWARDED_HOST = True
@@ -21,11 +22,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.mosqlimate.org",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://mosqlimate.org",
-]
 
 SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
