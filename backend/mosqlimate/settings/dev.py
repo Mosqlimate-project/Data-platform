@@ -4,6 +4,7 @@ from corsheaders.defaults import default_headers
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-uid-key",
+    "x-sdk-key",
 ]
 
 HOST_SCHEME = "http://"
@@ -24,8 +25,7 @@ origins = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = origins
+CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = origins
 
 mimetypes.add_type("application/javascript", ".js", True)
