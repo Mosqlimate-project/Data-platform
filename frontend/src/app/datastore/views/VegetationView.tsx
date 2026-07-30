@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from "react";
 import Papa from "papaparse";
-import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2, BarChart3 } from "lucide-react";
+import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
-import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
+import { VegetationMap, VegetationIQRMap, VegetationTimeSeries, IndexSelector } from "../components/charts/VegetationCharts";
+import { NEXT_PUBLIC_BACKEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -341,6 +342,7 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
+  const [selectedIndex, setSelectedIndex] = useState<string>("EVI");
 
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
@@ -380,17 +382,39 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
               onChange={handleEndDateChange}
             />
           </div>
+
+          <div className="flex gap-2 relative">
+            <IndexSelector 
+              value={selectedIndex} 
+              onChange={setSelectedIndex}
+            />
+          </div>
         </>
       }
     >
-      <div className="flex flex-col items-center justify-center min-h-[350px] w-full border border-dashed rounded-lg bg-muted/20 p-6 text-center">
-        <div className="p-3 rounded-full bg-muted border mb-3">
-          <BarChart3 className="w-6 h-6 text-muted-foreground" />
-        </div>
-        <h3 className="text-sm font-semibold mb-1">Charts Unavailable</h3>
-        <p className="text-xs text-muted-foreground max-w-sm">
-          Visualization under development. Check the docs for more information about this dataset.
-        </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <VegetationMap
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+        />
+
+        <VegetationIQRMap
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+        />
+      </div>
+
+      <div className="mt-6">
+        <VegetationTimeSeries
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+        />
       </div>
     </EndpointLayout>
   );
