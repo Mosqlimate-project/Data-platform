@@ -17,6 +17,7 @@ from vis.charts import (
     infodengue_router,
     climate_router,
     contaovos_router,
+    episcanner_router,
 )
 
 from ninja import Router, Query
@@ -24,11 +25,11 @@ from ninja.decorators import decorate_view
 from django.views.decorators.cache import never_cache
 from django.db.models import Max, Min, Q
 
-
 router = Router()
 router.add_router("", infodengue_router)
 router.add_router("", climate_router)
 router.add_router("", contaovos_router)
+router.add_router("", episcanner_router)
 auth = OptionalJWTAuth()
 
 

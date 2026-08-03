@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Missing required parameters: disease and uf" }, { status: 400 });
   }
 
-  const backendUrl = new URL(`${BACKEND_BASE_URL}/api/datastore/episcanner/`);
+  const backendUrl = new URL(`${BACKEND_BASE_URL}/api/vis/charts/episcanner/`);
   backendUrl.searchParams.set("disease", disease);
   backendUrl.searchParams.set("uf", uf);
   if (year) backendUrl.searchParams.set("year", year);

@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
@@ -11,6 +11,7 @@ from vis.charts.schema import (
     ContaOvosChartIn,
     ContaOvosPositivityIn,
     ContaOvosMapIn,
+    EpiscannerChartIn,
     VALID_UFS,
 )
 
@@ -309,6 +310,76 @@ class ContaOvosMapInTest(TestCase):
             )
 
 
+class EpiscannerChartInTest(TestCase):
+    def test_valid(self):
+        payload = EpiscannerChartIn(
+            disease="dengue",
+            uf="SP",
+            year=2024,
+        )
+        self.assertEqual(payload.disease, "dengue")
+        self.assertEqual(payload.uf, "SP")
+        self.assertEqual(payload.year, 2024)
+
+    def test_valid_diseases(self):
+        for disease in ["dengue", "chikungunya", "zika"]:
+            payload = EpiscannerChartIn(
+                disease=disease,
+                uf="SP",
+                year=2024,
+            )
+            self.assertEqual(payload.disease, disease)
+
+    def test_disease_lowercased(self):
+        payload = EpiscannerChartIn(
+            disease="Dengue",
+            uf="SP",
+            year=2024,
+        )
+        self.assertEqual(payload.disease, "dengue")
+
+    def test_invalid_disease(self):
+        with self.assertRaises(Exception):
+            EpiscannerChartIn(
+                disease="malaria",
+                uf="SP",
+                year=2024,
+            )
+
+    def test_uf_uppercased(self):
+        payload = EpiscannerChartIn(
+            disease="dengue",
+            uf="sp",
+            year=2024,
+        )
+        self.assertEqual(payload.uf, "SP")
+
+    def test_invalid_uf(self):
+        with self.assertRaises(Exception):
+            EpiscannerChartIn(
+                disease="dengue",
+                uf="XX",
+                year=2024,
+            )
+
+    def test_all_valid_ufs_accepted(self):
+        for uf in VALID_UFS:
+            payload = EpiscannerChartIn(
+                disease="dengue",
+                uf=uf,
+                year=2024,
+            )
+            self.assertEqual(payload.uf, uf)
+
+    def test_invalid_year(self):
+        with self.assertRaises(Exception):
+            EpiscannerChartIn(
+                disease="dengue",
+                uf="SP",
+                year=1800,
+            )
+
+
 class ClimateChartEndpointTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -553,6 +624,85 @@ class ContaOvosChartEndpointTest(TestCase):
         r = self.client.get(
             "/api/vis/charts/contaovos/eggs_density/",
             {"start": "2026-06-01", "end": "2026-01-01"},
+            HTTP_X_SDK_KEY=self.sdk_key,
+        )
+        self.assertIn(r.status_code, [400, 422])
+
+
+class EpiscannerChartEndpointTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="epiuser",
+            email="epi@test.com",
+            password="testpass",
+        )
+        self.sdk_key = self.user.rotate_sdk_key()
+
+    def test_requires_auth(self):
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "dengue", "uf": "SP", "year": 2024},
+        )
+        self.assertEqual(r.status_code, 401)
+
+    @patch("vis.charts.episcanner.cache")
+    @patch("vis.charts.episcanner.EpiscannerSirParams")
+    @patch("vis.charts.episcanner.Adm2")
+    def test_accepts_sdk_key(self, mock_adm2, mock_params, mock_cache):
+        mock_cache.get.return_value = None
+        geocodes_filter = Mock()
+        geocodes_filter.values_list.return_value = ["2300101"]
+        mock_adm2.objects.filter.side_effect = [geocodes_filter, []]
+        mock_params.objects.using.return_value.filter.return_value.values.return_value = (
+            []
+        )
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "dengue", "uf": "SP", "year": 2024},
+            HTTP_X_SDK_KEY=self.sdk_key,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), [])
+
+    @patch("vis.charts.episcanner.cache")
+    @patch("vis.charts.episcanner.EpiscannerSirParams")
+    @patch("vis.charts.episcanner.Adm2")
+    def test_accepts_uid_key(self, mock_adm2, mock_params, mock_cache):
+        mock_cache.get.return_value = None
+        geocodes_filter = Mock()
+        geocodes_filter.values_list.return_value = ["2300101"]
+        mock_adm2.objects.filter.side_effect = [geocodes_filter, []]
+        mock_params.objects.using.return_value.filter.return_value.values.return_value = (
+            []
+        )
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "dengue", "uf": "SP", "year": 2024},
+            HTTP_X_UID_KEY=self.user.api_key(),
+        )
+        self.assertEqual(r.status_code, 200)
+
+    def test_rejects_invalid_disease(self):
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "malaria", "uf": "SP", "year": 2024},
+            HTTP_X_SDK_KEY=self.sdk_key,
+        )
+        self.assertIn(r.status_code, [400, 422])
+
+    def test_rejects_invalid_uf(self):
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "dengue", "uf": "XX", "year": 2024},
+            HTTP_X_SDK_KEY=self.sdk_key,
+        )
+        self.assertIn(r.status_code, [400, 422])
+
+    def test_rejects_invalid_year(self):
+        r = self.client.get(
+            "/api/vis/charts/episcanner/",
+            {"disease": "dengue", "uf": "SP", "year": 1800},
             HTTP_X_SDK_KEY=self.sdk_key,
         )
         self.assertIn(r.status_code, [400, 422])
