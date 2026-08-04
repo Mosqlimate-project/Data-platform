@@ -9,6 +9,7 @@ import { ContaovosView } from "./views/ContaovosView";
 import { NEXT_PUBLIC_DOCS_URL } from "@/lib/env";
 import { EpiScannerView } from "./views/EpiscannerView";
 import { VegetationView } from "./views/VegetationView";
+import EpidBotBadge from "@/components/EpidBotBadge";
 
 export default function DatastorePage() {
   const { t } = useTranslation();
@@ -55,7 +56,10 @@ export default function DatastorePage() {
   return (
     <>
       <section className="md:p-8 md:flex md:flex-col md:gap-8 md:max-w-[1800px] md:w-full">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">Datastore</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold text-[var(--color-text)]">Datastore</h1>
+          <EpidBotBadge />
+        </div>
 
         <div className="z-10 overflow-x-auto flex gap-4 pb-2">
           {endpoints.map((ep, i) => {

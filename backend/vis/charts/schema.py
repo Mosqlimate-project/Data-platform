@@ -1,9 +1,9 @@
+import datetime
 from datetime import date
 from typing import Optional
 
 from ninja import Schema
 from pydantic import field_validator, model_validator
-
 
 MAX_DATE_RANGE_DAYS = 365
 
@@ -38,6 +38,8 @@ VALID_UFS = {
     "TO",
     "DF",
 }
+
+VALID_EPISCANNER_DISEASES = {"dengue", "chikungunya", "zika"}
 
 
 # --- Input schemas ---
@@ -173,6 +175,41 @@ class ContaOvosMapIn(Schema):
         return self
 
 
+class EpiscannerChartIn(Schema):
+    disease: str
+    uf: str
+    year: int
+
+    @field_validator("disease")
+    @classmethod
+    def validate_disease(cls, v):
+        if v.lower() not in VALID_EPISCANNER_DISEASES:
+            raise ValueError(
+                f"Invalid disease '{v}'. "
+                f"Must be one of: {', '.join(sorted(VALID_EPISCANNER_DISEASES))}"
+            )
+        return v.lower()
+
+    @field_validator("uf")
+    @classmethod
+    def validate_uf(cls, v):
+        if v.upper() not in VALID_UFS:
+            raise ValueError(
+                f"Invalid UF '{v}'. Must be a valid Brazilian state code"
+            )
+        return v.upper()
+
+    @field_validator("year")
+    @classmethod
+    def validate_year(cls, v):
+        current_year = datetime.datetime.now().year
+        if v < 2000 or v > current_year + 1:
+            raise ValueError(
+                f"Invalid year '{v}'. Must be between 2000 and {current_year + 1}"
+            )
+        return v
+
+
 # --- Output schemas ---
 
 
@@ -206,6 +243,11 @@ class ClimateHumidityPressureOut(Schema):
     umid_med: float
     pressao_med: float
 
+    @field_validator("umid_med", "pressao_med")
+    @classmethod
+    def round_to_3(cls, v):
+        return round(v, 3)
+
 
 class ContaOvosEggsDensityOut(Schema):
     epiweek: str
@@ -230,3 +272,21 @@ class ContaOvosMapScatterOut(Schema):
     longitude: float
     trap_id: int
     municipality: str
+
+
+class EpiscannerChartOut(Schema):
+    disease: str
+    CID10: str
+    year: int
+    geocode: int
+    muni_name: str
+    peak_week: float
+    beta: float
+    gamma: float
+    R0: float
+    total_cases: float
+    alpha: float
+    sum_res: float
+    ep_ini: str
+    ep_end: str
+    ep_dur: int
