@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.13.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.12.1...2.13.0) (2026-08-11)
+
+
+### Features
+
+* add precip_fixed parameter to all CopernicusBrasil endpoints ([#541](https://github.com/Mosqlimate-project/Data-platform/issues/541)) ([4ee5e3f](https://github.com/Mosqlimate-project/Data-platform/commit/4ee5e3f2e22d006f7d9398163626a1435fbcb0c2))
+
 ## [2.12.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.12.0...2.12.1) (2026-07-28)
 
 
