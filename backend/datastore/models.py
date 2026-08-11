@@ -456,6 +456,19 @@ class HistoricoAlertaZika(models.Model):
         db_table = '"Historico_alerta_zika"'
 
 
+class CopernicusBrasilPrecipFixed(models.Model):
+    date = models.DateField(db_column="date", primary_key=True)  # type: ignore[var-annotated]
+    geocode = models.BigIntegerField(db_column="geocode")  # type: ignore[var-annotated]
+    precip_min = models.FloatField(db_column="precip_min")  # type: ignore[var-annotated]
+    precip_med = models.FloatField(db_column="precip_med")  # type: ignore[var-annotated]
+    precip_max = models.FloatField(db_column="precip_max")  # type: ignore[var-annotated]
+    precip_tot = models.FloatField(db_column="precip_tot")  # type: ignore[var-annotated]
+
+    class Meta:
+        managed = False
+        db_table = "copernicus_bra_precip_tot_fixed"
+
+
 class CopernicusBrasil(models.Model):
     date = models.DateField(db_column="date", primary_key=True)  # type: ignore[var-annotated]
     geocodigo = models.BigIntegerField(db_column="geocode")  # type: ignore[var-annotated]
@@ -477,8 +490,3 @@ class CopernicusBrasil(models.Model):
     class Meta:
         managed = False
         db_table = "copernicus_bra"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["date", "geocodigo"], name="composite_primary_key"
-            )
-        ]

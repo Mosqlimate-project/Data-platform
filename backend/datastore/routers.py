@@ -1,12 +1,13 @@
 from .models import (
     HistoricoAlerta,
     CopernicusBrasil,
+    CopernicusBrasilPrecipFixed,
     VegetationIndexMetric,
     Municipio,
     EpiscannerSirParams,
 )
 
-WEATHER_MODELS = [CopernicusBrasil]
+WEATHER_MODELS = [CopernicusBrasil, CopernicusBrasilPrecipFixed]
 MUNICIPIO_MODELS = [HistoricoAlerta]
 VEG_INDICEDS_MODELS = [VegetationIndexMetric]
 DENGUE_GLOBAL_MODELS = [Municipio]

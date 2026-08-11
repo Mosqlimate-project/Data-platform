@@ -1,12 +1,16 @@
 from typing import List
 
+import datetime
+
 from ninja import Router, Query
 from ninja.decorators import decorate_view
 from django.views.decorators.cache import never_cache
+from django.db.models import F, Subquery, OuterRef, CharField
+from django.db.models.functions import Coalesce, Cast
 
 from users.auth import ChartAuth
 from main.models import APILog
-from datastore.models import CopernicusBrasil
+from datastore.models import CopernicusBrasil, CopernicusBrasilPrecipFixed
 from vis.throttle import SdkThrottle
 from vis.charts.schema import (
     ClimateChartIn,
@@ -14,6 +18,8 @@ from vis.charts.schema import (
     ClimateAccumulatedWaterfallOut,
     ClimateHumidityPressureOut,
 )
+
+PRECIP_FIXED_CUTOFF = datetime.date(2026, 8, 1)
 
 router = Router(tags=["charts"])
 auth = ChartAuth()
@@ -62,7 +68,7 @@ def charts_climate_daily_accumulated_waterfall(
     payload: ClimateChartIn = Query(...),
 ):
     APILog.from_request(request)
-    return (
+    qs = (
         CopernicusBrasil.objects.using("infodengue")
         .filter(
             geocodigo=payload.geocode,
@@ -70,12 +76,50 @@ def charts_climate_daily_accumulated_waterfall(
             date__lte=payload.end,
         )
         .order_by("date")
-        .values(
-            "date",
-            "epiweek",
-            "precip_tot",
-            "precip_med",
+    )
+
+    if payload.precip_fixed and payload.start < PRECIP_FIXED_CUTOFF:
+        qs = qs.annotate(
+            _pf_tot=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"),
+                            output_field=CharField(),
+                        ),
+                    )
+                    .values("precip_tot")[:1]
+                ),
+                F("precip_tot"),
+            ),
+            _pf_med=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"),
+                            output_field=CharField(),
+                        ),
+                    )
+                    .values("precip_med")[:1]
+                ),
+                F("precip_med"),
+            ),
         )
+        qs = qs.values("date", "epiweek")
+        return qs.annotate(
+            precip_tot=F("_pf_tot"),
+            precip_med=F("_pf_med"),
+        )
+
+    return qs.values(
+        "date",
+        "epiweek",
+        "precip_tot",
+        "precip_med",
     )
 
 

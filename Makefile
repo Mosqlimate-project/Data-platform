@@ -9,7 +9,7 @@ else
   BACKEND_SHELL = docker exec -it mosqlimate-2-backend-1 python manage.py shell
 endif
 
-.PHONY: test lint migrate migrations build up down shell
+.PHONY: test lint migrate migrations build up down start shell
 
 test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
@@ -23,15 +23,6 @@ migrate:
 
 migrations:
 	$(BACKEND_RUN) python manage.py makemigrations
-
-build:
-	docker compose -f containers/compose.yaml build
-
-up:
-	docker compose -f containers/compose.yaml up -d
-
-down:
-	docker compose -f containers/compose.yaml down
 
 shell:
 	$(BACKEND_SHELL)

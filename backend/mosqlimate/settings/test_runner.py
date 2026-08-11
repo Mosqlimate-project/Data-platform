@@ -82,6 +82,17 @@ CREATE TABLE IF NOT EXISTS copernicus_bra (
 );
 """
 
+COPERNICUS_BRASIL_PRECIP_FIXED_DDL = """
+CREATE TABLE IF NOT EXISTS copernicus_bra_precip_tot_fixed (
+    "date" date PRIMARY KEY,
+    "geocode" bigint NOT NULL,
+    "precip_min" double precision,
+    "precip_med" double precision,
+    "precip_max" double precision,
+    "precip_tot" double precision
+);
+"""
+
 
 class SimpleTestRunner(DiscoverRunner):
     def setup_databases(self, **kwargs):
@@ -116,6 +127,7 @@ class SimpleTestRunner(DiscoverRunner):
         )
         cursor.execute(SIR_PARAMS_DDL)
         cursor.execute(COPERNICUS_BRASIL_DDL)
+        cursor.execute(COPERNICUS_BRASIL_PRECIP_FIXED_DDL)
         self._seed_test_data(cursor)
 
     def _seed_test_data(self, cursor):
@@ -147,6 +159,22 @@ class SimpleTestRunner(DiscoverRunner):
                 60.0,
                 70.0,
                 80.0,
+            ],
+        )
+
+        cursor.execute(
+            "INSERT INTO copernicus_bra_precip_tot_fixed "
+            '("date", "geocode", "precip_min", "precip_med", '
+            '"precip_max", "precip_tot") '
+            "VALUES (%s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT DO NOTHING",
+            [
+                today,
+                3304557,
+                1.0,
+                6.0,
+                12.0,
+                18.0,
             ],
         )
 

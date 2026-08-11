@@ -1,4 +1,21 @@
 ## [Climate Weekly time series](https://api.mosqlimate.org/api/docs#/datastore/datastore_api_get_copernicus_brasil_weekly)
+
+!!! danger "Precipitation data: known miscalculation in legacy ETL"
+    **All precipitation variables (`precip_min`, `precip_med`, `precip_max`, `precip_tot`) used by this endpoint are affected by an ETL bug — the same described in the [Climate endpoint](/docs/datastore/GET/climate/). This directly impacts the `precip_tot_sum` field in the weekly output.**
+
+    **What was the problem?**  
+    The data source is the [ERA5-Land reanalysis dataset](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview), whose accumulation convention differs fundamentally from the standard ERA5 convention. In ERA5-Land, accumulations in short forecasts (steps 01 to 24) are accumulated *from the beginning of the forecast* to the end of the forecast step — i.e., from `day=D, time=00:00` up to the step's valid time. At step 24, the timestamp `day=D+1, 00:00` represents the **total accumulation over the full 24 hours of day D**. This means the time-stamped data at `00:00` actually represents the **previous day's** accumulation. The legacy ingestion pipeline incorrectly aggregated these accumulated variables using the ERA5 convention (where hourly steps represent the hour *ending* at the timestamp), producing shifted and incorrect daily precipitation totals that propagate into the weekly aggregation. See the [ECMWF documentation](https://confluence.ecmwf.int/display/CKB/ERA5+family+daily+statistics+catalogue+entries%3A+methodology%2C+known+issues+and+FAQ#ERA5familydailystatisticscatalogueentries:methodology,knownissuesandFAQ-AccumulatedvariablesforERA5land) for technical details.
+
+    **What was fixed?**  
+    As of the latest update, the precipitation values have been recalculated using the correct ERA5-Land accumulation convention.
+
+    **How to use the corrected data:**  
+    The `precip_fixed` query parameter defaults to `true` and controls all `precip_*` fields. When `precip_fixed=true` (default), the aggregation uses the **corrected** values. Set `precip_fixed=false` to retrieve the **legacy (miscalculated)** values for backward compatibility.
+
+    **After 2026-08-01**, the ingestion pipeline has been fixed. From that date onward, `precip_fixed=true` and `precip_fixed=false` return the **same correct values** — the toggle only affects historical data before the cutoff.
+
+    ---
+
 This endpoint is an aggregation of the [Climate](/docs/datastore/GET/climate/) endpoint by Epiweek.
 
 ## Parameters Table
@@ -12,6 +29,7 @@ This endpoint is an aggregation of the [Climate](/docs/datastore/GET/climate/) e
 | geocode | no* | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
 | uf | no* | str _(UF)_ | Two letters brazilian's state abbreviation. E.g: SP |
 | macro_health_code | no* | int | 5 digit brazilian's MacroHealth region geocode. |
+| precip_fixed | no | bool | Use corrected precipitation values (default: `true`). See warning above. |
 
 ### Output (items)
 | Parameter name | Type | Description |

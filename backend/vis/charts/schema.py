@@ -83,6 +83,7 @@ class ClimateChartIn(Schema):
     geocode: int
     start: date
     end: date
+    precip_fixed: bool = True
 
     @field_validator("geocode")
     @classmethod

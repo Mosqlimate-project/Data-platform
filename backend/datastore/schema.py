@@ -104,6 +104,7 @@ class CopernicusBrasilWeeklyParams(BaseModel):
     # fmt: off
     uf: Optional[str] = None
     # fmt: on
+    precip_fixed: bool = True
 
     @field_validator("geocode")
     def validate_geocode(cls, value):
