@@ -9,8 +9,17 @@ from ninja.errors import HttpError
 from ninja.pagination import paginate
 from django.views.decorators.csrf import csrf_exempt
 from django.db.utils import OperationalError
-from django.db.models import F, Avg, Sum, Count, Q
-from django.db.models.functions import Round
+from django.db.models import (
+    F,
+    Avg,
+    Sum,
+    Count,
+    Q,
+    Subquery,
+    OuterRef,
+    CharField,
+)
+from django.db.models.functions import Round, Coalesce, Cast
 from django.core.cache import cache
 
 
@@ -26,12 +35,15 @@ from .models import (
     HistoricoAlertaZika,
     HistoricoAlertaChik,
     CopernicusBrasil,
+    CopernicusBrasilPrecipFixed,
     ContaOvos,
     Adm2,
     EpiscannerSirParams,
 )
 from datastore import schema, filters, models
 
+
+PRECIP_FIXED_CUTOFF = datetime.date(2026, 8, 1)
 
 router = Router(tags=["datastore"])
 
@@ -255,6 +267,7 @@ def get_copernicus_brasil(
         ]
     ] = None,
     # fmt: on
+    precip_fixed: bool = Query(True),
     **kwargs,
 ):
     APILog.from_request(request)
@@ -276,6 +289,82 @@ def get_copernicus_brasil(
         data = data.filter(geocodigo__in=geocodes)
 
     data = filters.filter(data)
+
+    if precip_fixed and filters.start < PRECIP_FIXED_CUTOFF:
+        data = data.annotate(
+            _pf_min=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"), output_field=CharField()
+                        ),
+                    )
+                    .values("precip_min")[:1]
+                ),
+                F("precip_min"),
+            ),
+            _pf_med=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"), output_field=CharField()
+                        ),
+                    )
+                    .values("precip_med")[:1]
+                ),
+                F("precip_med"),
+            ),
+            _pf_max=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"), output_field=CharField()
+                        ),
+                    )
+                    .values("precip_max")[:1]
+                ),
+                F("precip_max"),
+            ),
+            _pf_tot=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"), output_field=CharField()
+                        ),
+                    )
+                    .values("precip_tot")[:1]
+                ),
+                F("precip_tot"),
+            ),
+        )
+        data = data.values(  # type: ignore[assignment]
+            "date",
+            "geocodigo",
+            "epiweek",
+            "temp_min",
+            "temp_med",
+            "temp_max",
+            "pressao_min",
+            "pressao_med",
+            "pressao_max",
+            "umid_min",
+            "umid_med",
+            "umid_max",
+        ).annotate(
+            precip_min=F("_pf_min"),
+            precip_med=F("_pf_med"),
+            precip_max=F("_pf_max"),
+            precip_tot=F("_pf_tot"),
+        )
+
     return data
 
 
@@ -357,24 +446,42 @@ def get_copernicus_brasil_weekly(
         raise HttpError(400, f"`start` or `end` epiweek error: {err}")
 
     try:
-        data = (
-            CopernicusBrasil.objects.using("infodengue")
-            .filter(
-                date__gte=sweek.startdate(),
-                date__lte=eweek.enddate(),
-                geocodigo__in=geocodes,
+        qs = CopernicusBrasil.objects.using("infodengue").filter(
+            date__gte=sweek.startdate(),
+            date__lte=eweek.enddate(),
+            geocodigo__in=geocodes,
+        )
+
+        if params.precip_fixed and sweek.startdate() < PRECIP_FIXED_CUTOFF:
+            qs = qs.annotate(
+                _precip_tot_fixed=Coalesce(
+                    Subquery(
+                        CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                        .filter(
+                            date=OuterRef("date"),
+                            geocode=Cast(
+                                OuterRef("geocodigo"),
+                                output_field=CharField(),
+                            ),
+                        )
+                        .values("precip_tot")[:1]
+                    ),
+                    F("precip_tot"),
+                ),
             )
-            .values("epiweek", "geocodigo")
-            .annotate(
-                temp_min_avg=Round(Avg("temp_min"), 4),
-                temp_med_avg=Round(Avg("temp_med"), 4),
-                temp_max_avg=Round(Avg("temp_max"), 4),
-                temp_amplit_avg=Round(Avg(F("temp_max") - F("temp_min")), 4),
-                precip_tot_sum=Round(Sum("precip_tot"), 4),
-                umid_min_avg=Round(Avg("umid_min"), 4),
-                umid_med_avg=Round(Avg("umid_med"), 4),
-                umid_max_avg=Round(Avg("umid_max"), 4),
-            )
+            precip_tot_ref = F("_precip_tot_fixed")
+        else:
+            precip_tot_ref = F("precip_tot")
+
+        data = qs.values("epiweek", "geocodigo").annotate(
+            temp_min_avg=Round(Avg("temp_min"), 4),
+            temp_med_avg=Round(Avg("temp_med"), 4),
+            temp_max_avg=Round(Avg("temp_max"), 4),
+            temp_amplit_avg=Round(Avg(F("temp_max") - F("temp_min")), 4),
+            precip_tot_sum=Round(Sum(precip_tot_ref), 4),
+            umid_min_avg=Round(Avg("umid_min"), 4),
+            umid_med_avg=Round(Avg("umid_med"), 4),
+            umid_max_avg=Round(Avg("umid_max"), 4),
         )
     except OperationalError:
         raise HttpError(500, "Server error. Please contact the moderation")
@@ -624,19 +731,56 @@ def charts_climate_daily_temperature(
     include_in_schema=False,
 )
 def charts_climate_daily_accumulated_waterfall(
-    request, geocode: int, start: datetime.date, end: datetime.date
+    request,
+    geocode: int,
+    start: datetime.date,
+    end: datetime.date,
+    precip_fixed: bool = Query(True),
 ):
-    return (
+    qs = (
         CopernicusBrasil.objects.using("infodengue")
         .filter(geocodigo=geocode, date__gte=start, date__lte=end)
         .order_by("date")
-        .values(
-            "date",
-            "epiweek",
-            "precip_tot",
-            "precip_med",
-        )
     )
+
+    if precip_fixed and start < PRECIP_FIXED_CUTOFF:
+        qs = qs.annotate(
+            _pf_tot=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"),
+                            output_field=CharField(),
+                        ),
+                    )
+                    .values("precip_tot")[:1]
+                ),
+                F("precip_tot"),
+            ),
+            _pf_med=Coalesce(
+                Subquery(
+                    CopernicusBrasilPrecipFixed.objects.using("infodengue")
+                    .filter(
+                        date=OuterRef("date"),
+                        geocode=Cast(
+                            OuterRef("geocodigo"),
+                            output_field=CharField(),
+                        ),
+                    )
+                    .values("precip_med")[:1]
+                ),
+                F("precip_med"),
+            ),
+        )
+        qs = qs.values("date", "epiweek")  # type: ignore[assignment]
+        return qs.annotate(
+            precip_tot=F("_pf_tot"),
+            precip_med=F("_pf_med"),
+        )
+
+    return qs.values("date", "epiweek", "precip_tot", "precip_med")
 
 
 @router.get(
