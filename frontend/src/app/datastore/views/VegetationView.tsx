@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Papa from "papaparse";
 import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
@@ -244,10 +244,7 @@ function VegetationApiBuilder() {
         <label className="text-xs font-medium opacity-70">geocode</label>
         <CitySearch
           value={geocode}
-          onChange={(val) => {
-            setGeocode(val);
-            if (val) setUf("");
-          }}
+          onChange={handleCitySearch}
         />
       </div>
 
@@ -344,6 +341,10 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
   const [selectedIndex, setSelectedIndex] = useState<string>("EVI");
 
+  const [selectedState, setSelectedState] = useState<string>("RJ");
+  const [selectedCityGeocode, setSelectedCityGeocode] = useState<string>("3304557");
+  const [selectedCityName, setselectedCityName] = useState<string>("Rio de Janeiro");
+
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
     setStartDate(value);
@@ -353,6 +354,54 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
     if (startDate && value < startDate) return;
     setEndDate(value);
   };
+
+  const handleStateSelect = useCallback((stateCode: string) => {
+    setSelectedState(stateCode);
+    setSelectedCityGeocode(undefined);
+    setselectedCityName(undefined);
+  }, []);
+
+  const handleCitySelect = useCallback((geocode: string, cityName: string) => {
+    setSelectedCityGeocode(geocode);
+    setselectedCityName(cityName);
+    setGeocode(Number(geocode));
+  }, []);
+
+  const handleCitySearch = useCallback(
+    async (cityGeocode: number | undefined) => {
+      if (!cityGeocode) return;
+
+      try {
+        console.log(`Buscando informações do município ${cityGeocode}`);
+        
+        const res = await fetch(`/api/datastore/cities?geocode=${cityGeocode}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch city: ${res.status}`);
+        }
+
+        const cities = await res.json();
+
+        if (!cities || cities.length === 0) {
+          console.warn(`Município não encontrado: ${cityGeocode}`);
+          return;
+        }
+        const city = cities[0];
+
+        const cityName = `${city.name} - ${city.adm1}`;
+        const stateCode = city.adm1;
+
+        console.log(`Município pesquisado: ${cityName}`);
+        console.log(`Estado encontrado: ${stateCode}`);
+
+        setGeocode(Number(cityGeocode));
+        setSelectedState(stateCode);
+        setSelectedCityGeocode(String(cityGeocode));
+        setselectedCityName(cityName);
+      } catch (error) {
+        console.error("Erro ao buscar município:", error);
+      }
+    }, []
+  );
 
   return (
     <EndpointLayout
@@ -398,6 +447,8 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
           start={startDate}
           end={endDate}
           attribute={selectedIndex}
+          onStateSelect={handleStateSelect}
+          selectedState={selectedState}
         />
 
         <VegetationIQRMap
@@ -405,6 +456,9 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
           start={startDate}
           end={endDate}
           attribute={selectedIndex}
+          selectedState={selectedState || "RJ"}
+          selectedCityGeocode={selectedCityGeocode}
+          onCitySelect={handleCitySelect}
         />
       </div>
 
@@ -414,6 +468,9 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
           start={startDate}
           end={endDate}
           attribute={selectedIndex}
+          selectedState={selectedState || "RJ"}
+          selectedCityGeocode={selectedCityGeocode}
+          selectedCityName={selectedCityName}
         />
       </div>
     </EndpointLayout>
