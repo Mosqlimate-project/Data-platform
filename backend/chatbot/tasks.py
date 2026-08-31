@@ -7,7 +7,6 @@ from types import SimpleNamespace
 def generate_bot_answer(
     question: str,
     session_key: str,
-    user_api_key: Optional[str] = None,
     message_history: Optional[List[Dict]] = None,
     language: str = "en",
 ):
@@ -16,6 +15,7 @@ def generate_bot_answer(
     from channels.layers import get_channel_layer
 
     google_api_key = os.getenv("GOOGLE_API_KEY", None)
+    epidbot_api_key = os.getenv("EPIDBOT_API_KEY", None)
     channel_layer = get_channel_layer()
 
     try:
@@ -33,6 +33,7 @@ def generate_bot_answer(
         answer = main.assistant_pipeline(
             question=full_question,
             google_api_key=google_api_key,
+            epidbot_api_key=epidbot_api_key,
             message_history=history_objects,
             lang=language,
         )
