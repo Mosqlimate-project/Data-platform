@@ -219,6 +219,7 @@ export default function PublicationsPage() {
   ];
 
   const softwares = [
+    { title: "EPIDESC R", link: "https://cran.r-project.org/web/packages/epidesc/index.html", year: "2026" },
     { title: t('publications.items.soft_mosqlient'), link: "https://github.com/Mosqlimate-project/mosqlimate-client", year: "2025" },
     { title: t('publications.items.soft_episcanner'), link: "https://info.dengue.mat.br/epi-scanner/", year: "2024" },
     { title: t('publications.items.soft_platform'), link: "https://doi.org/10.5281/zenodo.12744275", year: "2024" }
