@@ -1,6 +1,20 @@
 Release Notes
 ---
 
+# [2.14.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.13.0...2.14.0) (2026-09-08)
+
+
+### Bug Fixes
+
+* coolify doesn't allow volumes to be env variables ([#547](https://github.com/Mosqlimate-project/Data-platform/issues/547)) ([caedde8](https://github.com/Mosqlimate-project/Data-platform/commit/caedde83bf43b6d3c03985dea450079d4fb887e2))
+* include swagger.json to fix docs build on coolify ([#549](https://github.com/Mosqlimate-project/Data-platform/issues/549)) ([bd870f0](https://github.com/Mosqlimate-project/Data-platform/commit/bd870f09c1a0752c6d859fc208e11f219072d951))
+* remove ollama container & fetch swagger.json from prod instead ([#548](https://github.com/Mosqlimate-project/Data-platform/issues/548)) ([15bae2b](https://github.com/Mosqlimate-project/Data-platform/commit/15bae2b7463ddf0fd5fa7076101f99e2781ff85c))
+
+
+### Features
+
+* coolify the docker cluster ([#545](https://github.com/Mosqlimate-project/Data-platform/issues/545)) ([a506799](https://github.com/Mosqlimate-project/Data-platform/commit/a506799f5d533512a4db277b47c8399e902d9095))
+
 # [2.13.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.12.1...2.13.0) (2026-08-11)
 
 
