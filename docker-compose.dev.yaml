@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: containers/frontend/Dockerfile
+      target: deps
       args:
         - UID=${HOST_UID}
         - GID=${HOST_GID}
@@ -12,9 +13,11 @@ services:
         - NEXT_PUBLIC_DOCS_URL=${DOCS_URL}
         - BACKEND_PORT=${BACKEND_PORT}
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
       PORT: ${FRONTEND_PORT}
       BACKEND_PORT: ${BACKEND_PORT}
+      FRONTEND_PORT: ${FRONTEND_PORT}
       NEXT_PUBLIC_FRONTEND_URL: ${FRONTEND_URL}
       NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
       NEXT_PUBLIC_DOCS_URL: ${DOCS_URL}
@@ -22,7 +25,7 @@ services:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     user: "mosqlimate:mosqlimate"
     restart: unless-stopped
-    command: node server.js
+    command: npm run dev
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:${FRONTEND_PORT}"]
       interval: 60s
@@ -30,7 +33,9 @@ services:
       retries: 5
       start_period: 40s
     volumes:
-      - /opt/services/Mosqlimate/storage/django/media:/app/public/media
+      - ./frontend/:/app
+      - /app/node_modules
+      - /app/.next
     networks:
       - default
 
@@ -99,9 +104,8 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     user: "mosqlimate:mosqlimate"
     volumes:
-      - /home/administrador/episcanner:/opt/services/storage/django/episcanner
-      - /opt/services/Mosqlimate/storage/django:/opt/services/storage/django
-      - /Storage/backups/mosqlimate:/opt/backups
+      - ./backend/:/opt/services/mosqlimate
+      - backend_data:/opt/services/storage
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:${BACKEND_PORT}/api/status/"]
@@ -112,7 +116,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
+    command: python manage.py runserver 0.0.0.0:${BACKEND_PORT}
     networks:
       - default
       - infodengue
@@ -181,8 +185,7 @@ services:
       - ${WORKER_PORT}:${WORKER_PORT}
     user: "mosqlimate:mosqlimate"
     volumes:
-      - /opt/services/Mosqlimate/storage/django:/opt/services/storage/django
-      - /Storage/backups/mosqlimate:/opt/backups
+      - backend_data:/opt/services/storage
     command: celery -A mosqlimate worker -l INFO -E -B --scheduler django_celery_beat.schedulers:DatabaseScheduler
     healthcheck:
       test: ["CMD-SHELL", 'celery --app mosqlimate.celeryapp.app status']
@@ -218,8 +221,8 @@ services:
     user: "${POSTGRES_HOST_UID}:${POSTGRES_HOST_GID}"
     volumes:
       - ./containers/postgres/scripts:/docker-entrypoint-initdb.d/
-      - /Storage/mosqlimateV2_data/psql:/etc/postgresql/
-      - /Storage/mosqlimateV2_data/psql/pgdata:/var/lib/postgresql/data
+      - ${POSTGRES_CONF_DIR_HOST}:/etc/postgresql/
+      - ${POSTGRES_DATA_DIR_HOST}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER}"]
       interval: 60s
@@ -286,8 +289,9 @@ services:
 volumes:
   redis:
   ollama:
+  backend_data:
 
 networks:
   infodengue:
-    name: ${INFODENGUE_NETWORK_NAME:-infodengue-prod_infodengue}
+    name: ${INFODENGUE_NETWORK_NAME:-infodengue-dev_infodengue}
     external: true

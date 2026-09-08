@@ -9,8 +9,7 @@ profiles:
   dev:
     env-file: .env
     config-path:
-      - docker-compose.yaml
-      - docker-compose.override.yaml
+      - docker-compose.dev.yaml
     services:
       available:
         - name: frontend

@@ -3,7 +3,7 @@ TEST_ARGS ?= --settings=$(TEST_SETTINGS) --verbosity=2
 
 ENV ?= dev
 ifeq ($(ENV), dev)
-  COMPOSE_FILES = docker-compose.yaml docker-compose.override.yaml
+  COMPOSE_FILES = docker-compose.dev.yaml
 else
   COMPOSE_FILES = docker-compose.yaml
 endif
