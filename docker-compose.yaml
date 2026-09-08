@@ -227,7 +227,9 @@ services:
       retries: 10
     command: ["-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     networks:
-      - default
+      default:
+        aliases:
+          - mosqlimate-${VERSION}-postgres
 
   documentation:
     hostname: mosqlimate-${VERSION}-docs
