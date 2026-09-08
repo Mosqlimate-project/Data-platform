@@ -9,8 +9,8 @@ profiles:
   dev:
     env-file: .env
     config-path:
-      - containers/compose.yaml
-      - containers/compose-dev.yaml
+      - docker-compose.yaml
+      - docker-compose.override.yaml
     services:
       available:
         - name: frontend
@@ -24,8 +24,7 @@ profiles:
   prod:
     env-file: .env
     config-path:
-      - containers/compose.yaml
-      - containers/compose-prod.yaml
+      - docker-compose.yaml
     services:
       available:
         - name: frontend

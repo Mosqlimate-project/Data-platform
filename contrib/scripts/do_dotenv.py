@@ -325,6 +325,11 @@ variables = {
     # [Core]
     "ENV": env,
     "VERSION": "2",
+    "INFODENGUE_NETWORK_NAME": (
+        "infodengue-prod_infodengue"
+        if env == "prod"
+        else "infodengue-dev_infodengue"
+    ),
     "HOST_UID": uid,
     "HOST_GID": gid,
     "FRONTEND_URL": frontend_url,
