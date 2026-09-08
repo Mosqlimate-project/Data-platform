@@ -248,6 +248,12 @@ services:
     stdin_open: true
     tty: true
     entrypoint: ["/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     depends_on:
       backend:
         condition: service_healthy
