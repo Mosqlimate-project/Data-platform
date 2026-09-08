@@ -1,4 +1,4 @@
-FROM postgres:15-bullseye
+FROM postgres:15-bookworm
 
 ARG environment
 ARG UID
