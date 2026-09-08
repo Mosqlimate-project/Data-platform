@@ -1,6 +1,6 @@
 FROM squidfunk/mkdocs-material
 
-RUN mkdir /root/docs
+COPY ./mkdocs /root
 
 COPY ./containers/mkdocs/requirements.txt /tmp/requirements.txt
 COPY ./containers/mkdocs/entrypoint.sh /entrypoint.sh

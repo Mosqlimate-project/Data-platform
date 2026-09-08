@@ -240,8 +240,6 @@ services:
       BACKEND_URL: ${BACKEND_URL}
     ports:
       - ${MKDOCS_PORT}:8000
-    volumes:
-      - ./mkdocs:/root
     stdin_open: true
     tty: true
     entrypoint: ["/entrypoint.sh"]
