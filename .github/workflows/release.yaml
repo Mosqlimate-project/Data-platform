@@ -30,6 +30,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Fetch latest swagger spec
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          curl -fsSL https://api.mosqlimate.org/api/openapi.json -o mkdocs/docs/swagger.json
+
       - name: Run semantic release (for tests)
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
