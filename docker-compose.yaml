@@ -85,7 +85,6 @@ services:
       BACKUP_DIR_HOST: ${BACKUP_DIR_HOST}
       MOSQLIENT_API_URL: ${MOSQLIENT_API_URL}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      OLLAMA_URL: ${OLLAMA_URL}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       EPIDBOT_API_KEY: ${EPIDBOT_API_KEY}
     build:
@@ -167,7 +166,6 @@ services:
       BACKUP_DIR_HOST: ${BACKUP_DIR_HOST}
       MOSQLIENT_API_URL: ${MOSQLIENT_API_URL}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      OLLAMA_URL: ${OLLAMA_URL}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       EPIDBOT_API_KEY: ${EPIDBOT_API_KEY}
     build:
@@ -272,20 +270,8 @@ services:
     networks:
       - default
 
-  ollama:
-    image: ollama/ollama
-    hostname: mosqlimate-${VERSION}-ollama
-    ports:
-      - 11434:11434
-    volumes:
-      - ollama:/root/.ollama
-    restart: unless-stopped
-    networks:
-      - default
-
 volumes:
   redis:
-  ollama:
 
 networks:
   infodengue:
