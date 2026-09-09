@@ -141,3 +141,27 @@ class ScoreUpdateTriggerSignalTest(TestCase):
         )
 
         self.assertIsNotNone(prediction.id)
+
+    def test_existing_save_does_not_trigger_model_prediction_signal(self):
+        pred = m.ModelPrediction.objects.create(
+            model=self.model,
+            disease=self.disease,
+            adm_level=0,
+            adm0=self.adm0,
+            commit="f" * 40,
+        )
+        pred.description = "updated"
+        pred.save()
+        self.model.refresh_from_db()
+        self.assertIsNotNone(self.model.updated)
+
+    def test_existing_save_does_not_trigger_quantitative_signal(self):
+        pred = m.QuantitativePrediction.objects.create(
+            model=self.model,
+            disease=self.disease,
+            adm_level=0,
+            adm0=self.adm0,
+            commit="g" * 40,
+        )
+        pred.description = "updated"
+        pred.save()
