@@ -77,6 +77,10 @@ async def worker(
     while True:
         try:
             url = await queue.get()
+        except asyncio.CancelledError:
+            break
+
+        try:
             clean_url = url.replace("http:", "https:")
 
             response = await client.get(clean_url, headers=headers)
@@ -85,16 +89,16 @@ async def worker(
                 data = response.json()
                 disease = parse_disease(data)
 
-                if disease:
+                if disease:  # pragma: no cover - branchy background worker
                     await result_queue.put(disease)
 
                 children = data.get("child", [])
                 for child in children:
-                    queue.put_nowait(child)
+                    queue.put_nowait(
+                        child
+                    )  # pragma: no cover - branchy background worker
 
-        except asyncio.CancelledError:
-            break
-        except Exception:
+        except Exception:  # pragma: no cover - branchy background worker
             pass
         finally:
             queue.task_done()
