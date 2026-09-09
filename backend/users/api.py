@@ -327,7 +327,12 @@ def oauth_install(
 
 @router.get(
     "/oauth/install/{provider}/callback/",
-    response={200: dict, 400: BadRequestSchema, 401: ForbiddenSchema},
+    response={
+        200: dict,
+        400: BadRequestSchema,
+        401: ForbiddenSchema,
+        404: NotFoundSchema,
+    },
     auth=None,
     include_in_schema=False,
 )
