@@ -17,7 +17,7 @@ else
   BACKEND_SHELL = docker compose $(COMPOSE_OPTS) exec backend python manage.py shell
 endif
 
-.PHONY: test lint migrate migrations build up down start shell test-cov
+.PHONY: test lint migrate migrations build up down start shell test-cov vulture
 
 test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
@@ -27,8 +27,15 @@ test-cov:
 	$(BACKEND_RUN) coverage report -m
 	$(BACKEND_RUN) coverage erase
 
+VULTURE_CMD = vulture backend/vulture_whitelist.py backend/registry --config pyproject.toml \
+	--ignore-decorators '@router.get','@router.post','@router.patch','@router.delete','@receiver','@app.task','@paginate','@decorate_view','@field_validator','@model_validator','@staticmethod','@property'
+
+vulture:
+	$(VULTURE_CMD)
+
 lint:
 	pre-commit run --all-files
+	$(VULTURE_CMD)
 	cd frontend && npm run typecheck
 
 migrate:

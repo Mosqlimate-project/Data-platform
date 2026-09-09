@@ -78,6 +78,7 @@ pygments = "^2.15.1"
 wavedrom = "^2.0.3.post3"
 django-stubs = "^6.0.5"
 coverage = "^7.12.0"
+vulture = "^2.13"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -98,13 +99,18 @@ exclude = [
     ".ruff_cache/",
     ".git/",
     "staticfiles/",
+    "backend/vulture_whitelist.py",
 ]
 
 [tool.mypy]
 python_version = "3.12"
 strict_optional = true
 ignore_missing_imports = true
-exclude = ["migrations", "tests", "test_runner"]
+exclude = ["migrations", "tests", "test_runner", "backend/vulture_whitelist.py"]
 
 [tool.django-stubs]
 django_settings_module = "mosqlimate.settings.base"
+
+[tool.vulture]
+min_confidence = 100
+exclude = ["*/migrations/*", "*/tests/*", "*/__pycache__/*"]

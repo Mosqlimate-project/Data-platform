@@ -27,7 +27,7 @@ repos:
     hooks:
       - id: mypy
         files: ^backend/
-        exclude: ^.*/migrations/.*
+        exclude: ^(.*/migrations/.*|backend/vulture_whitelist\.py)$
         additional_dependencies:
           - django-stubs
           - pydantic
@@ -36,3 +36,12 @@ repos:
         args:
           - --config-file=pyproject.toml
           - --explicit-package-bases
+
+  - repo: local
+    hooks:
+      - id: vulture
+        name: vulture
+        entry: vulture backend/vulture_whitelist.py backend/registry --config pyproject.toml --ignore-decorators '@router.get','@router.post','@router.patch','@router.delete','@receiver','@app.task','@paginate','@decorate_view','@field_validator','@model_validator','@staticmethod','@property'
+        language: system
+        pass_filenames: false
+        always_run: true
