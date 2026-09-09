@@ -217,13 +217,13 @@ def models_thumbnails(request):
                 | models.Q(
                     repository__organization__memberships__user=user,
                     repository__organization__memberships__role__in=[
-                        "OWNER",
-                        "ADMIN",
+                        m.OrganizationMembership.Roles.OWNER,
+                        m.OrganizationMembership.Roles.MAINTAINER,
                     ],
                 )
                 | models.Q(
                     repository__repository_contributors__user=user,
-                    repository__repository_contributors__permission="ADMIN",
+                    repository__repository_contributors__permission=m.RepositoryContributor.Permissions.ADMIN,
                 )
             )
 
@@ -263,13 +263,13 @@ def models_tags(request, ids: List[int] = Query(None)):
                 | models.Q(
                     repository__organization__memberships__user=user,
                     repository__organization__memberships__role__in=[
-                        "OWNER",
-                        "ADMIN",
+                        m.OrganizationMembership.Roles.OWNER,
+                        m.OrganizationMembership.Roles.MAINTAINER,
                     ],
                 )
                 | models.Q(
                     repository__repository_contributors__user=user,
-                    repository__repository_contributors__permission="ADMIN",
+                    repository__repository_contributors__permission=m.RepositoryContributor.Permissions.ADMIN,
                 )
             )
 
@@ -654,7 +654,7 @@ def repository_predictions(request, owner: str, repository: str):
 
 @router.get(
     "/model/{owner}/{repository}/permissions/",
-    response=s.RepositoryPermissions,
+    response={200: s.RepositoryPermissions, 404: NotFoundSchema},
     auth=JWTAuth(),
     include_in_schema=False,
 )
@@ -690,12 +690,17 @@ def repository_permissions(request, owner: str, repository: str):
             organization=repo.organization, user=user
         ).first()
 
-        if membership and membership.role in ["OWNER", "ADMIN"]:
+        if membership and membership.role in [
+            m.OrganizationMembership.Roles.OWNER,
+            m.OrganizationMembership.Roles.MAINTAINER,
+        ]:
             can_manage = True
 
     if not can_manage:
         is_admin = m.RepositoryContributor.objects.filter(
-            repository=repo, user=user, permission="ADMIN"
+            repository=repo,
+            user=user,
+            permission=m.RepositoryContributor.Permissions.ADMIN,
         ).exists()
         if is_admin:
             can_manage = True
@@ -859,12 +864,17 @@ def model_update(
         membership = m.OrganizationMembership.objects.filter(
             organization=repo.organization, user=user
         ).first()
-        if membership and membership.role in ["OWNER", "ADMIN"]:
+        if membership and membership.role in [
+            m.OrganizationMembership.Roles.OWNER,
+            m.OrganizationMembership.Roles.MAINTAINER,
+        ]:
             can_manage = True
 
     if not can_manage:
         is_admin = m.RepositoryContributor.objects.filter(
-            repository=repo, user=user, permission="ADMIN"
+            repository=repo,
+            user=user,
+            permission=m.RepositoryContributor.Permissions.ADMIN,
         ).exists()
         if is_admin:
             can_manage = True
@@ -922,12 +932,17 @@ def model_delete(request, owner: str, repository: str):
         membership = m.OrganizationMembership.objects.filter(
             organization=repo.organization, user=user
         ).first()
-        if membership and membership.role in ["OWNER", "ADMIN"]:
+        if membership and membership.role in [
+            m.OrganizationMembership.Roles.OWNER,
+            m.OrganizationMembership.Roles.MAINTAINER,
+        ]:
             can_manage = True
 
     if not can_manage:
         is_admin = m.RepositoryContributor.objects.filter(
-            repository=repo, user=user, permission="ADMIN"
+            repository=repo,
+            user=user,
+            permission=m.RepositoryContributor.Permissions.ADMIN,
         ).exists()
         if is_admin:
             can_manage = True

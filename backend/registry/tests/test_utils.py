@@ -9,7 +9,7 @@ class CallingViaSwaggerTest(TestCase):
 
     def test_returns_true_when_referer_is_api_docs(self):
         request = self.factory.get(
-            "/api/registry/models/", HTTP_REFERER="/api/docs/"
+            "/api/registry/models/", HTTP_REFERER="/api/docs"
         )
         self.assertTrue(calling_via_swagger(request))
 

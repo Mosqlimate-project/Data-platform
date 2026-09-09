@@ -330,7 +330,7 @@ class PredictionInSchemaTest(TestCase):
                     "adm_level": 0,
                     "adm_0": "BRA",
                     "prediction": [
-                        _row("2024-01-07"),
+                        _row("2024-01-08"),
                         _row("2024-01-15"),
                     ],
                 },
