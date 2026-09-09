@@ -10,6 +10,21 @@ from registry.schema import PredictionDataRowSchema, PredictionIn
 User = get_user_model()
 
 
+def _row(date_str):
+    return {
+        "date": date_str,
+        "pred": 100.0,
+        "lower_95": 0.0,
+        "lower_90": 80.0,
+        "lower_80": 85.0,
+        "lower_50": 90.0,
+        "upper_50": 110.0,
+        "upper_80": 115.0,
+        "upper_90": 120.0,
+        "upper_95": 200.0,
+    }
+
+
 class PredictionDataRowSchemaTest(TestCase):
     def test_valid_bounds_accepted(self):
         row = PredictionDataRowSchema(
@@ -261,3 +276,88 @@ class PredictionInSchemaTest(TestCase):
             ],
         )
         self.assertEqual(schema.commit, mixed_hash.lower())
+
+    def test_week_gap_detected(self):
+        with self.assertRaisesRegex(HttpError, "Gap detected: missing week"):
+            PredictionIn.model_validate(
+                {
+                    "repository": "owner/repo",
+                    "disease": "A90",
+                    "description": "Test",
+                    "commit": "a" * 40,
+                    "case_definition": "probable",
+                    "published": True,
+                    "adm_level": 0,
+                    "adm_0": "BRA",
+                    "prediction": [
+                        _row("2024-01-07"),
+                        _row("2024-01-21"),
+                    ],
+                },
+                context={"time_resolution": "week", "is_sprint": False},
+            )
+
+    def test_day_gap_detected(self):
+        with self.assertRaisesRegex(HttpError, "Gap detected: missing day"):
+            PredictionIn.model_validate(
+                {
+                    "repository": "owner/repo",
+                    "disease": "A90",
+                    "description": "Test",
+                    "commit": "a" * 40,
+                    "case_definition": "probable",
+                    "published": True,
+                    "adm_level": 0,
+                    "adm_0": "BRA",
+                    "prediction": [
+                        _row("2024-01-01"),
+                        _row("2024-01-03"),
+                    ],
+                },
+                context={"time_resolution": "day", "is_sprint": False},
+            )
+
+    def test_week_date_not_cdc_start_detected(self):
+        with self.assertRaisesRegex(HttpError, "is not the start of CDC week"):
+            PredictionIn.model_validate(
+                {
+                    "repository": "owner/repo",
+                    "disease": "A90",
+                    "description": "Test",
+                    "commit": "a" * 40,
+                    "case_definition": "probable",
+                    "published": True,
+                    "adm_level": 0,
+                    "adm_0": "BRA",
+                    "prediction": [
+                        _row("2024-01-07"),
+                        _row("2024-01-15"),
+                    ],
+                },
+                context={"time_resolution": "week", "is_sprint": False},
+            )
+
+    def test_sprint_missing_dates_detected(self):
+        from epiweeks import Week
+
+        year = 2024
+        start = Week(year - 1, 41).startdate()
+        with self.assertRaisesRegex(
+            HttpError, "missing from your predictions"
+        ):
+            PredictionIn.model_validate(
+                {
+                    "repository": "owner/repo",
+                    "disease": "A90",
+                    "description": "Test",
+                    "commit": "a" * 40,
+                    "case_definition": "probable",
+                    "published": True,
+                    "adm_level": 0,
+                    "adm_0": "BRA",
+                    "prediction": [
+                        _row(start.isoformat()),
+                    ],
+                },
+                context={"time_resolution": "week", "is_sprint": True},
+            )

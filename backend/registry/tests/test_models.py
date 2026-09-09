@@ -52,6 +52,32 @@ class OrganizationModelTest(TestCase):
     def test_get_avatar_returns_none_when_no_avatar(self):
         self.assertIsNone(self.org.get_avatar())
 
+    def test_get_avatar_returns_avatar_url(self):
+        self.org.avatar_url = "https://example.com/avatar.png"
+        self.org.save()
+        self.assertEqual(
+            self.org.get_avatar(), "https://example.com/avatar.png"
+        )
+
+    def test_get_avatar_returns_avatar_file_url(self):
+        import tempfile
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+
+        image = SimpleUploadedFile(
+            "avatar.png",
+            b"\x89PNG\r\n\x1a\n" + b"0" * 100,
+            content_type="image/png",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir, override_settings(
+            MEDIA_ROOT=tmpdir
+        ):
+            self.org.avatar = image
+            self.org.avatar_url = "https://example.com/other.png"
+            self.org.save()
+            self.assertEqual(self.org.get_avatar(), self.org.avatar.url)
+
 
 class OrganizationMembershipTest(TestCase):
     def setUp(self):
@@ -170,6 +196,15 @@ class RepositoryTest(TestCase):
         )
         self.assertEqual(repo.avatar_url, self.org.get_avatar())
 
+    def test_repository_avatar_url_none(self):
+        repo = m.Repository.objects.create(
+            repo_id="99999",
+            name="test-repo-none",
+            provider="github",
+            owner=self.user,
+        )
+        self.assertIsNone(repo.avatar_url)
+
 
 class RepositoryContributorTest(TestCase):
     def setUp(self):
@@ -271,6 +306,19 @@ class RepositoryModelTest(TestCase):
         self.assertIn("output", meta)
         self.assertIn("example", meta)
 
+    def test_all_categories_are_in_help_text(self):
+        for category in m.RepositoryModel.Category:
+            self.assertTrue(category.help_text)
+            self.assertIn("Domain:", category.help_text)
+            self.assertIn("Output:", category.help_text)
+
+    def test_all_categories_have_meta(self):
+        for category in m.RepositoryModel.Category:
+            self.assertIn("domain", category.meta)
+            self.assertIn("output", category.meta)
+            self.assertIn("example", category.meta)
+            self.assertIn("description", category.meta)
+
 
 class ModelPredictionTest(TestCase):
     def setUp(self):
@@ -357,6 +405,23 @@ class ModelPredictionTest(TestCase):
             commit="d" * 40,
         )
         self.assertTrue(prediction.published)
+
+    def test_administrative_level_choices(self):
+        self.assertEqual(
+            dict(m.ModelPrediction.AdministrativeLevel.choices),
+            {
+                0: "National",
+                1: "State",
+                2: "Municipality",
+                3: "Sub Municipality",
+            },
+        )
+
+    def test_case_definition_choices(self):
+        self.assertEqual(
+            dict(m.ModelPrediction.CaseDefinition.choices),
+            {"reported": "Reported", "probable": "Probable"},
+        )
 
 
 class QuantitativePredictionTest(TestCase):
@@ -586,3 +651,38 @@ class PublicationModelTest(TestCase):
         pubs = list(m.Publication.objects.all())
         self.assertEqual(pubs[0].year, 2024)
         self.assertEqual(pubs[1].year, 2023)
+
+    def test_publication_type_choices(self):
+        self.assertEqual(
+            dict(m.Publication.Type.choices),
+            {
+                "conference": "Conference Proceeding",
+                "journal": "Journal Article",
+                "preprint": "Preprint",
+                "thesis": "Thesis/Dissertation",
+                "report": "Technical Report",
+                "other": "Other",
+            },
+        )
+
+    def test_repository_permissions_choices(self):
+        self.assertEqual(
+            dict(m.RepositoryContributor.Permissions.choices),
+            {"admin": "Admin", "write": "Write"},
+        )
+
+    def test_provider_choices(self):
+        self.assertEqual(
+            dict(m.Repository.Providers.choices),
+            {"github": "GitHub", "gitlab": "GitLab"},
+        )
+
+    def test_organization_membership_roles(self):
+        self.assertEqual(
+            dict(m.OrganizationMembership.Roles.choices),
+            {
+                "owner": "Owner",
+                "maintainer": "Maintainer",
+                "contributor": "Contributor",
+            },
+        )
