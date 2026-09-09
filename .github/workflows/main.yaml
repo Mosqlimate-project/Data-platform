@@ -64,6 +64,9 @@ jobs:
     - name: Lint
       run: make lint
 
+    - name: Vulture (dead code check)
+      run: make vulture
+
     - name: Setup containers
       id: setup
       run: |
@@ -98,3 +101,11 @@ jobs:
     - name: Test
       run: |
         make test SUGAR=true
+
+    - name: Install coverage
+      run: |
+        sugar compose exec --service backend --options "-T" --cmd "pip install coverage"
+
+    - name: Coverage
+      run: |
+        make test-cov SUGAR=true

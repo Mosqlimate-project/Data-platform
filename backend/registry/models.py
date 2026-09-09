@@ -137,7 +137,7 @@ class Repository(TimestampModel):
             return self.organization.get_avatar()
         if self.owner:
             return self.owner.get_avatar()
-        return None
+        return None  # pragma: no cover - XOR owner/org constraint
 
 
 class RepositoryModel(TimestampModel):

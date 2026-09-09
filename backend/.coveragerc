@@ -1,0 +1,18 @@
+[run]
+source = registry
+branch = true
+omit =
+    */migrations/*
+    */tests/*
+    */test_*
+
+[report]
+show_missing = true
+fail_under = 100
+exclude_lines =
+    pragma: no cover
+    # Shed light on unreachable code
+    if __name__ == .__main__.:
+
+[html]
+directory = coverage_html
