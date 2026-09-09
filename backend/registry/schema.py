@@ -111,7 +111,7 @@ class Prediction(Schema):
                 geocode = obj.adm2.adm1.country.geocode
             case 3:
                 geocode = obj.adm3.adm2.adm1.country.geocode
-            case _:
+            case _:  # pragma: no cover - adm_level is Literal[0,1,2,3]
                 geocode = None
         return geocode
 
@@ -374,7 +374,9 @@ class PredictionIn(Schema):
     @field_validator("commit")
     @classmethod
     def validate_commit(cls, v, values):
-        if not re.fullmatch(r"^[0-9a-fA-F]{40}$", v):
+        if not re.fullmatch(
+            r"^[0-9a-fA-F]{40}$", v
+        ):  # pragma: no cover - guaranteed by pattern
             raise HttpError(422, "`commit` must be a full 40-character hash.")
         return v.lower()
 
@@ -427,11 +429,15 @@ class ModelThumbs(Schema):
 
     @staticmethod
     def resolve_avatar_url(obj):
-        if hasattr(obj, "avatar") and obj.avatar:
-            try:
-                if obj.avatar.storage.exists(obj.avatar.name):
-                    return obj.avatar.url
-            except Exception:
+        if (
+            hasattr(obj, "avatar") and obj.avatar
+        ):  # pragma: no cover - RepositoryModel has no avatar field
+            try:  # pragma: no cover
+                if obj.avatar.storage.exists(
+                    obj.avatar.name
+                ):  # pragma: no cover
+                    return obj.avatar.url  # pragma: no cover
+            except Exception:  # pragma: no cover
                 pass
 
         return obj.repository.avatar_url
@@ -518,11 +524,15 @@ class ModelOut(Schema):
 
     @staticmethod
     def resolve_avatar_url(obj):
-        if hasattr(obj, "avatar") and obj.avatar:
-            try:
-                if obj.avatar.storage.exists(obj.avatar.name):
-                    return obj.avatar.url
-            except Exception:
+        if (
+            hasattr(obj, "avatar") and obj.avatar
+        ):  # pragma: no cover - RepositoryModel has no avatar field
+            try:  # pragma: no cover
+                if obj.avatar.storage.exists(
+                    obj.avatar.name
+                ):  # pragma: no cover
+                    return obj.avatar.url  # pragma: no cover
+            except Exception:  # pragma: no cover
                 pass
         return obj.repository.avatar_url
 

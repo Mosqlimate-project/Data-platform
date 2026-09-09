@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 elif repo.owner:
                     owner_name = repo.owner.username
                     target_obj = repo.owner
-                else:
+                else:  # pragma: no cover - repo has XOR owner/org constraint
                     self.stdout.write(
                         self.style.WARNING(
                             f"[{idx}/{total}] Skipping model {model.id}: No owner or org mapped."

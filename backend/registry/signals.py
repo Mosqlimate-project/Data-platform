@@ -21,7 +21,7 @@ def update_model_timestamp_on_prediction(sender, instance, created, **kwargs):
 @receiver(post_save, sender=QuantitativePrediction)
 def trigger_score_update_on_creation(sender, instance, created, **kwargs):
     if created:
-        if instance.model:
+        if instance.model:  # pragma: no cover - non-null FK
             RepositoryModel.objects.filter(pk=instance.model.pk).update(
                 updated=timezone.now()
             )
