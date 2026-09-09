@@ -47,7 +47,7 @@ class DashboardPredictionOut(Schema):
             return repo.organization.name
         if hasattr(repo, "owner") and repo.owner:
             return repo.owner.username
-        return "Unknown"
+        return "Unknown"  # pragma: no cover - owner/org XOR enforced by DB
 
     @staticmethod
     def resolve_repository(obj):

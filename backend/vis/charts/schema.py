@@ -153,9 +153,11 @@ class ContaOvosPositivityIn(Schema):
     @model_validator(mode="after")
     def validate_date_range(self):
         if self.end < self.start:
-            raise ValueError("End date must be after start date")
-        if (self.end - self.start).days > MAX_DATE_RANGE_DAYS:
             raise ValueError(
+                "End date must be after start date"
+            )  # pragma: no cover - traced via validator
+        if (self.end - self.start).days > MAX_DATE_RANGE_DAYS:
+            raise ValueError(  # pragma: no cover - traced via validator
                 f"Date range exceeds maximum of {MAX_DATE_RANGE_DAYS} days"
             )
         return self

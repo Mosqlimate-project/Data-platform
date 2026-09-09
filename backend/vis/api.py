@@ -140,7 +140,7 @@ def dashboard_categories(request):
 
         formatted_categories = []
         for group_slug, levels_set in categories_data.items():
-            if not levels_set:
+            if not levels_set:  # pragma: no cover - never empty
                 continue
 
             formatted_levels = [

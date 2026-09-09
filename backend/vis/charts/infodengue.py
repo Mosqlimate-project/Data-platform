@@ -69,7 +69,7 @@ def charts_infodengue_rt(
     APILog.from_request(request)
     qs = get_infodengue_queryset(payload.disease)  # type: ignore[arg-type]
 
-    if qs is None:
+    if qs is None:  # pragma: no cover - schema rejects unknown disease
         return 404, {"message": "Unknown disease"}
 
     data = (
@@ -101,7 +101,7 @@ def charts_infodengue_total_cases(
 
     qs = get_infodengue_queryset(payload.disease)  # type: ignore[arg-type]
 
-    if qs is None:
+    if qs is None:  # pragma: no cover - schema rejects unknown disease
         return 404, {"message": "Unknown disease"}
 
     qs = qs.filter(
