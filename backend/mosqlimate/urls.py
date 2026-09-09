@@ -5,7 +5,7 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
-if not settings.DEBUG:
+if not settings.DEBUG:  # pragma: no cover - only applies outside debug/dev
     admin.site.login = login_required(admin.site.login)  # type: ignore[method-assign]
 
 urlpatterns = [
