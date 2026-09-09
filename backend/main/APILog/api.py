@@ -119,7 +119,7 @@ def usage_stats(
             .order_by("day")
         )
 
-    if group_by == "user":
+    if group_by == "user":  # pragma: no branch - group_by is a Literal
         return list(
             logs.values(
                 username=F("user__username"),
