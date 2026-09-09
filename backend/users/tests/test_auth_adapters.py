@@ -138,6 +138,16 @@ class UsersAuthTest(TestCase):
 
         self.assertIsInstance(OptionalJWTAuth()(req), AnonymousUser)
 
+    def test_optional_jwt_call_no_auth_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        self.assertIsInstance(OptionalJWTAuth()(_Req()), AnonymousUser)
+
+    def test_optional_jwt_valid_user(self):
+        tok = create_access_token({"sub": str(self.user.pk)})
+        req = _Req(headers={"Authorization": f"Bearer {tok}"})
+        self.assertEqual(OptionalJWTAuth()(req), self.user)
+
     def test_uid_key_auth_authenticated_session(self):
         req = _Req(user=MagicMock())
         req.user.is_authenticated = True
@@ -148,6 +158,39 @@ class UsersAuthTest(TestCase):
         req.session = session
         UidKeyAuth().authenticate(req, None)
         self.assertEqual(cache.get("sesskey1"), self.user.api_key())
+
+    def test_uid_key_auth_authenticated_saves_session(self):
+        req = _Req(user=MagicMock())
+        req.user.is_authenticated = True
+        req.user.is_active = True
+        req.user.api_key.return_value = self.user.api_key()
+
+        class Session:
+            session_key = None
+
+            def save(self):
+                self.session_key = "newkey"
+
+        req.session = Session()
+        UidKeyAuth().authenticate(req, None)
+        self.assertEqual(req.session.session_key, "newkey")
+        self.assertEqual(cache.get("newkey"), self.user.api_key())
+
+    def test_uid_key_auth_anonymous_session_fallback(self):
+        req = _Req(user=MagicMock())
+        req.user.is_authenticated = False
+
+        class Session:
+            session_key = None
+
+            def save(self):
+                self.session_key = "newsess"
+
+        req.session = Session()
+        cache.set("newsess", self.user.api_key())
+        with patch("users.auth.cache.get", return_value=self.user.api_key()):
+            UidKeyAuth().authenticate(req, None)
+            self.assertEqual(req.session.session_key, "newsess")
 
     def test_uid_key_auth_valid(self):
         req = _Req(user=MagicMock())
@@ -189,6 +232,14 @@ class UsersAuthTest(TestCase):
         ):
             self.assertIsInstance(OptionalUidKeyAuth()(req), AnonymousUser)
 
+    def test_optional_uid_key_none_anonymous(self):
+        req = _Req(user=MagicMock())
+        req.user.is_authenticated = False
+        from django.contrib.auth.models import AnonymousUser
+
+        with patch.object(UidKeyAuth, "authenticate", return_value=None):
+            self.assertIsInstance(OptionalUidKeyAuth()(req), AnonymousUser)
+
     def test_sdk_key_auth_missing(self):
         self.assertIsNone(SdkKeyAuth().authenticate(_Req(), None))
 
@@ -228,6 +279,25 @@ class UsersAuthTest(TestCase):
         req.user = MagicMock()
         req.user.is_authenticated = False
         self.assertEqual(ChartAuth()(req), self.user)
+
+    def test_chart_auth_uid_key_inactive(self):
+
+        self.user.is_active = False
+        self.user.save()
+        req = _Req(headers={"X-UID-Key": self.user.api_key()})
+        req.user = MagicMock()
+        req.user.is_authenticated = False
+        with self.assertRaises(ChartAuthFailed):
+            ChartAuth()(req)
+
+    def test_chart_auth_uid_key_expired(self):
+        self.user.expires_at = timezone.now() - timedelta(days=1)
+        self.user.save()
+        req = _Req(headers={"X-UID-Key": self.user.api_key()})
+        req.user = MagicMock()
+        req.user.is_authenticated = False
+        with self.assertRaises(ChartAuthFailed):
+            ChartAuth()(req)
 
     def test_chart_auth_fails(self):
         req = _Req()
@@ -319,6 +389,12 @@ class UsersAdapterTest(TestCase):
         with self.assertRaises(ValueError):
             adapters.OAuthAdapter.from_request(MagicMock(), "x", {})
 
+    def test_from_request_success(self):
+        a = adapters.OAuthAdapter.from_request(
+            MagicMock(), "google", {"id": "1"}
+        )
+        self.assertIsInstance(a, adapters.GoogleAdapter)
+
     def test_google_adapter(self):
         data = {
             "id": "g1",
@@ -368,6 +444,10 @@ class UsersAdapterTest(TestCase):
         self.assertEqual(a.first_name, "")
         self.assertEqual(a.last_name, "")
 
+    def test_github_adapter_no_id(self):
+        with self.assertRaises(ValueError):
+            GithubAdapter(MagicMock(), {}).provider_id
+
     def test_gitlab_adapter(self):
         data = {
             "id": "gl1",
@@ -387,6 +467,11 @@ class UsersAdapterTest(TestCase):
     def test_gitlab_adapter_no_name(self):
         a = GitlabAdapter(MagicMock(), {"id": "1"})
         self.assertEqual(a.first_name, "")
+        self.assertEqual(a.last_name, "")
+
+    def test_gitlab_adapter_single_name(self):
+        a = GitlabAdapter(MagicMock(), {"id": "1", "name": "Only"})
+        self.assertEqual(a.first_name, "Only")
         self.assertEqual(a.last_name, "")
 
     def test_redirect_on_login(self):
@@ -411,3 +496,16 @@ class UsersAdapterTest(TestCase):
             url = adapter.get_login_redirect_url(req)
         self.assertEqual(url, "https://front")
         self.assertEqual(cache.get("abc123"), u.api_key())
+
+    def test_redirect_on_login_existing_session_no_user(self):
+        from users.adapters import RedirectOnLogin
+
+        adapter = RedirectOnLogin()
+        req = MagicMock()
+        req.user = None
+        req.session = type("S", (), {})()
+        req.session.session_key = "existing"
+        with patch("users.adapters.settings") as mock_settings:
+            mock_settings.FRONTEND_URL = "https://front"
+            url = adapter.get_login_redirect_url(req)
+        self.assertEqual(url, "https://front")

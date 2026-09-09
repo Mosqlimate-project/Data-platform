@@ -134,6 +134,32 @@ class RepoProfileTest(TestCase):
             r = self.client.get("/api/user/repositories/github/", **self.jwt)
         self.assertEqual(r.status_code, 401)
 
+    def test_list_repositories_retry_succeeds_without_refresh(self):
+        self._add_github_account(refresh_token="ref")
+        client = MagicMock()
+        client.get_user_repos.side_effect = [
+            _httpx_err(401),
+            [self._repo("ok")],
+        ]
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            r = self.client.get("/api/user/repositories/github/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        acc = OAuthAccount.objects.get(provider="github")
+        self.assertEqual(acc.access_token, "at")
+
+    def test_list_repositories_non_401_re_raises(self):
+        client = Client(raise_request_exception=False)
+        self._add_github_account()
+        mock_client = MagicMock()
+        mock_client.get_user_repos.side_effect = _httpx_err(500)
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=mock_client
+        ):
+            r = client.get("/api/user/repositories/github/", **self.jwt)
+        self.assertEqual(r.status_code, 500)
+
     def test_profile_models_own_repo(self):
         repo = rm.Repository.objects.create(
             repo_id="m1",
@@ -154,10 +180,105 @@ class RepoProfileTest(TestCase):
         self.assertEqual(data[0]["name"], "myrepo")
         self.assertTrue(data[0]["can_manage"])
 
+    def test_list_repositories_401_refresh_no_expires_in(self):
+        self._add_github_account(refresh_token="ref")
+        client = MagicMock()
+        client.get_user_repos.side_effect = [
+            _httpx_err(401),
+            _httpx_err(401),
+            [],
+        ]
+        client.refresh_access_token.return_value = {"access_token": "new"}
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            r = self.client.get("/api/user/repositories/github/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        acc = OAuthAccount.objects.get(provider="github")
+        self.assertIsNone(acc.access_token_expires_at)
+
+    def test_profile_models_no_manage(self):
+        org = rm.Organization.objects.create(name="nomange")
+        rm.OrganizationMembership.objects.create(
+            user=self.user,
+            organization=org,
+            role=rm.OrganizationMembership.Roles.CONTRIBUTOR,
+        )
+        repo = rm.Repository.objects.create(
+            repo_id="nm1",
+            name="nmrepo",
+            provider="github",
+            owner=None,
+            organization=org,
+            active=True,
+        )
+        rm.RepositoryModel.objects.create(
+            repository=repo,
+            description="desc",
+            category=rm.RepositoryModel.Category.QUANTITATIVE,
+            time_resolution=rm.RepositoryModel.Periodicity.WEEK,
+        )
+        r = self.client.get("/api/user/profile/models/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.json()[0]["can_manage"])
+
     def test_profile_models_no_results(self):
         r = self.client.get("/api/user/profile/models/", **self.jwt)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json(), [])
+
+    def test_profile_models_org_maintainer(self):
+        org = rm.Organization.objects.create(name="profileorg")
+        rm.OrganizationMembership.objects.create(
+            user=self.user,
+            organization=org,
+            role=rm.OrganizationMembership.Roles.MAINTAINER,
+        )
+        repo = rm.Repository.objects.create(
+            repo_id="org1",
+            name="orgrepo",
+            provider="github",
+            owner=None,
+            organization=org,
+            active=True,
+        )
+        rm.RepositoryModel.objects.create(
+            repository=repo,
+            description="desc",
+            category=rm.RepositoryModel.Category.QUANTITATIVE,
+            time_resolution=rm.RepositoryModel.Periodicity.WEEK,
+        )
+        r = self.client.get("/api/user/profile/models/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()[0]["can_manage"])
+
+    def test_profile_models_contributor(self):
+        repo = rm.Repository.objects.create(
+            repo_id="c1",
+            name="contribrepo",
+            provider="github",
+            owner=self.user,
+            active=True,
+        )
+        other = User.objects.create_user(
+            username="otherowner", email="oo@test.com", password="p"
+        )
+        repo.owner = other
+        repo.save()
+        rm.RepositoryContributor.objects.create(
+            user=self.user,
+            repository=repo,
+            permission=rm.RepositoryContributor.Permissions.WRITE,
+        )
+        rm.RepositoryModel.objects.create(
+            repository=repo,
+            description="desc",
+            category=rm.RepositoryModel.Category.QUANTITATIVE,
+            time_resolution=rm.RepositoryModel.Periodicity.WEEK,
+        )
+        r = self.client.get("/api/user/profile/models/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()[0]["can_manage"])
 
 
 class DownloadImageTest(TestCase):
@@ -168,6 +289,14 @@ class DownloadImageTest(TestCase):
 
     def test_no_url_returns(self):
         self.assertIsNone(users_api.download_image(self.user, None))
+
+    def test_non_200_no_save(self):
+        resp = MagicMock(status_code=404, content=b"")
+        with patch("httpx.Client") as MC:
+            MC.return_value.__enter__.return_value.get.return_value = resp
+            users_api.download_image(self.user, "http://x/a.jpg")
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.avatar_url)
 
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
     def test_success(self):

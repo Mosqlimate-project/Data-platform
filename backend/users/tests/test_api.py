@@ -328,6 +328,68 @@ class UsersAPITest(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn("avatar_url", r.json())
 
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_upload_avatar_missing_file_no_error(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        User.objects.filter(pk=self.user.pk).update(avatar="ghost.png")
+        self.user.refresh_from_db()
+        f = SimpleUploadedFile(
+            "a.png",
+            b"\x89PNG\r\n\x1a\n" + b"x" * 50,
+            content_type="image/png",
+        )
+        r = self.client.post(
+            "/api/user/profile/avatar/", {"file": f}, **self.jwt
+        )
+        self.assertEqual(r.status_code, 200)
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_upload_avatar_remove_exception(self):
+        from django.core.files.base import ContentFile
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.user.avatar.save("old.png", ContentFile(b"\x89PNG"), save=True)
+        f = SimpleUploadedFile(
+            "new.png",
+            b"\x89PNG\r\n\x1a\n" + b"x" * 50,
+            content_type="image/png",
+        )
+        with patch("users.api.os.remove", side_effect=OSError("denied")):
+            r = self.client.post(
+                "/api/user/profile/avatar/", {"file": f}, **self.jwt
+            )
+        self.assertEqual(r.status_code, 200)
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_upload_avatar_too_large(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        f = SimpleUploadedFile(
+            "big.png", b"x" * (6 * 1024 * 1024), content_type="image/png"
+        )
+        r = self.client.post(
+            "/api/user/profile/avatar/", {"file": f}, **self.jwt
+        )
+        self.assertEqual(r.status_code, 400)
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_upload_avatar_replaces_existing(self):
+        from django.core.files.base import ContentFile
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.user.avatar.save("old.png", ContentFile(b"\x89PNG"), save=True)
+        f = SimpleUploadedFile(
+            "new.png",
+            b"\x89PNG\r\n\x1a\n" + b"x" * 50,
+            content_type="image/png",
+        )
+        r = self.client.post(
+            "/api/user/profile/avatar/", {"file": f}, **self.jwt
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("avatar_url", r.json())
+
     def test_profile_models(self):
         r = self.client.get("/api/user/profile/models/", **self.jwt)
         self.assertEqual(r.status_code, 200)

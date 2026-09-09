@@ -31,27 +31,27 @@ class OAuthAdapter(ABC):
 
     @property
     @abstractmethod
-    def provider_id(self) -> str: ...
+    def provider_id(self) -> str: ...  # pragma: no cover - abstract
 
     @property
     @abstractmethod
-    def email(self) -> Optional[str]: ...
+    def email(self) -> Optional[str]: ...  # pragma: no cover - abstract
 
     @property
     @abstractmethod
-    def username(self) -> str: ...
+    def username(self) -> str: ...  # pragma: no cover - abstract
 
     @property
     @abstractmethod
-    def first_name(self) -> str: ...
+    def first_name(self) -> str: ...  # pragma: no cover - abstract
 
     @property
     @abstractmethod
-    def last_name(self) -> str: ...
+    def last_name(self) -> str: ...  # pragma: no cover - abstract
 
     @property
     @abstractmethod
-    def avatar_url(self) -> str: ...
+    def avatar_url(self) -> str: ...  # pragma: no cover - abstract
 
 
 class GoogleAdapter(OAuthAdapter):

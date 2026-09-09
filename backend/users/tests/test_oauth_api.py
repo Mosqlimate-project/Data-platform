@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core import signing
 from django.core.cache import cache
 
-from users.jwt import create_access_token
+from users.jwt import create_access_token, create_refresh_token
 from users.models import OAuthAccount
 
 User = get_user_model()
@@ -398,6 +398,22 @@ class OAuthRegisterTest(TestCase):
         self.assertEqual(r.status_code, 200)
         dl.assert_called_once()
 
+    def test_register_existing_with_expiry(self):
+        data = self._oauth_signed(
+            access_token_expires_at="2026-01-01T00:00:00+00:00",
+        )
+        r = self._post(
+            {
+                "username": "reguser",
+                "email": "reg@test.com",
+                "password": "pass",
+                "first_name": "R",
+                "last_name": "L",
+                "oauth_data": data,
+            }
+        )
+        self.assertEqual(r.status_code, 200)
+
     def test_register_new_with_expiry(self):
         data = self._oauth_signed(
             avatar_url="http://av/a.jpg",
@@ -482,6 +498,108 @@ class OAuthRegisterTest(TestCase):
                 {"code": "c"},
             )
         self.assertEqual(r.status_code, 401)
+
+    def test_install_callback_refresh_type_cookie_401(self):
+        tok = create_refresh_token({"sub": str(self.user.pk)})
+        r = self.client.get(
+            "/api/user/oauth/install/github/callback/",
+            HTTP_COOKIE=f"access_token={tok}",
+        )
+        self.assertEqual(r.status_code, 401)
+
+    def test_install_callback_cookie_deleted_user_401(self):
+        other = User.objects.create_user(
+            username="ghost", email="ghost@test.com", password="p"
+        )
+        User.objects.filter(pk=other.pk).delete()
+        with patch("users.api.decode_token") as dt:
+            dt.return_value = {"type": "access", "sub": str(other.pk)}
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                HTTP_COOKIE="access_token=xyz",
+            )
+        self.assertEqual(r.status_code, 401)
+
+    def test_install_callback_code_no_access_token_401(self):
+        client = MagicMock()
+        client.get_token.return_value = {}
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                {"code": "c"},
+            )
+        self.assertEqual(r.status_code, 401)
+
+    def test_install_callback_state_decode_error(self):
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="123",
+            raw_info={},
+            access_token="at",
+        )
+        client = MagicMock()
+        client.decode_state.side_effect = Exception("bad state")
+        client.get_installation_token.return_value = {
+            "token": "it",
+            "expires_at": "2026-01-01 00:00:00+00:00",
+        }
+        with patch("users.api.decode_token") as dt, patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            dt.return_value = {"type": "access", "sub": str(self.user.pk)}
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                {"installation_id": "i1", "state": "whatever"},
+                HTTP_COOKIE="access_token=xyz",
+            )
+        self.assertEqual(r.status_code, 302)
+
+    def test_install_callback_fetch_non_200(self):
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="123",
+            raw_info={},
+            access_token="at",
+        )
+        client = MagicMock()
+        with patch("users.api.decode_token") as dt, patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch("users.api.httpx.Client") as MC:
+            MC.return_value.__enter__.return_value.get.return_value = (
+                MagicMock(status_code=500)
+            )
+            dt.return_value = {"type": "access", "sub": str(self.user.pk)}
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                HTTP_COOKIE="access_token=xyz",
+            )
+        self.assertEqual(r.status_code, 400)
+
+    def test_install_callback_fetch_empty_installations(self):
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="123",
+            raw_info={},
+            access_token="at",
+        )
+        client = MagicMock()
+        with patch("users.api.decode_token") as dt, patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch("users.api.httpx.Client") as MC:
+            MC.return_value.__enter__.return_value.get.return_value = (
+                MagicMock(status_code=200, json=lambda: {"installations": []})
+            )
+            dt.return_value = {"type": "access", "sub": str(self.user.pk)}
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                HTTP_COOKIE="access_token=xyz",
+            )
+        self.assertEqual(r.status_code, 400)
 
     def test_oauth_decode(self):
         data = signing.dumps({"action": "x"}, salt="oauth-callback")

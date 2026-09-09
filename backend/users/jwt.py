@@ -41,7 +41,7 @@ def decode_token(token: str):
             settings.SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-    except ValidationError:
+    except ValidationError:  # pragma: no cover - never raised by jose
         return None
     except ExpiredSignatureError:
         return None

@@ -12,7 +12,7 @@ from django.core import signing
 from django.utils import timezone
 from google_auth_oauthlib.flow import Flow
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from registry.models import Repository
 
 
@@ -65,13 +65,15 @@ class OAuthProvider(ABC):
         return signing.loads(state, salt="oauth-state", max_age=max_age)
 
     @abstractmethod
-    def get_auth_url(self) -> str: ...
+    def get_auth_url(self) -> str: ...  # pragma: no cover - abstract
 
     @abstractmethod
-    def get_user_info(self, access_token: str, token_json: dict): ...
+    def get_user_info(
+        self, access_token: str, token_json: dict
+    ): ...  # pragma: no cover - abstract
 
     @abstractmethod
-    def get_readme(
+    def get_readme(  # pragma: no cover - abstract
         self, repository: "Repository", access_token: Optional[str] = None
     ) -> str: ...
 
