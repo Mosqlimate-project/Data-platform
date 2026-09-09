@@ -17,9 +17,8 @@ from django.db.models import (
     Q,
     Subquery,
     OuterRef,
-    CharField,
 )
-from django.db.models.functions import Round, Coalesce, Cast
+from django.db.models.functions import Round, Coalesce
 from django.core.cache import cache
 
 
@@ -297,9 +296,7 @@ def get_copernicus_brasil(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"), output_field=CharField()
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_min")[:1]
                 ),
@@ -310,9 +307,7 @@ def get_copernicus_brasil(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"), output_field=CharField()
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_med")[:1]
                 ),
@@ -323,9 +318,7 @@ def get_copernicus_brasil(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"), output_field=CharField()
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_max")[:1]
                 ),
@@ -336,9 +329,7 @@ def get_copernicus_brasil(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"), output_field=CharField()
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_tot")[:1]
                 ),
@@ -459,10 +450,7 @@ def get_copernicus_brasil_weekly(
                         CopernicusBrasilPrecipFixed.objects.using("infodengue")
                         .filter(
                             date=OuterRef("date"),
-                            geocode=Cast(
-                                OuterRef("geocodigo"),
-                                output_field=CharField(),
-                            ),
+                            geocode=OuterRef("geocodigo"),
                         )
                         .values("precip_tot")[:1]
                     ),
@@ -750,10 +738,7 @@ def charts_climate_daily_accumulated_waterfall(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"),
-                            output_field=CharField(),
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_tot")[:1]
                 ),
@@ -764,10 +749,7 @@ def charts_climate_daily_accumulated_waterfall(
                     CopernicusBrasilPrecipFixed.objects.using("infodengue")
                     .filter(
                         date=OuterRef("date"),
-                        geocode=Cast(
-                            OuterRef("geocodigo"),
-                            output_field=CharField(),
-                        ),
+                        geocode=OuterRef("geocodigo"),
                     )
                     .values("precip_med")[:1]
                 ),
