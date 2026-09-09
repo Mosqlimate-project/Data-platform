@@ -474,7 +474,7 @@ def oauth_decode(request, data: str):
 def me(request):
     user = request.auth
 
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 400, {"message": "Invalid or expired token"}
 
     if hasattr(user, "is_superuser") and user.is_superuser:
@@ -492,7 +492,7 @@ def me(request):
 @decorate_view(never_cache)
 def api_key(request):
     user = request.auth
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 400, {"message": "Invalid or expired token"}
     return 200, {"api_key": user.api_key()}
 
@@ -506,7 +506,7 @@ def api_key(request):
 @decorate_view(never_cache)
 def refresh_api_key(request):
     user = request.auth
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 400, {"message": "Invalid or expired token"}
     user.refresh_api_key()
     return 201, {"api_key": user.api_key()}
@@ -521,7 +521,7 @@ def refresh_api_key(request):
 @decorate_view(never_cache)
 def get_sdk_key(request):
     user = request.auth
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 400, {"message": "Invalid or expired token"}
     sdk_key = user.get_or_create_sdk_key()
     return 200, {
@@ -540,7 +540,7 @@ def get_sdk_key(request):
 @decorate_view(never_cache)
 def rotate_sdk_key(request):
     user = request.auth
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 400, {"message": "Invalid or expired token"}
     sdk_key = user.rotate_sdk_key()
     return 201, {
@@ -807,7 +807,7 @@ def list_repositories(request, provider: Literal["github", "gitlab"]):
 def profile(request):
     user = request.auth
 
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 403, {"Unauthorized"}
 
     return 200, {
@@ -832,7 +832,7 @@ def profile(request):
 def update_profile(request, payload: s.ProfileIn):
     user = request.auth
 
-    if not user:
+    if not user:  # pragma: no cover - JWTAuth never yields None
         return 403, {"Unauthorized"}
 
     for attr, value in payload.dict(exclude_unset=True).items():

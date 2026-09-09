@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, Client
@@ -297,6 +298,190 @@ class OAuthCallbackAPITest(TestCase):
                 HTTP_COOKIE="access_token=xyz",
             )
         self.assertEqual(r.status_code, 400)
+
+    def test_callback_no_expires_or_refresh(self):
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="123",
+            raw_info={},
+            access_token="old",
+        )
+        client = self._mock_client(token_data={"access_token": "at"})
+        adapter = self._mock_adapter()
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch("users.api.OAuthAdapter.from_request", return_value=adapter):
+            r = self.client.get(
+                "/api/user/oauth/callback/github/",
+                {"code": "c", "state": make_state()},
+            )
+        self.assertEqual(r.status_code, 302)
+        acc = OAuthAccount.objects.get(provider="github", provider_id="123")
+        self.assertEqual(acc.access_token, "at")
+        self.assertIsNone(acc.access_token_expires_at)
+        self.assertIsNone(acc.refresh_token)
+
+    def test_callback_existing_email_downloads_avatar(self):
+        client = self._mock_client(raw_info={"id": "321"})
+        adapter = self._mock_adapter(
+            provider_id="321", avatar_url="http://av/a.jpg"
+        )
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch(
+            "users.api.OAuthAdapter.from_request", return_value=adapter
+        ), patch(
+            "users.api.download_image"
+        ) as dl:
+            r = self.client.get(
+                "/api/user/oauth/callback/github/",
+                {"code": "c", "state": make_state()},
+            )
+        self.assertEqual(r.status_code, 302)
+        dl.assert_called_once()
+
+    def test_callback_adapter_no_email(self):
+        client = self._mock_client()
+        adapter = self._mock_adapter(
+            provider_id="888", email=None, username="nouser"
+        )
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch("users.api.OAuthAdapter.from_request", return_value=adapter):
+            r = self.client.get(
+                "/api/user/oauth/callback/github/",
+                {"code": "c", "state": make_state()},
+            )
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/oauth/register", r["Location"])
+
+
+class OAuthRegisterTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="reguser", email="reg@test.com", password="pass"
+        )
+
+    def _oauth_signed(self, **kw):
+        payload = {
+            "provider": "github",
+            "provider_id": "r1",
+            "raw_info": {},
+            "access_token": "at",
+            "refresh_token": "rt",
+        }
+        payload.update(kw)
+        return signing.dumps(payload, salt="oauth-callback")
+
+    def _post(self, payload):
+        return self.client.post(
+            "/api/user/register/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+    def test_register_existing_downloads_avatar(self):
+        data = self._oauth_signed(avatar_url="http://av/a.jpg")
+        with patch("users.api.download_image") as dl:
+            r = self._post(
+                {
+                    "username": "reguser",
+                    "email": "reg@test.com",
+                    "password": "pass",
+                    "first_name": "R",
+                    "last_name": "L",
+                    "oauth_data": data,
+                }
+            )
+        self.assertEqual(r.status_code, 200)
+        dl.assert_called_once()
+
+    def test_register_new_with_expiry(self):
+        data = self._oauth_signed(
+            avatar_url="http://av/a.jpg",
+            access_token_expires_at="2026-01-01T00:00:00+00:00",
+        )
+        with patch("users.api.download_image") as dl:
+            r = self._post(
+                {
+                    "username": "newoauth",
+                    "email": "new@test.com",
+                    "password": "pass",
+                    "first_name": "R",
+                    "last_name": "L",
+                    "oauth_data": data,
+                }
+            )
+        self.assertEqual(r.status_code, 201)
+        dl.assert_called_once()
+        acc = OAuthAccount.objects.get(provider="github", provider_id="r1")
+        self.assertEqual(acc.user.username, "newoauth")
+
+    def test_register_new_without_avatar(self):
+        data = self._oauth_signed()
+        r = self._post(
+            {
+                "username": "noavatarauth",
+                "email": "na@test.com",
+                "password": "pass",
+                "first_name": "R",
+                "last_name": "L",
+                "oauth_data": data,
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+
+    def test_install_callback_via_code(self):
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="123",
+            raw_info={},
+            access_token="old",
+        )
+        client = MagicMock()
+        client.decode_state.return_value = {"next": "/x"}
+        client.get_token.return_value = {"access_token": "newtok"}
+        client.get_installation_token.return_value = {
+            "token": "it",
+            "expires_at": "2026-01-01 00:00:00+00:00",
+        }
+        adapter = MagicMock()
+        adapter.provider_id = "123"
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ), patch(
+            "users.api.OAuthAdapter.from_request", return_value=adapter
+        ), patch(
+            "users.api.httpx.Client"
+        ) as MC:
+            MC.return_value.__enter__.return_value.get.return_value = (
+                MagicMock(
+                    status_code=200,
+                    json=lambda: {"installations": [{"id": "f"}]},
+                )
+            )
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                {"code": "c", "installation_id": "i2"},
+            )
+        self.assertEqual(r.status_code, 302)
+        acc = OAuthAccount.objects.get(provider="github", provider_id="123")
+        self.assertEqual(acc.access_token, "newtok")
+        self.assertEqual(acc.installation_id, "i2")
+
+    def test_install_callback_code_errors_401(self):
+        with patch("users.api.OAuthProvider.from_request") as mf:
+            client = MagicMock()
+            client.get_token.side_effect = RuntimeError("boom")
+            mf.return_value = client
+            r = self.client.get(
+                "/api/user/oauth/install/github/callback/",
+                {"code": "c"},
+            )
+        self.assertEqual(r.status_code, 401)
 
     def test_oauth_decode(self):
         data = signing.dumps({"action": "x"}, salt="oauth-callback")
