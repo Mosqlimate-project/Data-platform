@@ -116,6 +116,24 @@ jobs:
         set -o pipefail
         make test-cov SUGAR=true 2>&1 | tee /tmp/coverage.log
 
+    - name: Verify tests actually ran
+      if: always()
+      run: |
+        echo "::group::Coverage report"
+        grep -E "Name|TOTAL|registry" /tmp/coverage.log | tail -30 || true
+        echo "::endgroup::"
+        if ! grep -qE "Ran [0-9]+ tests" /tmp/coverage.log; then
+          echo "::error::The backend test run produced no test results (Ran N tests missing)."
+          echo "This usually means the backend container is missing required env vars"
+          echo "(e.g. SECRET_KEY, FRONTEND_PORT, BACKEND_PORT) so Django cannot load settings"
+          echo "and manage.py exits immediately. Check the 'Test with coverage' step log."
+          exit 1
+        fi
+        if ! grep -q "TOTAL" /tmp/coverage.log; then
+          echo "::error::Coverage report is empty; nothing was measured."
+          exit 1
+        fi
+
     - name: Post coverage summary to PR
       if: always() && github.event_name == 'pull_request'
       uses: actions/github-script@v7
