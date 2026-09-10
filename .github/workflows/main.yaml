@@ -11,6 +11,10 @@ jobs:
     environment: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
@@ -113,7 +117,7 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          let table = 'No coverage report was produced.';
+          let table = null;
           try {
             const log = fs.readFileSync('/tmp/coverage.log', 'utf8');
             const lines = log.split('\n');
@@ -131,6 +135,10 @@ jobs:
             }
           } catch (e) {
             console.log('Could not read coverage log:', e.message);
+          }
+          if (!table) {
+            console.log('No coverage table found; skipping PR comment.');
+            return;
           }
           const body = '## Backend Coverage\n```\n' + table + '\n```';
           const { data: comments } = await github.rest.issues.listComments({
