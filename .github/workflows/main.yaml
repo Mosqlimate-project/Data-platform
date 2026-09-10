@@ -137,64 +137,10 @@ jobs:
           exit 1
         fi
 
-    - name: Post coverage summary to PR
-      if: always() && github.event_name == 'pull_request'
-      uses: actions/github-script@v7
+    - name: Upload coverage log
+      if: always()
+      uses: actions/upload-artifact@v4
       with:
-        script: |
-          const fs = require('fs');
-          let table = null;
-          try {
-            const log = fs.readFileSync('/tmp/coverage.log', 'utf8');
-            const lines = log.split('\n');
-            const start = lines.findIndex(
-              (l) => l.includes('Stmts') && l.includes('Cover')
-            );
-            const totalIdx = lines.findIndex(
-              (l, i) => i > start && l.includes('TOTAL')
-            );
-            if (start !== -1) {
-              table = lines
-                .slice(start, totalIdx === -1 ? undefined : totalIdx + 1)
-                .join('\n')
-                .trim();
-            }
-          } catch (e) {
-            console.log('Could not read coverage log:', e.message);
-          }
-          if (!table) {
-            console.log('No coverage table found; skipping PR comment.');
-            return;
-          }
-          const body = '## Backend Coverage\n```\n' + table + '\n```';
-          try {
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const existing = comments.find(
-              (c) => c.body && c.body.startsWith('## Backend Coverage')
-            );
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
-            console.log('Coverage comment posted to PR.');
-          } catch (e) {
-            console.log(
-              '::warning::Could not post coverage comment (fork PRs use a read-only token): ' +
-                e.message
-            );
-          }
+        name: coverage-log
+        path: /tmp/coverage.log
+        if-no-files-found: ignore
