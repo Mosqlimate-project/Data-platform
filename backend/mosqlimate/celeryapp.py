@@ -7,7 +7,7 @@ app.config_from_object("mosqlimate.settings.celery", namespace="CELERY")
 app.autodiscover_tasks()
 
 sentry_dsn = os.getenv("SENTRY_DSN", "")
-if sentry_dsn:
+if sentry_dsn:  # pragma: no cover - only active when SENTRY_DSN configured
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
 

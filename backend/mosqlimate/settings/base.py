@@ -354,7 +354,7 @@ LOGGING = {
     },
 }
 
-if SENTRY_DSN:
+if SENTRY_DSN:  # pragma: no cover - only active when SENTRY_DSN configured
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration

@@ -25,7 +25,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     x.split("=") for x in query_params.split("&") if "=" in x
                 )
                 current_lang = params.get("lang", "en")
-            except Exception:
+            except Exception:  # pragma: no cover - defensive query parsing
                 pass
 
         self.language = current_lang

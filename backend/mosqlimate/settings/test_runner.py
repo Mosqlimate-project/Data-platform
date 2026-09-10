@@ -93,6 +93,31 @@ CREATE TABLE IF NOT EXISTS copernicus_bra_precip_tot_fixed (
 );
 """
 
+MUNICIPIO_DDL = """
+CREATE TABLE IF NOT EXISTS "Municipio" (
+    "geocodigo" integer PRIMARY KEY,
+    "nome" varchar,
+    "uf" varchar,
+    "id_regional" integer
+);
+"""
+
+VEGETATION_INDEX_METRICS_DDL = """
+CREATE TABLE IF NOT EXISTS vegetation_index_metrics (
+    "date" date PRIMARY KEY,
+    "geocode" integer,
+    "collection" varchar(255),
+    "attribute" varchar(50),
+    "mean" double precision,
+    "std" double precision,
+    "median" double precision,
+    "q25" double precision,
+    "q75" double precision,
+    "min" double precision,
+    "max" double precision
+);
+"""
+
 
 class SimpleTestRunner(DiscoverRunner):
     def setup_databases(self, **kwargs):
@@ -128,6 +153,8 @@ class SimpleTestRunner(DiscoverRunner):
         cursor.execute(SIR_PARAMS_DDL)
         cursor.execute(COPERNICUS_BRASIL_DDL)
         cursor.execute(COPERNICUS_BRASIL_PRECIP_FIXED_DDL)
+        cursor.execute(MUNICIPIO_DDL)
+        cursor.execute(VEGETATION_INDEX_METRICS_DDL)
         self._seed_test_data(cursor)
 
     def _seed_test_data(self, cursor):

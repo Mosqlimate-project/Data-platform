@@ -23,7 +23,7 @@ test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
 
 test-cov:
-	$(BACKEND_RUN) coverage run manage.py test $(TEST_ARGS) registry
+	$(BACKEND_RUN) coverage run manage.py test $(TEST_ARGS) registry users vis datastore main maps chatbot mosqlimate.tests
 	$(BACKEND_RUN) coverage report -m
 	$(BACKEND_RUN) coverage erase
 

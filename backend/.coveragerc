@@ -1,5 +1,5 @@
 [run]
-source = registry
+source = registry, users, main, datastore, vis, maps, chatbot, mosqlimate
 branch = true
 omit =
     */migrations/*

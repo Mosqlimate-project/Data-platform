@@ -5,7 +5,7 @@ from django.conf import settings
 from .api import api
 
 
-def frontend(response):
+def frontend(response):  # pragma: no cover - disabled (see urlpatterns below)
     return redirect(settings.FRONTEND_URL)
 
 
