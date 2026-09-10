@@ -12,6 +12,43 @@ vi.mock("next/image", () => ({
   },
 }));
 
+// next/link renders a plain anchor
+vi.mock("next/link", () => ({
+  __esModule: true,
+  default: (props: {
+    href: string;
+    children?: React.ReactNode;
+    className?: string;
+  }) => {
+    const { href, children, ...rest } = props;
+    return React.createElement("a", { href, ...rest }, children);
+  },
+}));
+
+// next-themes mock
+vi.mock("next-themes", () => ({
+  useTheme: () => ({
+    theme: "light",
+    setTheme: vi.fn(),
+    resolvedTheme: "light",
+    themes: ["light", "dark"],
+  }),
+}));
+
+// react-i18next mock (t returns the key; i18n object for hooks)
+vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      language: "en",
+      changeLanguage: vi.fn(),
+      on: vi.fn(),
+      off: vi.fn(),
+    },
+  }),
+}));
+
 // next/navigation mocks
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
