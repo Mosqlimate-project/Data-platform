@@ -90,7 +90,7 @@ jobs:
       id: start
       continue-on-error: true
       run: |
-        sugar compose up --options -d 2>&1 | tee /tmp/container-start.log
+        make up 2>&1 | tee /tmp/container-start.log
 
     - name: Collect errors
       if: steps.start.outcome != 'success'
@@ -98,7 +98,7 @@ jobs:
         echo "::group::Container Start Errors (only relevant lines)"
         echo ""
         echo "--- Failed / Unhealthy Services ---"
-        sugar compose ps --options "-a" 2>/dev/null | grep -E "Exit|unhealthy|starting" || echo "(no containers running)"
+        docker compose -f docker-compose.dev.yaml ps -a 2>/dev/null | grep -E "Exit|unhealthy|starting" || echo "(no containers running)"
         echo ""
         echo "--- Error Lines ---"
         grep -iE 'error[^a-z]|fatal|traceback|exception|denied|failed to|cannot|could not|invalid' /tmp/container-start.log | head -40
@@ -108,16 +108,16 @@ jobs:
 
     - name: Migration check
       run: |
-        sugar compose exec --service backend --options "-T" --cmd "python manage.py makemigrations --check --dry-run"
+        make migration-check
 
     - name: Install coverage
       run: |
-        sugar compose exec --service backend --options "-T" --cmd "pip install coverage"
+        make coverage-install
 
     - name: Test with coverage
       run: |
         set -o pipefail
-        make test-cov SUGAR=true 2>&1 | tee /tmp/coverage.log
+        make test-cov 2>&1 | tee /tmp/coverage.log
 
     - name: Verify tests actually ran
       if: always()
