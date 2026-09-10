@@ -18,10 +18,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: [
-        "src/**/*.{test,spec}.{ts,tsx}",
-        "src/middleware.ts",
-      ],
+      exclude: ["src/**/*.{test,spec}.{ts,tsx}"],
       branches: 100,
       functions: 100,
       lines: 100,
