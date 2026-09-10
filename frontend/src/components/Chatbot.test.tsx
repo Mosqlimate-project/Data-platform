@@ -3,6 +3,11 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Chatbot from './Chatbot';
 
+const i18nState = vi.hoisted(() => ({ language: 'en' }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ i18n: { language: i18nState.language }, t: (k: string) => k }),
+}));
+
 vi.mock('react-markdown', () => ({
   default: ({ children, components }: any) => {
     const text = String(children);
@@ -99,6 +104,7 @@ async function renderOpenChatbot() {
 describe('Chatbot', () => {
   beforeEach(() => {
     MockWebSocket.instances = [];
+    i18nState.language = 'en';
     vi.stubGlobal('WebSocket', MockWebSocket);
     vi.stubGlobal('location', locationMock);
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -213,5 +219,47 @@ describe('Chatbot', () => {
     render(<Chatbot />);
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/session-key'));
     expect(MockWebSocket.instances.length).toBe(0);
+  });
+
+  it('uses wss and the current language when behind https', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ session_key: 'xyz' }) });
+    i18nState.language = 'pt';
+    locationMock.protocol = 'https:';
+    render(<Chatbot />);
+    await waitFor(() => expect(MockWebSocket.instances.length).toBe(1));
+    expect(MockWebSocket.instances[0].url).toMatch(/^wss:\/\//);
+    expect(MockWebSocket.instances[0].url).toContain('/ws/chat/xyz/?lang=pt');
+  });
+
+  it('falls back to en when the language is empty', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ session_key: 'abc' }) });
+    i18nState.language = '';
+    render(<Chatbot />);
+    await waitFor(() => expect(MockWebSocket.instances.length).toBe(1));
+    expect(MockWebSocket.instances[0].url).toContain('?lang=en');
+  });
+
+  it('closes the previous socket when the language changes', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ session_key: 'abc' }) });
+    const { rerender } = render(<Chatbot />);
+    await waitFor(() => expect(MockWebSocket.instances.length).toBe(1));
+    const first = MockWebSocket.instances[0];
+    expect(first.closed).toBe(false);
+
+    i18nState.language = 'pt';
+    rerender(<Chatbot />);
+    await waitFor(() => expect(MockWebSocket.instances.length).toBe(2));
+    expect(first.closed).toBe(true);
+  });
+
+  it('runs the scroll timeout after the chat is unmounted', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ session_key: 'abc' }) });
+    const { unmount } = render(<Chatbot />);
+    await userEvent.click(screen.getByTestId('chat-icon').closest('button')!);
+    await waitFor(() => expect(MockWebSocket.instances.length).toBe(1));
+    unmount();
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 150));
+    });
   });
 });

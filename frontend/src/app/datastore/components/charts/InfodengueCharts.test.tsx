@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { TotalCases, DailyCasesChart, RtChart } from "./InfodengueCharts";
 
 const echartsMock = vi.hoisted(() => {
@@ -20,6 +20,16 @@ const echartsMock = vi.hoisted(() => {
 vi.mock("echarts", () => ({
   init: echartsMock.init,
   graphic: { LinearGradient: class {} },
+}));
+
+const theme = vi.hoisted(() => ({ resolvedTheme: "light" }));
+vi.mock("next-themes", () => ({
+  useTheme: () => ({
+    theme: theme.resolvedTheme,
+    resolvedTheme: theme.resolvedTheme,
+    setTheme: vi.fn(),
+    themes: ["light", "dark"],
+  }),
 }));
 
 const i18nMock = vi.hoisted(() => {
@@ -70,6 +80,7 @@ function lastOption() {
 describe("datastore/components/charts/InfodengueCharts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    theme.resolvedTheme = "light";
     echartsMock.init.mockImplementation(() => echartsMock.instance);
   });
 
@@ -133,6 +144,45 @@ describe("datastore/components/charts/InfodengueCharts", () => {
       expect(html).toContain("5");
     });
 
+    it("formats the daily cases x axis labels", async () => {
+      mockFetch();
+      render(<DailyCasesChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      const formatter = lastOption().xAxis.axisLabel.formatter;
+      expect(formatter("2024-01-01T00:00:00")).toBe("2024-01-01");
+    });
+
+    it("resizes the chart instance on window resize while loading", async () => {
+      let resolveFetch: (v: any) => void;
+      global.fetch = vi.fn().mockReturnValue(
+        new Promise((res) => {
+          resolveFetch = res;
+        })
+      ) as unknown as typeof fetch;
+      render(<DailyCasesChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.init).toHaveBeenCalled());
+      const callsBefore = echartsMock.instance.resize.mock.calls.length;
+      act(() => {
+        window.dispatchEvent(new Event("resize"));
+      });
+      expect(echartsMock.instance.resize.mock.calls.length).toBeGreaterThan(callsBefore);
+      await act(async () => {
+        resolveFetch!({ ok: true, json: async () => dailyData });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    });
+
+    it("renders in dark theme", async () => {
+      theme.resolvedTheme = "dark";
+      mockFetch();
+      render(<DailyCasesChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.textStyle.color).toBe("#ffffff");
+      expect(lastOption().tooltip.backgroundColor).toBe("#1f2937");
+      expect(lastOption().xAxis.axisLabel.color).toBe("#9ca3af");
+    });
+
     it("handles empty data", async () => {
       mockFetch({ daily: [] });
       render(<DailyCasesChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
@@ -170,6 +220,23 @@ describe("datastore/components/charts/InfodengueCharts", () => {
       const formatter = lastOption().tooltip.formatter;
       const html = formatter([{ axisValue: "2024-01-01", value: 1.4 }]);
       expect(html).toContain("1.40");
+    });
+
+    it("formats the rt x axis labels", async () => {
+      mockFetch();
+      render(<RtChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      const formatter = lastOption().xAxis.axisLabel.formatter;
+      expect(formatter("2024-01-02T00:00:00")).toBe("2024-01-02");
+    });
+
+    it("renders in dark theme", async () => {
+      theme.resolvedTheme = "dark";
+      mockFetch();
+      render(<RtChart geocode="33" disease="dengue" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.textStyle.color).toBe("#ffffff");
+      expect(lastOption().series[0].markLine.lineStyle.color).toBe("#9ca3af");
     });
 
     it("handles empty data", async () => {

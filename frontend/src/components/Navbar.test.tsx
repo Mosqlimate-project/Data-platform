@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Navbar from './Navbar';
 
@@ -9,7 +9,7 @@ const auth = vi.hoisted(() => ({
   logout: vi.fn(),
 }));
 
-const themeState = vi.hoisted(() => ({ setTheme: vi.fn() }));
+const themeState = vi.hoisted(() => ({ theme: 'light', setTheme: vi.fn() }));
 const navState = vi.hoisted(() => ({ pathname: '/' }));
 
 vi.mock('./AuthProvider', () => ({
@@ -25,7 +25,7 @@ vi.mock('./Language', () => ({
 }));
 
 vi.mock('next-themes', () => ({
-  useTheme: () => ({ theme: 'light', setTheme: themeState.setTheme, resolvedTheme: 'light' }),
+  useTheme: () => ({ theme: themeState.theme, setTheme: themeState.setTheme, resolvedTheme: themeState.theme }),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -36,6 +36,7 @@ describe('Navbar', () => {
   beforeEach(() => {
     auth.user = null;
     navState.pathname = '/';
+    themeState.theme = 'light';
     auth.openLogin.mockClear();
     auth.logout.mockClear();
     themeState.setTheme.mockClear();
@@ -82,6 +83,13 @@ describe('Navbar', () => {
     expect(screen.queryByText('GitHub')).not.toBeInTheDocument();
   });
 
+  it('closes the dropdown when the LinkedIn link is clicked', () => {
+    render(<Navbar />);
+    fireEvent.click(screen.getByLabelText('Menu'));
+    fireEvent.click(screen.getByText('LinkedIn'));
+    expect(screen.queryByText('LinkedIn')).not.toBeInTheDocument();
+  });
+
   it('renders the user menu with profile, admin and logout for a staff user', async () => {
     auth.user = { username: 'alice', is_staff: true };
     render(<Navbar />);
@@ -111,5 +119,35 @@ describe('Navbar', () => {
     render(<Navbar />);
     const modelsLinks = screen.getAllByText('navbar.models');
     expect(modelsLinks[0].className).toContain('font-bold');
+  });
+
+  it('renders the dark theme icon and toggles to light', async () => {
+    themeState.theme = 'dark';
+    render(<Navbar />);
+    const themeBtn = screen.getByLabelText('footer.theme');
+    expect(themeBtn.querySelector('svg')).toHaveAttribute('class', expect.stringContaining('text-blue-300'));
+    await userEvent.click(themeBtn);
+    expect(themeState.setTheme).toHaveBeenCalledWith('light');
+  });
+
+  it.each([
+    ['/models', 'navbar.models'],
+    ['/dashboard', 'navbar.dashboard'],
+    ['/datastore', 'navbar.datastore'],
+    ['/docs', 'navbar.docs'],
+    ['/publications', 'navbar.publications'],
+    ['/about', 'navbar.about'],
+    ['/profile', 'navbar.profile'],
+    ['/admin', 'Admin'],
+  ])('highlights %s as active in the dropdown menu', (path, label) => {
+    navState.pathname = path;
+    auth.user = { username: 'alice', is_staff: true };
+    render(<Navbar />);
+    fireEvent.click(screen.getByLabelText('Menu'));
+    const list = screen.getByRole('list');
+    const link = within(list).getByText(label).closest('a')!;
+    expect(link.className).toContain('font-bold');
+    fireEvent.click(link);
+    expect(screen.queryByText('LinkedIn')).not.toBeInTheDocument();
   });
 });

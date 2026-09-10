@@ -117,7 +117,7 @@ describe("datastore/hooks/useChart", () => {
     rerender({ options: { series: [] }, loading: false });
     expect(mocks.init).toHaveBeenCalledTimes(1);
 
-    const nextDiv = document.createElement("section");
+    const nextDiv = document.createElement("div");
     (result.current as { current: HTMLDivElement | null }).current = nextDiv;
     rerender({ options: { series: [{ type: "line" }] }, loading: false });
 

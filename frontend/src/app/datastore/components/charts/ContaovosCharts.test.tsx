@@ -38,6 +38,16 @@ vi.mock("echarts", () => ({
   getInstanceByDom: echartsMock.getInstanceByDom,
 }));
 
+const theme = vi.hoisted(() => ({ resolvedTheme: "light" }));
+vi.mock("next-themes", () => ({
+  useTheme: () => ({
+    theme: theme.resolvedTheme,
+    resolvedTheme: theme.resolvedTheme,
+    setTheme: vi.fn(),
+    themes: ["light", "dark"],
+  }),
+}));
+
 const i18nMock = vi.hoisted(() => {
   const t = vi.fn((key: string) => key);
   return { t, i18n: { language: "en", changeLanguage: vi.fn(), on: vi.fn(), off: vi.fn() } };
@@ -84,6 +94,7 @@ function lastOption() {
 describe("datastore/components/charts/ContaovosCharts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    theme.resolvedTheme = "light";
     echartsMock.init.mockImplementation(() => echartsMock.instance);
     echartsMock.getInstanceByDom.mockImplementation(() => echartsMock.instance);
     delete echartsMock.handlers.click;
@@ -108,6 +119,18 @@ describe("datastore/components/charts/ContaovosCharts", () => {
       expect(lastOption().series).toHaveLength(1);
     });
 
+    it("renders the eggs density tooltip formatter", async () => {
+      mockFetch();
+      render(<EggsDensityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      const html = lastOption().tooltip.formatter([{ name: "202401", value: 10 }]);
+      expect(i18nMock.t).toHaveBeenCalledWith("charts_contaovos.eggs_density_tooltip", {
+        name: "202401",
+        value: 10,
+      });
+      expect(html).toBe("charts_contaovos.eggs_density_tooltip");
+    });
+
     it("uses the geocode parameter", async () => {
       mockFetch();
       render(<EggsDensityChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
@@ -128,6 +151,67 @@ describe("datastore/components/charts/ContaovosCharts", () => {
       await waitFor(() => expect(global.fetch).toHaveBeenCalled());
       await new Promise((r) => setTimeout(r, 30));
       expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("uses the brazil fallback when no location is provided", async () => {
+      mockFetch();
+      render(<EggsDensityChart start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.text).toBe("charts_contaovos.eggs_density_title");
+      expect(i18nMock.t).toHaveBeenCalledWith("charts_contaovos.brazil");
+    });
+
+    it("falls back to the geocode when the uf prefix is unknown", async () => {
+      mockFetch();
+      render(<EggsDensityChart geocode="990000" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.text).toBe("charts_contaovos.eggs_density_title");
+    });
+
+    it("returns null for a geocode that is neither numeric nor a 2-letter uf", async () => {
+      mockFetch();
+      render(<EggsDensityChart geocode="abcde" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.text).toBe("charts_contaovos.eggs_density_title");
+    });
+
+    it("renders in dark theme", async () => {
+      theme.resolvedTheme = "dark";
+      mockFetch();
+      render(<EggsDensityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.textStyle.color).toBe("#ffffff");
+      expect(lastOption().tooltip.backgroundColor).toBe("#1f2937");
+      expect(lastOption().xAxis.axisLabel.color).toBe("#9ca3af");
+    });
+
+    it("ignores results after unmount", async () => {
+      let resolveFetch: (v: any) => void;
+      global.fetch = vi.fn().mockReturnValue(
+        new Promise((res) => {
+          resolveFetch = res;
+        })
+      ) as unknown as typeof fetch;
+      const { unmount } = render(<EggsDensityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      unmount();
+      await act(async () => {
+        resolveFetch!({ json: async () => eggsData });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("ignores rejections after unmount", async () => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+      const { unmount } = render(<EggsDensityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      unmount();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(err).not.toHaveBeenCalled();
     });
 
     it("handles fetch rejection", async () => {
@@ -170,6 +254,45 @@ describe("datastore/components/charts/ContaovosCharts", () => {
       await waitFor(() => expect(global.fetch).toHaveBeenCalled());
       await new Promise((r) => setTimeout(r, 30));
       expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("renders in dark theme", async () => {
+      theme.resolvedTheme = "dark";
+      mockFetch();
+      render(<PositivityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().title.textStyle.color).toBe("#ffffff");
+      expect(lastOption().tooltip.backgroundColor).toBe("#1f2937");
+      expect(lastOption().xAxis.axisLabel.color).toBe("#9ca3af");
+    });
+
+    it("ignores results after unmount", async () => {
+      let resolveFetch: (v: any) => void;
+      global.fetch = vi.fn().mockReturnValue(
+        new Promise((res) => {
+          resolveFetch = res;
+        })
+      ) as unknown as typeof fetch;
+      const { unmount } = render(<PositivityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      unmount();
+      await act(async () => {
+        resolveFetch!({ json: async () => positivityData });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("ignores rejections after unmount", async () => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+      const { unmount } = render(<PositivityChart uf="SP" start="2024-01-01" end="2024-02-01" />);
+      unmount();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(err).not.toHaveBeenCalled();
     });
 
     it("handles fetch rejection", async () => {
@@ -248,6 +371,70 @@ describe("datastore/components/charts/ContaovosCharts", () => {
       mockFetch({ fail: true });
       render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
       await waitFor(() => expect(err).toHaveBeenCalled());
+    });
+
+    it("renders in dark theme", async () => {
+      theme.resolvedTheme = "dark";
+      mockFetch();
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      const option = lastOption();
+      expect(option.title.textStyle.color).toBe("#fff");
+      expect(option.geo.itemStyle.areaColor).toBe("#1f2937");
+      expect(option.tooltip.backgroundColor).toBe("#1f2937");
+    });
+
+    it("omits the scatter series when scatter data is empty", async () => {
+      mockFetch({ scatter: [] });
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().series).toHaveLength(1);
+    });
+
+    it("limits traps per state", async () => {
+      const many = Array.from({ length: 6 }, (_, i) => ({
+        name: "SP",
+        longitude: -46,
+        latitude: -23,
+        trap_id: `t${i}`,
+        municipality: "Sao Paulo",
+      }));
+      mockFetch({ scatter: many });
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().series[1].data).toHaveLength(5);
+    });
+
+    it("ignores map results after unmount", async () => {
+      const resolvers: Record<string, (v: any) => void> = {};
+      global.fetch = vi.fn((input: any) => {
+        const url = String(input);
+        return new Promise((res) => {
+          resolvers[url.includes("/scatter") ? "scatter" : "map"] = res;
+        });
+      }) as unknown as typeof fetch;
+      const { unmount } = render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
+      unmount();
+      await act(async () => {
+        resolvers.map!({ json: async () => mapData });
+        resolvers.scatter!({ json: async () => scatterData });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("ignores map rejections after unmount", async () => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+      const { unmount } = render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
+      unmount();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(err).not.toHaveBeenCalled();
     });
 
     it("renders the map and scatter tooltip formatters", async () => {

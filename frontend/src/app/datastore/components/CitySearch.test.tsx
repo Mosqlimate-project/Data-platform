@@ -129,4 +129,30 @@ describe("datastore/components/CitySearch", () => {
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "Rio" } });
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
+
+  it("shows the loading spinner while the request is in flight", async () => {
+    let resolveFetch: (v: any) => void;
+    global.fetch = vi.fn().mockReturnValue(
+      new Promise((res) => {
+        resolveFetch = res;
+      })
+    ) as unknown as typeof fetch;
+
+    render(<CitySearch value={undefined} onChange={vi.fn()} />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Rio" } });
+
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+      await Promise.resolve();
+    });
+
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveFetch!({ ok: true, json: async () => cities });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  });
 });

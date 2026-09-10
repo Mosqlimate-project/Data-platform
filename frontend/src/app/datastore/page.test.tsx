@@ -16,10 +16,21 @@ vi.mock("./views/EpiscannerView", () => ({ EpiScannerView: () => <div data-testi
 vi.mock("./views/VegetationView", () => ({ VegetationView: () => <div data-testid="vegetation" /> }));
 vi.mock("@/components/EpidBotBadge", () => ({ default: () => <div data-testid="epidbot" /> }));
 
+const dataMock = vi.hoisted(() => ({ override: null as any }));
+vi.mock("./data", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./data")>();
+  return {
+    ...actual,
+    getEndpoints: (t: (key: string) => string) =>
+      dataMock.override !== null ? dataMock.override : actual.getEndpoints(t),
+  };
+});
+
 describe("app/datastore/page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     nav.search = "";
+    dataMock.override = null;
   });
 
   it("defaults to the infodengue view", () => {
@@ -56,5 +67,29 @@ describe("app/datastore/page", () => {
     render(<DatastorePage />);
     fireEvent.click(screen.getAllByText("More info →")[0]);
     expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it("renders the unknown endpoint fallback", () => {
+    dataMock.override = [
+      {
+        endpoint: "/unknown/",
+        name: "X",
+        description: "d",
+        source: "s",
+        more_info_link: "m",
+        tags: ["t"],
+        data_variables: [],
+        chart_options: [],
+      },
+    ];
+    render(<DatastorePage />);
+    expect(screen.getByText("Unknown Endpoint")).toBeInTheDocument();
+  });
+
+  it("renders nothing when there are no endpoints", () => {
+    dataMock.override = [];
+    render(<DatastorePage />);
+    expect(screen.getByText("Datastore")).toBeInTheDocument();
+    expect(screen.queryByTestId("infodengue")).not.toBeInTheDocument();
   });
 });

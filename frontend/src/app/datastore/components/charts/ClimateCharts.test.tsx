@@ -95,6 +95,18 @@ describe("datastore/components/charts/ClimateCharts", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it("does not fetch for the waterfall chart when props are missing", () => {
+    mockFetch();
+    render(<AccumulatedWaterfallChart geocode="" start="" end="" />);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not fetch for the air chart when props are missing", () => {
+    mockFetch();
+    render(<AirChart geocode="" start="" end="" />);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it("renders the temperature chart with city location", async () => {
     mockFetch();
     render(<TemperatureChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
@@ -130,6 +142,22 @@ describe("datastore/components/charts/ClimateCharts", () => {
     expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
   });
 
+  it("does not set options for the waterfall chart when the response is empty", async () => {
+    mockFetch({ chart: [] });
+    render(<AccumulatedWaterfallChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await flush();
+    expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+  });
+
+  it("does not set options for the air chart when the response is empty", async () => {
+    mockFetch({ chart: [] });
+    render(<AirChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await flush();
+    expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+  });
+
   it("logs an error when the chart response is not ok", async () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     mockFetch({ chartOk: false });
@@ -137,10 +165,38 @@ describe("datastore/components/charts/ClimateCharts", () => {
     await waitFor(() => expect(err).toHaveBeenCalled());
   });
 
+  it("logs an error for the waterfall chart when the response is not ok", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFetch({ chartOk: false });
+    render(<AccumulatedWaterfallChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs an error for the air chart when the response is not ok", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFetch({ chartOk: false });
+    render(<AirChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
   it("logs an error when fetch rejects", async () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
     render(<TemperatureChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs an error when the waterfall fetch rejects", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+    render(<AccumulatedWaterfallChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs an error when the air fetch rejects", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+    render(<AirChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
     await waitFor(() => expect(err).toHaveBeenCalled());
   });
 
@@ -172,5 +228,31 @@ describe("datastore/components/charts/ClimateCharts", () => {
     render(<AirChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
     await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
     expect(lastOption().title.textStyle.color).toBe("#ffffff");
+  });
+
+  it("invokes the air chart yAxis max function", async () => {
+    mockFetch();
+    render(<AirChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+    expect(lastOption().yAxis[0].max({ max: 1.01 })).toBeCloseTo(1.03);
+  });
+
+  it("renders the waterfall chart in dark theme", async () => {
+    theme.resolvedTheme = "dark";
+    mockFetch();
+    render(<AccumulatedWaterfallChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+    expect(lastOption().title.textStyle.color).toBe("#ffffff");
+    expect(lastOption().tooltip.backgroundColor).toBe("#1f2937");
+    expect(lastOption().dataZoom[1].backgroundColor).toBe("#1f2937");
+  });
+
+  it("renders the temperature chart in dark theme", async () => {
+    theme.resolvedTheme = "dark";
+    mockFetch();
+    render(<TemperatureChart geocode="3304557" start="2024-01-01" end="2024-02-01" />);
+    await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+    expect(lastOption().title.textStyle.color).toBe("#ffffff");
+    expect(lastOption().legend.textStyle.color).toBe("#ffffff");
   });
 });

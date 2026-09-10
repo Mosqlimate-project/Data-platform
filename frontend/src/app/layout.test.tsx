@@ -57,4 +57,15 @@ describe("app/layout", () => {
     render(ui);
     expect(script.props).toHaveLength(0);
   });
+
+  it("renders the analytics scripts in production", async () => {
+    script.props.length = 0;
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { default: ProdLayout } = await import("./layout");
+    render(ProdLayout({ children: <span>prod</span> }));
+    expect(script.props.some((p) => p.id === "google-analytics")).toBe(true);
+    expect(script.props.some((p) => String(p.src).includes("googletagmanager"))).toBe(true);
+    vi.unstubAllEnvs();
+  });
 });

@@ -2,6 +2,18 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { AccordionCard, EndpointLayout } from "./EndpointLayout";
 
+const i18nMock = vi.hoisted(() => {
+  const t = vi.fn((key: string) => (key === "common.documentation" ? "" : key));
+  return { t };
+});
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: i18nMock.t,
+    i18n: { language: "en", changeLanguage: vi.fn(), on: vi.fn(), off: vi.fn() },
+  }),
+  initReactI18next: { type: "3rdParty", init: vi.fn() },
+}));
+
 const baseProps = {
   title: "Climate",
   endpoint: "/climate/",
@@ -102,5 +114,15 @@ describe("datastore/components/EndpointLayout", () => {
     fireEvent.click(screen.getByText("endpoint_layout.accordion.description_title"));
     expect(screen.queryByText("endpoint_layout.accordion.dictionary_title")).not.toBeInTheDocument();
     expect(screen.queryByText("https://source.example")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the Documentation label when the translation is empty", () => {
+    render(
+      <EndpointLayout {...baseProps}>
+        <div>chart-content</div>
+      </EndpointLayout>
+    );
+    fireEvent.click(screen.getByText("endpoint_layout.accordion.description_title"));
+    expect(screen.getByText(/Documentation/)).toBeInTheDocument();
   });
 });

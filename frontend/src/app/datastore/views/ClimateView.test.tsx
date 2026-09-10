@@ -179,4 +179,96 @@ describe("datastore/views/ClimateView", () => {
     fireEvent.click(screen.getByRole("button", { name: "CSV" }));
     await waitFor(() => expect(alertSpy).toHaveBeenCalled());
   });
+
+  it("shows a warning and does not download while disabled", async () => {
+    auth.user = { username: "a" };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] }) as unknown as typeof fetch;
+    render(<ClimateView config={config} />);
+    expect(screen.getByText("Select City or UF")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => expect(window.URL.createObjectURL).not.toHaveBeenCalled());
+  });
+
+  it("downloads CSV from an items response", async () => {
+    auth.user = { username: "a" };
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
+      return Promise.resolve({ ok: true, json: async () => ({ items: [{ a: 1 }] }) });
+    }) as unknown as typeof fetch;
+
+    render(<ClimateView config={config} />);
+    fireEvent.click(screen.getAllByTestId("city-select")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled());
+  });
+
+  it("downloads CSV from a data response", async () => {
+    auth.user = { username: "a" };
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
+      return Promise.resolve({ ok: true, json: async () => ({ data: [{ a: 1 }] }) });
+    }) as unknown as typeof fetch;
+
+    render(<ClimateView config={config} />);
+    fireEvent.click(screen.getAllByTestId("city-select")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled());
+  });
+
+  it("downloads CSV from a plain object response", async () => {
+    auth.user = { username: "a" };
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
+      return Promise.resolve({ ok: true, json: async () => ({ a: 1, b: 2 }) });
+    }) as unknown as typeof fetch;
+
+    render(<ClimateView config={config} />);
+    fireEvent.click(screen.getAllByTestId("city-select")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled());
+  });
+
+  it("alerts when the download response fails", async () => {
+    auth.user = { username: "a" };
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
+      return Promise.resolve({ ok: false, json: async () => ({}) });
+    }) as unknown as typeof fetch;
+
+    render(<ClimateView config={config} />);
+    fireEvent.click(screen.getAllByTestId("city-select")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+    expect(err).toHaveBeenCalled();
+  });
+
+  it("opens the date picker and updates page fields", () => {
+    render(<ClimateView config={config} />);
+    fireEvent.click(controlsDates()[0]);
+
+    const apiBuilder = screen.getByTestId("api-builder");
+    const numbers = apiBuilder.querySelectorAll('input[type="number"]') as NodeListOf<HTMLInputElement>;
+    fireEvent.change(numbers[0], { target: { value: "0" } });
+    expect(numbers[0].value).toBe("1");
+    fireEvent.change(numbers[0], { target: { value: "5" } });
+    expect(numbers[0].value).toBe("5");
+    fireEvent.change(numbers[1], { target: { value: "500" } });
+    expect(numbers[1].value).toBe("300");
+    fireEvent.change(numbers[1], { target: { value: "0" } });
+    expect(numbers[1].value).toBe("1");
+    fireEvent.change(numbers[1], { target: { value: "50" } });
+    expect(numbers[1].value).toBe("50");
+  });
+
+  it("shows the date format placeholder when the start date is cleared", () => {
+    render(<ClimateView config={config} />);
+    fireEvent.change(controlsDates()[0], { target: { value: "" } });
+    expect(screen.getByText("MM/DD/YYYY")).toBeInTheDocument();
+  });
 });

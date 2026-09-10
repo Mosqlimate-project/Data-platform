@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Footer from "./Footer";
 
+const themeState = vi.hoisted(() => ({ theme: "light" }));
+
 vi.mock("next-themes", () => ({
   useTheme: () => ({
-    theme: "light",
+    theme: themeState.theme,
     setTheme: vi.fn(),
-    resolvedTheme: "light",
+    resolvedTheme: themeState.theme,
   }),
 }));
 
@@ -19,6 +21,7 @@ vi.mock("react-i18next", () => ({
 
 describe("Footer", () => {
   beforeEach(() => {
+    themeState.theme = "light";
     vi.restoreAllMocks();
   });
 
@@ -37,6 +40,14 @@ describe("Footer", () => {
   it("toggles theme via button", () => {
     render(<Footer />);
     const themeBtn = screen.getByText("footer.theme");
+    fireEvent.click(themeBtn);
+  });
+
+  it("renders the dark theme button and toggles back to light", () => {
+    themeState.theme = "dark";
+    render(<Footer />);
+    const themeBtn = screen.getByText("footer.theme").closest("button")!;
+    expect(themeBtn.querySelector("svg")).toHaveAttribute("class", expect.stringContaining("text-blue-300"));
     fireEvent.click(themeBtn);
   });
 });

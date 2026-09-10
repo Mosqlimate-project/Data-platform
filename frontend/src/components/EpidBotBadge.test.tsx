@@ -2,27 +2,27 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import EpidBotBadge from "./EpidBotBadge";
 
-vi.mock("react-i18next", async (importOriginal) => {
-  const original = await importOriginal<typeof import("react-i18next")>();
-  return {
-    ...original,
-    useTranslation: () => ({
-      i18n: { language: "en" },
-      t: (k: string) => k,
-    }),
-  };
-});
+const state = vi.hoisted(() => ({ language: "en", resolvedTheme: "dark" }));
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    i18n: { language: state.language },
+    t: (k: string) => k,
+  }),
+}));
 
 vi.mock("next-themes", () => ({
   useTheme: () => ({
-    theme: "dark",
-    resolvedTheme: "dark",
+    theme: state.resolvedTheme,
+    resolvedTheme: state.resolvedTheme,
     setTheme: vi.fn(),
   }),
 }));
 
 describe("EpidBotBadge", () => {
   beforeEach(() => {
+    state.language = "en";
+    state.resolvedTheme = "dark";
     vi.restoreAllMocks();
   });
 
@@ -41,5 +41,18 @@ describe("EpidBotBadge", () => {
     expect(link.style.transform).toBe("translateY(-1px)");
     fireEvent.mouseLeave(link);
     expect(link.style.transform).toBe("");
+  });
+
+  it("renders the Portuguese prefix for pt languages", () => {
+    state.language = "pt-BR";
+    render(<EpidBotBadge />);
+    expect(screen.getByText(/Explore com o/)).toBeInTheDocument();
+  });
+
+  it("uses the light theme palette when resolvedTheme is light", () => {
+    state.resolvedTheme = "light";
+    render(<EpidBotBadge />);
+    const link = screen.getByRole("link");
+    expect(link.style.background).toBe("rgb(255, 255, 255)");
   });
 });

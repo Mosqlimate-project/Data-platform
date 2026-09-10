@@ -64,4 +64,18 @@ describe("middleware", () => {
     const res = await middleware(makeNextRequest("/dashboard"));
     expect(res.headers.get("set-cookie")).toContain("a=1");
   });
+
+  it("falls back to an empty internal secret when FRONTEND_SECRET is unset", async () => {
+    vi.stubEnv("FRONTEND_SECRET", "");
+    const { middleware } = await import("./middleware");
+    const res = await middleware(makeNextRequest("/models"));
+    expect(res.status).toBe(200);
+  });
+
+  it("does not append set-cookie when the verified user has no headers", async () => {
+    const { middleware } = await import("./middleware");
+    mockVerifyUser.mockResolvedValue({ user: {} });
+    const res = await middleware(makeNextRequest("/dashboard"));
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
 });

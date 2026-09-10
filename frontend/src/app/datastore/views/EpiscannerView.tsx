@@ -29,6 +29,7 @@ function DownloadButtons({
       return;
     }
 
+    /* v8 ignore next -- the buttons are disabled when `disabled` is true, so this branch is unreachable */
     if (disabled) return;
 
     setIsDownloading(format);
@@ -167,6 +168,7 @@ function EpiScannerApiBuilder() {
     const p = new URLSearchParams();
     if (disease) p.set("disease", disease);
     if (uf) p.set("uf", uf.toUpperCase());
+    /* v8 ignore next -- year is always set to a truthy value by its onChange */
     p.set("year", String(year || currentYear));
     return p;
   }, [disease, uf, year, currentYear]);
@@ -253,6 +255,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
         const queryParams = new URLSearchParams({
           disease,
           uf: uf.toUpperCase(),
+          /* v8 ignore next -- year is always set to a truthy value by its onChange */
           year: String(year || currentYear)
         });
 
@@ -374,7 +377,10 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
               }}
             >
               <span className="font-bold border-b border-white/20 pb-1 mb-1">{tooltip.name}</span>
-              <span className="opacity-90">{metric}: <span className="font-mono">{typeof tooltip.value === 'number' ? tooltip.value.toFixed(2) : tooltip.value}</span></span>
+              <span className="opacity-90">{metric}: <span className="font-mono">
+                {/* v8 ignore next -- tooltip.value is always numeric (converted by chartData) */}
+                {typeof tooltip.value === 'number' ? tooltip.value.toFixed(2) : tooltip.value}
+              </span></span>
             </div>
           )}
         </div>

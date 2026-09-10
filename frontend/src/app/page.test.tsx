@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import HomePage from "./page";
 
 const i18nMock = vi.hoisted(() => {
@@ -13,7 +13,10 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("next/dynamic", () => ({
   __esModule: true,
-  default: () => () => null,
+  default: (loader: () => any) => {
+    loader();
+    return () => null;
+  },
 }));
 
 const fetchMetadata = vi.hoisted(() => vi.fn());
@@ -38,20 +41,32 @@ const metadata = {
   sprint: true,
 };
 
+let ioCallbacks: Array<(entries: any[]) => void> = [];
+
 describe("app/page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchMetadata.mockResolvedValue(metadata);
     window.scrollBy = vi.fn();
+    ioCallbacks = [];
     window.IntersectionObserver = class {
+      constructor(cb: (entries: any[]) => void) {
+        ioCallbacks.push(cb);
+      }
       observe() {}
       unobserve() {}
       disconnect() {}
     } as any;
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      cb(0);
+      return 1;
+    }) as any;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("renders the landing sections", () => {
@@ -81,5 +96,106 @@ describe("app/page", () => {
     render(<HomePage />);
     await waitFor(() => expect(err).toHaveBeenCalled());
     expect(screen.queryByTestId("home-chart")).not.toBeInTheDocument();
+  });
+
+  it("fades sections in when they intersect", () => {
+    render(<HomePage />);
+    const sections = document.querySelectorAll("[data-scroll-section]");
+    expect(sections.length).toBeGreaterThan(0);
+    act(() => {
+      ioCallbacks[0]([{ isIntersecting: true }]);
+    });
+    expect(ioCallbacks.length).toBeGreaterThan(0);
+  });
+
+  it("scrolls to the next section when the scroll indicator is clicked", () => {
+    render(<HomePage />);
+    const indicator = screen.getByText("home.scroll").closest("div")!;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-scroll-section]"));
+    Object.defineProperty(sections[0], "offsetTop", { value: 100, configurable: true });
+    fireEvent.click(indicator);
+    expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it("does not scroll when there is no section below the fold", () => {
+    render(<HomePage />);
+    const indicator = screen.getByText("home.scroll").closest("div")!;
+    fireEvent.click(indicator);
+    expect(window.HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("hides the scroll indicator when the page is fully scrolled", () => {
+    render(<HomePage />);
+    expect(screen.getByText("home.scroll")).toBeInTheDocument();
+    act(() => {
+      fireEvent.scroll(window);
+    });
+    expect(screen.queryByText("home.scroll")).not.toBeInTheDocument();
+  });
+
+  it("uses the production prediction id when NODE_ENV is production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { default: ProdHome } = await import("./page");
+    render(<ProdHome />);
+    await waitFor(() => expect(fetchMetadata).toHaveBeenCalledWith("2085"));
+  });
+
+  it("builds the dashboard link for adm_level 0 with an adm_0 code", async () => {
+    fetchMetadata.mockResolvedValue({
+      ...metadata,
+      adm_level: 0,
+      adm_0_code: "BRA",
+      adm_1_code: null,
+      adm_2_code: null,
+      sprint: false,
+    });
+    render(<HomePage />);
+    await waitFor(() => expect(screen.getByTestId("home-chart")).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /home.models.image_message/ });
+    expect(link.getAttribute("href")).toContain("sprint=false");
+    expect(link.getAttribute("href")).toContain("adm_0=BRA");
+  });
+
+  it("builds the dashboard link for adm_level 1 with an adm_1 code", async () => {
+    fetchMetadata.mockResolvedValue({
+      ...metadata,
+      adm_level: 1,
+      adm_0_code: "BRA",
+      adm_1_code: "33",
+      adm_2_code: null,
+    });
+    render(<HomePage />);
+    await waitFor(() => expect(screen.getByTestId("home-chart")).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /home.models.image_message/ });
+    expect(link.getAttribute("href")).toContain("adm_1=33");
+  });
+
+  it("builds a dashboard link without codes when codes are missing", async () => {
+    fetchMetadata.mockResolvedValue({
+      ...metadata,
+      adm_level: 1,
+      adm_0_code: null,
+      adm_1_code: null,
+      adm_2_code: null,
+    });
+    render(<HomePage />);
+    await waitFor(() => expect(screen.getByTestId("home-chart")).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /home.models.image_message/ });
+    expect(link.getAttribute("href")).not.toContain("adm_0=");
+    expect(link.getAttribute("href")).not.toContain("adm_1=");
+    expect(link.getAttribute("href")).not.toContain("adm_2=");
+  });
+
+  it("links to the base dashboard before metadata loads", () => {
+    let resolveFn: (v: any) => void;
+    fetchMetadata.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFn = resolve;
+      })
+    );
+    render(<HomePage />);
+    expect(screen.queryByRole("link", { name: /home.models.image_message/ })).not.toBeInTheDocument();
+    act(() => resolveFn!(metadata));
   });
 });

@@ -90,6 +90,20 @@ describe("datastore/components/charts/EpiscannerCharts", () => {
     expect(screen.getByTestId("composable-map")).toBeInTheDocument();
   });
 
+  it("uses the item name when the geo name is missing", () => {
+    const onHover = vi.fn();
+    render(
+      <EpiScannerChart
+        geoData={{}}
+        data={[{ id: "99", value: 5, name: "Second" }]}
+        selectedUf="SP"
+        onHover={onHover}
+      />
+    );
+    fireEvent.mouseMove(screen.getAllByTestId("geography")[1], { clientX: 1, clientY: 2 });
+    expect(onHover).toHaveBeenCalledWith("Second", 5, 1, 2);
+  });
+
   it("renders dark theme styles", () => {
     theme.resolvedTheme = "dark";
     render(<EpiScannerChart geoData={{}} data={[]} selectedUf="SP" />);

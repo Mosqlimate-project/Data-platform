@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { AuthProvider, useAuth } from './AuthProvider';
 
 vi.mock('framer-motion', () => {
@@ -15,6 +16,35 @@ vi.mock('framer-motion', () => {
     AnimatePresence: ({ children }: any) => <>{children}</>,
   };
 });
+
+vi.mock('./LoginModal', () => ({
+  default: ({ open, onClose, onCancel }: any) => {
+    if (!open) return null;
+    return (
+      <div>
+        <h2>login_modal.title</h2>
+        <button onClick={() => {
+          onClose();
+          onCancel?.();
+        }}>
+          login_modal.btn_cancel
+        </button>
+      </div>
+    );
+  },
+}));
+
+vi.mock('./RegisterModal', () => ({
+  default: ({ open, onClose }: any) => {
+    if (!open) return null;
+    return (
+      <div>
+        <h2>register_modal.title</h2>
+        <button onClick={() => onClose()}>register_modal.close</button>
+      </div>
+    );
+  },
+}));
 
 const locationMock = {
   href: '',
@@ -151,5 +181,47 @@ describe('AuthProvider', () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Consumer />)).toThrow('useAuth must be used within AuthProvider');
     err.mockRestore();
+  });
+
+  it('skips the duplicate initial fetch under StrictMode double effects', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: '1', username: 'alice', email: 'a@b.c' }),
+    });
+
+    render(
+      <React.StrictMode>
+        <AuthProvider>
+          <Consumer />
+        </AuthProvider>
+      </React.StrictMode>
+    );
+
+    await waitFor(() => expect(screen.getByTestId('user').textContent).toBe('alice'));
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches login-cancelled when the login modal cancel is clicked', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
+    const dispatch = vi.spyOn(window, 'dispatchEvent');
+
+    renderWithProvider();
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'));
+
+    await userEvent.click(screen.getByText('open-login'));
+    await userEvent.click(screen.getByText('login_modal.btn_cancel'));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'login-cancelled' }));
+  });
+
+  it('closes the register modal', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
+    renderWithProvider();
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'));
+
+    await userEvent.click(screen.getByText('open-register'));
+    expect(screen.getByText('register_modal.title')).toBeInTheDocument();
+    await userEvent.click(screen.getByText('register_modal.close'));
+    expect(screen.queryByText('register_modal.title')).not.toBeInTheDocument();
   });
 });
