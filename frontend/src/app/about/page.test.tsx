@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import AboutPage from "./page";
 
 const i18nMock = vi.hoisted(() => {
@@ -54,5 +54,25 @@ describe("app/about/page", () => {
     render(<AboutPage />);
     fireEvent.scroll(window);
     expect(screen.queryByText("home.scroll")).not.toBeInTheDocument();
+  });
+
+  it("reveals sections when they intersect the viewport", () => {
+    let callback: ((entries: any[]) => void) | null = null;
+    window.IntersectionObserver = class {
+      constructor(cb: (entries: any[]) => void) {
+        callback = cb;
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as any;
+
+    const { container } = render(<AboutPage />);
+    const section = container.querySelector(".opacity-0");
+    expect(section).toBeInTheDocument();
+    act(() => {
+      callback?.([{ isIntersecting: true }]);
+    });
+    expect(container.querySelector(".opacity-100")).toBeInTheDocument();
   });
 });

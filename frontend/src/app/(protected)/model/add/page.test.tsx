@@ -21,6 +21,11 @@ vi.mock("framer-motion", () => {
 
 vi.mock("@/components/NetworkBackground", () => ({ default: () => null }));
 
+const theme = vi.hoisted(() => ({ resolvedTheme: "light" }));
+vi.mock("next-themes", () => ({
+  useTheme: () => ({ resolvedTheme: theme.resolvedTheme, theme: theme.resolvedTheme, setTheme: vi.fn() }),
+}));
+
 const oauthLogin = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/auth", () => ({ oauthLogin }));
 
@@ -73,6 +78,7 @@ async function goToVerify() {
 describe("app/(protected)/model/add/page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    theme.resolvedTheme = "light";
     mockFetch();
   });
 
@@ -189,5 +195,145 @@ describe("app/(protected)/model/add/page", () => {
     mockFetch({ connections: ["github", "gitlab"], github: [], gitlab: [] });
     render(<AddModelPage />);
     await waitFor(() => expect(screen.getByText("add_model.selection.empty.title")).toBeInTheDocument());
+  });
+
+  it("uses the dark card style when the theme is dark", async () => {
+    theme.resolvedTheme = "dark";
+    await renderPage();
+    const card = document.querySelector(".rounded-2xl.shadow-xl") as HTMLElement;
+    expect(card.className).toContain("bg-accent");
+  });
+
+  it("handles repository urls that cannot be parsed", async () => {
+    mockFetch({ github: [{ id: "3", name: "badrepo", url: "not a url", provider: "github", available: true }] });
+    render(<AddModelPage />);
+    await waitFor(() => expect(screen.getByText("badrepo")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("badrepo"));
+    expect(screen.getByText("add_model.config.description")).toBeInTheDocument();
+    fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "week" } });
+    fireEvent.change(screen.getAllByRole("combobox")[1], { target: { value: "quantitative" } });
+    fireEvent.click(screen.getByRole("button", { name: "add_model.config.continue" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "add_model.verify.confirm" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "add_model.verify.confirm" }));
+    await waitFor(() => expect(nav.push).toHaveBeenCalledWith("/dashboard"));
+  });
+
+  it("logs errors when the provider requests throw", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/oauth/connections")) return Promise.reject(new Error("conn"));
+      if (url.includes("/api/registry/model/add/sprint/actives")) return Promise.reject(new Error("sprint"));
+      if (url.includes("/api/user/oauth/repositories/github")) return Promise.reject(new Error("gh"));
+      if (url.includes("/api/user/oauth/repositories/gitlab")) return Promise.reject(new Error("gl"));
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AddModelPage />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("marks the github app missing when the repositories request is not ok", async () => {
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/oauth/repositories/github")) return Promise.resolve({ ok: false });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AddModelPage />);
+    await waitFor(() => expect(screen.getByText("add_model.title")).toBeInTheDocument());
+  });
+
+  it("does not submit an empty manual url", async () => {
+    await renderPage();
+    const form = screen.getByPlaceholderText("add_model.selection.placeholder_url").closest("form")!;
+    fireEvent.submit(form);
+    expect(screen.getByText("add_model.title")).toBeInTheDocument();
+  });
+
+  it("falls back to the default import error message", async () => {
+    await goToVerify();
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }) as unknown as typeof fetch;
+    fireEvent.click(screen.getByRole("button", { name: "add_model.verify.confirm" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it("handles non-Error import failures", async () => {
+    await goToVerify();
+    global.fetch = vi.fn().mockRejectedValue("string failure") as unknown as typeof fetch;
+    fireEvent.click(screen.getByRole("button", { name: "add_model.verify.confirm" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it("clears the error when editing the url", async () => {
+    await renderPage();
+    const input = screen.getByPlaceholderText("add_model.selection.placeholder_url");
+    fireEvent.change(input, { target: { value: "https://github.com/x/y" } });
+    fireEvent.click(screen.getByRole("button", { name: "add_model.selection.next" }));
+    expect(screen.getByText("add_model.selection.errors.invalid_repo")).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "https://github.com/x/y2" } });
+    expect(screen.queryByText("add_model.selection.errors.invalid_repo")).not.toBeInTheDocument();
+  });
+
+  it("renders gitlab repositories", async () => {
+    mockFetch({
+      github: [],
+      gitlab: [{ id: "g1", name: "glrepo", url: "https://gitlab.com/a/b", private: false, provider: "gitlab", available: true }],
+    });
+    render(<AddModelPage />);
+    await waitFor(() => expect(screen.getByText("glrepo")).toBeInTheDocument());
+  });
+
+  it("renders the verify summary with an empty configuration", async () => {
+    await renderPage();
+    fireEvent.click(screen.getByText("repo1"));
+    const form = screen.getByRole("button", { name: "add_model.config.continue" }).closest("form")!;
+    fireEvent.submit(form);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "add_model.verify.confirm" })).toBeInTheDocument()
+    );
+  });
+
+  it("renders the sprint feature on the verify step", async () => {
+    await renderPage();
+    fireEvent.click(screen.getByText("repo1"));
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "week" } });
+    fireEvent.change(selects[1], { target: { value: "quantitative" } });
+    fireEvent.change(selects[2], { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "add_model.config.continue" }));
+    await waitFor(() => expect(screen.getByText(/IMDC 2024/)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "add_model.verify.confirm" }));
+    await waitFor(() =>
+      expect(
+        (global.fetch as any).mock.calls.some((c: any[]) =>
+          String(c[0]) === "/api/registry/model/add"
+        )
+      ).toBe(true)
+    );
+    const addCall = (global.fetch as any).mock.calls.find((c: any[]) =>
+      String(c[0]) === "/api/registry/model/add"
+    );
+    expect(JSON.parse(addCall[1].body).sprint).toBe(1);
+  });
+
+  it("shows an unknown sprint year when the sprint has no year", async () => {
+    mockFetch({ sprints: [{ id: 1, start_date: "a", end_date: "b" }] });
+    await renderPage();
+    fireEvent.click(screen.getByText("repo1"));
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "week" } });
+    fireEvent.change(selects[1], { target: { value: "quantitative" } });
+    fireEvent.change(selects[2], { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "add_model.config.continue" }));
+    await waitFor(() => expect(screen.getByText(/IMDC Unknown/)).toBeInTheDocument());
+  });
+
+  it("shows the config spinner when navigating back during import", async () => {
+    await goToVerify();
+    global.fetch = vi.fn(() => new Promise(() => {})) as unknown as typeof fetch;
+    fireEvent.click(screen.getByRole("button", { name: "add_model.verify.confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "add_model.config.back" }));
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 });

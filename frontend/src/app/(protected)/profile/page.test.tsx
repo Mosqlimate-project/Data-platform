@@ -177,4 +177,80 @@ describe("app/(protected)/profile/page", () => {
     fireEvent.change(input, { target: { files: [] } });
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
+
+  it("tolerates profiles with empty name fields", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ username: "alice", email: "a@b.c", first_name: "", last_name: "", homepage: "" }),
+    }) as unknown as typeof fetch;
+    render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByText("alice")).toBeInTheDocument());
+  });
+
+  it("falls back to empty names from the auth user", async () => {
+    auth.user = { username: "bob", email: "b@b.c" };
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }) as unknown as typeof fetch;
+    render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByText("bob")).toBeInTheDocument());
+  });
+
+  it("updates using the auth user when no profile was loaded", async () => {
+    auth.user = { username: "bob", email: "b@b.c", first_name: "Bob", last_name: "B" };
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) as unknown as typeof fetch;
+    render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByText("bob")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "profile.update_btn" }));
+    await waitFor(() => expect((global.fetch as any).mock.calls[1][1].method).toBe("POST"));
+  });
+
+  it("alerts the default update error when no message is returned", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => profile })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) }) as unknown as typeof fetch;
+    render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByDisplayValue("Alice")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "profile.update_btn" }));
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith("profile.alerts.update_fail"));
+  });
+
+  it("alerts the default upload error when no message is returned", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => profile })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) }) as unknown as typeof fetch;
+    const { container } = render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByDisplayValue("Alice")).toBeInTheDocument());
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [fileOf(100)] } });
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith("profile.alerts.upload_fail"));
+  });
+
+  it("uploads an avatar without a loaded profile", async () => {
+    auth.user = { username: "bob", email: "b@b.c" };
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ avatar_url: "https://new" }) }) as unknown as typeof fetch;
+    const { container } = render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByText("bob")).toBeInTheDocument());
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [fileOf(100)] } });
+    await waitFor(() => expect((global.fetch as any).mock.calls[1][1].method).toBe("POST"));
+  });
+
+  it("updates the last name and homepage fields", async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => profile }) as unknown as typeof fetch;
+    render(<ProfilePage />);
+    await waitFor(() => expect(screen.getByDisplayValue("Smith")).toBeInTheDocument());
+    fireEvent.change(screen.getByDisplayValue("Smith"), { target: { value: "Smythe" } });
+    fireEvent.change(screen.getByDisplayValue("https://a.com"), { target: { value: "https://b.com" } });
+    expect(screen.getByDisplayValue("Smythe")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("https://b.com")).toBeInTheDocument();
+  });
 });

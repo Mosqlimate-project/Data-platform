@@ -185,4 +185,14 @@ describe("components/dashboard/Sidebar", () => {
     const overview = screen.getByText("dashboard.overview.overview").closest("a")!;
     expect(overview).toHaveClass("bg-accent");
   });
+
+  it("falls back to the section label and tolerates missing categories and levels", () => {
+    const sparse = [
+      { id: "custom", label: "Custom Label" },
+      { id: "default", label: "Default", categories: [{ id: "c", label: "C" }] },
+    ] as unknown as typeof sections;
+    render(<DashboardSidebar sections={sparse} />);
+    expect(screen.getByText("Custom Label")).toBeInTheDocument();
+    expect(screen.getByText("dashboard.overview.general.title")).toBeInTheDocument();
+  });
 });

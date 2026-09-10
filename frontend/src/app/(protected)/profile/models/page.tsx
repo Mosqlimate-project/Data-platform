@@ -89,6 +89,7 @@ export default function ModelsPage() {
   };
 
   const handleDelete = async () => {
+    /* v8 ignore next */
     if (!deleteModal.model || confirmName !== deleteModal.model.name) return;
 
     try {

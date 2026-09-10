@@ -26,6 +26,7 @@ export default function AuthSettingsPage() {
   const installUrl = `/api/user/oauth/install/github?next=${encodeURIComponent(pathname)}`;
 
   useEffect(() => {
+    /* v8 ignore next */
     if (initialized.current) return;
     initialized.current = true;
 

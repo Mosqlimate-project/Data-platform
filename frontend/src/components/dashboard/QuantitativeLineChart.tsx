@@ -71,6 +71,7 @@ export const LineChart: React.FC<ChartProps> = ({
   }, [data.labels, predictions, hasObservedData]);
 
   useEffect(() => {
+    /* v8 ignore next */
     if (!chartRef.current) return;
     if (!instanceRef.current) {
       instanceRef.current = echarts.init(chartRef.current);

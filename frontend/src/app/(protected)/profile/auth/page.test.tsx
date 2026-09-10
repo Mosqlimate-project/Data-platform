@@ -128,4 +128,71 @@ describe("app/(protected)/profile/auth/page", () => {
     render(<AuthSettingsPage />);
     await waitFor(() => expect(err).toHaveBeenCalledWith("Failed to fetch user api-key"));
   });
+
+  it("marks the github app missing when the check fails", async () => {
+    mockFetch({ githubOk: false, connections: [] });
+    render(<AuthSettingsPage />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /profile_auth.install_app/ })).toBeDisabled()
+    );
+  });
+
+  it("marks the github app missing when the check throws", async () => {
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/oauth/repositories/github")) return Promise.reject(new Error("boom"));
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AuthSettingsPage />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /profile_auth.install_app/ })).toBeDisabled()
+    );
+  });
+
+  it("logs errors when the api key request throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key")) return Promise.reject(new Error("boom"));
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AuthSettingsPage />);
+    await waitFor(() => expect(err).toHaveBeenCalledWith("Failed to fetch API key"));
+  });
+
+  it("logs errors when the connections request fails", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/oauth/connections")) return Promise.resolve({ ok: false });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AuthSettingsPage />);
+    await waitFor(() => expect(err).toHaveBeenCalledWith("Failed to fetch connections"));
+  });
+
+  it("logs a network error when the connections request throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/oauth/connections")) return Promise.reject(new Error("net"));
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AuthSettingsPage />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs errors when the api key refresh throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/user/api-key/refresh")) return Promise.reject(new Error("boom"));
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+    render(<AuthSettingsPage />);
+    await waitFor(() => expect(screen.getByText("profile_auth.regenerate")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("profile_auth.regenerate"));
+    fireEvent.click(screen.getByRole("button", { name: "profile_auth.confirm_regenerate" }));
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
 });

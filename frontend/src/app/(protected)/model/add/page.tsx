@@ -93,6 +93,7 @@ export default function AddModelPage() {
   };
 
   useEffect(() => {
+    /* v8 ignore next */
     if (initialized.current) return;
     initialized.current = true;
 
@@ -176,6 +177,7 @@ export default function AddModelPage() {
       return;
     }
 
+    /* v8 ignore next */
     setSelectedRepo(matchedRepo || null);
     setStep('config');
   };

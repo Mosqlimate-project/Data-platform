@@ -224,4 +224,34 @@ describe("components/dashboard/Predictions", () => {
     );
     expect(screen.getByText(/dashboard.pagination.showing/)).toBeInTheDocument();
   });
+
+  it("highlights a selected model", () => {
+    render(<DashboardPredictions {...makeProps({ selectedModels: ["repo"] })} />);
+    expect(screen.getByRole("button", { name: "repo" }).className).toContain("bg-blue-500/10");
+  });
+
+  it("renders a descending sort indicator", () => {
+    const { container } = render(
+      <DashboardPredictions {...makeProps({ sortConfig: { key: "wis_score", direction: "desc" } })} />
+    );
+    expect(container.querySelector(".lucide-arrow-down")).toBeInTheDocument();
+  });
+
+  it("styles a selected prediction row", () => {
+    const { container } = render(
+      <DashboardPredictions
+        {...makeProps({
+          chartPredictions: [
+            {
+              id: 1,
+              color: "#123456",
+              data: { labels: [], data: [] },
+            },
+          ],
+        })}
+      />
+    );
+    const row = container.querySelector("tbody tr") as HTMLTableRowElement;
+    expect(row.style.backgroundColor).toContain("18, 52, 86");
+  });
 });

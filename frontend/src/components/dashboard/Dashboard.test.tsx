@@ -416,4 +416,275 @@ describe("components/dashboard/Dashboard", () => {
     });
     await waitFor(() => expect(childProps.chart.chartPredictions).toHaveLength(0));
   });
+
+  it("builds sprint options and toggles sprint off", async () => {
+    api.fetchTree.mockResolvedValue({
+      diseases: {
+        "quantitative|1|none": [{ code: "A90", name: "Dengue" }],
+        "quantitative|1|2024": [{ code: "A91", name: "Zika" }],
+        "quantitative|1|2025": [{ code: "A91", name: "Zika" }],
+      },
+      countries: {
+        "quantitative|1|A91|2024": [{ geocode: "BRA", name: "Brazil" }],
+        "quantitative|1|A91|2025": [{ geocode: "BRA", name: "Brazil" }],
+      },
+      states: {
+        "quantitative|1|A91|BRA|2024": [{ geocode: "RJ", name: "Rio" }],
+      },
+      cities: {
+        "quantitative|2|A91|BRA|RJ|2024": [{ geocode: "CITY", name: "City" }],
+      },
+    });
+    api.fetchPredictions.mockResolvedValue([
+      pred(1, { sprint: 2024, repository: "r1" }),
+      pred(2, { sprint: 2023, repository: "r2" }),
+    ]);
+    await renderDashboard("?sprint=true&adm_0=BRA");
+    await waitFor(() =>
+      expect(childProps.parameters.diseaseOptions.map((d: any) => d.code)).toEqual(["A91"])
+    );
+    await waitFor(() => expect(childProps.parameters.countryOptions).toHaveLength(1));
+    act(() => {
+      childProps.parameters.toggleSprint(2024);
+    });
+    await waitFor(() => expect(childProps.parameters.selectedSprints).toContain(2024));
+    await waitFor(() => expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(1));
+    expect(childProps.predictions.uniqueModels).toEqual(["r1"]);
+    act(() => {
+      childProps.parameters.toggleSprint(2024);
+    });
+    await waitFor(() => expect(childProps.parameters.selectedSprints).not.toContain(2024));
+  });
+
+  it("adds a global interval and removes an individual bound", async () => {
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    act(() => {
+      childProps.predictions.toggleGlobalInterval("80");
+    });
+    await waitFor(() => expect(childProps.chart.globalIntervals.has("80")).toBe(true));
+
+    act(() => {
+      childProps.predictions.toggleIndividualVisibility(1);
+    });
+    await waitFor(() => expect(childProps.chart.visibleBounds.has(1)).toBe(true));
+    act(() => {
+      childProps.predictions.toggleIndividualVisibility(1);
+    });
+    await waitFor(() => expect(childProps.chart.visibleBounds.has(1)).toBe(false));
+  });
+
+  it("toggles a model off and sorts by a new key ascending", async () => {
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    act(() => {
+      childProps.predictions.toggleModel("repo");
+    });
+    await waitFor(() => expect(childProps.predictions.selectedModels).toContain("repo"));
+    act(() => {
+      childProps.predictions.toggleModel("repo");
+    });
+    await waitFor(() => expect(childProps.predictions.selectedModels).not.toContain("repo"));
+
+    act(() => {
+      childProps.predictions.handleSort("mae_score");
+    });
+    await waitFor(() =>
+      expect(childProps.predictions.sortConfig).toEqual({ key: "mae_score", direction: "asc" })
+    );
+    act(() => {
+      childProps.predictions.handleSort("mae_score");
+    });
+    await waitFor(() => expect(childProps.predictions.sortConfig.direction).toBe("desc"));
+    act(() => {
+      childProps.predictions.handleSort("mae_score");
+    });
+    await waitFor(() => expect(childProps.predictions.sortConfig.direction).toBe("asc"));
+  });
+
+  it("filters predictions by id, owner and repository text", async () => {
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    act(() => {
+      childProps.predictions.setPredictionSearch("1");
+    });
+    await waitFor(() => expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(1));
+    act(() => {
+      childProps.predictions.setPredictionSearch("owner");
+    });
+    await waitFor(() => expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(1));
+    act(() => {
+      childProps.predictions.setPredictionSearch("repo");
+    });
+    await waitFor(() => expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(1));
+    act(() => {
+      childProps.predictions.setPredictionSearch("zzz");
+    });
+    await waitFor(() => expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(0));
+  });
+
+  it("maps missing interval bounds to null", async () => {
+    api.fetchPredictionData.mockResolvedValue([
+      { date: "2024-01-01", pred: 5, lower_50: 1, upper_50: 9 },
+      { date: "2024-01-02", pred: 6 },
+    ]);
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(childProps.chart.chartPredictions).toHaveLength(1));
+    expect(childProps.chart.chartPredictions[0].data.lower_50).toEqual([1, null]);
+    expect(childProps.chart.chartPredictions[0].data.upper_50).toEqual([9, null]);
+  });
+
+  it("deduplicates an already loaded prediction", async () => {
+    let resolveData: (value: any) => void = () => {};
+    api.fetchPredictionData.mockImplementationOnce(
+      () => new Promise((resolve) => { resolveData = resolve; })
+    );
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+
+    act(() => {
+      childProps.predictions.handleSelectAll();
+    });
+    act(() => {
+      childProps.predictions.handleSelectAll();
+    });
+    await waitFor(() => expect(childProps.chart.chartPredictions).toHaveLength(1));
+
+    await act(async () => {
+      resolveData([{ date: "2024-01-01", pred: 1 }]);
+      await Promise.resolve();
+    });
+    expect(childProps.chart.chartPredictions).toHaveLength(1);
+  });
+
+  it("computes the earliest start and latest end across predictions", async () => {
+    api.fetchPredictions.mockResolvedValue([
+      pred(1, { start: "2024-01-01", end: "2024-01-10" }),
+      pred(2, { start: "2022-01-01", end: "2024-01-05" }),
+      pred(3, { start: "2023-01-01", end: "2024-02-01" }),
+    ]);
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(api.fetchCases).toHaveBeenCalled());
+    const call = api.fetchCases.mock.calls.at(-1)!;
+    expect(call[4]).toBe("2022-01-01");
+    expect(call[5]).toBe("2024-02-01");
+  });
+
+  it("sorts auto-loaded predictions with missing scores", async () => {
+    api.fetchPredictions.mockResolvedValue([
+      pred(1, { scores: [] }),
+      pred(2, { scores: [] }),
+      pred(3, { scores: [{ name: "wis_score", score: 1 }] }),
+      pred(4, { scores: [] }),
+    ]);
+    await renderDashboard("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(api.fetchPredictionData).toHaveBeenCalled());
+  });
+
+  it("sorts filtered predictions with missing scores and selection", async () => {
+    api.fetchPredictions.mockResolvedValue([
+      pred(1, { scores: [{ name: "wis_score", score: 2 }] }),
+      pred(2, { scores: [] }),
+      pred(3, { scores: [] }),
+      pred(4, { scores: [{ name: "wis_score", score: 4 }] }),
+      pred(5, { scores: [] }),
+      pred(6, { scores: [{ name: "wis_score", score: 1 }] }),
+      pred(7, { scores: [] }),
+    ]);
+    await renderReady("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(childProps.chart.chartPredictions).toHaveLength(5));
+    act(() => {
+      childProps.predictions.handleSort("wis_score");
+    });
+    await waitFor(() => expect(childProps.predictions.sortConfig.direction).toBe("desc"));
+    expect(childProps.predictions.filteredAndSortedPredictions.length).toBe(7);
+  });
+
+  it("sorts a selected prediction before an unselected one", async () => {
+    api.fetchPredictions.mockResolvedValue([pred(2), pred(1)]);
+    await renderDashboard("?prediction_id=1");
+    await waitFor(() =>
+      expect(childProps.chart.chartPredictions.some((p: any) => p.id === 1)).toBe(true)
+    );
+    expect(childProps.predictions.filteredAndSortedPredictions).toHaveLength(2);
+  });
+
+  it("falls back to the first disease when the stored one is unknown", async () => {
+    await renderReady("?disease=ZZZ&adm_0=BRA&adm_1=RJ");
+    await waitFor(() =>
+      expect(replacedUrls().some((u) => u.includes("disease=A90"))).toBe(true)
+    );
+  });
+
+  it("falls back to the first city when the stored one is unknown", async () => {
+    api.fetchTree.mockResolvedValue(tree2);
+    await renderDashboard("?disease=A90&adm_level=2&adm_0=BRA&adm_1=RJ&adm_2=OTHER");
+    await waitFor(() =>
+      expect(replacedUrls().some((u) => u.includes("adm_2=CITY"))).toBe(true)
+    );
+  });
+
+  it("ignores a stale predictions sync", async () => {
+    let resolvePreds: (value: any) => void = () => {};
+    api.fetchPredictions.mockImplementationOnce(
+      () => new Promise((resolve) => { resolvePreds = resolve; })
+    );
+    await renderDashboard("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(api.fetchPredictions).toHaveBeenCalled());
+    act(() => {
+      childProps.parameters.handleChange({ target: { name: "adm_0", value: "ARG" } });
+    });
+    await waitFor(() => expect(api.fetchPredictions.mock.calls.length).toBeGreaterThan(1));
+    await act(async () => {
+      resolvePreds([pred(1)]);
+      await Promise.resolve();
+    });
+  });
+
+  it("ignores stale prediction metadata", async () => {
+    let resolveMeta: (value: any) => void = () => {};
+    api.fetchPredictionMetadata.mockImplementationOnce(
+      () => new Promise((resolve) => { resolveMeta = resolve; })
+    );
+    renderDashboard("?prediction_id=9");
+    await waitFor(() => expect(api.fetchPredictionMetadata).toHaveBeenCalled());
+    act(() => {
+      childProps.parameters.handleChange({ target: { name: "adm_0", value: "ARG" } });
+    });
+    await waitFor(() => expect(api.fetchPredictionMetadata.mock.calls.length).toBeGreaterThan(1));
+    await act(async () => {
+      resolveMeta(metadata);
+      await Promise.resolve();
+    });
+  });
+
+  it("ignores stale metadata errors", async () => {
+    let rejectMeta: (reason?: unknown) => void = () => {};
+    api.fetchPredictionMetadata.mockImplementationOnce(
+      () => new Promise((_resolve, reject) => { rejectMeta = reject; })
+    );
+    renderDashboard("?prediction_id=9");
+    await waitFor(() => expect(api.fetchPredictionMetadata).toHaveBeenCalled());
+    act(() => {
+      childProps.parameters.handleChange({ target: { name: "adm_0", value: "ARG" } });
+    });
+    await waitFor(() => expect(api.fetchPredictionMetadata.mock.calls.length).toBeGreaterThan(1));
+    await act(async () => {
+      rejectMeta(new Error("nope"));
+      await Promise.resolve();
+    });
+  });
+
+  it("ignores stale chart data", async () => {
+    let resolveCases: (value: any) => void = () => {};
+    api.fetchCases.mockImplementationOnce(
+      () => new Promise((resolve) => { resolveCases = resolve; })
+    );
+    await renderDashboard("?disease=A90&adm_0=BRA&adm_1=RJ");
+    await waitFor(() => expect(api.fetchCases).toHaveBeenCalled());
+    act(() => {
+      childProps.parameters.handleChange({ target: { name: "adm_0", value: "ARG" } });
+    });
+    await waitFor(() => expect(api.fetchCases.mock.calls.length).toBeGreaterThan(1));
+    await act(async () => {
+      resolveCases([{ date: "2024-01-01", cases: 1 }]);
+      await Promise.resolve();
+    });
+  });
 });

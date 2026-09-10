@@ -103,4 +103,17 @@ describe("app/[owner]/[repository]/page", () => {
     const [, options] = (global.fetch as any).mock.calls[0];
     expect(options.headers.Authorization).toBe("Bearer tok");
   });
+
+  it("defaults canManage to false when permissions are missing", async () => {
+    getPermissions.mockResolvedValue(null);
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/readme/")) return Promise.resolve({ ok: false });
+      return Promise.resolve({ ok: true, json: async () => details });
+    }) as unknown as typeof fetch;
+
+    const ui = await ReadmePage({ params });
+    render(ui);
+    expect(sidebar.props.canManage).toBe(false);
+  });
 });

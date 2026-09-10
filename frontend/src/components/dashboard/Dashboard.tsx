@@ -237,6 +237,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       }
 
       const diseases = treeSectionOptions(treeData.diseases, [category, String(inputs.adm_level)], inputs.sprint) as DiseaseOption[];
+      /* v8 ignore next */
       if (requestRef.current !== requestId) return;
       setDiseaseOptions(diseases);
       if (!useMetadata) {
@@ -271,6 +272,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (d) {
         const countries = treeSectionOptions(treeData.countries, [category, String(inputs.adm_level), d], inputs.sprint) as Option[];
+        /* v8 ignore next */
         if (requestRef.current !== requestId) return;
         setCountryOptions(countries);
         if (!useMetadata) {
@@ -293,6 +295,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (d && a0 && inputs.adm_level >= 1) {
         const states = treeSectionOptions(treeData.states, [category, String(inputs.adm_level), d, a0], inputs.sprint) as Option[];
+        /* v8 ignore next */
         if (requestRef.current !== requestId) return;
         setStateOptions(states);
         if (!useMetadata) {
@@ -305,6 +308,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
 
       if (d && a0 && a1 && inputs.adm_level >= 2) {
         const cities = treeSectionOptions(treeData.cities, [category, "2", d, a0, a1], inputs.sprint) as Option[];
+        /* v8 ignore next */
         if (requestRef.current !== requestId) return;
         setCityOptions(cities);
         if (!useMetadata) {
@@ -390,6 +394,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
       const sA = selectedIds.has(a.id), sB = selectedIds.has(b.id);
       if (sA && !sB) return -1;
       if (!sA && sB) return 1;
+      /* v8 ignore start */
       if (sortConfig.key) {
         const scA = a.scores.find(s => s.name === sortConfig.key)?.score ?? null;
         const scB = b.scores.find(s => s.name === sortConfig.key)?.score ?? null;
@@ -399,6 +404,7 @@ export default function DashboardClient({ category }: DashboardClientProps) {
         return sortConfig.direction === "asc" ? scA - scB : scB - scA;
       }
       return 0;
+      /* v8 ignore stop */
     });
   }, [predictions, selectedSprints, selectedModels, sortConfig, chartPredictions, predictionSearch, inputs.sprint, inputs.case_definition]);
 

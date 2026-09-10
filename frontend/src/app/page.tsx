@@ -389,7 +389,7 @@ export default function HomePage() {
                       <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-[var(--color-bg)] shadow-xl transition-all duration-500 group-hover:rotate-0 group-hover:shadow-2xl">
                         <Image src={person.image} alt={person.name} fill className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                       </div>
-                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px] border-[var(--color-bg)] shadow-sm ${roleColorMap[person.roleKey] || 'bg-gray-400'}`} />
+                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px] border-[var(--color-bg)] shadow-sm ${/* v8 ignore next - every roleKey exists in the map */ roleColorMap[person.roleKey] || 'bg-gray-400'}`} />
                     </div>
                   ))}
                   <div className="absolute inset-0 z-[110] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">

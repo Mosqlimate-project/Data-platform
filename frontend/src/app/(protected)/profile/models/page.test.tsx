@@ -11,9 +11,10 @@ vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 
+const env = vi.hoisted(() => ({ secret: "shh" }));
 vi.mock("@/lib/env", () => ({
   get FRONTEND_SECRET() {
-    return "shh";
+    return env.secret;
   },
 }));
 
@@ -26,6 +27,7 @@ const models = [
 describe("app/(protected)/profile/models/page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    env.secret = "shh";
   });
 
   afterEach(() => {
@@ -116,5 +118,88 @@ describe("app/(protected)/profile/models/page", () => {
     await waitFor(() => expect(screen.getByText("profile_models.modal.title")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "profile_models.modal.cancel" }));
     expect(screen.queryByText("profile_models.modal.title")).not.toBeInTheDocument();
+  });
+
+  it("omits the internal secret when not configured", async () => {
+    env.secret = "";
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] }) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByText("profile_models.empty_title")).toBeInTheDocument());
+    const [, options] = (global.fetch as any).mock.calls[0];
+    expect(options.headers["x-internal-secret"]).toBe("");
+  });
+
+  it("logs an error when the models request throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs the message when toggling fails without an error field", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => models })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({ message: "bad" }) }) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "profile_models.status.active" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "profile_models.status.active" }));
+    await waitFor(() => expect(err).toHaveBeenCalledWith("Failed to update status:", "bad"));
+  });
+
+  it("logs an error when toggling throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => models })
+      .mockRejectedValueOnce(new Error("boom")) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "profile_models.status.active" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "profile_models.status.active" }));
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs the message when deleting fails without an error field", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => models })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({ message: "nope" }) }) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByText("repo1")).toBeInTheDocument());
+    const rowButtons = screen.getByText("repo1").closest("tr")?.querySelectorAll("button") as NodeListOf<HTMLButtonElement>;
+    fireEvent.click(rowButtons[1]);
+    await waitFor(() => expect(screen.getByText("profile_models.modal.title")).toBeInTheDocument());
+    fireEvent.change(screen.getByPlaceholderText("profile_models.modal.placeholder"), { target: { value: "repo1" } });
+    fireEvent.click(screen.getByRole("button", { name: "profile_models.modal.confirm" }));
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("logs an error when deleting throws", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => models })
+      .mockRejectedValueOnce(new Error("boom")) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByText("repo1")).toBeInTheDocument());
+    const rowButtons = screen.getByText("repo1").closest("tr")?.querySelectorAll("button") as NodeListOf<HTMLButtonElement>;
+    fireEvent.click(rowButtons[1]);
+    await waitFor(() => expect(screen.getByText("profile_models.modal.title")).toBeInTheDocument());
+    fireEvent.change(screen.getByPlaceholderText("profile_models.modal.placeholder"), { target: { value: "repo1" } });
+    fireEvent.click(screen.getByRole("button", { name: "profile_models.modal.confirm" }));
+    await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("renders an active read-only status", async () => {
+    const extra = [
+      ...models,
+      { id: 4, name: "repo4", owner: "dave", provider: "github", category: "x", can_manage: false, active: true },
+    ];
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => extra }) as unknown as typeof fetch;
+    render(<ModelsPage />);
+    await waitFor(() => expect(screen.getByText("repo4")).toBeInTheDocument());
+    expect(screen.getAllByText("profile_models.status.active").length).toBe(2);
   });
 });

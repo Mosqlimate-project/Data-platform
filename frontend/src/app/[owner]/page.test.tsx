@@ -52,4 +52,17 @@ describe("app/[owner]/page", () => {
     await expect(OwnerPage({ params: Promise.resolve({ owner: "nobody" }) })).rejects.toThrow("NEXT_NOT_FOUND");
     expect(notFound).toHaveBeenCalled();
   });
+
+  it("omits the internal secret header when not configured", async () => {
+    env.secret = "";
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      json: async () => ({ id: 1 }),
+    }) as unknown as typeof fetch;
+
+    const ui = await OwnerPage({ params: Promise.resolve({ owner: "alice" }) });
+    render(ui);
+    const [, options] = (global.fetch as any).mock.calls[0];
+    expect(options.headers["x-internal-secret"]).toBe("");
+  });
 });

@@ -73,4 +73,19 @@ describe("app/[owner]/[repository]/predictions/page", () => {
     expect(screen.getByTestId("list")).toHaveTextContent("0");
     expect(err).toHaveBeenCalled();
   });
+
+  it("uses the singular label for a single prediction", async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [{ id: 1 }] }) as unknown as typeof fetch;
+    const ui = await PredictionsPage({ params });
+    render(ui);
+    expect(screen.getByText("1 prediction")).toBeInTheDocument();
+  });
+
+  it("omits the internal secret header when not configured", async () => {
+    env.secret = "";
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] }) as unknown as typeof fetch;
+    await PredictionsPage({ params });
+    const [, options] = (global.fetch as any).mock.calls[0];
+    expect(options.headers["x-internal-secret"]).toBe("");
+  });
 });

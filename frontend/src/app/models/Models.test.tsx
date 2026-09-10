@@ -128,4 +128,29 @@ describe("app/models/Models", () => {
     render(<Models models={models} tags={[]} />);
     expect(screen.getByRole("button", { name: "5" })).toBeInTheDocument();
   });
+
+  it("renders pagination near the start and navigates to a numbered page", () => {
+    nav.search = "page=2";
+    const models = Array.from({ length: 240 }, (_, i) => makeModel(i + 1));
+    render(<Models models={models} tags={[]} />);
+    fireEvent.click(screen.getByRole("button", { name: "3" }));
+    expect(nav.push).toHaveBeenCalledWith("/models?page=3", { scroll: false });
+  });
+
+  it("renders the middle pagination window", () => {
+    nav.search = "page=5";
+    const models = Array.from({ length: 300 }, (_, i) => makeModel(i + 1));
+    render(<Models models={models} tags={[]} />);
+    expect(screen.getByRole("button", { name: "6" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "10" })).toBeInTheDocument();
+  });
+
+  it("ignores selected tags that no longer exist", () => {
+    const { rerender } = render(<Models models={[makeModel(1), makeModel(2)]} tags={tags} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tag One/ }));
+    expect(screen.getAllByTestId("thumb")).toHaveLength(1);
+
+    rerender(<Models models={[makeModel(1), makeModel(2)]} tags={[]} />);
+    expect(screen.queryAllByTestId("thumb")).toHaveLength(0);
+  });
 });

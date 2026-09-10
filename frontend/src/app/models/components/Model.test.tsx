@@ -91,4 +91,9 @@ describe("app/models/components/Model", () => {
     expect(screen.getByText("0 predicts")).toBeInTheDocument();
     expect(screen.queryByText(/ago/)).not.toBeInTheDocument();
   });
+
+  it("converts second-based timestamps", () => {
+    render(<Thumbnail {...base} last_update={NOW / 1000} />);
+    expect(screen.getByText("just now")).toBeInTheDocument();
+  });
 });
