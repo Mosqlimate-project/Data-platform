@@ -144,6 +144,7 @@ export default function NetworkBackground() {
 
     //Mouse events (related to the canvas)
     const onMouseMove = (e: MouseEvent) => {
+      /* v8 ignore next -- canvas is non-null after the effect's null guard */
       if (!canvas) return;
 
       const rect = canvas.getBoundingClientRect();

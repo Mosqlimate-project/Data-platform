@@ -44,6 +44,12 @@ migrate:
 migrations:
 	$(BACKEND_RUN) python manage.py makemigrations
 
+migration-check:
+	$(BACKEND_RUN) python manage.py makemigrations --check --dry-run
+
+coverage-install:
+	$(BACKEND_RUN) pip install coverage
+
 shell:
 	$(BACKEND_SHELL)
 

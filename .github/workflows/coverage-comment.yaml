@@ -1,0 +1,92 @@
+name: coverage-comment
+
+on:
+  workflow_run:
+    workflows: ["build"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download coverage log
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-log
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post coverage comment to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const prs = github.event.workflow_run.pull_requests || [];
+            const prNumber = prs[0] && prs[0].number;
+            if (!prNumber) {
+              console.log('No associated pull request; skipping comment.');
+              return;
+            }
+
+            const logPath = path.join(
+              process.env.GITHUB_WORKSPACE,
+              'coverage-log',
+              'coverage.log'
+            );
+            let table = null;
+            try {
+              const log = fs.readFileSync(logPath, 'utf8');
+              const lines = log.split('\n');
+              const start = lines.findIndex(
+                (l) => l.includes('Stmts') && l.includes('Cover')
+              );
+              const totalIdx = lines.findIndex(
+                (l, i) => i > start && l.includes('TOTAL')
+              );
+              if (start !== -1) {
+                table = lines
+                  .slice(start, totalIdx === -1 ? undefined : totalIdx + 1)
+                  .join('\n')
+                  .trim();
+              }
+            } catch (e) {
+              console.log('Could not read coverage log:', e.message);
+            }
+            if (!table) {
+              console.log('No coverage table found; skipping PR comment.');
+              return;
+            }
+
+            const body = '## Backend Coverage\n```\n' + table + '\n```';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(
+              (c) => c.body && c.body.startsWith('## Backend Coverage')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+            console.log('Coverage comment posted to PR #' + prNumber + '.');

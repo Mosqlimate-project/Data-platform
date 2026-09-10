@@ -191,3 +191,9 @@ frontend/.next/*
 !frontend/.next/.keep
 
 tsconfig.tsbuildinfo
+
+# Frontend build/test output
+frontend/.next/
+frontend/coverage/
+frontend/node_modules/
+node_modules/

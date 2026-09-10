@@ -59,6 +59,7 @@ export default function ModelSidebar({
   const fallbackGithubUrl = getGithubUrl();
 
   const handleUpdateDescription = async () => {
+    /* v8 ignore next -- save button is disabled whenever length exceeds MAX_CHARS */
     if (description.length > MAX_CHARS) return;
 
     setLoading(true);

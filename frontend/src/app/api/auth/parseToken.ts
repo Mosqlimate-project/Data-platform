@@ -10,6 +10,7 @@ export async function parseToken(token: string): Promise<JWTPayload | null> {
   const secret = getSecret();
   try {
     const { payload } = await jwtVerify(token, secret, {
+      /* v8 ignore next -- JWT_ALGORITHM is always defaulted to "HS256" in @/lib/env */
       algorithms: [JWT_ALGORITHM || "HS256"]
     });
 

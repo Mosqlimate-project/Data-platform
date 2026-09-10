@@ -636,6 +636,7 @@ pred = upload_prediction(
   );
 
   const handleDeletePrediction = async () => {
+    /* v8 ignore next -- deleteModalId is always set before this handler runs */
     if (!deleteModalId) return;
     setIsDeleting(true);
     try {
@@ -890,6 +891,11 @@ pred = upload_prediction(
       </div>
     );
   }
+
+  const chartPredictions = filteredChartData ? [filteredChartData] : [];
+  const chartVisibleBounds: Set<string | number> = chartData
+    ? new Set([chartData.id])
+    : new Set();
 
   return (
     <div className="space-y-6">
@@ -1240,9 +1246,9 @@ pred = upload_prediction(
               <div className="h-[400px]">
                 <LineChart
                   data={historicalCases}
-                  predictions={filteredChartData ? [filteredChartData] : []}
+                  predictions={chartPredictions}
                   globalIntervals={activeIntervalsSet}
-                  visibleBounds={chartData ? new Set([chartData.id]) : new Set()}
+                  visibleBounds={chartVisibleBounds}
                   height="100%"
                 />
               </div>

@@ -181,6 +181,8 @@ def get_municipality_info(request, geocode):
 )
 @csrf_exempt
 def get_mosqlimate_logo(request):
-    logo_path = os.path.join(settings.STATIC_ROOT, "img/logo-mosqlimate.png")
+    logo_path = os.path.join(
+        settings.BASE_DIR / "static", "img/logo-mosqlimate.png"
+    )
     with open(logo_path, "rb") as f:
         return HttpResponse(f.read(), content_type="image/jpeg")

@@ -15,6 +15,9 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+    env:
+      ENV: dev
+      VERSION: "2"
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
@@ -65,6 +68,11 @@ jobs:
         cd frontend
         npm install
 
+    - name: Frontend tests (Vitest + coverage)
+      run: |
+        cd frontend
+        npm run test:coverage
+
     - name: Lint
       run: make lint
 
@@ -82,7 +90,7 @@ jobs:
       id: start
       continue-on-error: true
       run: |
-        sugar compose up --options -d 2>&1 | tee /tmp/container-start.log
+        make up 2>&1 | tee /tmp/container-start.log
 
     - name: Collect errors
       if: steps.start.outcome != 'success'
@@ -90,7 +98,7 @@ jobs:
         echo "::group::Container Start Errors (only relevant lines)"
         echo ""
         echo "--- Failed / Unhealthy Services ---"
-        sugar compose ps --options "-a" 2>/dev/null | grep -E "Exit|unhealthy|starting" || echo "(no containers running)"
+        docker compose -f docker-compose.dev.yaml ps -a 2>/dev/null | grep -E "Exit|unhealthy|starting" || echo "(no containers running)"
         echo ""
         echo "--- Error Lines ---"
         grep -iE 'error[^a-z]|fatal|traceback|exception|denied|failed to|cannot|could not|invalid' /tmp/container-start.log | head -40
@@ -100,67 +108,39 @@ jobs:
 
     - name: Migration check
       run: |
-        sugar compose exec --service backend --options "-T" --cmd "python manage.py makemigrations --check --dry-run"
+        make migration-check
 
     - name: Install coverage
       run: |
-        sugar compose exec --service backend --options "-T" --cmd "pip install coverage"
+        make coverage-install
 
     - name: Test with coverage
       run: |
         set -o pipefail
-        make test-cov SUGAR=true 2>&1 | tee /tmp/coverage.log
+        make test-cov 2>&1 | tee /tmp/coverage.log
 
-    - name: Post coverage summary to PR
-      if: always() && github.event_name == 'pull_request'
-      uses: actions/github-script@v7
+    - name: Verify tests actually ran
+      if: always()
+      run: |
+        echo "::group::Coverage report"
+        grep -E "Name|TOTAL|registry" /tmp/coverage.log | tail -30 || true
+        echo "::endgroup::"
+        if ! grep -qE "Ran [0-9]+ tests" /tmp/coverage.log; then
+          echo "::error::The backend test run produced no test results (Ran N tests missing)."
+          echo "This usually means the backend container is missing required env vars"
+          echo "(e.g. SECRET_KEY, FRONTEND_PORT, BACKEND_PORT) so Django cannot load settings"
+          echo "and manage.py exits immediately. Check the 'Test with coverage' step log."
+          exit 1
+        fi
+        if ! grep -q "TOTAL" /tmp/coverage.log; then
+          echo "::error::Coverage report is empty; nothing was measured."
+          exit 1
+        fi
+
+    - name: Upload coverage log
+      if: always()
+      uses: actions/upload-artifact@v4
       with:
-        script: |
-          const fs = require('fs');
-          let table = null;
-          try {
-            const log = fs.readFileSync('/tmp/coverage.log', 'utf8');
-            const lines = log.split('\n');
-            const start = lines.findIndex(
-              (l) => l.includes('Stmts') && l.includes('Cover')
-            );
-            const totalIdx = lines.findIndex(
-              (l, i) => i > start && l.includes('TOTAL')
-            );
-            if (start !== -1) {
-              table = lines
-                .slice(start, totalIdx === -1 ? undefined : totalIdx + 1)
-                .join('\n')
-                .trim();
-            }
-          } catch (e) {
-            console.log('Could not read coverage log:', e.message);
-          }
-          if (!table) {
-            console.log('No coverage table found; skipping PR comment.');
-            return;
-          }
-          const body = '## Backend Coverage\n```\n' + table + '\n```';
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          });
-          const existing = comments.find(
-            (c) => c.body && c.body.startsWith('## Backend Coverage')
-          );
-          if (existing) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: existing.id,
-              body,
-            });
-          } else {
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body,
-            });
-          }
+        name: coverage-log
+        path: /tmp/coverage.log
+        if-no-files-found: ignore

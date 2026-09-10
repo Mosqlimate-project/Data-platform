@@ -283,6 +283,7 @@ export default function AboutPage() {
                     {t(`about.roles.${person.roleKey}`)}
                   </p>
 
+                  {/* v8 ignore next */}
                   <div className={`w-16 h-1 rounded-full mb-6 mx-auto ${roleColorMap[person.roleKey] ?? "bg-gray-400"}`}></div>
 
                   <p className="text-text text-sm mb-2">

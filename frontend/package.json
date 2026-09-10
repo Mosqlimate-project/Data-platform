@@ -6,7 +6,9 @@
     "build": "next build",
     "start": "next start -p $FRONTEND_PORT",
     "dev": "next dev -p $FRONTEND_PORT",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -53,6 +55,9 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/d3-scale": "^4.0.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash.debounce": "^4.0.9",
@@ -63,8 +68,12 @@
     "@types/react-simple-maps": "^3.0.6",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/zxcvbn": "^4.4.5",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^3.2.7",
     "baseline-browser-mapping": "^2.9.11",
     "dotenv": "^17.2.3",
-    "env-cmd": "^11.0.0"
+    "env-cmd": "^11.0.0",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.7"
   }
 }

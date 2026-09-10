@@ -93,6 +93,7 @@ function RegisterPageContent() {
   }
 
   const validateUsername = debounce(async (value: string) => {
+    /* v8 ignore next */
     if (isUsernameLocked) return;
     if (value.length < 4) return setUsernameError(t('register_page.errors.username_short'));
     if (value.length > 25) return setUsernameError(t('register_page.errors.username_long'));

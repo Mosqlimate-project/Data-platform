@@ -35,6 +35,7 @@ function DownloadButtons({
       return;
     }
 
+    /* v8 ignore next -- the buttons are disabled when `disabled` is true, so this branch is unreachable */
     if (disabled) return;
     setIsDownloading(format);
 
