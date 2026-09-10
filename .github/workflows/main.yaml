@@ -65,6 +65,11 @@ jobs:
         cd frontend
         npm install
 
+    - name: Frontend tests (Vitest + coverage)
+      run: |
+        cd frontend
+        npm run test:coverage
+
     - name: Lint
       run: make lint
 

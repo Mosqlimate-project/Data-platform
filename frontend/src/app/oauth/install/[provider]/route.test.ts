@@ -51,6 +51,18 @@ describe("app/oauth/install/[provider]", () => {
     expect(url).toContain("next=%2Fx");
   });
 
+  it("defaults next to / when no next param is provided", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: "https://github.com/apps/setup" }),
+    });
+    const { GET } = await import("./route");
+    const res = await GET(makeReq({ access_token: "at" }), params as any);
+    expect(res.headers.get("location")).toBe("https://github.com/apps/setup");
+    const url = String((global.fetch as any).mock.calls[0][0]);
+    expect(url).toContain("next=%2F");
+  });
+
   it("redirects with install_init_failed when upstream not ok", async () => {
     (global.fetch as any).mockResolvedValue({ ok: false, status: 400, text: async () => "bad" });
     const err = vi.spyOn(console, "error").mockImplementation(() => {});

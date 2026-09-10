@@ -35,4 +35,29 @@ describe("lib/api/registry fetchPrediction", () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("network")) as any;
     expect(await fetchPrediction(1)).toBeNull();
   });
+
+  it("uses the fallback message when the error has none", async () => {
+    vi.stubEnv("FRONTEND_SECRET", "secret");
+    vi.resetModules();
+    const { fetchPrediction } = await import("./registry");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: vi.fn().mockResolvedValue({}),
+    }) as any;
+    expect(await fetchPrediction(1)).toBeNull();
+  });
+
+  it("sends an empty secret when FRONTEND_SECRET is not configured", async () => {
+    vi.stubEnv("FRONTEND_SECRET", "");
+    vi.resetModules();
+    const { fetchPrediction } = await import("./registry");
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ id: 1 }),
+    }) as any;
+    await fetchPrediction(1);
+    const headers = (fetch as any).mock.calls[0][1].headers;
+    expect(headers["x-internal-secret"]).toBe("");
+  });
 });

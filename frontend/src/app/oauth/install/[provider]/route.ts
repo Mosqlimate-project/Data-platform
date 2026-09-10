@@ -10,6 +10,7 @@ export async function GET(
   const accessToken = req.cookies.get("access_token")?.value;
 
   if (!accessToken) {
+    /* v8 ignore next -- next is already defaulted to "/" above */
     const returnTo = next || "/";
     const response = NextResponse.redirect(new URL(returnTo, req.url));
 

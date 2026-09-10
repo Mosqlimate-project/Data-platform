@@ -71,6 +71,17 @@ describe("app/models/page", () => {
     expect(options.headers.cookie).toBe("access_token=tok");
   });
 
+  it("sends an empty secret when FRONTEND_SECRET is not configured", async () => {
+    env.secret = "";
+    (global.fetch as any)
+      .mockResolvedValueOnce({ ok: true, json: async () => models })
+      .mockResolvedValueOnce({ ok: true, json: async () => tags });
+
+    await Page();
+    const [, options] = (global.fetch as any).mock.calls[0];
+    expect(options.headers["x-internal-secret"]).toBe("");
+  });
+
   it("throws when a request fails", async () => {
     (global.fetch as any)
       .mockResolvedValueOnce({ ok: false })

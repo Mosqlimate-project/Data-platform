@@ -60,4 +60,13 @@ describe("app/api/auth/parseToken", () => {
       "Missing SECRET_KEY environment variable"
     );
   });
+
+  it("falls back to HS256 when JWT_ALGORITHM is missing", async () => {
+    vi.stubEnv("JWT_ALGORITHM", "");
+    vi.resetModules();
+    const { parseToken } = await import("./parseToken");
+    const token = await makeToken({ sub: "7", type: "access" });
+    const payload = await parseToken(token);
+    expect(payload?.sub).toBe("7");
+  });
 });

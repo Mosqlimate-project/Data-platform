@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import React from "react";
 import { DashboardProvider, useDashboard } from "./Dashboard";
 
@@ -20,6 +21,7 @@ function renderDashboard(search = "") {
 describe("context/Dashboard", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("provides default state without query params", () => {
@@ -99,6 +101,29 @@ describe("context/Dashboard", () => {
     const { renderHook } = require("@testing-library/react");
     expect(() => renderHook(() => useDashboard())).toThrow(
       "useDashboard must be used within a DashboardProvider"
+    );
+  });
+
+  it("uses server defaults and skips URL sync when window is undefined", () => {
+    vi.stubGlobal("window", undefined);
+    function Probe() {
+      const { state, updateState } = useDashboard();
+      updateState({ disease: "X" });
+      return (
+        <div>
+          ADM:{state.adm_level};DISEASE:{state.disease};SPRINT:
+          {String(state.sprint)};CD:{state.case_definition};PRED:
+          {state.prediction_id}
+        </div>
+      );
+    }
+    const html = renderToString(
+      <DashboardProvider>
+        <Probe />
+      </DashboardProvider>
+    );
+    expect(html.replace(/<!-- -->/g, "")).toContain(
+      "ADM:1;DISEASE:;SPRINT:false;CD:reported;PRED:"
     );
   });
 });

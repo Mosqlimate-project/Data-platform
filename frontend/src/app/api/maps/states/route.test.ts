@@ -50,6 +50,26 @@ describe("app/api/maps/states", () => {
     expect(url).toContain("/api/maps/states?uf=SP&uf=RJ");
   });
 
+  it("parses string geometries in the features", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        features: [
+          { properties: {}, geometry: '{"type":"Point","coordinates":[1,2]}' },
+        ],
+      }),
+    });
+    const { GET } = await import("./route");
+    const res = await GET(makeReq("fs"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.features[0].geometry).toEqual({
+      type: "Point",
+      coordinates: [1, 2],
+    });
+  });
+
   it("omits uf param when none present", async () => {
     (global.fetch as any).mockResolvedValue({
       ok: true,

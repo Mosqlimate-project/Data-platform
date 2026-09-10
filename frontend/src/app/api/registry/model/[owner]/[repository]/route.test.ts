@@ -139,6 +139,18 @@ describe("app/api/registry/model/[owner]/[repository]", () => {
       expect(await res.json()).toEqual({ error: "bad" });
     });
 
+    it("uses the fallback message when the upstream error has none", async () => {
+      (global.fetch as any).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({}),
+      });
+      const { PATCH } = await import("./route");
+      const res = await PATCH(makeReq(), { params: makeParams("acme", "repo") });
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: "Update failed" });
+    });
+
     it("returns 500 and logs when fetch rejects", async () => {
       (global.fetch as any).mockRejectedValue(new Error("boom"));
       const err = vi.spyOn(console, "error").mockImplementation(() => {});

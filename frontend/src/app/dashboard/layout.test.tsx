@@ -82,6 +82,14 @@ describe("app/dashboard/layout", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("sends an empty secret when FRONTEND_SECRET is not configured", async () => {
+    env.secret = "";
+    const ui = await DashboardLayout({ children: <span>child</span> });
+    render(ui);
+    const [, options] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.headers["x-internal-secret"]).toBe("");
+  });
+
   it("returns an empty list when the request fails", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false }) as unknown as typeof fetch;
     const ui = await DashboardLayout({ children: <span>child</span> });

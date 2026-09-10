@@ -69,6 +69,21 @@ describe("app/oauth/callback", () => {
     expect(res.cookies.get("refresh_token")?.value).toBe("rt");
   });
 
+  it("redirects to the root when no next is provided", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        access_token: "at",
+        refresh_token: "rt",
+      }),
+    });
+    const { GET } = await import("./route");
+    const res = await GET(makeReq({ data: "abc" }));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).not.toContain("/dashboard");
+    expect(res.headers.get("location")).toMatch(/\/$/);
+  });
+
   it("redirects with server_error and logs when fetch rejects", async () => {
     (global.fetch as any).mockRejectedValue(new Error("boom"));
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
