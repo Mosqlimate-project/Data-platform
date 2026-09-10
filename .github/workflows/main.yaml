@@ -167,26 +167,34 @@ jobs:
             return;
           }
           const body = '## Backend Coverage\n```\n' + table + '\n```';
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          });
-          const existing = comments.find(
-            (c) => c.body && c.body.startsWith('## Backend Coverage')
-          );
-          if (existing) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: existing.id,
-              body,
-            });
-          } else {
-            await github.rest.issues.createComment({
+          try {
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body,
             });
+            const existing = comments.find(
+              (c) => c.body && c.body.startsWith('## Backend Coverage')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+            console.log('Coverage comment posted to PR.');
+          } catch (e) {
+            console.log(
+              '::warning::Could not post coverage comment (fork PRs use a read-only token): ' +
+                e.message
+            );
           }
