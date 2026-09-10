@@ -156,6 +156,15 @@ class SimpleTestRunner(DiscoverRunner):
         cursor.execute(MUNICIPIO_DDL)
         cursor.execute(VEGETATION_INDEX_METRICS_DDL)
         self._seed_test_data(cursor)
+        self._clean_migration_seeds(cursor)
+
+    def _clean_migration_seeds(self, cursor):
+        cursor.execute(
+            "TRUNCATE datastore_adm0, datastore_adm1, datastore_adm2, "
+            "datastore_icd, datastore_disease, brasil_macroregions, "
+            "brasil_states, brasil_mesoregions, brasil_microregions, "
+            "brasil_cities CASCADE"
+        )
 
     def _seed_test_data(self, cursor):
         from datetime import date
