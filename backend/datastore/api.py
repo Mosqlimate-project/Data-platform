@@ -39,7 +39,7 @@ from .models import (
     Adm2,
     EpiscannerSirParams,
 )
-from datastore import schema, filters, models
+from datastore import schema, filters, models, ro_crate
 
 PRECIP_FIXED_CUTOFF = datetime.date(2026, 8, 1)
 
@@ -118,6 +118,31 @@ def get_vegetation_metrics(
 
     data = filters.filter(data)
     return data
+
+
+@router.get(
+    "/ro-crate/",
+    response={200: dict, 404: NotFoundSchema},
+    auth=uidkey_auth,
+)
+@csrf_exempt
+def get_ro_crate_catalog(request):
+    APILog.from_request(request)
+    return ro_crate.build_ro_crate()
+
+
+@router.get(
+    "/ro-crate/{dataset}/",
+    response={200: dict, 404: NotFoundSchema},
+    auth=uidkey_auth,
+)
+@csrf_exempt
+def get_ro_crate_dataset(request, dataset: str):
+    APILog.from_request(request)
+    try:
+        return ro_crate.build_ro_crate(dataset=dataset)
+    except ValueError:
+        return 404, {"message": f"Unknown dataset '{dataset}'"}
 
 
 def get_infodengue_queryset(
