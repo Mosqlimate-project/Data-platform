@@ -21,6 +21,7 @@ For an example of API usage in Mosqlimate, please refer to [API Demo](https://ap
 | start | yes | str _(YYYY-mm-dd)_ | Start date (epidemiological week) |
 | end | yes | str _(YYYY-mm-dd)_ | End date (epidemiological week) |
 | uf | no | str _(UF)_ | Two letters brazilian's state abbreviation. E.g: SP |
+| macroregion | no | int | Brazilian macroregion code: 1=Norte, 2=Nordeste, 3=Centro-Oeste, 4=Sudeste, 5=Sul |
 | geocode | no | int | [IBGE's](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) municipality code |
 
 ### Output (items)
