@@ -93,6 +93,51 @@ class InfodengueAPITest(DataStoreBase):
         )
         self.assertEqual(r.status_code, 200)
 
+    def test_infodengue_macroregion(self):
+        from vis.brasil.models import Macroregion, State
+
+        State.objects.create(
+            uf="MA",
+            name="Maranhão",
+            macroregion=Macroregion.objects.create(
+                geocode="2", name="Nordeste"
+            ),
+        )
+        m.Municipio.objects.using("infodengue").create(
+            geocodigo=2300101,
+            nome="Araioses",
+            uf="Maranhão",
+            regional_code=1,
+        )
+        r = self.client.get(
+            "/api/datastore/infodengue/",
+            {
+                "disease": "dengue",
+                "macroregion": 2,
+                "start": "2020-01-01",
+                "end": "2030-01-01",
+            },
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["pagination"]["items"], 1)
+
+    def test_infodengue_macroregion_invalid(self):
+        r = self.client.get(
+            "/api/datastore/infodengue/",
+            {"disease": "dengue", "macroregion": 6},
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 422)
+
+    def test_infodengue_macroregion_unknown(self):
+        r = self.client.get(
+            "/api/datastore/infodengue/",
+            {"disease": "dengue", "macroregion": 1},
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 404)
+
     def test_get_infodengue_queryset_chik(self):
         qs = __import__(
             "datastore.api", fromlist=["get_infodengue_queryset"]
@@ -110,6 +155,12 @@ class InfodengueAPITest(DataStoreBase):
 
         with self.assertRaises(ValueError):
             get_infodengue_queryset("dengue", uf="ZZ")
+
+    def test_get_infodengue_queryset_invalid_macroregion(self):
+        from datastore.api import get_infodengue_queryset
+
+        with self.assertRaises(ValueError):
+            get_infodengue_queryset("dengue", macroregion=2)
 
 
 class ClimateWeeklyAPITest(DataStoreBase):

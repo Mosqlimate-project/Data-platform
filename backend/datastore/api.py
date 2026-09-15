@@ -27,7 +27,7 @@ from main.schema import NotFoundSchema, InternalErrorSchema, BadRequestSchema
 from main.utils import UFs, UF_CODES, CODES_UF
 from main.models import APILog
 from registry.pagination import PagesPagination
-from vis.brasil.models import State, GeoMacroSaude
+from vis.brasil.models import Macroregion, State, GeoMacroSaude
 from .models import (
     Municipio,
     HistoricoAlerta,
@@ -40,7 +40,6 @@ from .models import (
     EpiscannerSirParams,
 )
 from datastore import schema, filters, models
-
 
 PRECIP_FIXED_CUTOFF = datetime.date(2026, 8, 1)
 
@@ -122,7 +121,9 @@ def get_vegetation_metrics(
 
 
 def get_infodengue_queryset(
-    disease: Literal["dengue", "chikungunya", "zika"], uf: Optional[str] = None
+    disease: Literal["dengue", "chikungunya", "zika"],
+    uf: Optional[str] = None,
+    macroregion: Optional[int] = None,
 ):
     disease = disease.lower()  # type: ignore[assignment]
 
@@ -139,16 +140,38 @@ def get_infodengue_queryset(
         uf = uf.upper()  # type: ignore[no-redef]
         if uf in UFs:
             uf_name = UFs[uf]
-            geocodes = (
-                Municipio.objects.using("infodengue")
-                .filter(uf=uf_name)
-                .values_list("geocodigo", flat=True)
-            )
+            geocodes = uf_geocodes(uf_name)
             qs = qs.filter(municipio_geocodigo__in=geocodes)
         else:
-            raise ValueError("Invalid UF")
+            raise ValueError(f"Unknown UF '{uf}'")
+
+    if macroregion is not None:
+        try:
+            region = Macroregion.objects.get(geocode=str(macroregion))
+        except Macroregion.DoesNotExist:
+            raise ValueError(f"Unknown macroregion '{macroregion}'")
+
+        uf_names = list(
+            State.objects.filter(macroregion=region).values_list(
+                "name", flat=True
+            )
+        )
+        geocodes = (
+            Municipio.objects.using("infodengue")
+            .filter(uf__in=uf_names)
+            .values_list("geocodigo", flat=True)
+        )
+        qs = qs.filter(municipio_geocodigo__in=geocodes)
 
     return qs
+
+
+def uf_geocodes(uf_name: str):
+    return (
+        Municipio.objects.using("infodengue")
+        .filter(uf=uf_name)
+        .values_list("geocodigo", flat=True)
+    )
 
 
 @router.get(
@@ -199,15 +222,26 @@ def get_infodengue(
         ]
     ] = None,
     # fmt: on
+    macroregion: Optional[int] = Query(
+        None,
+        ge=1,
+        le=5,
+        description=(
+            "Brazilian macroregion code: 1=Norte, 2=Nordeste, "
+            "3=Centro-Oeste, 4=Sudeste, 5=Sul"
+        ),
+    ),
     **kwargs,
 ):
     APILog.from_request(request)
     disease = disease.lower()  # type: ignore[assignment]
 
     try:
-        data = get_infodengue_queryset(disease, uf)  # type: ignore[arg-type]
-    except ValueError:  # pragma: no cover - Literal-enforced uf
-        return 404, {"message": f"Unknown UF '{uf}'"}
+        data = get_infodengue_queryset(
+            disease, uf, macroregion  # type: ignore[arg-type]
+        )
+    except ValueError as err:
+        raise HttpError(404, message=str(err))
     except OperationalError:  # pragma: no cover - paginated
         return 500, {"message": "Server error. Please contact the moderation"}
 

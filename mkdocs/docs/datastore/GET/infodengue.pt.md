@@ -21,6 +21,7 @@ Para um exemplo de uso da API no Mosqlimate, consulte [Demonstração da API](ht
 | start | sim | str _(AAAA-mm-dd)_ | Data de início (semana epidemiológica) |
 | end | sim | str _(AAAA-mm-dd)_ | Data de fim (semana epidemiológica) |
 | uf | não | str _(UF)_ | Abreviação de duas letras do estado brasileiro. Ex: SP |
+| macroregion | não | int | Código da macrorregião brasileira: 1=Norte, 2=Nordeste, 3=Centro-Oeste, 4=Sudeste, 5=Sul |
 | geocode | não | int | Código de município do [IBGE](https://www.ibge.gov.br/explica/codigos-dos-municipios.php) |
 
 ### Saída (itens)
