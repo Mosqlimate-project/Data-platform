@@ -165,7 +165,7 @@ class SdkKeyEndpointTest(TestCase):
             "type": "access",
         }
         expired_token = jose_jwt.encode(
-            payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+            payload, settings.FRONTEND_SECRET, algorithm=settings.JWT_ALGORITHM
         )
         r = self.client.get(
             "/api/user/sdk-key/",

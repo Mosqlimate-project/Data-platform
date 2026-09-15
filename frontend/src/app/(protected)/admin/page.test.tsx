@@ -1,8 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import { forwardRef } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AdminDashboard from "./page";
+import { captureChart, generateSummaryPdf } from "./summaryPdf";
 
-vi.mock("echarts-for-react", () => ({ default: () => <div data-testid="echarts" /> }));
+const { chartOptionsMock } = vi.hoisted(() => ({ chartOptionsMock: { options: [] as any[] } }));
+
+vi.mock("echarts-for-react", () => ({
+  default: forwardRef((props: any, ref: any) => {
+    chartOptionsMock.options.push(props.option);
+    return <div data-testid="echarts" />;
+  }),
+}));
+
+vi.mock("./summaryPdf", () => ({
+  captureChart: vi.fn(() => null),
+  generateSummaryPdf: vi.fn(),
+}));
 
 const locationMock = {
   href: "",
@@ -49,6 +63,7 @@ describe("app/(protected)/admin/page", () => {
     vi.stubGlobal("location", locationMock);
     locationMock.href = "";
     vi.clearAllMocks();
+    chartOptionsMock.options.length = 0;
   });
 
   afterEach(() => {
@@ -143,7 +158,7 @@ describe("app/(protected)/admin/page", () => {
     expect(screen.getByText("/api/datastore/")).toBeInTheDocument();
   });
 
-  it("renders analytics group-by user, day and endpoint tables", async () => {
+  it("renders analytics group-by user, day and endpoint charts", async () => {
     mockFetch();
     render(<AdminDashboard />);
     await waitFor(() => expect(screen.getByText("Admin Control Panel")).toBeInTheDocument());
@@ -154,12 +169,33 @@ describe("app/(protected)/admin/page", () => {
 
     fireEvent.change(groupSelect, { target: { value: "user" } });
     await waitFor(() => expect(screen.getByText("Request Volume")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        chartOptionsMock.options.some(
+          (o) => o.series?.[0]?.type === "bar" && o.xAxis?.data?.includes("bob")
+        )
+      ).toBe(true)
+    );
 
     fireEvent.change(groupSelect, { target: { value: "day" } });
     await waitFor(() => expect(screen.getByText("Total Hits")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        chartOptionsMock.options.some(
+          (o) => o.series?.[0]?.type === "line" && o.xAxis?.data?.includes("2024-01-01")
+        )
+      ).toBe(true)
+    );
 
     fireEvent.change(groupSelect, { target: { value: "endpoint" } });
     await waitFor(() => expect(screen.getByText("Access Count")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        chartOptionsMock.options.some(
+          (o) => o.series?.[0]?.type === "pie" && o.series[0].data?.some((d: any) => d.name === "/api/a/")
+        )
+      ).toBe(true)
+    );
   });
 
   it("changes the live log limit", async () => {
@@ -182,6 +218,8 @@ describe("app/(protected)/admin/page", () => {
     await waitFor(() => expect(screen.getByText("Admin Control Panel")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "API Analytics" }));
     await waitFor(() => expect(screen.getByText("100")).toBeInTheDocument());
+    fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "endpoint" } });
+    await waitFor(() => expect(screen.getByText("Access Count")).toBeInTheDocument());
     document.documentElement.classList.remove("dark");
   });
 
@@ -280,6 +318,12 @@ describe("app/(protected)/admin/page", () => {
       expect(String(usageCalls.at(-1)[0])).toContain("endpoint=");
       expect(String(usageCalls.at(-1)[0])).toContain("app=datastore");
     });
+
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(generateSummaryPdf).toHaveBeenCalled());
+    const args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.subtitle).toContain("Endpoint: /api/datastore/");
+    expect(args.subtitle).toContain("App: datastore");
   });
 
   it("logs errors from the user, usage and history requests", async () => {
@@ -351,7 +395,73 @@ describe("app/(protected)/admin/page", () => {
     fireEvent.click(screen.getByRole("button", { name: "API Analytics" }));
     await waitFor(() => expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0));
     fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "user" } });
-    await waitFor(() => expect(screen.getByText("Anonymous")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Request Volume")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        chartOptionsMock.options.some(
+          (o) => o.series?.[0]?.type === "bar" && o.xAxis?.data?.includes("Anonymous")
+        )
+      ).toBe(true)
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(generateSummaryPdf).toHaveBeenCalled());
+    const args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.rows).toEqual([{ heading: "Request Volume", lines: ["Anonymous: 4"] }]);
+  });
+
+  it("downloads the analytics summary as a PDF", async () => {
+    mockFetch();
+    render(<AdminDashboard />);
+    await waitFor(() => expect(screen.getByText("Admin Control Panel")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "API Analytics" }));
+    await waitFor(() => expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(generateSummaryPdf).toHaveBeenCalled());
+    const args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.title).toBe("API Logs Summary");
+    expect(args.subtitle).toContain("Period:");
+    expect(args.metrics).toHaveLength(4);
+    expect(args.charts.some((c: any) => c.title === "Request Traffic Timeline")).toBe(true);
+    expect(args.charts.some((c: any) => c.title === "Traffic Volume Share")).toBe(true);
+  });
+
+  it("includes the grouped breakdown when downloading the summary PDF", async () => {
+    mockFetch();
+    render(<AdminDashboard />);
+    await waitFor(() => expect(screen.getByText("Admin Control Panel")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "API Analytics" }));
+    await waitFor(() => expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0));
+    fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "endpoint" } });
+    await waitFor(() => expect(screen.getByText("Access Count")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(generateSummaryPdf).toHaveBeenCalled());
+    const args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.metrics).toHaveLength(0);
+    expect(args.rows).toEqual([{ heading: "Gateway Endpoints", lines: ["/api/a/: 4"] }]);
+    expect(args.charts.some((c: any) => c.title === "Access Count")).toBe(true);
+    expect(captureChart).toHaveBeenCalled();
+  });
+
+  it("includes user and day breakdown rows when downloading the summary PDF", async () => {
+    mockFetch();
+    render(<AdminDashboard />);
+    await waitFor(() => expect(screen.getByText("Admin Control Panel")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "API Analytics" }));
+    await waitFor(() => expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0));
+    const groupSelect = screen.getAllByRole("combobox")[0];
+
+    fireEvent.change(groupSelect, { target: { value: "user" } });
+    await waitFor(() => expect(screen.getByText("Request Volume")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    let args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.rows).toEqual([{ heading: "Request Volume", lines: ["bob: 4"] }]);
+
+    fireEvent.change(groupSelect, { target: { value: "day" } });
+    await waitFor(() => expect(screen.getByText("Total Hits")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Download PDF" }));
+    args = (generateSummaryPdf as Mock).mock.calls.at(-1)?.[0];
+    expect(args.rows).toEqual([{ heading: "Total Hits", lines: ["2024-01-01: 4"] }]);
   });
 
   it("switches tabs, changes the start date, and cancels the rate modal", async () => {

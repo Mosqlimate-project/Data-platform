@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FaCrown, FaSearch, FaChevronLeft, FaChevronRight, FaChartLine, FaServer, FaMapMarkerAlt, FaUsers, FaEdit } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { FaCrown, FaSearch, FaChevronLeft, FaChevronRight, FaChartLine, FaServer, FaMapMarkerAlt, FaUsers, FaEdit, FaFilePdf } from "react-icons/fa";
 import ReactECharts from "echarts-for-react";
+import { captureChart, generateSummaryPdf, type PdfMetric, type PdfSection } from "./summaryPdf";
 
 type User = {
   id: number;
@@ -64,6 +65,12 @@ export default function AdminDashboard() {
   const [groupBy, setGroupBy] = useState<"endpoint" | "day" | "user" | "">("");
   const [endpointFilter, setEndpointFilter] = useState<string>("");
   const [appFilter, setAppFilter] = useState<string>("");
+
+  const chartRefs = {
+    timeline: useRef<any>(null),
+    share: useRef<any>(null),
+    breakdown: useRef<any>(null),
+  };
 
   useEffect(() => {
     async function verifyAdminRole() {
@@ -331,9 +338,147 @@ export default function AdminDashboard() {
     };
   };
 
+  const getBreakdownChartOption = () => {
+    if (groupBy === "user" && Array.isArray(usageData)) {
+      return {
+        backgroundColor: "transparent",
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: "4%", right: "4%", bottom: "10%", top: "8%", containLabel: true },
+        xAxis: {
+          type: "category",
+          data: (usageData as UsageUser[]).map((u) => u.username || "Anonymous"),
+          axisLine: { lineStyle: { color: themeColors.line } },
+          axisLabel: { color: themeColors.subText, interval: 0, rotate: 20 }
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { show: false },
+          axisLabel: { color: themeColors.subText },
+          splitLine: { lineStyle: { color: themeColors.line } }
+        },
+        series: [
+          {
+            name: "Requests",
+            type: "bar",
+            barMaxWidth: 40,
+            data: (usageData as UsageUser[]).map((u) => u.count),
+            itemStyle: { color: themeColors.primary, borderRadius: [6, 6, 0, 0] }
+          }
+        ]
+      };
+    }
+
+    if (groupBy === "day" && Array.isArray(usageData)) {
+      return {
+        backgroundColor: "transparent",
+        tooltip: { trigger: "axis", axisPointer: { type: "line" } },
+        grid: { left: "4%", right: "4%", bottom: "10%", top: "12%", containLabel: true },
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          data: (usageData as UsageDay[]).map((d) => d.day),
+          axisLine: { lineStyle: { color: themeColors.line } },
+          axisLabel: { color: themeColors.subText }
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { show: false },
+          axisLabel: { color: themeColors.subText },
+          splitLine: { lineStyle: { color: themeColors.line } }
+        },
+        series: [
+          {
+            name: "Hits",
+            type: "line",
+            smooth: true,
+            showSymbol: false,
+            data: (usageData as UsageDay[]).map((d) => d.count),
+            itemStyle: { color: themeColors.primary },
+            lineStyle: { width: 3.5 },
+            areaStyle: { color: "rgba(59, 130, 246, 0.12)" }
+          }
+        ]
+      };
+    }
+
+    if (groupBy === "endpoint" && !Array.isArray(usageData)) {
+      const rawData = Object.entries(usageData as UsageEndpoint).map(([k, v]) => ({ name: k, value: v as number }));
+      return {
+        backgroundColor: "transparent",
+        tooltip: { trigger: "item" },
+        legend: { bottom: "0%", left: "center", type: "scroll", textStyle: { color: themeColors.subText } },
+        series: [
+          {
+            name: "Endpoint Usage",
+            type: "pie",
+            radius: ["45%", "70%"],
+            center: ["50%", "45%"],
+            avoidLabelOverlap: true,
+            itemStyle: { borderRadius: 8, borderColor: isDarkMode ? "#020617" : "#ffffff", borderWidth: 2 },
+            label: { color: themeColors.subText, formatter: "{b}" },
+            labelLine: { lineStyle: { color: themeColors.line } },
+            data: rawData,
+            color: [themeColors.primary, themeColors.secondary, themeColors.accent, "#8b5cf6", "#ec4899", "#38bdf8", "#a855f7"]
+          }
+        ]
+      };
+    }
+
+    return null;
+  };
+
+  const handleDownloadPdf = () => {
+    const periodEnd = new Date().toISOString().split("T")[0];
+    const filters = [endpointFilter && `Endpoint: ${endpointFilter}`, appFilter && `App: ${appFilter}`]
+      .filter(Boolean)
+      .join(" · ");
+    const subtitle = `Period: ${startDate} to ${periodEnd}${filters ? ` · ${filters}` : ""}`;
+
+    const metrics: PdfMetric[] =
+      groupBy === ""
+        ? [
+            { label: "Total Volume", value: overviewMetrics.total_requests.toLocaleString() },
+            { label: "Active Endpoints", value: String(overviewMetrics.unique_endpoints_count) },
+            { label: "Gateway Apps", value: String(overviewMetrics.application_scope_count) },
+            { label: "Active Consumers", value: String(overviewMetrics.unique_users_count) },
+          ]
+        : [];
+
+    const charts = [
+      { title: "Request Traffic Timeline", image: captureChart(chartRefs.timeline.current) },
+      { title: "Traffic Volume Share", image: captureChart(chartRefs.share.current) },
+      ...(breakdownTitle && breakdownOption
+        ? [{ title: breakdownTitle, image: captureChart(chartRefs.breakdown.current) }]
+        : []),
+    ];
+
+    const rows: PdfSection[] = [];
+    if (groupBy === "user" && Array.isArray(usageData)) {
+      rows.push({
+        heading: "Request Volume",
+        lines: (usageData as UsageUser[]).map((u) => `${u.username || "Anonymous"}: ${u.count.toLocaleString()}`),
+      });
+    } else if (groupBy === "day" && Array.isArray(usageData)) {
+      rows.push({
+        heading: "Total Hits",
+        lines: (usageData as UsageDay[]).map((d) => `${d.day}: ${d.count.toLocaleString()}`),
+      });
+    } else if (groupBy === "endpoint" && !Array.isArray(usageData)) {
+      rows.push({
+        heading: "Gateway Endpoints",
+        lines: Object.entries(usageData as UsageEndpoint).map(([endpoint, count]) => `${endpoint}: ${count.toLocaleString()}`),
+      });
+    }
+
+    generateSummaryPdf({ title: "API Logs Summary", subtitle, metrics, charts, rows });
+  };
+
   const overviewMetrics: OverviewMetrics = groupBy === "" && usageData && !Array.isArray(usageData)
     ? (usageData as OverviewMetrics)
     : { total_requests: 0, unique_users_count: 0, unique_endpoints_count: 0, application_scope_count: 0 };
+
+  const breakdownTitle = groupBy === "user" ? "Request Volume" : groupBy === "day" ? "Total Hits" : groupBy === "endpoint" ? "Access Count" : "";
+  const breakdownOption = getBreakdownChartOption();
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-8 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
@@ -498,6 +643,17 @@ export default function AdminDashboard() {
 
         {activeTab === "analytics" && (
           <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h2 className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">API Logs Summary</h2>
+              <button
+                onClick={handleDownloadPdf}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-600 shadow-sm transition-all hover:bg-blue-50 dark:border-blue-900/50 dark:bg-slate-950 dark:text-blue-400 dark:hover:bg-blue-950/40"
+              >
+                <FaFilePdf className="h-3.5 w-3.5" />
+                Download PDF
+              </button>
+            </div>
+
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div>
                 <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Group By</label>
@@ -595,13 +751,13 @@ export default function AdminDashboard() {
                   <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
                     <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Request Traffic Timeline</h3>
                     <div className="h-80 w-full">
-                      <ReactECharts option={getOverviewTimelineOption()} style={{ height: "100%", width: "100%" }} />
+                      <ReactECharts ref={chartRefs.timeline} option={getOverviewTimelineOption()} style={{ height: "100%", width: "100%" }} />
                     </div>
                   </div>
                   <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
                     <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Traffic Volume Share</h3>
                     <div className="h-80 w-full">
-                      <ReactECharts option={getOverviewDistributionOption()} style={{ height: "100%", width: "100%" }} />
+                      <ReactECharts ref={chartRefs.share} option={getOverviewDistributionOption()} style={{ height: "100%", width: "100%" }} />
                     </div>
                   </div>
                 </div>
@@ -685,61 +841,13 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="p-6">
-                  {usageData && groupBy === "user" && Array.isArray(usageData) && (
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium">
-                          <th className="pb-3">Username</th>
-                          <th className="pb-3 text-right">Request Volume</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                        {(usageData as UsageUser[]).map((row, index) => (
-                          <tr key={index} className="text-slate-700 dark:text-slate-300 hover:bg-slate-50/30 dark:hover:bg-slate-800/10">
-                            <td className="py-3.5 font-medium text-slate-900 dark:text-white">{row.username || "Anonymous"}</td>
-                            <td className="py-3.5 text-right font-mono font-semibold text-slate-900 dark:text-white">{row.count.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-
-                  {usageData && groupBy === "day" && Array.isArray(usageData) && (
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium">
-                          <th className="pb-3">Timeline Date</th>
-                          <th className="pb-3 text-right">Total Hits</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                        {(usageData as UsageDay[]).map((row, index) => (
-                          <tr key={index} className="text-slate-700 dark:text-slate-300 hover:bg-slate-50/30 dark:hover:bg-slate-800/10">
-                            <td className="py-3.5 font-mono text-slate-900 dark:text-white">{row.day}</td>
-                            <td className="py-3.5 text-right font-mono font-semibold text-slate-900 dark:text-white">{row.count.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-
-                  {usageData && groupBy === "endpoint" && !Array.isArray(usageData) && (
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-medium">
-                          <th className="pb-3">Registered Gateway Endpoint</th>
-                          <th className="pb-3 text-right">Access Count</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                        {Object.entries(usageData as UsageEndpoint).map(([endpoint, count]) => (
-                          <tr key={endpoint} className="text-slate-700 dark:text-slate-300 hover:bg-slate-50/30 dark:hover:bg-slate-800/10">
-                            <td className="py-3.5 font-mono text-xs text-blue-600 dark:text-blue-400">{endpoint}</td>
-                            <td className="py-3.5 text-right font-mono font-semibold text-slate-900 dark:text-white">{count.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  {breakdownOption && (
+                    <>
+                      <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">{breakdownTitle}</h3>
+                      <div className="h-80 w-full">
+                        <ReactECharts ref={chartRefs.breakdown} option={breakdownOption} style={{ height: "100%", width: "100%" }} />
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
