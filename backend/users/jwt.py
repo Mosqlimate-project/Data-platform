@@ -14,7 +14,7 @@ def create_access_token(data: dict, expire_minutes: Optional[int] = None):
 
     return jwt.encode(
         payload,
-        settings.SECRET_KEY,
+        settings.FRONTEND_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
 
@@ -29,7 +29,7 @@ def create_refresh_token(data: dict, expire_days: Optional[int] = None):
 
     return jwt.encode(
         payload,
-        settings.SECRET_KEY,
+        settings.FRONTEND_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
 
@@ -38,7 +38,7 @@ def decode_token(token: str):
     try:
         return jwt.decode(
             token,
-            settings.SECRET_KEY,
+            settings.FRONTEND_SECRET,
             algorithms=[settings.JWT_ALGORITHM],
         )
     except ValidationError:  # pragma: no cover - never raised by jose

@@ -6,7 +6,7 @@ describe("lib/jwt verifyJWT", () => {
   const secret = "unit-test-secret-key-0123456789";
 
   it("returns payload for a valid token", async () => {
-    vi.stubEnv("SECRET_KEY", secret);
+    vi.stubEnv("FRONTEND_SECRET", secret);
     vi.resetModules();
     const { verifyJWT } = await import("./jwt");
     const token = await new SignJWT({ sub: "1", type: "access" })
@@ -18,14 +18,14 @@ describe("lib/jwt verifyJWT", () => {
   });
 
   it("returns null for an invalid token", async () => {
-    vi.stubEnv("SECRET_KEY", secret);
+    vi.stubEnv("FRONTEND_SECRET", secret);
     vi.resetModules();
     const { verifyJWT } = await import("./jwt");
     expect(await verifyJWT("garbage.token.here")).toBeNull();
   });
 
   it("returns null when verification throws", async () => {
-    vi.stubEnv("SECRET_KEY", secret);
+    vi.stubEnv("FRONTEND_SECRET", secret);
     vi.resetModules();
     const { verifyJWT } = await import("./jwt");
     const wrong = await new SignJWT({})

@@ -1,6 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
 describe("lib/env", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
   it("uses env vars and defaults", async () => {
     vi.stubEnv("FRONTEND_URL", "https://front.example");
     vi.stubEnv("NEXT_PUBLIC_BACKEND_URL", "https://back.example");
@@ -8,7 +11,6 @@ describe("lib/env", () => {
     vi.stubEnv("BACKEND_PORT", "8042");
     vi.stubEnv("ADMIN_UIDKEY", "u:k");
     vi.stubEnv("FRONTEND_SECRET", "fs");
-    vi.stubEnv("SECRET_KEY", "sk");
     vi.resetModules();
     const env = await import("./env");
     expect(env.NEXT_PUBLIC_FRONTEND_URL).toBe("https://front.example");
@@ -18,10 +20,17 @@ describe("lib/env", () => {
     expect(env.BACKEND_PORT).toBe("8042");
     expect(env.ADMIN_UIDKEY).toBe("u:k");
     expect(env.FRONTEND_SECRET).toBe("fs");
-    expect(env.SECRET_KEY).toBe("sk");
     expect(env.JWT_ALGORITHM).toBe("HS256");
     expect(env.JWT_TOKEN_EXPIRE_MINUTES).toBe(30);
     expect(env.JWT_REFRESH_TOKEN_EXPIRE_DAYS).toBe(7);
+  });
+
+  it("prefers NEXT_PUBLIC_FRONTEND_URL over FRONTEND_URL", async () => {
+    vi.stubEnv("NEXT_PUBLIC_FRONTEND_URL", "http://localhost:9999");
+    vi.stubEnv("FRONTEND_URL", "http://localhost:8888");
+    vi.resetModules();
+    const env = await import("./env");
+    expect(env.NEXT_PUBLIC_FRONTEND_URL).toBe("http://localhost:9999");
   });
 
   it("falls back to defaults when env unset", async () => {

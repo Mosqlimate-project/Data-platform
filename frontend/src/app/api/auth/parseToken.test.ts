@@ -12,7 +12,7 @@ async function makeToken(payload: Record<string, unknown>) {
 
 describe("app/api/auth/parseToken", () => {
   beforeEach(() => {
-    vi.stubEnv("SECRET_KEY", secret);
+    vi.stubEnv("FRONTEND_SECRET", secret);
     vi.stubEnv("JWT_ALGORITHM", "HS256");
     vi.resetModules();
   });
@@ -52,12 +52,12 @@ describe("app/api/auth/parseToken", () => {
     expect(err).toHaveBeenCalled();
   });
 
-  it("throws when SECRET_KEY missing", async () => {
-    vi.stubEnv("SECRET_KEY", "");
+  it("throws when FRONTEND_SECRET missing", async () => {
+    vi.stubEnv("FRONTEND_SECRET", "");
     vi.resetModules();
     const { parseToken } = await import("./parseToken");
     await expect(parseToken("x.y.z")).rejects.toThrow(
-      "Missing SECRET_KEY environment variable"
+      "Missing FRONTEND_SECRET environment variable"
     );
   });
 
