@@ -11,6 +11,7 @@ from datastore import filters as dtf
 from datastore import routers as dtr
 from datastore import schema as dts
 from datastore import tasks as dt_tasks
+from datastore import ro_crate as dtc
 from datastore.utils import fetch_icd
 
 
@@ -598,6 +599,77 @@ class FiltersTest(TestCase):
         f = dtf.Adm2FilterSchema(name="Rio")
         q = f.filter_name("Rio")
         self.assertIsNotNone(q)
+
+
+class RoCrateAPITest(DataStoreBase):
+    def _assert_valid_crate(self, crate, expected_parts):
+        self.assertEqual(crate["@context"], dtc.RO_CRATE_CONTEXT)
+        graph = crate["@graph"]
+
+        ids = {entity["@id"] for entity in graph}
+        for entity in graph:
+            for value in entity.values():
+                refs = []
+                if isinstance(value, dict) and "@id" in value:
+                    refs.append(value["@id"])
+                elif isinstance(value, list):
+                    refs += [
+                        item["@id"]
+                        for item in value
+                        if isinstance(item, dict) and "@id" in item
+                    ]
+                for ref in refs:
+                    if ref.startswith("#"):
+                        self.assertIn(ref, ids)
+
+        descriptor = next(
+            e for e in graph if e["@id"] == "ro-crate-metadata.json"
+        )
+        self.assertEqual(descriptor["conformsTo"]["@id"], dtc.RO_CRATE_SPEC)
+        self.assertEqual(descriptor["about"]["@id"], "./")
+
+        root = next(e for e in graph if e["@id"] == "./")
+        parts = root["hasPart"]
+        self.assertEqual(len(parts), expected_parts)
+
+        for part in parts:
+            self.assertIn(part["@id"], ids)
+            dataset = next(e for e in graph if e["@id"] == part["@id"])
+            self.assertIn("Dataset", dataset["@type"])
+            dist_id = dataset["distribution"]["@id"]
+            self.assertIn(dist_id, ids)
+            distribution = next(e for e in graph if e["@id"] == dist_id)
+            self.assertEqual(distribution["@type"], "DataDownload")
+            self.assertEqual(distribution["contentUrl"], part["@id"])
+
+    def test_ro_crate_catalog(self):
+        r = self.client.get("/api/datastore/ro-crate/", **self.auth)
+        self.assertEqual(r.status_code, 200)
+        crate = r.json()
+        self._assert_valid_crate(crate, len(dtc.DATASETS))
+
+    def test_ro_crate_dataset(self):
+        r = self.client.get("/api/datastore/ro-crate/infodengue/", **self.auth)
+        self.assertEqual(r.status_code, 200)
+        crate = r.json()
+        self._assert_valid_crate(crate, 1)
+
+    def test_ro_crate_every_dataset(self):
+        for slug in dtc.DATASETS:
+            crate = dtc.build_ro_crate(dataset=slug)
+            self._assert_valid_crate(crate, 1)
+            self.assertIn(
+                dtc.BASE_URL + dtc.DATASETS[slug]["path"],
+                {e["@id"] for e in crate["@graph"]},
+            )
+
+    def test_ro_crate_unknown_dataset(self):
+        r = self.client.get("/api/datastore/ro-crate/unknown/", **self.auth)
+        self.assertEqual(r.status_code, 404)
+
+    def test_ro_crate_build_unknown_dataset(self):
+        with self.assertRaises(ValueError):
+            dtc.build_ro_crate(dataset="unknown")
 
 
 class TasksTest(TestCase):
