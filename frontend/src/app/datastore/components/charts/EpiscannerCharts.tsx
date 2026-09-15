@@ -61,6 +61,12 @@ export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLea
 
   const isDark = resolvedTheme === "dark";
 
+  const isValidGeo =
+    !!geoData &&
+    typeof geoData === "object" &&
+    geoData.type === "FeatureCollection" &&
+    Array.isArray(geoData.features);
+
   const colorScale = scaleLinear<string>()
     .domain([minValue, maxValue])
     .range(isDark ? ["#f8fafc", "#ef4444"] : ["#f8fafc", "#ef4444"]);
@@ -79,7 +85,7 @@ export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLea
         <span className={`font-medium text-xs ${isDark ? "text-slate-400" : "text-muted-foreground"}`}>{minValue.toFixed(0)}</span>
       </div>
       <div className="flex-1 h-full p-2">
-        {geoData ? (
+        {isValidGeo ? (
           <ComposableMap
             key={selectedUf}
             projection="geoMercator"
@@ -131,6 +137,10 @@ export function EpiScannerChart({ geoData, data = [], selectedUf, onHover, onLea
               </Geographies>
             </ZoomableGroup>
           </ComposableMap>
+        ) : geoData ? (
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+            <p className="text-sm font-medium">Could not load map data for {selectedUf}.</p>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Loader2 className="w-10 h-10 animate-spin mb-2" />

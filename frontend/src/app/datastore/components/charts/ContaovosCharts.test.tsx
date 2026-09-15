@@ -323,13 +323,13 @@ describe("datastore/components/charts/ContaovosCharts", () => {
         <MapChart
           start="2024-01-01"
           end="2024-02-01"
-          geoJson={{ type: "FeatureCollection" }}
+          geoJson={{ type: "FeatureCollection", features: [] }}
           selectedState="SP"
           onStateSelect={onStateSelect}
         />
       );
       await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
-      expect(echartsMock.registerMap).toHaveBeenCalledWith("brazil", { type: "FeatureCollection" });
+      expect(echartsMock.registerMap).toHaveBeenCalledWith("brazil", { type: "FeatureCollection", features: [] });
       const option = lastOption();
       expect(option.series).toHaveLength(2);
       expect(option.series[0].data[0].itemStyle.borderWidth).toBe(3);
@@ -371,6 +371,28 @@ describe("datastore/components/charts/ContaovosCharts", () => {
       mockFetch({ fail: true });
       render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{}} />);
       await waitFor(() => expect(err).toHaveBeenCalled());
+    });
+
+    it("does not crash when the map response is not an array", async () => {
+      mockFetch({ map: { message: "Server not configured" }, scatter: [] });
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{ type: "FeatureCollection", features: [] }} />);
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+      await new Promise((r) => setTimeout(r, 30));
+      expect(echartsMock.instance.setOption).not.toHaveBeenCalled();
+    });
+
+    it("does not crash when the scatter response is not an array", async () => {
+      mockFetch({ scatter: { message: "Server not configured" } });
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{ type: "FeatureCollection", features: [] }} />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(lastOption().series).toHaveLength(1);
+    });
+
+    it("does not register the map for an invalid geoJson", async () => {
+      mockFetch();
+      render(<MapChart start="2024-01-01" end="2024-02-01" geoJson={{ message: "Server not configured" }} />);
+      await waitFor(() => expect(echartsMock.instance.setOption).toHaveBeenCalled());
+      expect(echartsMock.registerMap).not.toHaveBeenCalled();
     });
 
     it("renders in dark theme", async () => {

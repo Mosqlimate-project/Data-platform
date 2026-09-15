@@ -15,6 +15,8 @@ export interface EndpointDetails {
   description: string;
   source: string;
   more_info_link: string;
+  citation?: string;
+  citation_link?: string;
   tags: string[];
   data_variables: EndpointDataVar[];
   chart_options: EndpointChartOption[];

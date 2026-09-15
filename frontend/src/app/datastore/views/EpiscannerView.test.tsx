@@ -77,7 +77,7 @@ describe("datastore/views/EpiscannerView", () => {
   it("fetches geojson and data on mount", async () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FC" }) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       return Promise.resolve({ ok: true, json: async () => [{ geocode: 1, R0: 2, muni_name: "Rio" }] });
     }) as unknown as typeof fetch;
 
@@ -88,13 +88,27 @@ describe("datastore/views/EpiscannerView", () => {
   it("ignores non-ok data responses", async () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       return Promise.resolve({ ok: false, json: async () => [] });
     }) as unknown as typeof fetch;
 
     render(<EpiScannerView config={config} />);
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     expect(screen.getByTestId("scanner").getAttribute("data-count")).toBe("0");
+  });
+
+  it("shows an error state when the map response is not a FeatureCollection", async () => {
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: false, json: async () => ({ message: "Server not configured" }) });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
+
+    render(<EpiScannerView config={config} />);
+    await waitFor(() =>
+      expect(screen.getByText("Could not load map data. Please try again later.")).toBeInTheDocument()
+    );
+    expect(screen.queryByTestId("scanner")).not.toBeInTheDocument();
   });
 
   it("logs fetch errors", async () => {
@@ -119,7 +133,7 @@ describe("datastore/views/EpiscannerView", () => {
   it("shows and hides the hover tooltip", async () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       return Promise.resolve({ ok: true, json: async () => [{ geocode: 1, R0: 2.5, muni_name: "Rio" }] });
     }) as unknown as typeof fetch;
 
@@ -137,7 +151,7 @@ describe("datastore/views/EpiscannerView", () => {
   it("changes the metric variable", async () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       return Promise.resolve({ ok: true, json: async () => [{ geocode: 1, peak_week: 10, muni_name: "Rio" }] });
     }) as unknown as typeof fetch;
 
@@ -162,7 +176,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: true, json: async () => [{ a: 1 }] });
     }) as unknown as typeof fetch;
@@ -178,7 +192,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: true, json: async () => ({}) });
     }) as unknown as typeof fetch;
@@ -193,7 +207,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: true, json: async () => [{ a: 1 }] });
     }) as unknown as typeof fetch;
@@ -208,7 +222,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: true, json: async () => ({ items: [{ a: 1 }] }) });
     }) as unknown as typeof fetch;
@@ -225,7 +239,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: false, json: async () => ({}) });
     }) as unknown as typeof fetch;
@@ -242,7 +256,7 @@ describe("datastore/views/EpiscannerView", () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: false, json: async () => ({}) });
     }) as unknown as typeof fetch;
@@ -271,7 +285,7 @@ describe("datastore/views/EpiscannerView", () => {
   it("falls back to Unknown for items without a name", async () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       return Promise.resolve({ ok: true, json: async () => [{ geocode: 2, R0: 3 }] });
     }) as unknown as typeof fetch;
 
@@ -281,7 +295,11 @@ describe("datastore/views/EpiscannerView", () => {
 
   it("renders dark theme classes", async () => {
     theme.resolvedTheme = "dark";
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] }) as unknown as typeof fetch;
+    global.fetch = vi.fn((input: any) => {
+      const url = String(input);
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as unknown as typeof fetch;
     render(<EpiScannerView config={config} />);
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     expect(screen.getByText(/by city in/).className).toContain("bg-slate-800/80");
@@ -321,7 +339,7 @@ describe("datastore/views/EpiscannerView", () => {
     global.fetch = vi.fn((input: any) => {
       const url = String(input);
       if (url.includes("/api/user/api-key")) return Promise.resolve({ ok: true, json: async () => ({ api_key: "k" }) });
-      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({}) });
+      if (url.includes("/api/maps/cities")) return Promise.resolve({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) });
       if (url.includes("/api/datastore/charts/episcanner")) return Promise.resolve({ ok: true, json: async () => [] });
       return new Promise((res) => {
         resolveData = res;

@@ -2,6 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import EpidBotBadge from "@/components/EpidBotBadge";
 
 export function AccordionCard({
   title,
@@ -40,6 +41,8 @@ interface EndpointLayoutProps {
   description: string;
   moreInfoLink: string;
   source: string;
+  citation?: string;
+  citationLink?: string;
   dataVariables?: { variable: string; type: string; description: string }[];
   children?: ReactNode;
   controls?: ReactNode;
@@ -51,6 +54,8 @@ export function EndpointLayout({
   description,
   moreInfoLink,
   source,
+  citation,
+  citationLink,
   dataVariables,
   endpoint,
   children,
@@ -154,6 +159,24 @@ export function EndpointLayout({
                   </a>
                 </p>
               )}
+
+              {citation && (
+                <p className="text-xs">
+                  <span className="font-semibold">{t('common.citation')}: </span>
+                  {citationLink ? (
+                    <a
+                      href={citationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline break-all"
+                    >
+                      {citation}
+                    </a>
+                  ) : (
+                    citation
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </AccordionCard>
@@ -188,11 +211,7 @@ export function EndpointLayout({
         )}
 
         <div className="flex justify-center py-3">
-          <iframe
-            src="https://epidbot.kwar-ai.com.br/badge.html"
-            style={{ border: "none", width: 280, height: 60 }}
-            title="EpidBot"
-          />
+          <EpidBotBadge />
         </div>
       </div>
     </div>

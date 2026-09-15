@@ -32,6 +32,9 @@ describe("datastore/data getEndpoints", () => {
     );
     expect(t).toHaveBeenCalledWith("datastore.mosquito.variables.year");
     expect(t).toHaveBeenCalledWith("datastore.episcanner.variables.ep_dur");
+
+    expect(endpoints[4].citation).toMatch(/^t:publications\./);
+    expect(endpoints[4].citation_link).toMatch(/^https:\/\//);
   });
 
   it("does not reuse references between calls", () => {

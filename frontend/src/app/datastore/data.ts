@@ -418,6 +418,8 @@ export const getEndpoints = (t: (key: string) => string): EndpointDetails[] => [
     description: t("datastore.episcanner.description"),
     source: "https://info.dengue.mat.br/epi-scanner/",
     more_info_link: "https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner",
+    citation: t("publications.items.araujo_rsos_2025"),
+    citation_link: "https://royalsocietypublishing.org/rsos/article/12/5/241261/235685/Large-scale-epidemiological-modelling-scanning-for",
     tags: ["Epidemiological", "Municipal", "Yearly"],
     data_variables: [
       {
