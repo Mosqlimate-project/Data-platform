@@ -105,6 +105,35 @@ describe("datastore/components/EndpointLayout", () => {
     expect(screen.getByText("the date")).toBeInTheDocument();
   });
 
+  it("renders the citation when provided", () => {
+    render(
+      <EndpointLayout
+        {...baseProps}
+        citation="ARAUJO, E. C. et al. 2025."
+        citationLink="https://royalsocietypublishing.org/rsos/article/12/5/241261"
+      >
+        <div>chart-content</div>
+      </EndpointLayout>
+    );
+    fireEvent.click(screen.getByText("endpoint_layout.accordion.description_title"));
+    const citationLink = screen.getByRole("link", { name: "ARAUJO, E. C. et al. 2025." });
+    expect(citationLink).toHaveAttribute(
+      "href",
+      "https://royalsocietypublishing.org/rsos/article/12/5/241261"
+    );
+  });
+
+  it("renders the citation as plain text without a link", () => {
+    render(
+      <EndpointLayout {...baseProps} citation="ARAUJO, E. C. et al. 2025.">
+        <div>chart-content</div>
+      </EndpointLayout>
+    );
+    fireEvent.click(screen.getByText("endpoint_layout.accordion.description_title"));
+    expect(screen.getByText("ARAUJO, E. C. et al. 2025.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "ARAUJO, E. C. et al. 2025." })).not.toBeInTheDocument();
+  });
+
   it("omits source and dictionary when absent", () => {
     render(
       <EndpointLayout {...baseProps} source="" moreInfoLink="">

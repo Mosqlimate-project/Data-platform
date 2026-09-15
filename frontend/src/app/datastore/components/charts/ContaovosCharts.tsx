@@ -420,7 +420,7 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
   const chartRef = useChart(option, loading);
 
   useEffect(() => {
-    if (!geoJson) return;
+    if (!geoJson || typeof geoJson !== "object" || geoJson.type !== "FeatureCollection" || !Array.isArray(geoJson.features)) return;
     echarts.registerMap("brazil", geoJson);
   }, [geoJson]);
 
@@ -450,7 +450,7 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
       .then((res) => res.json())
       .then((data: any[]) => {
         if (cancelled) return;
-        if (!data || data.length === 0) {
+        if (!Array.isArray(data) || data.length === 0) {
           setStates(null);
           return;
         }
@@ -469,7 +469,7 @@ export function MapChart({ start, end, geoJson, selectedState, onStateSelect }: 
       .then((res) => res.json())
       .then((data: any[]) => {
         if (cancelled) return;
-        if (!data || data.length === 0) {
+        if (!Array.isArray(data) || data.length === 0) {
           setScatter([]);
           return;
         }

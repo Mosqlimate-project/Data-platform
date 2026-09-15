@@ -230,6 +230,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
   const [metric, setMetric] = useState<MetricType>("R0");
   const [rawData, setRawData] = useState<any[]>([]);
   const [geoData, setGeoData] = useState<any>(null);
+  const [geoError, setGeoError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [tooltip, setTooltip] = useState<{ name: string; value: string | number; x: number; y: number } | null>(null);
 
@@ -250,7 +251,12 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
           headers: { "x-internal-secret": FRONTEND_SECRET || "" }
         });
         const gData = await geoRes.json();
-        setGeoData(gData);
+        if (geoRes.ok && gData && gData.type === "FeatureCollection" && Array.isArray(gData.features)) {
+          setGeoData(gData);
+          setGeoError(false);
+        } else {
+          setGeoError(true);
+        }
 
         const queryParams = new URLSearchParams({
           disease,
@@ -284,6 +290,8 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
       source={config.source}
       dataVariables={config.data_variables}
       moreInfoLink={config.more_info_link}
+      citation={config.citation}
+      citationLink={config.citation_link}
       apiBuilder={<EpiScannerApiBuilder />}
       controls={
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 relative z-20">
@@ -340,6 +348,11 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
+        {geoError ? (
+          <div className="flex flex-col items-center justify-center h-[600px] border rounded-lg text-muted-foreground bg-background">
+            <p className="text-sm font-medium">Could not load map data. Please try again later.</p>
+          </div>
+        ) : (
         <div
           ref={containerRef}
           className={`relative border rounded-lg overflow-hidden shadow-sm ${resolvedTheme === "dark" ? "bg-slate-900" : "bg-slate-50"
@@ -384,6 +397,7 @@ export function EpiScannerView({ config }: { config: EndpointDetails }) {
             </div>
           )}
         </div>
+        )}
       </div>
     </EndpointLayout>
   );

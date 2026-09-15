@@ -381,6 +381,7 @@
   "common": {
     "documentation": "Documentação",
     "source": "Fonte",
+    "citation": "Citação",
     "cancel": "Cancelar",
     "actions": {
       "delete": "Deletar",

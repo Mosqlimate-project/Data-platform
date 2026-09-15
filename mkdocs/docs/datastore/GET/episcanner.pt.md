@@ -1,6 +1,11 @@
 ## [Dados do EpiScanner](https://api.mosqlimate.org/api/docs#/episcanner/datastore_api_get_episcanner)
 Aqui você tem acesso a dados em tempo real do Epi-Scanner. A ferramenta  [Epi-Scanner](https://info.dengue.mat.br/epi-scanner/) foi co-desenvolvida pelo projeto InfoDengue. O conjunto de dados fornece estimativas de parâmetros epidemiológicos para cada cidade e ano no Brasil, com foco em Dengue e Chikungunya. Informações detalhadas sobre a metodologia usada para calcular esses parâmetros podem ser encontradas [aqui](https://royalsocietypublishing.org/doi/full/10.1098/rsos.241261).
 
+## Como citar
+Se você usar os dados do EpiScanner em sua pesquisa, cite:
+
+> ARAUJO, E. C. _et al._ Large-scale epidemiological modelling: scanning for mosquito-borne diseases spatio-temporal patterns in Brazil. **Royal Society Open Science**, v. 12, n. 5, p. 241261, 2025. Disponível em: [https://royalsocietypublishing.org/rsos/article/12/5/241261/235685/Large-scale-epidemiological-modelling-scanning-for](https://royalsocietypublishing.org/rsos/article/12/5/241261/235685/Large-scale-epidemiological-modelling-scanning-for).
+
 ## Tabela de Parâmetros
 ### Entrada
 | Nome do Parâmetro | Obrigatório | Tipo | Descrição |

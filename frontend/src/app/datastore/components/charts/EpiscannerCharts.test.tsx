@@ -51,7 +51,7 @@ describe("datastore/components/charts/EpiscannerCharts", () => {
     const onLeave = vi.fn();
     render(
       <EpiScannerChart
-        geoData={{}}
+        geoData={{ type: "FeatureCollection", features: [] }}
         data={[{ id: "33", value: 5, name: "Rio" }]}
         selectedUf="SP"
         onHover={onHover}
@@ -73,20 +73,26 @@ describe("datastore/components/charts/EpiscannerCharts", () => {
   });
 
   it("does not throw when hover handlers are omitted", () => {
-    render(<EpiScannerChart geoData={{}} data={[{ id: "33", value: 5 }]} selectedUf="SP" />);
+    render(<EpiScannerChart geoData={{ type: "FeatureCollection", features: [] }} data={[{ id: "33", value: 5 }]} selectedUf="SP" />);
     fireEvent.mouseMove(screen.getAllByTestId("geography")[0], { clientX: 1, clientY: 2 });
     fireEvent.mouseLeave(screen.getAllByTestId("geography")[0]);
     expect(screen.getAllByTestId("geography")).toHaveLength(2);
   });
 
   it("handles empty data and an unknown UF", () => {
-    render(<EpiScannerChart geoData={{}} data={[]} selectedUf="XX" />);
+    render(<EpiScannerChart geoData={{ type: "FeatureCollection", features: [] }} data={[]} selectedUf="XX" />);
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();
   });
 
+  it("renders an error fallback when geoData is not a FeatureCollection", () => {
+    render(<EpiScannerChart geoData={{ message: "Server not configured" }} data={[]} selectedUf="SP" />);
+    expect(screen.getByText("Could not load map data for SP.")).toBeInTheDocument();
+    expect(screen.queryByTestId("composable-map")).not.toBeInTheDocument();
+  });
+
   it("uses a lowercase UF through the projection config", () => {
-    render(<EpiScannerChart geoData={{}} data={[{ id: "33", value: 5 }]} selectedUf="sp" />);
+    render(<EpiScannerChart geoData={{ type: "FeatureCollection", features: [] }} data={[{ id: "33", value: 5 }]} selectedUf="sp" />);
     expect(screen.getByTestId("composable-map")).toBeInTheDocument();
   });
 
@@ -94,7 +100,7 @@ describe("datastore/components/charts/EpiscannerCharts", () => {
     const onHover = vi.fn();
     render(
       <EpiScannerChart
-        geoData={{}}
+        geoData={{ type: "FeatureCollection", features: [] }}
         data={[{ id: "99", value: 5, name: "Second" }]}
         selectedUf="SP"
         onHover={onHover}
@@ -106,7 +112,7 @@ describe("datastore/components/charts/EpiscannerCharts", () => {
 
   it("renders dark theme styles", () => {
     theme.resolvedTheme = "dark";
-    render(<EpiScannerChart geoData={{}} data={[]} selectedUf="SP" />);
+    render(<EpiScannerChart geoData={{ type: "FeatureCollection", features: [] }} data={[]} selectedUf="SP" />);
     const geographies = screen.getAllByTestId("geography");
     expect(geographies[1].getAttribute("data-fill")).toBe("#1e293b");
   });

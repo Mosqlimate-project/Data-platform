@@ -55,7 +55,7 @@ describe("datastore/views/ContaovosView", () => {
   });
 
   it("loads the map geojson on mount", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ type: "FeatureCollection" }) }) as unknown as typeof fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ type: "FeatureCollection", features: [] }) }) as unknown as typeof fetch;
     render(<ContaovosView config={config} />);
     await waitFor(() => expect(screen.getByTestId("egg-count").getAttribute("data-has-geo")).toBe("true"));
     expect(String((global.fetch as any).mock.calls[0][0])).toContain("/api/maps/states");
@@ -66,6 +66,14 @@ describe("datastore/views/ContaovosView", () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("boom")) as unknown as typeof fetch;
     render(<ContaovosView config={config} />);
     await waitFor(() => expect(err).toHaveBeenCalled());
+  });
+
+  it("keeps geoJson null when the map response is not a FeatureCollection", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({ message: "Server not configured" }) }) as unknown as typeof fetch;
+    render(<ContaovosView config={config} />);
+    await waitFor(() => expect(err).toHaveBeenCalled());
+    expect(screen.getByTestId("egg-count").getAttribute("data-has-geo")).toBe("false");
   });
 
   it("renders controls and validates dates", () => {

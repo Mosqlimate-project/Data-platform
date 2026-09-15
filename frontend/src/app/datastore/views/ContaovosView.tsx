@@ -271,10 +271,15 @@ export function ContaovosView({ config }: { config: EndpointDetails }) {
     async function load() {
       try {
         const secret = FRONTEND_SECRET || "";
-        const geo = await fetch("/api/maps/states", {
+        const res = await fetch("/api/maps/states", {
           headers: { "x-internal-secret": secret }
-        }).then(r => r.json());
-        setGeoJson(geo);
+        });
+        const geo = await res.json();
+        if (res.ok && geo && geo.type === "FeatureCollection" && Array.isArray(geo.features)) {
+          setGeoJson(geo);
+        } else {
+          console.error("Failed to load map:", geo?.message || res.status);
+        }
       } catch (e) {
         console.error("Failed to load map:", e);
       }
