@@ -44,6 +44,7 @@ theme:
   highlightjs: true
   hljs_languages:
     - python
+    - r
 
 # Extensions
 markdown_extensions:
@@ -106,6 +107,8 @@ plugins:
             Fetch Predictions: Buscar Previsões
             Inserting Models: Inserir Modelos
             Inserting Predictions: Inserir Previsões
+            Tutorials: Tutoriais
+            Making Asynchronous Requests: Fazendo Requisições Assíncronas
             How to use: Como usar
             Details: Detalhes
 
@@ -140,6 +143,8 @@ nav:
     - "Mosquito": "datastore/GET/mosquito.md"
     - "Vegetation Metrix": "datastore/GET/vegetation.md"
     - "Episcanner parameters": "datastore/GET/episcanner.md"
+  - "Tutorials":
+    - "Making Asynchronous Requests": "tutorials/async-requests.md"
   - "Dashboard":
     - "How to use": "vis/dashboard/how_to_use.md"
     - "Scores": "vis/dashboard/scores.md"
