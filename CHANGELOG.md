@@ -1,6 +1,14 @@
 Release Notes
 ---
 
+# [2.15.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.14.0...2.15.0) (2026-09-15)
+
+
+### Features
+
+* include a RO-Crate endpoint for the API ([#555](https://github.com/Mosqlimate-project/Data-platform/issues/555)) ([4b27afb](https://github.com/Mosqlimate-project/Data-platform/commit/4b27afbaf7356340fe11990231476a67fc8b5343))
+* **tests:** include extensive testing on registry app ([#535](https://github.com/Mosqlimate-project/Data-platform/issues/535)) ([5b11c90](https://github.com/Mosqlimate-project/Data-platform/commit/5b11c90b1510ee429d9b7a075300b328b315c475))
+
 # [2.14.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.13.0...2.14.0) (2026-09-08)
 
 
