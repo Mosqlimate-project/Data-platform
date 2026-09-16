@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.15.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.1...2.15.2) (2026-09-16)
+
+
+### Bug Fixes
+
+* **chatbot:** fix positional arg on func call ([#559](https://github.com/Mosqlimate-project/Data-platform/issues/559)) ([776918a](https://github.com/Mosqlimate-project/Data-platform/commit/776918a1f546c759c0a1b5ab35ff1c51e7dcc0c6))
+
 ## [2.15.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.0...2.15.1) (2026-09-16)
 
 
