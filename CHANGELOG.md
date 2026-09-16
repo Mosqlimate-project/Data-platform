@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.15.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.0...2.15.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **registry:** bypass create prediction if user is admin ([#558](https://github.com/Mosqlimate-project/Data-platform/issues/558)) ([53c1cd6](https://github.com/Mosqlimate-project/Data-platform/commit/53c1cd63b5cae08f6fb26c154298b11a67678d61))
+
 # [2.15.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.14.0...2.15.0) (2026-09-15)
 
 
