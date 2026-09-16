@@ -82,8 +82,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if not messages:
             generate_bot_answer.delay(
-                f"Present yourself in language: {self.language}",
-                self.session_key,
+                question=f"Present yourself in language: {self.language}",
+                session_key=self.session_key,
                 language=self.language,
             )
 
@@ -132,10 +132,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             ]
 
             generate_bot_answer.delay(
-                question,
-                self.session_key,
-                self.user_api_key,
-                message_history,
+                question=question,
+                session_key=self.session_key,
+                message_history=message_history,
                 language=self.language,
             )
 
