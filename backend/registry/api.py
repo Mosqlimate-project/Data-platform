@@ -1096,7 +1096,7 @@ def create_prediction(request, data: s.PredictionIn):
     repo = model.repository
     has_permission = False
 
-    if repo.owner == user:
+    if repo.owner == user or user.is_superuser or user.is_staff:
         has_permission = True
     elif repo.organization:
         is_org_admin = m.OrganizationMembership.objects.filter(
