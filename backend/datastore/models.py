@@ -291,13 +291,6 @@ class HistoricoAlerta(models.Model):
     municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
     )
-    tweet = models.DecimalField(  # type: ignore[var-annotated]
-        max_digits=5,
-        decimal_places=0,
-        null=True,
-        default=None,
-        db_column="tweet",
-    )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]
     tempmin = models.DecimalField(  # type: ignore[var-annotated]
@@ -353,13 +346,6 @@ class HistoricoAlertaChik(models.Model):
     municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
     )
-    tweet = models.DecimalField(  # type: ignore[var-annotated]
-        max_digits=5,
-        decimal_places=0,
-        null=True,
-        default=None,
-        db_column="tweet",
-    )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]
     tempmin = models.DecimalField(  # type: ignore[var-annotated]
@@ -414,13 +400,6 @@ class HistoricoAlertaZika(models.Model):
     versao_modelo = models.CharField(max_length=40, db_column="versao_modelo")  # type: ignore[var-annotated]
     municipio_nome = models.CharField(  # type: ignore[var-annotated]
         max_length=128, db_column="municipio_nome"
-    )
-    tweet = models.DecimalField(  # type: ignore[var-annotated]
-        max_digits=5,
-        decimal_places=0,
-        null=True,
-        default=None,
-        db_column="tweet",
     )
     Rt = models.FloatField(null=True, default=None, db_column="Rt")  # type: ignore[var-annotated]
     pop = models.DecimalField(max_digits=10, decimal_places=0, db_column="pop")  # type: ignore[var-annotated]

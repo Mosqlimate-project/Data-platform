@@ -24,6 +24,9 @@ services:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     user: "mosqlimate:mosqlimate"
     restart: unless-stopped
+    depends_on:
+      smoke-test:
+        condition: service_completed_successfully
     command: node server.js
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:${FRONTEND_PORT}"]
@@ -38,7 +41,7 @@ services:
 
   backend:
     hostname: mosqlimate-${VERSION}-backend
-    environment:
+    environment: &backend-env
       RUN_MIGRATE: ${CI}
       PYTHONUNBUFFERED: 1
       ADMIN_UIDKEY: ${ADMIN_UIDKEY}
@@ -114,6 +117,30 @@ services:
       postgres:
         condition: service_healthy
     command: daphne -b 0.0.0.0 -p ${BACKEND_PORT} mosqlimate.asgi:application
+    networks:
+      - default
+      - infodengue
+
+  smoke-test:
+    hostname: mosqlimate-${VERSION}-smoke-test
+    environment:
+      <<: *backend-env
+      RUN_MIGRATE: "false"
+      CI: "false"
+      SMOKE_TEST_BASE_URL: http://backend:${BACKEND_PORT}
+    build:
+      context: .
+      dockerfile: containers/mosqlimate/Dockerfile
+      args:
+        - UID=${HOST_UID}
+        - GID=${HOST_GID}
+        - BACKEND_CONTAINER_DATA_PATH=${BACKEND_CONTAINER_DATA_PATH}
+    user: "mosqlimate:mosqlimate"
+    restart: "no"
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: python manage.py smoke_test --retries 5 --retry-delay 3
     networks:
       - default
       - infodengue
