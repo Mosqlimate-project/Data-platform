@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS copernicus_bra (
 COPERNICUS_BRASIL_PRECIP_FIXED_DDL = """
 CREATE TABLE IF NOT EXISTS copernicus_bra_precip_tot_fixed (
     "date" date PRIMARY KEY,
-    "geocode" bigint NOT NULL,
+    "geocode" text NOT NULL,
     "precip_min" double precision,
     "precip_med" double precision,
     "precip_max" double precision,
@@ -205,7 +205,7 @@ class SimpleTestRunner(DiscoverRunner):
             "ON CONFLICT DO NOTHING",
             [
                 today,
-                3304557,
+                "3304557",
                 1.0,
                 6.0,
                 12.0,
