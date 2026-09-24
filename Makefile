@@ -17,7 +17,7 @@ else
   BACKEND_SHELL = docker compose $(COMPOSE_OPTS) exec backend python manage.py shell
 endif
 
-.PHONY: test lint migrate migrations build up down start shell test-cov vulture
+.PHONY: test lint migrate migrations build up down start shell test-cov vulture smoke-test
 
 test:
 	$(BACKEND_RUN) python manage.py test $(TEST_ARGS)
@@ -46,6 +46,9 @@ migrations:
 
 migration-check:
 	$(BACKEND_RUN) python manage.py makemigrations --check --dry-run
+
+smoke-test:
+	$(BACKEND_RUN) python manage.py smoke_test
 
 coverage-install:
 	$(BACKEND_RUN) pip install coverage

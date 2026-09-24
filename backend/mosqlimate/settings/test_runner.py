@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS "Historico_alerta" (
     "nivel" smallint,
     "versao_modelo" varchar(40),
     "municipio_nome" varchar(128),
-    "tweet" numeric(5,0),
     "Rt" double precision,
     "pop" numeric(10,0),
     "tempmin" numeric(10,2),
