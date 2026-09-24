@@ -43,3 +43,10 @@ class DatastoreAPITest(TestCase):
             timeout=60,
         )
         self.assertEqual(r.status_code, 200)
+
+    def test_copernicus_brasil_default_filters(self):
+        url = "/api/datastore/climate/?page=1&per_page=10"
+
+        r = self.client.get(url, **self.auth_headers, timeout=60)
+
+        self.assertEqual(r.status_code, 200)
