@@ -7,14 +7,22 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import SimpleTestCase, override_settings
 
-from main.management.commands.smoke_test import CHECKS, Command, EndpointCheck
+from main.management.commands.smoke_test import (
+    CHECKS,
+    MAX_BODY_SNIPPET,
+    Command,
+    EndpointCheck,
+)
 
 
 class FakeResponse:
-    def __init__(self, status_code=200, json_data=None, json_error=None):
+    def __init__(
+        self, status_code=200, json_data=None, json_error=None, text=""
+    ):
         self.status_code = status_code
         self._json_data = json_data
         self._json_error = json_error
+        self.text = text
 
     def json(self):
         if self._json_error is not None:
@@ -76,14 +84,34 @@ class RunCheckTest(SimpleTestCase):
     def test_unexpected_status(self):
         error = self._run(response=FakeResponse(503))
         self.assertIn("unexpected status 503", error)
+        self.assertIn("on GET http://host/probe/", error)
+
+    def test_unexpected_status_includes_body(self):
+        error = self._run(
+            response=FakeResponse(500, text="  boom\n operator  ")
+        )
+        self.assertIn("response body: boom operator", error)
+
+    def test_unexpected_status_long_body_truncated(self):
+        error = self._run(
+            response=FakeResponse(500, text="x" * (MAX_BODY_SNIPPET + 50))
+        )
+        self.assertIn("... (truncated)", error)
+
+    def test_unexpected_status_empty_body(self):
+        error = self._run(response=FakeResponse(500, text=""))
+        self.assertNotIn("response body", error)
 
     def test_invalid_json(self):
         error = self._run(
-            response=FakeResponse(200, json_error=ValueError("nope")),
+            response=FakeResponse(
+                200, json_error=ValueError("nope"), text="not json"
+            ),
             json_key="status",
             json_value="ok",
         )
-        self.assertEqual(error, "response is not valid JSON")
+        self.assertIn("response is not valid JSON", error)
+        self.assertIn("not json", error)
 
     def test_json_mismatch(self):
         error = self._run(

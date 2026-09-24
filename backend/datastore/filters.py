@@ -7,8 +7,8 @@ from django.db.models import Q
 
 
 class VegetationIndexMetricFilterSchema(FilterSchema):
-    start: date = Field(default="2024-01-01", q="date__gte")  # type: ignore[call-overload]
-    end: date = Field(default="2024-02-01", q="date__lte")  # type: ignore[call-overload]
+    start: date = Field(default=date(2024, 1, 1), q="date__gte")  # type: ignore[call-overload]
+    end: date = Field(default=date(2024, 2, 1), q="date__lte")  # type: ignore[call-overload]
     geocode: Optional[int] = Field(default=None, q="geocode")  # type: ignore[call-overload]
     collection: Optional[str] = Field(default=None, q="collection")  # type: ignore[call-overload]
     attribute: Optional[str] = Field(default=None, q="attribute")  # type: ignore[call-overload]
@@ -19,16 +19,16 @@ class VegetationIndexMetricFilterSchema(FilterSchema):
 class HistoricoAlertaFilterSchema(FilterSchema):
     """url/?paremeters to search for "Municipios"."Historico_alerta" table"""
 
-    start: date = Field(default="2024-01-01", q="data_iniSE__gte")  # type: ignore[call-overload]
-    end: date = Field(default="2024-02-01", q="data_iniSE__lte")  # type: ignore[call-overload]
+    start: date = Field(default=date(2024, 1, 1), q="data_iniSE__gte")  # type: ignore[call-overload]
+    end: date = Field(default=date(2024, 2, 1), q="data_iniSE__lte")  # type: ignore[call-overload]
     geocode: Optional[int] = Field(default=None, q="municipio_geocodigo")  # type: ignore[call-overload]
 
 
 class CopernicusBrasilFilterSchema(FilterSchema):
     """url/?paremeters to search for weather.copernicus_bra table"""
 
-    start: date = Field(default="2024-01-01", q="date__gte")  # type: ignore[call-overload]
-    end: date = Field(default="2024-02-01", q="date__lte")  # type: ignore[call-overload]
+    start: date = Field(default=date(2024, 1, 1), q="date__gte")  # type: ignore[call-overload]
+    end: date = Field(default=date(2024, 2, 1), q="date__lte")  # type: ignore[call-overload]
     geocode: Optional[int] = Field(default=None, q="geocodigo")  # type: ignore[call-overload]
 
 

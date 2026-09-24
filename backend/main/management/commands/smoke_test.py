@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand, CommandError
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_RETRIES = 3
 DEFAULT_RETRY_DELAY = 2.0
+MAX_BODY_SNIPPET = 800
 
 
 @dataclass
@@ -158,6 +159,13 @@ class Command(BaseCommand):
                 f"{len(failures)} endpoint(s) failed: " + "; ".join(failures)
             )
 
+    def _response_snippet(self, response):
+        body = getattr(response, "text", "") or ""
+        body = " ".join(body.split())
+        if len(body) > MAX_BODY_SNIPPET:
+            body = body[:MAX_BODY_SNIPPET] + "... (truncated)"
+        return body
+
     def _resolve_base_url(self, base_url):
         if base_url:
             return base_url.rstrip("/")
@@ -187,25 +195,30 @@ class Command(BaseCommand):
                     time.sleep(retry_delay)
 
         if response is None:
-            return f"connection error: {last_error}"
+            return f"connection error on GET {url}: {last_error!r}"
 
         if response.status_code != check.expected_status:
-            return (
+            detail = (
                 f"unexpected status {response.status_code} "
-                f"(expected {check.expected_status})"
+                f"(expected {check.expected_status}) on GET {url}"
             )
+            snippet = self._response_snippet(response)
+            if snippet:
+                detail += f" -- response body: {snippet}"
+            return detail
 
         if check.json_key is not None:
             try:
                 body = response.json()
             except ValueError:
-                return "response is not valid JSON"
+                snippet = self._response_snippet(response)
+                return f"response is not valid JSON on GET {url}: {snippet}"
 
             if body.get(check.json_key) != check.json_value:
                 return (
                     f"unexpected {check.json_key!r}: "
                     f"{body.get(check.json_key)!r} "
-                    f"(expected {check.json_value!r})"
+                    f"(expected {check.json_value!r}) on GET {url}"
                 )
 
         return None
