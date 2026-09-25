@@ -584,7 +584,7 @@ class RoutersTest(TestCase):
 class FiltersTest(TestCase):
     def test_vegetation_filter_defaults(self):
         f = dtf.VegetationIndexMetricFilterSchema()
-        self.assertEqual(f.start, "2024-01-01")
+        self.assertEqual(f.start, date(2024, 1, 1))
 
     def test_copernicus_weekly_epiweek_length(self):
         with self.assertRaises(Exception):
