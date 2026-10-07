@@ -244,7 +244,7 @@ function VegetationApiBuilder() {
         <label className="text-xs font-medium opacity-70">geocode</label>
         <CitySearch
           value={geocode}
-          onChange={handleCitySearch}
+          onChange={setGeocode}
         />
       </div>
 
@@ -416,7 +416,7 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
         <>
           <div className="flex flex-col gap-1 relative z-20">
             <label className="text-xs font-medium opacity-70">Municipality</label>
-            <CitySearch value={geocode} onChange={setGeocode} />
+            <CitySearch value={geocode} onChange={handleCitySearch} />
           </div>
 
           <div className="flex gap-2 relative">
