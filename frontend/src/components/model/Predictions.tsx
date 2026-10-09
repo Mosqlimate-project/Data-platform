@@ -1304,6 +1304,17 @@ pred = upload_prediction(
             </div>
           )}
         </div>
+
+        {activePrediction?.description && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+              {t("model_predictions.description_label", "Description")}
+            </h4>
+            <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+              {activePrediction.description}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Results count */}

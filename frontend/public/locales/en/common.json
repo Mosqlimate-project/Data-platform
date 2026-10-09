@@ -729,7 +729,8 @@
     "sort_id_desc": "Highest ID",
     "sort_id_asc": "Lowest ID",
     "grid_view": "Grid view",
-    "list_view": "List view"
+    "list_view": "List view",
+    "description_label": "Description"
   },
   "profile": {
     "title": "Profile",
