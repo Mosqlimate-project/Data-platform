@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } fr
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
-import { VegetationMap, VegetationIQRMap, VegetationTimeSeries, IndexSelector } from "../components/charts/VegetationCharts";
+import { VegetationMap, VegetationMunicipalMap, VegetationTimeSeries, IndexSelector } from "../components/charts/VegetationCharts";
 import { NEXT_PUBLIC_BACKEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuth } from "@/components/AuthProvider";
@@ -342,8 +342,8 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
   const [selectedIndex, setSelectedIndex] = useState<string>("EVI");
 
   const [selectedState, setSelectedState] = useState<string>("RJ");
-  const [selectedCityGeocode, setSelectedCityGeocode] = useState<string>("3304557");
-  const [selectedCityName, setselectedCityName] = useState<string>("Rio de Janeiro");
+  const [selectedCityGeocode, setSelectedCityGeocode] = useState<string | undefined>("3304557");
+  const [selectedCityName, setselectedCityName] = useState<string | undefined>("Rio de Janeiro");
 
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
@@ -451,7 +451,7 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
           selectedState={selectedState}
         />
 
-        <VegetationIQRMap
+        <VegetationMunicipalMap
           geocode={String(geocode)}
           start={startDate}
           end={endDate}

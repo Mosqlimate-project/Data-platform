@@ -880,6 +880,51 @@
     "threshold": "Limiar (1.0)",
     "no_rt_data": "Nenhum dado de Rt disponível para este período."
   },
+  "charts_vegetation_index": {
+    "map_title": "Mediana do {{attribute}} por estado",
+    "municipal_map_title": "Mediana do {{attribute}} por município - {{state}}",
+    "time_series_title": "Série temporal do {{attribute_name}} - {{municipality}}",
+    "q25": "Q25",
+    "median": "Mediana",
+    "q75": "Q75",
+    "no_data_message": "Sem dados",
+    "load_map_error": "Falha ao carregar o mapa: {{status}}",
+    "load_state_error": "Falha ao carregar o mapa para o estado {{state}}",
+    "load_time_series_error": "Falha ao carregar a série temporal: {{status}}",
+    "selected_municipality_message": "Município selecionado: {{name}} ({{geocode}})",
+    "time_series_tooltip": "<b>{{data}}</b><br/>Q25: {{value_q25}}<br/>Mediana: {{value_median}}<br/>Q75: {{value_q75}}",
+    "map_tooltip_median": "Mediana: {{value}}",
+    "map_tooltip_q25": "Q25: {{value}}",
+    "map_tooltip_q75": "Q75: {{value}}",
+    "map_tooltip_click": "Clique para ver a série temporal",
+    "warn_map_message": "O mapa {{name}} não está disponível ainda",
+    "warn_registered_map": "O mapa {{name}} não está registrado ainda",
+    "warn_state_message": "Nenhum dado municipal recebido para {{state}}",
+    "vegetation_index":
+    {
+      "title": "Índice de Vegetação",
+      "evi":
+      {
+        "label": "EVI",
+        "description": "Índice de Vegetação Aprimorado, substitui o NDVI em florestas fechadas ou biomas densos, pois não satura o sinal e ignora a névoa atmosférica."
+      },
+      "ndvi":
+      {
+        "label": "NDVI",
+        "description": "Índice de Vegetação por Diferença Normalizada, mede o verde e vigor geral das plantas. É o padrão para lavouras, mas falha em florestas muito densas ou solo exposto."
+      },
+      "savi":
+      {
+        "label": "SAVI",
+        "description": "Índice de Vegetação Ajustada ao Solo, substitui o NDVI em plantios jovens, áreas urbanas ou secas, eliminando a interferência do brilho do solo."
+      },
+      "ndwi":
+      {
+        "label": "NDWI",
+        "description": "Índice de Água por Diferença Normalizada, identifica corpos de água e umidade na vegetação, diferenciando o que é recurso hídrico de solo seco."
+      }
+    }
+  },
   "footer": {
     "theme": "Tema",
     "cite_title": "Como citar",

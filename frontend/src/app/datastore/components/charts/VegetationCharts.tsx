@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import * as echarts from "echarts";
 import { useTheme } from "next-themes";
+import { useTranslation } from "react-i18next";
 import { useChart } from "../../hooks/useChart";
 import { FRONTEND_SECRET } from "@/lib/env";
 
@@ -21,27 +22,23 @@ interface IndexSelectorProps {
 const VEGETATION_INDICES = [
   {
     value: "EVI",
-    label: "EVI",
-    description:
-      "Índice de Vegetação Aprimorado, substitui o NDVI em florestas fechadas ou biomas densos, pois não satura o sinal e ignora a névoa atmosférica.",
+    label: "charts_vegetation_index.vegetation_index.evi.label",
+    description: "charts_vegetation_index.vegetation_index.evi.description",
   },
   {
     value: "NDVI",
-    label: "NDVI",
-    description:
-      "Índice de Vegetação por Diferença Normalizada, mede o verde e vigor geral das plantas. É o padrão para lavouras, mas falha em florestas muito densas ou solo exposto.",
+    label: "charts_vegetation_index.vegetation_index.ndvi.label",
+    description: "charts_vegetation_index.vegetation_index.ndvi.description",
   },
   {
     value: "SAVI",
-    label: "SAVI",
-    description:
-      "Índice de Vegetação Ajustada ao Solo, substitui o NDVI em plantios jovens, áreas urbanas ou secas, eliminando a interferência do brilho do solo.",
+    label: "charts_vegetation_index.vegetation_index.savi.label",
+    description: "charts_vegetation_index.vegetation_index.savi.description",
   },
   {
     value: "NDWI",
-    label: "NDWI",
-    description:
-      "Índice de Água por Diferença Normalizada, identifica corpos de água e umidade na vegetação, diferenciando o que é recurso hídrico de solo seco.",
+    label: "charts_vegetation_index.vegetation_index.ndwi.label",
+    description: "charts_vegetation_index.vegetation_index.ndwi.description",
   },
 ];
 
@@ -104,6 +101,7 @@ export function IndexSelector({
   value,
   onChange,
 }: IndexSelectorProps) {
+  const { t } = useTranslation('common');
   const { resolvedTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -136,7 +134,7 @@ export function IndexSelector({
   return (
     <div className="flex flex-col gap-1 w-full max-w-[300px]">
       <label className="text-xs font-medium opacity-70">
-        Índice de Vegetação
+        {t('charts_vegetation_index.vegetation_index.title')}
       </label>
 
       <div ref={selectorRef} className="relative">
@@ -156,7 +154,7 @@ export function IndexSelector({
           `}
         >
           <span className="font-medium">
-            {selectedLabel}
+            {selectedLabel ? t(selectedLabel) : value}
           </span>
 
           <svg
@@ -213,11 +211,11 @@ export function IndexSelector({
                 }}
               >
                 <div className="font-medium text-sm">
-                  {index.label}
+                  {t(index.label)}
                 </div>
 
                 <div className="text-xs opacity-70 mt-0.5 leading-relaxed">
-                  {index.description}
+                  {t(index.description)}
                 </div>
               </div>
             ))}
@@ -348,33 +346,6 @@ async function registerBrazilMap() {
       "Failed to load Brazil map:",
       error
     );
-
-    try {
-      const response =
-        await fetch("/br.json");
-
-      if (!response.ok) {
-        throw new Error(
-          "Fallback map failed"
-        );
-      }
-
-      const geoJson =
-        await response.json();
-
-      echarts.registerMap(
-        "brazil",
-        geoJson
-      );
-
-      brazilMapRegistered = true;
-
-    } catch (fallbackError) {
-      console.error(
-        "Fallback map load also failed:",
-        fallbackError
-      );
-    }
   }
 }
 
@@ -395,7 +366,12 @@ async function loadStateMap(stateCode: string) {
     }
 
     const response = await fetch(
-      `/geoJSON_ufs/geojs-${stateCode}-mun.json`
+      `/api/maps/cities?uf=${stateCode.toLowerCase()}`,
+      {
+        headers: {
+          "x-internal-secret": FRONTEND_SECRET || "",
+        },
+      }
     );
 
     if (!response.ok) {
@@ -408,17 +384,11 @@ async function loadStateMap(stateCode: string) {
 
     stateMaps[stateCode] = geoJson;
 
-    stateBounds[stateCode] =
-      calculateBounds(geoJson);
+    stateBounds[stateCode] = calculateBounds(geoJson);
 
-    echarts.registerMap(
-      mapName,
-      geoJson
-    );
+    echarts.registerMap(mapName, geoJson);
 
-    console.log(
-      `State map registered: ${mapName}`
-    );
+    console.log(`State map registered: ${mapName}`);
 
     return geoJson;
 
@@ -521,14 +491,10 @@ function getIndexFullName(
     string,
     string
   > = {
-    EVI:
-      "EVI (Enhanced Vegetation Index)",
-    NDVI:
-      "NDVI (Normalized Difference Vegetation Index)",
-    SAVI:
-      "SAVI (Soil Adjusted Vegetation Index)",
-    NDWI:
-      "NDWI (Normalized Difference Water Index)",
+    EVI: "EVI (Enhanced Vegetation Index)",
+    NDVI: "NDVI (Normalized Difference Vegetation Index)",
+    SAVI: "SAVI (Soil Adjusted Vegetation Index)",
+    NDWI: "NDWI (Normalized Difference Water Index)",
   };
 
   return (
@@ -545,16 +511,10 @@ interface VegetationMapProps
 }
 
 
-export function VegetationMap({
-  start,
-  end,
-  attribute = "EVI",
-  selectedState,
-  onStateSelect,
-}: VegetationMapProps) {
+export function VegetationMap({start, end, attribute = "EVI", selectedState, onStateSelect,}: VegetationMapProps) {
 
-  const { resolvedTheme } =
-    useTheme();
+  const { t } = useTranslation('common');
+  const { resolvedTheme } = useTheme();
 
   const [
     mapData,
@@ -567,11 +527,6 @@ export function VegetationMap({
     loading,
     setLoading,
   ] = useState(false);
-
-
-  /*
-   * OPTION
-   */
 
   const option =
     useMemo<echarts.EChartsOption | null>(
@@ -635,7 +590,7 @@ export function VegetationMap({
                       ? "#fff"
                       : "#000",
 
-                  fontWeight: "bold",
+                  fontWeight: "bold" as const,
 
                   fontSize: 12,
                 }
@@ -645,17 +600,13 @@ export function VegetationMap({
 
         return {
           title: {
-            text:
-              `Mediana do ${attribute} por estado`,
-
+            text: t('charts_vegetation_index.map_title', { attribute }),
             left: "center",
-
             textStyle: {
               color:
                 resolvedTheme === "dark"
                   ? "#ffffff"
                   : "#000000",
-
               fontSize: 16,
               fontWeight: "bold",
             },
@@ -689,11 +640,11 @@ export function VegetationMap({
                 !params.data ||
                 params.data.value === undefined
               ) {
-                return `${params.name}: Sem dados`;
+                return t('charts_vegetation_index.no_data_message');
               }
 
               return `
-                ${params.name}: 
+                ${params.name}:
                 ${params.data.value.toFixed(4)}
               `;
             },
@@ -706,8 +657,7 @@ export function VegetationMap({
             calculable: true,
             left: 20,
 
-            formatter: (value: number) => value.toFixed(2),
-
+            formatter: (value) => typeof value === "number" ? value.toFixed(2) : String(value ?? ""),
             inRange: {
               color: [
                 "#D9FACB",
@@ -818,6 +768,7 @@ export function VegetationMap({
         selectedState,
         attribute,
         resolvedTheme,
+        t
       ]
     );
 
@@ -870,11 +821,6 @@ export function VegetationMap({
     chartRef,
   ]);
 
-
-  /*
-   * FETCH DATA
-   */
-
   useEffect(() => {
 
     if (!start || !end) return;
@@ -898,7 +844,7 @@ export function VegetationMap({
 
         if (!response.ok) {
           throw new Error(
-            `Failed to load vegetation map: ${response.status}`
+            t('charts_vegetation_index.load_map_error', {status: response.status})
           );
         }
 
@@ -924,10 +870,7 @@ export function VegetationMap({
 
         if (cancelled) return;
 
-        console.error(
-          `Error loading vegetation map for ${attribute}:`,
-          error
-        );
+        console.error(error);
 
         setMapData(null);
       })
@@ -967,26 +910,15 @@ export function VegetationMap({
 
       {!loading && !option && (
         <div
-          className="
-            absolute inset-0
-            flex items-center justify-center
-            text-secondary opacity-60
-            text-sm bg-background/80
-          "
-        >
-          Sem dados disponíveis
+          className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
+          {t('charts_vegetation_index.no_data_message')}
         </div>
       )}
     </div>
   );
 }
 
-
-/* ============================================================================
- * MUNICIPAL VEGETATION MAP
- * ========================================================================== */
-
-interface VegetationIQRMapProps
+interface VegetationMunicipalMapProps
   extends ChartProps {
   selectedState?: string;
   selectedCityGeocode?: string;
@@ -998,7 +930,7 @@ interface VegetationIQRMapProps
 }
 
 
-export function VegetationIQRMap({
+export function VegetationMunicipalMap({
   geocode,
   start,
   end,
@@ -1015,6 +947,7 @@ export function VegetationIQRMap({
   ) => void;
 }) {
 
+  const { t } = useTranslation('common');
   const { resolvedTheme } = useTheme();
 
   const [option, setOption] =
@@ -1029,24 +962,8 @@ export function VegetationIQRMap({
   const [stateGeoJson, setStateGeoJson] =
     useState<any>(null);
 
-  /*
-   * MUITO IMPORTANTE:
-   *
-   * Guarda qual estado os dados atualmente carregados
-   * representam.
-   *
-   * Isso impede que dados do RJ sejam renderizados
-   * enquanto selectedState já mudou para MG.
-   */
   const [loadedState, setLoadedState] =
     useState<string | null>(null);
-
-
-  /*
-   * ============================================================
-   * 1. CARREGAMENTO DO MAPA E DOS DADOS
-   * ============================================================
-   */
 
   useEffect(() => {
 
@@ -1060,12 +977,6 @@ export function VegetationIQRMap({
 
     let cancelled = false;
 
-
-    /*
-     * Invalida imediatamente os dados antigos.
-     *
-     * Isso é fundamental quando troca de estado.
-     */
     setLoadedState(null);
     setStateGeoJson(null);
     setMunicipalData([]);
@@ -1077,47 +988,27 @@ export function VegetationIQRMap({
     async function loadData() {
 
       try {
-
-        /*
-         * 1. Carrega e registra o GeoJSON
-         */
         const geoJson =
           await loadStateMap(selectedState);
 
 
         if (!geoJson) {
 
-          console.error(
-            `Failed to load map for state ${selectedState}`
-          );
-
+          console.error(t('charts_vegetation_index.load_state_error', {state: selectedState}));
           return;
         }
-
 
         if (cancelled) return;
 
-
-        /*
-         * Confirma que o mapa realmente está registrado
-         */
-        const mapName =
-          `state_${selectedState}`;
-
+        const mapName = `state_${selectedState}`;
 
         if (!echarts.getMap(mapName)) {
 
-          console.error(
-            `Map ${mapName} is not registered`
-          );
+          console.error(t('charts_vegetation_index.warn_registered_map', {name: mapName}));
 
           return;
         }
 
-
-        /*
-         * 2. Busca os dados municipais
-         */
         const data =
           await fetchMunicipalData(
             selectedState,
@@ -1134,10 +1025,7 @@ export function VegetationIQRMap({
           !data ||
           data.length === 0
         ) {
-
-          console.warn(
-            `No municipal data received for ${selectedState}`
-          );
+          console.warn(t('charts_vegetation_index.warn_state_message', {state: selectedState}));
 
           setStateGeoJson(geoJson);
           setMunicipalData([]);
@@ -1145,20 +1033,9 @@ export function VegetationIQRMap({
           return;
         }
 
-
-        /*
-         * 3. Atualiza tudo junto para o estado correto
-         */
         setStateGeoJson(geoJson);
         setMunicipalData(data);
 
-        /*
-         * Esta linha só acontece DEPOIS que:
-         *
-         * - o mapa foi registrado
-         * - o GeoJSON foi carregado
-         * - os dados municipais chegaram
-         */
         setLoadedState(selectedState);
 
 
@@ -1167,7 +1044,7 @@ export function VegetationIQRMap({
         if (cancelled) return;
 
         console.error(
-          `Error loading municipal map for ${selectedState}:`,
+          t('charts_vegetation_index.load_error'),
           error
         );
 
@@ -1198,24 +1075,11 @@ export function VegetationIQRMap({
     start,
     end,
     attribute,
-    selectedState
+    selectedState,
+    t
   ]);
 
-
-  /*
-   * ============================================================
-   * 2. CRIAÇÃO DO OPTION
-   * ============================================================
-   */
-
   useEffect(() => {
-
-    /*
-     * REGRA MAIS IMPORTANTE:
-     *
-     * Só cria o mapa se os dados carregados pertencem
-     * exatamente ao estado selecionado.
-     */
     if (
       !stateGeoJson ||
       municipalData.length === 0 ||
@@ -1229,19 +1093,11 @@ export function VegetationIQRMap({
     }
 
 
-    const mapName =
-      `state_${selectedState}`;
+    const mapName =`state_${selectedState}`;
 
-
-    /*
-     * Segurança extra:
-     * não chama setOption se o mapa não estiver registrado.
-     */
     if (!echarts.getMap(mapName)) {
 
-      console.warn(
-        `Map ${mapName} is not available yet`
-      );
+      console.warn(t('charts_vegetation_index.warn_map_message', {name: mapName}));
 
       setOption(null);
 
@@ -1282,10 +1138,6 @@ export function VegetationIQRMap({
 
     }
 
-
-    /*
-     * Valores para visualMap
-     */
     const values =
       municipalData.map(
         (d: any) => d.median ?? 0
@@ -1306,27 +1158,12 @@ export function VegetationIQRMap({
           d.q75 !== undefined
       );
 
-
-    const hasIQR =
-      municipalData.some(
-        (d: any) =>
-          d.iqr !== undefined
-      );
-
-
-    /*
-     * Capital do estado
-     */
     const capitalInfo =
       STATE_CAPITALS[selectedState];
 
     const capitalGeocode =
       capitalInfo?.geocode;
 
-
-    /*
-     * Dados do mapa
-     */
     const mapData =
       municipalData.map(
         (d: any) => {
@@ -1393,16 +1230,10 @@ export function VegetationIQRMap({
         }
       );
 
-
-    /*
-     * Criação do gráfico
-     */
     setOption({
 
       title: {
-
-        text:
-          `Mediana do ${attribute} por município - ${selectedState}`,
+        text: t('charts_vegetation_index.municipal_map_title', { attribute, state: selectedState }),
 
         left: "center",
 
@@ -1420,7 +1251,6 @@ export function VegetationIQRMap({
         },
 
       },
-
 
       tooltip: {
 
@@ -1449,9 +1279,8 @@ export function VegetationIQRMap({
         formatter: (params: any) => {
 
           if (!params.data) {
-            return `${params.name}: Sem dados`;
+            return t('charts_vegetation_index.no_data_message');
           }
-
 
           const cityData =
             municipalData.find(
@@ -1459,102 +1288,55 @@ export function VegetationIQRMap({
                 d.name === params.name
             );
 
+          if (!cityData) {return t('charts_vegetation_index.no_data_message');}
 
-          if (!cityData) {
-            return `${params.name}: Sem dados`;
-          }
+          let tooltipText = `<strong>${params.name}</strong><br/>`;
 
-
-          let tooltipText =
-            `<strong>${params.name}</strong><br/>`;
-
-
-          tooltipText +=
-            `Mediana: ${
-              cityData.median?.toFixed(4) ??
-              "N/A"
-            }<br/>`;
-
+          tooltipText += t('charts_vegetation_index.map_tooltip_median', {
+            value: cityData.median?.toFixed(4) ?? "N/A"
+          }) + "<br/>";
 
           if (hasQ25Q75) {
+            tooltipText += t('charts_vegetation_index.map_tooltip_q25', {
+              value: cityData.q25?.toFixed(4) ?? "N/A"
+            }) + "<br/>";
 
-            tooltipText +=
-              `Q25: ${
-                cityData.q25?.toFixed(4) ??
-                "N/A"
-              }<br/>`;
-
-
-            tooltipText +=
-              `Q75: ${
-                cityData.q75?.toFixed(4) ??
-                "N/A"
-              }<br/>`;
-
+            tooltipText += t('charts_vegetation_index.map_tooltip_q75', {
+              value: cityData.q75?.toFixed(4) ?? "N/A"
+            }) + "<br/>";
           }
 
-
-          if (hasIQR) {
-
-            tooltipText +=
-              `IQR: ${
-                cityData.iqr?.toFixed(4) ??
-                "N/A"
-              }<br/>`;
-
-          }
-
-
-          tooltipText +=
-            `<em style="font-size: 10px; opacity: 0.7;">
-              Clique para ver a série temporal
-            </em>`;
-
+          tooltipText += `<em style="font-size: 10px; opacity: 0.7;">
+            ${t('charts_vegetation_index.map_tooltip_click')}
+          </em>`;
 
           return tooltipText;
 
         },
-
       },
-
       visualMap: {
-
         min: minValue,
-
         max: maxValue,
-
         calculable: true,
-
         left: 20,
-
-        formatter: (value: number) => value.toFixed(2),
-
+        formatter: (value) => typeof value === "number" ? value.toFixed(2) : String(value ?? ""),
         inRange: {
-
           color: [
             "#D9FACB",
             "#81B863"
           ],
-
         },
 
-
         textStyle: {
-
           color:
             resolvedTheme === "dark"
               ? "#9ca3af"
               : "#6b7280",
-
         },
-
       },
 
-
       series: [
-
         {
-
           type: "map",
 
           map: mapName,
@@ -1626,13 +1408,6 @@ export function VegetationIQRMap({
     resolvedTheme
   ]);
 
-
-  /*
-   * ============================================================
-   * 3. EVENTO DE CLIQUE
-   * ============================================================
-   */
-
   useEffect(() => {
 
     if (!onCitySelect) return;
@@ -1643,15 +1418,13 @@ export function VegetationIQRMap({
       return;
     }
 
-
     const chartDom =
       document.querySelector(
-        `[data-chart-id="vegetation-iqr-map-${selectedState}"]`
+        `[data-chart-id="vegetation-municipal-map-${selectedState}"]`
       ) as HTMLElement;
 
 
     if (!chartDom) return;
-
 
     const chartInstance =
       echarts.getInstanceByDom(
@@ -1672,45 +1445,19 @@ export function VegetationIQRMap({
           return;
         }
 
+        const cityData = municipalData.find((d: any) => d.name === params.name);
 
-        const cityData =
-          municipalData.find(
-            (d: any) =>
-              d.name === params.name
-          );
+        if (cityData && cityData.geocode) {
 
+          console.log(t('charts_vegetation_index.selected_municipality_message',{name: params.name, geocode: cityData.geocode}));
 
-        if (
-          cityData &&
-          cityData.geocode
-        ) {
-
-          console.log(
-            `Município selecionado: ${params.name} (${cityData.geocode})`
-          );
-
-
-          onCitySelect(
-            String(cityData.geocode),
-            params.name
-          );
-
+          onCitySelect(String(cityData.geocode), params.name);
         }
 
       };
 
-
-    chartInstance.off(
-      "click",
-      handleClick
-    );
-
-
-    chartInstance.on(
-      "click",
-      handleClick
-    );
-
+    chartInstance.off("click", handleClick);
+    chartInstance.on("click", handleClick);
 
     return () => {
 
@@ -1721,20 +1468,13 @@ export function VegetationIQRMap({
 
     };
 
-
   }, [
     municipalData,
     selectedState,
     loadedState,
-    onCitySelect
+    onCitySelect,
+    t
   ]);
-
-
-  /*
-   * ============================================================
-   * 4. ECHARTS
-   * ============================================================
-   */
 
   const chartRef =
     useChart(
@@ -1742,20 +1482,14 @@ export function VegetationIQRMap({
       loading
     );
 
-
   return (
 
     <div
-      className="
-        w-full
-        overflow-hidden
-        relative
-      "
-    >
+      className=" w-full overflow-hidden relative">
 
       <div
         ref={chartRef}
-        data-chart-id={`vegetation-iqr-map-${selectedState}`}
+        data-chart-id={`vegetation-municipal-map-${selectedState}`}
         style={{
           width: "100%",
           height: MAP_HEIGHT,
@@ -1766,36 +1500,13 @@ export function VegetationIQRMap({
 
       {!loading && !option && (
 
-        <div
-          className="
-            absolute
-            inset-0
-            flex
-            items-center
-            justify-center
-            text-secondary
-            opacity-60
-            text-sm
-            bg-background/80
-          "
-        >
-
-          Sem dados disponíveis
-
+        <div className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
+          {t('charts_vegetation_index.no_data_message')}
         </div>
-
       )}
-
     </div>
-
   );
-
 }
-
-
-/* ============================================================================
- * VEGETATION TIME SERIES
- * ========================================================================== */
 
 interface VegetationTimeSeriesProps
   extends ChartProps {
@@ -1804,59 +1515,16 @@ interface VegetationTimeSeriesProps
   selectedCityName?: string;
 }
 
+export function VegetationTimeSeries({geocode, start, end, attribute = "EVI", selectedState, selectedCityGeocode, selectedCityName}: VegetationTimeSeriesProps) {
 
-export function VegetationTimeSeries({
+  const { t } = useTranslation('common');
+  const { resolvedTheme } = useTheme();
 
-  geocode,
+  const [timeSeriesData, setTimeSeriesData] = useState<any[] | null>(null);
 
-  start,
+  const [cityDisplayName, setCityDisplayName] = useState("");
 
-  end,
-
-  attribute = "EVI",
-
-  selectedState,
-
-  selectedCityGeocode,
-
-  selectedCityName,
-
-}: VegetationTimeSeriesProps) {
-
-  const { resolvedTheme } =
-    useTheme();
-
-
-  /*
-   * STATES
-   */
-
-  const [
-    timeSeriesData,
-    setTimeSeriesData,
-  ] = useState<any[] | null>(
-    null
-  );
-
-
-  const [
-    cityDisplayName,
-    setCityDisplayName,
-  ] = useState("");
-
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
-
-  /*
-   * DEFINE CITY GEOCODE
-   *
-   * Não precisa de useState adicional.
-   * Ele pode ser derivado diretamente das props.
-   */
+  const [loading, setLoading] = useState(false);
 
   const cityGeocode =
     useMemo(() => {
@@ -1882,59 +1550,28 @@ export function VegetationTimeSeries({
       selectedCityGeocode,
     ]);
 
-
-  /*
-   * OPTION
-   */
-
   const option =
     useMemo<echarts.EChartsOption | null>(
       () => {
 
-        if (
-          !timeSeriesData ||
-          timeSeriesData.length === 0
-        ) {
-          return null;
-        }
+        if ( !Array.isArray(timeSeriesData) || timeSeriesData.length === 0) {return null;}
 
+        const dates = timeSeriesData.map((item: any) => item.date );
 
-        const dates =
-          timeSeriesData.map(
-            (item: any) =>
-              item.date
-          );
+        const median = timeSeriesData.map((item: any) => item.median );
 
+        const q25 =timeSeriesData.map((item: any) => item.q25);
 
-        const median =
-          timeSeriesData.map(
-            (item: any) =>
-              item.median
-          );
-
-
-        const q25 =
-          timeSeriesData.map(
-            (item: any) =>
-              item.q25
-          );
-
-
-        const q75 =
-          timeSeriesData.map(
-            (item: any) =>
-              item.q75
-          );
+        const q75 = timeSeriesData.map((item: any) => item.q75 );
 
 
         return {
 
           title: {
             text:
-              `Série temporal do ${getIndexFullName(attribute)} - ${cityDisplayName}`,
-
+              t('charts_vegetation_index.time_series_title', {attribute_name: getIndexFullName(attribute), municipality: cityDisplayName}),
+            
             left: "center",
-
             textStyle: {
               color:
                 resolvedTheme === "dark"
@@ -1942,7 +1579,6 @@ export function VegetationTimeSeries({
                   : "#000000",
 
               fontSize: 16,
-
               fontWeight: "bold",
             },
           },
@@ -1973,76 +1609,29 @@ export function VegetationTimeSeries({
               params: any
             ) => {
 
-              const q25Point =
-                params.find(
-                  (point: any) =>
-                    point.seriesName ===
-                    "Q25"
-                );
+              const q25Point = params.find((point: any) => point.seriesName === t('charts_vegetation_index.q25') );
 
+              const medianPoint = params.find((point: any) => point.seriesName === t('charts_vegetation_index.median'));
 
-              const medianPoint =
-                params.find(
-                  (point: any) =>
-                    point.seriesName ===
-                    "Mediana"
-                );
+              const q75Point = params.find((point: any) => point.seriesName === t('charts_vegetation_index.q75') );
 
+              if (!medianPoint) {return "";}
 
-              const q75Point =
-                params.find(
-                  (point: any) =>
-                    point.seriesName ===
-                    "Q75"
-                );
-
-
-              if (!medianPoint) {
-                return "";
-              }
-
-
-              return `
-                <strong>
-                  ${medianPoint.axisValue}
-                </strong>
-                <br/>
-
-                Q25:
-                ${
-                  q25Point?.value?.toFixed(
-                    4
-                  ) || "N/A"
-                }
-                <br/>
-
-                Mediana:
-                ${
-                  medianPoint.value?.toFixed(
-                    4
-                  ) || "N/A"
-                }
-                <br/>
-
-                Q75:
-                ${
-                  q75Point?.value?.toFixed(
-                    4
-                  ) || "N/A"
-                }
-              `;
+              return t('charts_vegetation_index.time_series_tooltip',{
+                  data: medianPoint.axisValue,
+                  value_q25: q25Point?.value?.toFixed(4) || "N/A",
+                  value_median: medianPoint.value?.toFixed(4) || "N/A",
+                  value_q75: q75Point?.value?.toFixed(4) || "N/A"
+                })
             },
           },
-
 
           legend: {
             top: 35,
 
-            data: [
-              "Q25",
-              "Mediana",
-              "Q75",
-            ],
+            data: [t('charts_vegetation_index.q25'),
+                  t('charts_vegetation_index.median'),
+                  t('charts_vegetation_index.q75')],
 
             textStyle: {
               color:
@@ -2051,7 +1640,6 @@ export function VegetationTimeSeries({
                   : "#000000",
             },
           },
-
 
           grid: {
             left: "4%",
@@ -2064,9 +1652,7 @@ export function VegetationTimeSeries({
 
           xAxis: {
             type: "category",
-
             data: dates,
-
             axisLabel: {
               color:
                 resolvedTheme === "dark"
@@ -2085,7 +1671,6 @@ export function VegetationTimeSeries({
               },
             },
           },
-
 
           yAxis: {
             type: "value",
@@ -2116,67 +1701,43 @@ export function VegetationTimeSeries({
             },
           },
 
-
           series: [
-
             {
-              name: "Q25",
-
+              name: t('charts_vegetation_index.q25'),
               type: "line",
-
               data: q25,
-
               showSymbol: false,
-
               smooth: true,
-
               lineStyle: {
                 color: "#41BAC5",
-
                 width: 1.5,
-
                 type: "dashed",
-
                 opacity: 0.5,
               },
-
               itemStyle: {
                 color: "#41BAC5",
-
                 opacity: 0.5,
               },
 
               z: 1,
             },
-
-
             {
-              name: "Mediana",
-
+              name: t('charts_vegetation_index.median'),
               type: "line",
-
               data: median,
-
               showSymbol: false,
-
               smooth: true,
-
               lineStyle: {
                 color: "#6179B2",
-
                 width: 3,
               },
-
               itemStyle: {
                 color: "#6179B2",
               },
-
               z: 2,
             },
-
-
             {
-              name: "Q75",
+              name: t('charts_vegetation_index.q75'),
 
               type: "line",
 
@@ -2240,21 +1801,12 @@ export function VegetationTimeSeries({
         cityDisplayName,
         attribute,
         resolvedTheme,
+        t
       ]
     );
 
-
-  /*
-   * CHART
-   */
-
   const chartRef =
     useChart(option, loading);
-
-
-  /*
-   * FETCH TIME SERIES
-   */
 
   useEffect(() => {
 
@@ -2266,7 +1818,6 @@ export function VegetationTimeSeries({
       return;
     }
 
-
     let cancelled = false;
 
     setLoading(true);
@@ -2276,7 +1827,6 @@ export function VegetationTimeSeries({
     setCityDisplayName(
       selectedCityName || ""
     );
-
 
     async function loadData() {
 
@@ -2319,26 +1869,19 @@ export function VegetationTimeSeries({
 
         if (!response.ok) {
           throw new Error(
-            `Failed to load time series: ${response.status}`
+            t('charts_vegetation_index.load_time_series_error', {status: response.status})
           );
         }
 
-
-        const data =
-          await response.json();
-
+        const data = await response.json();
 
         if (cancelled) return;
 
 
-        if (
-          !data ||
-          data.length === 0
-        ) {
+        if (!Array.isArray(data) || data.length === 0) {
           setTimeSeriesData(null);
           return;
         }
-
 
         setTimeSeriesData(data);
 
@@ -2347,9 +1890,7 @@ export function VegetationTimeSeries({
         if (cancelled) return;
 
         console.error(
-          `Error loading time series for ${attribute}:`,
-          error
-        );
+          t('charts_vegetation_index.load_time_series', {status: attribute}),error);
 
         setTimeSeriesData(null);
 
@@ -2361,9 +1902,7 @@ export function VegetationTimeSeries({
       }
     }
 
-
     loadData();
-
 
     return () => {
       cancelled = true;
@@ -2377,7 +1916,6 @@ export function VegetationTimeSeries({
     selectedCityName,
   ]);
 
-
   return (
     <div className="w-full overflow-hidden relative">
       <div
@@ -2390,15 +1928,8 @@ export function VegetationTimeSeries({
       />
 
       {!loading && !option && (
-        <div
-          className="
-            absolute inset-0
-            flex items-center justify-center
-            text-secondary opacity-60
-            text-sm bg-background/80
-          "
-        >
-          Sem dados disponíveis
+        <div className="absolute inset-0 flex items-center justify-center text-secondary opacity-60 text-sm bg-background/80">
+          {t('charts_vegetation_index.no_data_message')}
         </div>
       )}
     </div>

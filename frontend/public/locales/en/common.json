@@ -880,6 +880,46 @@
     "threshold": "Threshold (1.0)",
     "no_rt_data": "No Rt data available for this period."
   },
+  "charts_vegetation_index": {
+    "map_title": "Median {{attribute}} by state",
+    "municipal_map_title": "Median {{attribute}} by municipality - {{state}}",
+    "time_series_title": "Time series of {{attribute_name}} - {{municipality}}",
+    "q25": "Q25",
+    "median": "Median",
+    "q75": "Q75",
+    "no_data_message": "No data",
+    "load_map_error": "Failed to load map: {{status}}",
+    "load_state_error": "Failed to load map for state {{state}}",
+    "load_time_series_error": "Failed to load time series: {{status}}",
+    "selected_municipality_message": "Selected municipality: {{name}} ({{geocode}})",
+    "time_series_tooltip": "<b>{{data}}</b><br/>Q25: {{value_q25}}<br/>Median: {{value_median}}<br/>Q75: {{value_q75}}",
+    "map_tooltip_median": "Median: {{value}}",
+    "map_tooltip_q25": "Q25: {{value}}",
+    "map_tooltip_q75": "Q75: {{value}}",
+    "map_tooltip_click": "Click to view the time series",
+    "warn_map_message": "The {{name}} map is not available yet",
+    "warn_registered_map": "The {{name}} map has not been registered yet",
+    "warn_state_message": "No municipal data received for {{state}}",
+    "vegetation_index": {
+      "title": "Vegetation Index",
+      "evi": {
+        "label": "EVI",
+        "description": "Enhanced Vegetation Index. It replaces NDVI in closed-canopy forests or dense biomes because it does not saturate the signal and minimizes atmospheric haze effects."
+      },
+      "ndvi": {
+        "label": "NDVI",
+        "description": "Normalized Difference Vegetation Index. It measures the overall greenness and vigor of plants. It is the standard for crops but performs poorly in very dense forests or over exposed soil."
+      },
+      "savi": {
+        "label": "SAVI",
+        "description": "Soil-Adjusted Vegetation Index. It replaces NDVI in young crops, urban areas, or dry regions by reducing interference from soil brightness."
+      },
+      "ndwi": {
+        "label": "NDWI",
+        "description": "Normalized Difference Water Index. It identifies water bodies and moisture in vegetation, helping distinguish water resources from dry soil."
+      }
+    }
+  },
   "footer": {
     "theme": "Theme",
     "cite_title": "How to cite",
