@@ -533,7 +533,7 @@ export function VegetationMap({start, end, attribute = "EVI", selectedState, onS
       () => {
 
         if (
-          !mapData ||
+          !Array.isArray(mapData) ||
           mapData.length === 0
         ) {
           return null;
