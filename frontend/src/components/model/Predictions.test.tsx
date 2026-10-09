@@ -353,6 +353,17 @@ describe("components/model/Predictions", () => {
       expect(screen.getByText("model_predictions.select_below")).toBeInTheDocument();
     });
 
+    it("renders the description below the chart for the active prediction", async () => {
+      await renderWithChart({ description: "My forecast description" });
+      expect(screen.getByText("model_predictions.description_label")).toBeInTheDocument();
+      expect(screen.getByText("My forecast description")).toBeInTheDocument();
+    });
+
+    it("omits the description when the active prediction has none", async () => {
+      await renderWithChart({ description: null });
+      expect(screen.queryByText("model_predictions.description_label")).not.toBeInTheDocument();
+    });
+
     it("shows the loading spinner while fetching and then renders the chart", async () => {
       let resolvePred: (v: any) => void;
       global.fetch = vi.fn((url: string) => {

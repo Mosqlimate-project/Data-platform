@@ -716,7 +716,8 @@
     "sort_id_desc": "Mayor ID",
     "sort_id_asc": "Menor ID",
     "grid_view": "Vista en cuadrícula",
-    "list_view": "Vista en lista"
+    "list_view": "Vista en lista",
+    "description_label": "Descripción"
   },
   "profile": {
     "title": "Perfil",
