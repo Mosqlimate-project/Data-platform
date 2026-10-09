@@ -538,6 +538,94 @@ class ChartsAPITest(DataStoreBase):
         self.assertEqual(r.status_code, 200)
 
 
+class VegetationChartsAPITest(DataStoreBase):
+    def _seed_vegetation(self):
+        m.Municipio.objects.using("infodengue").create(
+            geocodigo=3304557,
+            nome="Rio de Janeiro",
+            uf="Rio de Janeiro",
+            regional_code=1,
+        )
+        m.Municipio.objects.using("infodengue").create(
+            geocodigo=3304558,
+            nome="Niterói",
+            uf="Rio de Janeiro",
+            regional_code=1,
+        )
+        m.VegetationIndexMetric.objects.using("infodengue").create(
+            date=date(2024, 6, 1),
+            geocode=3304557,
+            collection="modis",
+            attribute="EVI",
+            median=0.5,
+            q25=0.4,
+            q75=0.6,
+        )
+
+    def test_time_series(self):
+        self._seed_vegetation()
+        r = self.client.get(
+            "/api/datastore/charts/vegetation/time-series/",
+            {
+                "geocode": 3304557,
+                "start": "2024-01-01",
+                "end": "2024-12-31",
+                "attribute": "evi",
+            },
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.json()), 1)
+
+    def test_map(self):
+        self._seed_vegetation()
+        r = self.client.get(
+            "/api/datastore/charts/vegetation/map/",
+            {"start": "2024-01-01", "end": "2024-12-31", "attribute": "EVI"},
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), [{"name": "RJ", "median": 0.5}])
+
+    def test_municipal_map_branches(self):
+        self._seed_vegetation()
+        url = "/api/datastore/charts/vegetation/municipal-map/"
+
+        r = self.client.get(
+            url, {"start": "2024-01-01", "end": "2024-12-31"}, **self.auth
+        )
+        self.assertEqual(r.json(), [])
+
+        r = self.client.get(
+            url,
+            {"start": "2024-01-01", "end": "2024-12-31", "uf": "ZZ"},
+            **self.auth,
+        )
+        self.assertEqual(r.json(), [])
+
+        r = self.client.get(
+            url,
+            {"start": "2024-01-01", "end": "2024-12-31", "uf": "SP"},
+            **self.auth,
+        )
+        self.assertEqual(r.json(), [])
+
+        r = self.client.get(
+            url,
+            {
+                "start": "2024-01-01",
+                "end": "2024-12-31",
+                "uf": "rj",
+                "attribute": "EVI",
+            },
+            **self.auth,
+        )
+        self.assertEqual(r.status_code, 200)
+        data = {item["geocode"]: item for item in r.json()}
+        self.assertEqual(data[3304557]["median"], 0.5)
+        self.assertIsNone(data[3304558]["median"])
+
+
 class SearchAPITest(DataStoreBase):
     def test_diseases(self):
         r = self.client.get(

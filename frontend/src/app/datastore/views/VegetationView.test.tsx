@@ -38,6 +38,15 @@ vi.mock("../components/CitySearch", () => ({
   ),
 }));
 
+vi.mock("../components/charts/VegetationCharts", () => ({
+  VegetationMap: () => <div data-testid="vegetation-map" />,
+  VegetationMunicipalMap: () => <div data-testid="vegetation-municipal-map" />,
+  VegetationTimeSeries: () => <div data-testid="vegetation-time-series" />,
+  IndexSelector: ({ value }: any) => (
+    <div data-testid="index-selector">{value}</div>
+  ),
+}));
+
 const config: EndpointDetails = {
   endpoint: "/vegetation/",
   name: "Vegetation",
@@ -61,9 +70,12 @@ describe("datastore/views/VegetationView", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders the unavailable placeholder", () => {
+  it("renders the vegetation charts", () => {
     render(<VegetationView config={config} />);
-    expect(screen.getByText("Charts Unavailable")).toBeInTheDocument();
+    expect(screen.getByTestId("vegetation-map")).toBeInTheDocument();
+    expect(screen.getByTestId("vegetation-municipal-map")).toBeInTheDocument();
+    expect(screen.getByTestId("vegetation-time-series")).toBeInTheDocument();
+    expect(screen.getByTestId("index-selector")).toBeInTheDocument();
   });
 
   it("validates start and end dates", () => {

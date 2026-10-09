@@ -115,12 +115,13 @@ jobs:
         make coverage-install
 
     - name: Test with coverage
+      id: backend_tests
       run: |
         set -o pipefail
         make test-cov 2>&1 | tee /tmp/coverage.log
 
     - name: Verify tests actually ran
-      if: always()
+      if: always() && steps.backend_tests.outcome == 'success'
       run: |
         echo "::group::Coverage report"
         grep -E "Name|TOTAL|registry" /tmp/coverage.log | tail -30 || true

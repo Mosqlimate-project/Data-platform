@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Papa from "papaparse";
-import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2, BarChart3 } from "lucide-react";
+import { Calendar as CalendarIcon, FileJson, FileSpreadsheet, Lock, Loader2 } from "lucide-react";
 import { EndpointLayout } from "../components/EndpointLayout";
 import { EndpointDetails } from "../types";
 import CitySearch from "../components/CitySearch";
-import { NEXT_PUBLIC_BACKEND_URL } from "@/lib/env";
+import { VegetationMap, VegetationMunicipalMap, VegetationTimeSeries, IndexSelector } from "../components/charts/VegetationCharts";
+import { NEXT_PUBLIC_BACKEND_URL, FRONTEND_SECRET } from "@/lib/env";
 import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -243,10 +244,7 @@ function VegetationApiBuilder() {
         <label className="text-xs font-medium opacity-70">geocode</label>
         <CitySearch
           value={geocode}
-          onChange={(val) => {
-            setGeocode(val);
-            if (val) setUf("");
-          }}
+          onChange={setGeocode}
         />
       </div>
 
@@ -341,6 +339,11 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
   const [geocode, setGeocode] = useState<number | undefined>(3304557);
   const [startDate, setStartDate] = useState<string>(formatDateISO(oneYearAgo));
   const [endDate, setEndDate] = useState<string>(formatDateISO(now));
+  const [selectedIndex, setSelectedIndex] = useState<string>("EVI");
+
+  const [selectedState, setSelectedState] = useState<string>("RJ");
+  const [selectedCityGeocode, setSelectedCityGeocode] = useState<string | undefined>("3304557");
+  const [selectedCityName, setselectedCityName] = useState<string | undefined>("Rio de Janeiro");
 
   const handleStartDateChange = (value: string) => {
     if (endDate && value > endDate) return;
@@ -351,6 +354,54 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
     if (startDate && value < startDate) return;
     setEndDate(value);
   };
+
+  const handleStateSelect = useCallback((stateCode: string) => {
+    setSelectedState(stateCode);
+    setSelectedCityGeocode(undefined);
+    setselectedCityName(undefined);
+  }, []);
+
+  const handleCitySelect = useCallback((geocode: string, cityName: string) => {
+    setSelectedCityGeocode(geocode);
+    setselectedCityName(cityName);
+    setGeocode(Number(geocode));
+  }, []);
+
+  const handleCitySearch = useCallback(
+    async (cityGeocode: number | undefined) => {
+      if (!cityGeocode) return;
+
+      try {
+        console.log(`Buscando informações do município ${cityGeocode}`);
+        
+        const res = await fetch(`/api/datastore/cities?geocode=${cityGeocode}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch city: ${res.status}`);
+        }
+
+        const cities = await res.json();
+
+        if (!cities || cities.length === 0) {
+          console.warn(`Município não encontrado: ${cityGeocode}`);
+          return;
+        }
+        const city = cities[0];
+
+        const cityName = `${city.name} - ${city.adm1}`;
+        const stateCode = city.adm1;
+
+        console.log(`Município pesquisado: ${cityName}`);
+        console.log(`Estado encontrado: ${stateCode}`);
+
+        setGeocode(Number(cityGeocode));
+        setSelectedState(stateCode);
+        setSelectedCityGeocode(String(cityGeocode));
+        setselectedCityName(cityName);
+      } catch (error) {
+        console.error("Erro ao buscar município:", error);
+      }
+    }, []
+  );
 
   return (
     <EndpointLayout
@@ -365,7 +416,7 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
         <>
           <div className="flex flex-col gap-1 relative z-20">
             <label className="text-xs font-medium opacity-70">Municipality</label>
-            <CitySearch value={geocode} onChange={setGeocode} />
+            <CitySearch value={geocode} onChange={handleCitySearch} />
           </div>
 
           <div className="flex gap-2 relative">
@@ -380,17 +431,47 @@ export function VegetationView({ config }: { config: EndpointDetails }) {
               onChange={handleEndDateChange}
             />
           </div>
+
+          <div className="flex gap-2 relative">
+            <IndexSelector 
+              value={selectedIndex} 
+              onChange={setSelectedIndex}
+            />
+          </div>
         </>
       }
     >
-      <div className="flex flex-col items-center justify-center min-h-[350px] w-full border border-dashed rounded-lg bg-muted/20 p-6 text-center">
-        <div className="p-3 rounded-full bg-muted border mb-3">
-          <BarChart3 className="w-6 h-6 text-muted-foreground" />
-        </div>
-        <h3 className="text-sm font-semibold mb-1">Charts Unavailable</h3>
-        <p className="text-xs text-muted-foreground max-w-sm">
-          Visualization under development. Check the docs for more information about this dataset.
-        </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <VegetationMap
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+          onStateSelect={handleStateSelect}
+          selectedState={selectedState}
+        />
+
+        <VegetationMunicipalMap
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+          selectedState={selectedState || "RJ"}
+          selectedCityGeocode={selectedCityGeocode}
+          onCitySelect={handleCitySelect}
+        />
+      </div>
+
+      <div className="mt-6">
+        <VegetationTimeSeries
+          geocode={String(geocode)}
+          start={startDate}
+          end={endDate}
+          attribute={selectedIndex}
+          selectedState={selectedState || "RJ"}
+          selectedCityGeocode={selectedCityGeocode}
+          selectedCityName={selectedCityName}
+        />
       </div>
     </EndpointLayout>
   );

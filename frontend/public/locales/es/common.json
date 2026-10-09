@@ -868,6 +868,46 @@
     "threshold": "Umbral (1.0)",
     "no_rt_data": "No hay datos de Rt disponibles para este período."
   },
+  "charts_vegetation_index": {
+    "map_title": "Mediana de {{attribute}} por estado",
+    "municipal_map_title": "Mediana de {{attribute}} por municipio - {{state}}",
+    "time_series_title": "Serie temporal de {{attribute_name}} - {{municipality}}",
+    "q25": "Q25",
+    "median": "Mediana",
+    "q75": "Q75",
+    "no_data_message": "Sin datos",
+    "load_map_error": "Error al cargar el mapa: {{status}}",
+    "load_state_error": "Error al cargar el mapa del estado {{state}}",
+    "load_time_series_error": "Error al cargar la serie temporal: {{status}}",
+    "selected_municipality_message": "Municipio seleccionado: {{name}} ({{geocode}})",
+    "time_series_tooltip": "<b>{{data}}</b><br/>Q25: {{value_q25}}<br/>Mediana: {{value_median}}<br/>Q75: {{value_q75}}",
+    "map_tooltip_median": "Mediana: {{value}}",
+    "map_tooltip_q25": "Q25: {{value}}",
+    "map_tooltip_q75": "Q75: {{value}}",
+    "map_tooltip_click": "Haz clic para ver la serie temporal",
+    "warn_map_message": "El mapa de {{name}} aún no está disponible",
+    "warn_registered_map": "El mapa de {{name}} aún no está registrado",
+    "warn_state_message": "No se recibieron datos municipales para {{state}}",
+    "vegetation_index": {
+      "title": "Índice de Vegetación",
+      "evi": {
+        "label": "EVI",
+        "description": "Índice de Vegetación Mejorado. Sustituye al NDVI en bosques de dosel cerrado o biomas densos porque no satura la señal y minimiza los efectos de la neblina atmosférica."
+      },
+      "ndvi": {
+        "label": "NDVI",
+        "description": "Índice de Vegetación de Diferencia Normalizada. Mide el verdor y el vigor general de las plantas. Es el estándar para cultivos, pero presenta limitaciones en bosques muy densos o en suelos expuestos."
+      },
+      "savi": {
+        "label": "SAVI",
+        "description": "Índice de Vegetación Ajustado al Suelo. Sustituye al NDVI en cultivos jóvenes, zonas urbanas o regiones secas al reducir la interferencia del brillo del suelo."
+      },
+      "ndwi": {
+        "label": "NDWI",
+        "description": "Índice de Agua de Diferencia Normalizada. Identifica cuerpos de agua y humedad en la vegetación, ayudando a distinguir los recursos hídricos del suelo seco."
+      }
+    }
+  },
   "footer": {
     "theme": "Tema",
     "cite_title": "Cómo citar",

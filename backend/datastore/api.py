@@ -1696,3 +1696,156 @@ def episcanner_maps_model_eval(
     ]
 
     return schema.EpiScannerModelEvalResponse(rateMap=rate_map, table=table)
+
+
+@router.get(
+    "/charts/vegetation/time-series/",
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_vegetation_timeseries(
+    request,
+    geocode: int,
+    start: datetime.date,
+    end: datetime.date,
+    attribute: str,
+):
+    data = (
+        models.VegetationIndexMetric.objects.using("infodengue")
+        .filter(
+            geocode=geocode,
+            date__gte=start,
+            date__lte=end,
+            attribute=attribute.upper(),
+        )
+        .order_by("date")
+        .values(
+            "date",
+            "median",
+            "q25",
+            "q75",
+        )
+    )
+
+    return list(data)
+
+
+@router.get(
+    "/charts/vegetation/map/",
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_vegetation_map(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+    attribute: str = "EVI",
+):
+    result = []
+
+    for uf_sigla, uf_nome in UFs.items():
+
+        geocodes = (
+            Municipio.objects.using("infodengue")
+            .filter(uf=uf_nome)
+            .values_list("geocodigo", flat=True)
+        )
+
+        values = (
+            models.VegetationIndexMetric.objects.using("infodengue")
+            .filter(
+                geocode__in=geocodes,
+                date__range=(start, end),
+                attribute=attribute.upper(),
+            )
+            .aggregate(
+                median=Avg("median"),
+                q25=Avg("q25"),
+                q75=Avg("q75"),
+            )
+        )
+
+        if values["median"] is None:
+            continue
+
+        result.append({"name": uf_sigla, "median": round(values["median"], 4)})
+
+    return result
+
+
+@router.get(
+    "/charts/vegetation/municipal-map/",
+    auth=UidKeyAuth(),
+    include_in_schema=False,
+)
+def charts_vegetation_municipal_map(
+    request,
+    start: datetime.date,
+    end: datetime.date,
+    attribute: str = "EVI",
+    uf: Optional[str] = None,
+):
+    if not uf:
+        return []
+
+    uf = uf.upper()
+
+    if uf not in UFs:
+        return []
+
+    uf_nome = UFs[uf]
+
+    municipios = Municipio.objects.using("infodengue").filter(uf=uf_nome)
+
+    geocodes = list(municipios.values_list("geocodigo", flat=True))
+
+    if not geocodes:
+        return []
+
+    data = (
+        models.VegetationIndexMetric.objects.using("infodengue")
+        .filter(
+            geocode__in=geocodes,
+            date__range=(start, end),
+            attribute=attribute.upper(),
+        )
+        .values("geocode")
+        .annotate(
+            median=Avg("median"),
+            q25=Avg("q25"),
+            q75=Avg("q75"),
+        )
+    )
+
+    data_dict = {item["geocode"]: item for item in data}
+
+    result = []
+
+    for municipio in municipios:
+        geocode = municipio.geocodigo
+        item_data = data_dict.get(geocode, {})
+
+        result.append(
+            {
+                "geocode": geocode,
+                "name": municipio.nome,
+                "uf": uf,
+                "median": (
+                    round(item_data["median"], 4)
+                    if item_data.get("median") is not None
+                    else None
+                ),
+                "q25": (
+                    round(item_data["q25"], 4)
+                    if item_data.get("q25") is not None
+                    else None
+                ),
+                "q75": (
+                    round(item_data["q75"], 4)
+                    if item_data.get("q75") is not None
+                    else None
+                ),
+            }
+        )
+
+    return result
