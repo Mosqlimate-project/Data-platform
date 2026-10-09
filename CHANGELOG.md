@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.15.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.2...2.15.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* **predictions:** include prediction's description below its chart when selected ([#565](https://github.com/Mosqlimate-project/Data-platform/issues/565)) ([bb74809](https://github.com/Mosqlimate-project/Data-platform/commit/bb748096f3552a49d325731fe6eb2f02ccfeec64))
+
 ## [2.15.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.1...2.15.2) (2026-09-16)
 
 
