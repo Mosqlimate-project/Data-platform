@@ -3,7 +3,7 @@ Este endpoint dá acesso a dados do projeto [Infodengue](https://info.dengue.mat
 
 ### Metodologias
 Os produtos derivados dos dados utilizam as seguintes metodologias científicas:
-* **Rt (Número Reprodutivo):** Calculado conforme [Cori et al. (2013)](https://www.sciencedirect.com/science/article/pii/S1755436517300907?via%3Dihub).
+* **Rt (Número Reprodutivo):** Calculado conforme [Codeço et al. (2018)](https://doi.org/10.1016/j.epidem.2018.05.011), que estima o Rt para dengue considerando intervalos de geração dependentes da temperatura.
 * **Nowcasting:** Estimativa de casos corrigida por atraso de notificação baseada em [Bastos et al. (2019)](https://onlinelibrary.wiley.com/doi/full/10.1002/sim.8303).
 
 > **WARNING**  

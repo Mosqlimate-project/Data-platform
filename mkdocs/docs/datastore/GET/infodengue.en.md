@@ -3,7 +3,7 @@ This endpoint gives access to data from the [Infodengue](https://info.dengue.mat
 
 ### Methodologies
 Data-derived products utilize the following scientific methodologies:
-* **Rt (Reproductive Number):** Calculated according to [Cori et al. (2013)](https://www.sciencedirect.com/science/article/pii/S1755436517300907?via%3Dihub).
+* **Rt (Reproductive Number):** Calculated according to [Codeço et al. (2018)](https://doi.org/10.1016/j.epidem.2018.05.011), which estimates Rt for dengue considering temperature-dependent generation intervals.
 * **Nowcasting:** Case estimation corrected for reporting delays based on [Bastos et al. (2019)](https://onlinelibrary.wiley.com/doi/full/10.1002/sim.8303).
 
 > **WARNING**  
