@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.15.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.3...2.15.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* **docs:** correct Rt methodology citation in infodengue docs ([#566](https://github.com/Mosqlimate-project/Data-platform/issues/566)) ([26e6c77](https://github.com/Mosqlimate-project/Data-platform/commit/26e6c77dcf8160205d465b8ccad0c06a5947825e))
+
 ## [2.15.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.2...2.15.3) (2026-10-09)
 
 
