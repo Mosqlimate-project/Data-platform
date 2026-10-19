@@ -42,7 +42,7 @@ class CustomUser(AbstractUser):
     avatar_url = models.URLField(blank=True, null=True)  # type: ignore[var-annotated]
     expires_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
     created_ip = models.GenericIPAddressField(null=True, blank=True)  # type: ignore[var-annotated]
-    rate_limit = models.CharField(max_length=20, default="10/s")  # type: ignore[var-annotated]
+    rate_limit = models.CharField(max_length=20, default="10/s", null=True)  # type: ignore[var-annotated]
     sdk_key = models.UUIDField(null=True, blank=True, unique=True)  # type: ignore[var-annotated]
     sdk_key_created_at = models.DateTimeField(null=True, blank=True)  # type: ignore[var-annotated]
 
