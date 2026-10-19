@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.15.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.4...2.15.5) (2026-10-19)
+
+
+### Bug Fixes
+
+* **rate_limit:** enable rate_limit to be nullable ([#567](https://github.com/Mosqlimate-project/Data-platform/issues/567)) ([f7c9493](https://github.com/Mosqlimate-project/Data-platform/commit/f7c9493752264b0c04d06fdb818f68172b5c6e7b))
+
 ## [2.15.4](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.3...2.15.4) (2026-10-16)
 
 
