@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+# [2.16.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.5...2.16.0) (2026-10-29)
+
+
+### Features
+
+* **registry:** add organization and user profile pages ([#568](https://github.com/Mosqlimate-project/Data-platform/issues/568)) ([5e5331e](https://github.com/Mosqlimate-project/Data-platform/commit/5e5331e19d6cfc33d6217bd208593dbc01b99fbe))
+
 ## [2.15.5](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.4...2.15.5) (2026-10-19)
 
 
