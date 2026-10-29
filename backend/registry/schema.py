@@ -579,6 +579,36 @@ class ModelOut(Schema):
         ]
 
 
+class OwnerMemberOut(Schema):
+    username: str
+    display_name: str
+    avatar_url: str | None = None
+    role: str
+
+
+class OwnerRepositoryOut(Schema):
+    name: str
+    provider: str
+    url: str
+    active: bool
+    has_model: bool = False
+    category: str | None = None
+    time_resolution: str | None = None
+    description: str | None = None
+    predictions: int = 0
+
+
+class OwnerOut(Schema):
+    owner: str
+    type: Literal["organization", "user"]
+    display_name: str
+    avatar_url: str | None = None
+    homepage: str | None = None
+    provider_url: str | None = None
+    members: List[OwnerMemberOut] = []
+    repositories: List[OwnerRepositoryOut] = []
+
+
 class ModelUpdateIn(Schema):
     active: Optional[bool] = None
     description: Optional[str] = None
