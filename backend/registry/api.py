@@ -409,21 +409,21 @@ def repository_owner(request, owner: str):
         .annotate(predictions_count=models.Count("predicts"))
     }
 
-    provider_url = None
-    if repos:
-        provider = repos[0].provider
-        if provider == m.Repository.Providers.GITHUB:
-            provider_url = f"https://github.com/{owner_name}"
-        elif provider == m.Repository.Providers.GITLAB:
-            provider_url = f"https://gitlab.com/{owner_name}"
+    provider_origins = {
+        m.Repository.Providers.GITHUB: "https://github.com",
+        m.Repository.Providers.GITLAB: "https://gitlab.com",
+    }
+    provider_urls = {
+        provider: f"{origin}/{owner_name}"
+        for provider, origin in provider_origins.items()
+    }
+    provider_url = provider_urls.get(repos[0].provider) if repos else None
 
     repositories = []
     for repo in repos:
         model = models_by_repo.get(repo.id)
-        if repo.provider == m.Repository.Providers.GITHUB:
-            repo_url = f"https://github.com/{owner_name}/{repo.name}"
-        else:
-            repo_url = f"https://gitlab.com/{owner_name}/{repo.name}"
+        origin = provider_origins.get(repo.provider, "https://gitlab.com")
+        repo_url = f"{origin}/{owner_name}/{repo.name}"
 
         repositories.append(
             {
