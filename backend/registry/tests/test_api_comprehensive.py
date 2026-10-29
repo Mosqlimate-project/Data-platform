@@ -326,13 +326,63 @@ class ModelsTagsTest(RegistryAPIComprehensiveTestCase):
 
 
 class RepositoryOwnerTest(RegistryAPIComprehensiveTestCase):
-    def test_returns_owner(self):
+    def test_returns_user_owner(self):
         response = self.client.get(
             "/api/registry/model/testuser/",
             **self.auth_headers,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["owner"], "testuser")
+        data = response.json()
+        self.assertEqual(data["owner"], "testuser")
+        self.assertEqual(data["type"], "user")
+        self.assertEqual(data["repositories"][0]["name"], "test-repo")
+        self.assertTrue(data["repositories"][0]["has_model"])
+        self.assertEqual(data["members"], [])
+
+    def test_returns_organization_owner(self):
+        org = m.Organization.objects.create(name="test-org")
+        m.OrganizationMembership.objects.create(
+            user=self.user,
+            organization=org,
+            role=m.OrganizationMembership.Roles.OWNER,
+        )
+        repo = m.Repository.objects.create(
+            repo_id="org-repo-1",
+            name="org-repo",
+            provider=m.Repository.Providers.GITHUB,
+            organization=org,
+            active=True,
+        )
+        m.RepositoryModel.objects.create(
+            repository=repo,
+            description="An org model",
+            category=m.RepositoryModel.Category.QUANTITATIVE,
+            time_resolution=m.RepositoryModel.Periodicity.WEEK,
+        )
+
+        response = self.client.get(
+            "/api/registry/model/test-org/",
+            **self.auth_headers,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["owner"], "test-org")
+        self.assertEqual(data["type"], "organization")
+        self.assertEqual(data["members"][0]["username"], "testuser")
+        self.assertEqual(data["members"][0]["role"], "owner")
+        self.assertEqual(data["repositories"][0]["name"], "org-repo")
+        self.assertTrue(data["repositories"][0]["has_model"])
+        self.assertEqual(
+            data["repositories"][0]["url"],
+            "https://github.com/test-org/org-repo",
+        )
+
+    def test_unknown_owner_returns_404(self):
+        response = self.client.get(
+            "/api/registry/model/unknown-owner/",
+            **self.auth_headers,
+        )
+        self.assertEqual(response.status_code, 404)
 
 
 class RepositoryModelInternalTest(RegistryAPIComprehensiveTestCase):

@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 from datetime import timedelta
 
 import httpx
-from django.contrib.auth import get_user_model
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, models
@@ -22,6 +21,7 @@ from ninja.pagination import paginate
 from ninja.decorators import decorate_view
 from ninja.errors import ValidationError
 from users.auth import UidKeyAuth, JWTAuth, OptionalJWTAuth
+from users.models import CustomUser
 from users.providers import GithubProvider, GitlabProvider
 
 from .utils import calling_via_swagger
@@ -32,7 +32,6 @@ from .filters import PredictionFilterSchema, ModelFilterSchema
 
 
 router = Router(tags=["registry"])
-User = get_user_model()
 
 
 @router.get(
@@ -360,12 +359,98 @@ def models_tags(request, ids: List[int] = Query(None)):
 
 @router.get(
     "/model/{owner}/",
+    response={200: s.OwnerOut, 404: NotFoundSchema},
     auth=UidKeyAuth(),
     include_in_schema=False,
 )
 @decorate_view(never_cache)
 def repository_owner(request, owner: str):
-    return {"owner": owner}
+    org = m.Organization.objects.filter(name__iexact=owner).first()
+    target_user = None
+
+    if org:
+        owner_type = "organization"
+        owner_name = org.name
+        display_name = org.name
+        avatar_url = org.get_avatar()
+        homepage = None
+        members = [
+            {
+                "username": membership.user.username,
+                "display_name": (
+                    membership.user.name or membership.user.username
+                ),
+                "avatar_url": membership.user.get_avatar(),
+                "role": membership.role,
+            }
+            for membership in org.memberships.select_related("user").order_by(
+                "joined_at"
+            )
+        ]
+        repos = m.Repository.objects.filter(organization=org, active=True)
+    else:
+        target_user = CustomUser.objects.filter(username__iexact=owner).first()
+        if not target_user:
+            return 404, {"message": f"Owner '{owner}' not found"}
+
+        owner_type = "user"
+        owner_name = target_user.username
+        display_name = target_user.name or target_user.username
+        avatar_url = target_user.get_avatar()
+        homepage = target_user.homepage
+        members = []
+        repos = m.Repository.objects.filter(owner=target_user, active=True)
+
+    repos = list(repos.order_by("name"))
+    models_by_repo = {
+        model.repository_id: model
+        for model in m.RepositoryModel.objects.filter(repository__in=repos)
+        .select_related("sprint")
+        .annotate(predictions_count=models.Count("predicts"))
+    }
+
+    provider_url = None
+    if repos:
+        provider = repos[0].provider
+        if provider == m.Repository.Providers.GITHUB:
+            provider_url = f"https://github.com/{owner_name}"
+        elif provider == m.Repository.Providers.GITLAB:
+            provider_url = f"https://gitlab.com/{owner_name}"
+
+    repositories = []
+    for repo in repos:
+        model = models_by_repo.get(repo.id)
+        if repo.provider == m.Repository.Providers.GITHUB:
+            repo_url = f"https://github.com/{owner_name}/{repo.name}"
+        else:
+            repo_url = f"https://gitlab.com/{owner_name}/{repo.name}"
+
+        repositories.append(
+            {
+                "name": repo.name,
+                "provider": repo.provider,
+                "url": repo_url,
+                "active": repo.active,
+                "has_model": model is not None,
+                "category": model.category if model else None,
+                "time_resolution": model.time_resolution if model else None,
+                "description": model.description if model else None,
+                "predictions": (
+                    getattr(model, "predictions_count", 0) if model else 0
+                ),
+            }
+        )
+
+    return 200, {
+        "owner": owner_name,
+        "type": owner_type,
+        "display_name": display_name,
+        "avatar_url": avatar_url,
+        "homepage": homepage,
+        "provider_url": provider_url,
+        "members": members,
+        "repositories": repositories,
+    }
 
 
 @router.get(
