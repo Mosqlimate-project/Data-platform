@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.16.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.16.0...2.16.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **users:** import provider organizations and handle avatar fallbacks ([#569](https://github.com/Mosqlimate-project/Data-platform/issues/569)) ([b69f730](https://github.com/Mosqlimate-project/Data-platform/commit/b69f7302502efa1a1cf84fe0d614b00970a29aff))
+
 # [2.16.0](https://github.com/Mosqlimate-project/Data-platform/compare/2.15.5...2.16.0) (2026-10-29)
 
 
