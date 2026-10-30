@@ -568,12 +568,7 @@ class ModelOut(Schema):
         return [
             {
                 "username": user.username,
-                "avatar_url": getattr(user, "avatar_url", None)
-                or (
-                    user.avatar.url
-                    if hasattr(user, "avatar") and user.avatar
-                    else None
-                ),
+                "avatar_url": user.get_avatar(),
             }
             for user in users_map.values()
         ]

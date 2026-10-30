@@ -37,6 +37,12 @@ const nextConfig = {
         hostname: 'gitlab.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

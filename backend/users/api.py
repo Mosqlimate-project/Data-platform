@@ -20,6 +20,7 @@ from pydantic_core import PydanticCustomError
 
 from main.schema import ForbiddenSchema, NotFoundSchema, BadRequestSchema
 from registry.models import (
+    Organization,
     Repository,
     RepositoryModel,
     RepositoryContributor,
@@ -49,10 +50,13 @@ def download_image(user, url):
                 user.avatar.save(
                     filename,
                     files.base.ContentFile(response.content),
-                    save=True,
+                    save=False,
                 )
-                user.avatar_url = user.avatar.url
-                user.save(update_fields=["avatar_url"])
+                if not user.avatar_url or user.avatar_url.startswith(
+                    settings.MEDIA_URL
+                ):
+                    user.avatar_url = url
+                user.save(update_fields=["avatar", "avatar_url"])
     except Exception:
         pass
 
@@ -794,6 +798,153 @@ def list_repositories(request, provider: Literal["github", "gitlab"]):
         raise e
 
 
+def _fetch_provider_orgs(request, user, provider: Literal["github", "gitlab"]):
+    account = OAuthAccount.objects.get(user=user, provider=provider)
+    client = OAuthProvider.from_request(request, provider)
+
+    def fetch(token):
+        return client.get_user_orgs(token)  # type: ignore[attr-defined]
+
+    try:
+        return fetch(account.access_token)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code != 401 or not account.refresh_token:
+            raise
+
+        try:
+            tokens = client.refresh_access_token(  # type: ignore[attr-defined]
+                account.refresh_token
+            )
+        except Exception as refresh_error:
+            raise httpx.HTTPError(str(refresh_error)) from refresh_error
+
+        account.access_token = tokens["access_token"]
+        account.refresh_token = tokens.get(
+            "refresh_token", account.refresh_token
+        )
+        account.save(update_fields=["access_token", "refresh_token"])
+        return fetch(account.access_token)
+
+
+def _normalize_organizations(
+    provider: str, orgs: list[dict]
+) -> dict[str, dict]:
+    organizations: dict[str, dict] = {}
+    for org in orgs:
+        name = org.get("name")
+        if not name:
+            continue
+
+        organizations.setdefault(
+            name.lower(),
+            {
+                "name": name,
+                "provider": provider,
+                "avatar_url": org.get("avatar_url"),
+            },
+        )
+
+    return organizations
+
+
+@router.get(
+    "/organizations/{provider}/",
+    auth=JWTAuth(),
+    response={
+        200: list[s.OAuthOrganizationOut],
+        400: BadRequestSchema,
+        404: NotFoundSchema,
+    },
+    include_in_schema=False,
+)
+@decorate_view(never_cache)
+def list_organizations(request, provider: Literal["github", "gitlab"]):
+    try:
+        orgs = _fetch_provider_orgs(request, request.auth, provider)
+    except OAuthAccount.DoesNotExist:
+        return 404, {"message": f"Please link your {provider} account first."}
+    except httpx.HTTPError as e:
+        return 400, {
+            "message": f"Could not fetch {provider} organizations: {e}"
+        }
+
+    organizations = _normalize_organizations(provider, orgs)
+    imported = {
+        name.lower()
+        for name in Organization.objects.values_list("name", flat=True)
+    }
+
+    return 200, [
+        {
+            **organization,
+            "imported": organization["name"].lower() in imported,
+        }
+        for organization in organizations.values()
+    ]
+
+
+@router.post(
+    "/organizations/{provider}/import/",
+    auth=JWTAuth(),
+    response={
+        200: s.OAuthOrganizationOut,
+        400: BadRequestSchema,
+        403: ForbiddenSchema,
+        404: NotFoundSchema,
+    },
+    include_in_schema=False,
+)
+def import_organization(
+    request,
+    provider: Literal["github", "gitlab"],
+    payload: s.OrganizationImportIn,
+):
+    try:
+        orgs = _fetch_provider_orgs(request, request.auth, provider)
+    except OAuthAccount.DoesNotExist:
+        return 404, {"message": f"Please link your {provider} account first."}
+    except httpx.HTTPError as e:
+        return 400, {
+            "message": f"Could not fetch {provider} organizations: {e}"
+        }
+
+    organizations = _normalize_organizations(provider, orgs)
+    organization = organizations.get(payload.name.lower())
+    if not organization:
+        return 403, {
+            "message": (
+                f"You do not have access to the {provider} "
+                f"organization '{payload.name}'."
+            )
+        }
+
+    with transaction.atomic():
+        org = Organization.objects.filter(
+            name__iexact=organization["name"]
+        ).first()
+        if org:
+            org.avatar_url = organization["avatar_url"] or org.avatar_url
+            org.save(update_fields=["avatar_url"])
+        else:
+            org = Organization.objects.create(
+                name=organization["name"],
+                avatar_url=organization["avatar_url"],
+            )
+
+        OrganizationMembership.objects.update_or_create(
+            user=request.auth,
+            organization=org,
+            defaults={"role": OrganizationMembership.Roles.OWNER},
+        )
+
+    return 200, {
+        "name": org.name,
+        "provider": provider,
+        "avatar_url": org.get_avatar(),
+        "imported": True,
+    }
+
+
 @router.get(
     "/profile/",
     auth=JWTAuth(),
@@ -865,9 +1016,8 @@ def upload_avatar(request, file: UploadedFile = File(...)):
         except Exception:
             pass
 
-    user.avatar.save(f"avatar_{user.pk}_{file.name}", file)
-    user.avatar_url = user.avatar.url
-    user.save(update_fields=["avatar_url", "avatar"])
+    user.avatar.save(f"avatar_{user.pk}_{file.name}", file, save=False)
+    user.save(update_fields=["avatar"])
 
     return 200, {"avatar_url": user.get_avatar()}
 

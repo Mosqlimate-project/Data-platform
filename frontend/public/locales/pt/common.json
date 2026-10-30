@@ -805,6 +805,22 @@
       "confirm": "Excluir Modelo"
     }
   },
+  "profile_organizations": {
+    "title": "Organizações",
+    "description": "Importe organizações da sua conta GitHub ou GitLab conectada.",
+    "not_connected": "Conecte {{provider}} para importar organizações.",
+    "manage_connections": "Gerenciar conexões",
+    "install_app": "Instalar GitHub App",
+    "empty_hint": "Instale o GitHub App na organização e conceda acesso aos repositórios. Apenas organizações com instalação são listadas.",
+    "name_placeholder": "Login da organização",
+    "empty": "Nenhuma organização encontrada no {{provider}}.",
+    "view": "Ver",
+    "import": "Importar",
+    "errors": {
+      "load": "Não foi possível carregar as organizações.",
+      "import": "Não foi possível importar a organização."
+    }
+  },
   "profile_account": {
     "title": "Configurações da Conta",
     "description": "Gerencie seus métodos de login e exclua sua conta.",

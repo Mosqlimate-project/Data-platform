@@ -383,6 +383,37 @@ class GithubProviderTest(SimpleTestCase):
             with self.assertRaises(HTTPStatusError):
                 self.p.get_readme(repo, account)
 
+    def test_get_user_orgs(self):
+        installs = _mock_response(
+            json_data={
+                "installations": [
+                    {
+                        "account": {
+                            "login": "acme",
+                            "type": "Organization",
+                            "avatar_url": "http://a/acme",
+                        }
+                    },
+                    {
+                        "account": {
+                            "login": "me",
+                            "type": "User",
+                            "avatar_url": "http://a/me",
+                        }
+                    },
+                    {},
+                ]
+            }
+        )
+        client = MagicMock()
+        client.get.return_value = installs
+        client.__enter__.return_value = client
+        with patch("httpx.Client", return_value=client):
+            orgs = self.p.get_user_orgs("tok")
+        self.assertEqual(len(orgs), 1)
+        self.assertEqual(orgs[0]["name"], "acme")
+        self.assertEqual(orgs[0]["provider"], "github")
+
 
 class GitlabProviderTest(SimpleTestCase):
     def setUp(self):
@@ -491,6 +522,26 @@ class GitlabProviderTest(SimpleTestCase):
             )
             text = self.p.get_readme(repo)
             self.assertEqual(text, "# plain")
+
+    def test_get_user_orgs(self):
+        groups = _mock_response(
+            json_data=[
+                {
+                    "full_path": "team/sub",
+                    "path": "sub",
+                    "avatar_url": "http://a/team",
+                },
+                {"path": "other"},
+            ]
+        )
+        client = MagicMock()
+        client.get.return_value = groups
+        client.__enter__.return_value = client
+        with patch("httpx.Client", return_value=client):
+            orgs = self.p.get_user_orgs("tok")
+        self.assertEqual(orgs[0]["name"], "team/sub")
+        self.assertEqual(orgs[0]["avatar_url"], "http://a/team")
+        self.assertEqual(orgs[1]["name"], "other")
 
 
 class GoogleProviderTest(SimpleTestCase):

@@ -1,5 +1,5 @@
 from typing import Optional, Literal
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from pydantic.networks import validate_email
 from pydantic_core import PydanticCustomError
 
@@ -86,3 +86,14 @@ class RepositoryOut(Schema):
     private: bool
     provider: Literal["gitlab", "github"]
     available: bool
+
+
+class OAuthOrganizationOut(Schema):
+    name: str
+    provider: Literal["github", "gitlab"]
+    avatar_url: Optional[str] = None
+    imported: bool = False
+
+
+class OrganizationImportIn(Schema):
+    name: str = Field(min_length=1, max_length=100)

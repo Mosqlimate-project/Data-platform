@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.db import IntegrityError
@@ -77,6 +78,31 @@ class OrganizationModelTest(TestCase):
             self.org.avatar_url = "https://example.com/other.png"
             self.org.save()
             self.assertEqual(self.org.get_avatar(), self.org.avatar.url)
+
+    def test_get_avatar_missing_file_falls_back_to_url(self):
+        self.org.avatar = "avatars/missing.png"
+        self.org.avatar_url = "https://example.com/remote.png"
+        self.org.save()
+        self.assertEqual(
+            self.org.get_avatar(), "https://example.com/remote.png"
+        )
+
+    def test_get_avatar_missing_file_with_local_url_returns_none(self):
+        self.org.avatar = "avatars/missing.png"
+        self.org.avatar_url = "/media/avatars/missing.png"
+        self.org.save()
+        self.assertIsNone(self.org.get_avatar())
+
+    def test_get_avatar_storage_error_falls_back_to_url(self):
+        self.org.avatar = "avatars/missing.png"
+        self.org.avatar_url = "https://example.com/remote.png"
+        self.org.save()
+        with patch.object(
+            self.org.avatar.storage, "exists", side_effect=OSError("boom")
+        ):
+            self.assertEqual(
+                self.org.get_avatar(), "https://example.com/remote.png"
+            )
 
 
 class OrganizationMembershipTest(TestCase):
