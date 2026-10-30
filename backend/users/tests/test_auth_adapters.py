@@ -359,6 +359,53 @@ class UsersModelTest(TestCase):
         self.user.save()
         self.assertEqual(self.user.get_avatar(), "https://ex.com/b.png")
 
+    def test_get_avatar_missing_file_falls_back_to_url(self):
+        self.user.avatar = "avatars/missing.jpg"
+        self.user.avatar_url = "https://ex.com/remote.png"
+        self.user.save()
+        self.assertEqual(self.user.get_avatar(), "https://ex.com/remote.png")
+
+    def test_get_avatar_missing_file_falls_back_to_oauth(self):
+        self.user.avatar = "avatars/missing.jpg"
+        self.user.avatar_url = "/media/avatars/missing.jpg"
+        self.user.save()
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="p2",
+            raw_info={"avatar_url": "https://ex.com/oauth.png"},
+        )
+        self.assertEqual(self.user.get_avatar(), "https://ex.com/oauth.png")
+
+    def test_get_avatar_missing_file_without_remote_returns_none(self):
+        self.user.avatar = "avatars/missing.jpg"
+        self.user.avatar_url = None
+        self.user.save()
+        self.assertIsNone(self.user.get_avatar())
+
+    def test_get_avatar_oauth_without_url_returns_none(self):
+        self.user.avatar = "avatars/missing.jpg"
+        self.user.avatar_url = "/media/avatars/missing.jpg"
+        self.user.save()
+        OAuthAccount.objects.create(
+            user=self.user,
+            provider="github",
+            provider_id="p3",
+            raw_info={},
+        )
+        self.assertIsNone(self.user.get_avatar())
+
+    def test_get_avatar_storage_error_falls_back_to_url(self):
+        self.user.avatar = "avatars/missing.jpg"
+        self.user.avatar_url = "https://ex.com/remote.png"
+        self.user.save()
+        with patch.object(
+            self.user.avatar.storage, "exists", side_effect=OSError("boom")
+        ):
+            self.assertEqual(
+                self.user.get_avatar(), "https://ex.com/remote.png"
+            )
+
     def test_oauth_account_str(self):
         acc = OAuthAccount.objects.create(
             user=self.user,

@@ -1,6 +1,7 @@
 import uuid
 from typing import Any, Literal
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.signals import request_started
@@ -90,9 +91,24 @@ class CustomUser(AbstractUser):
 
     def get_avatar(self):
         if self.avatar:
-            return self.avatar.url
-        if self.avatar_url:
+            try:
+                if self.avatar.storage.exists(self.avatar.name):
+                    return self.avatar.url
+            except Exception:
+                pass
+
+        if self.avatar_url and not self.avatar_url.startswith(
+            settings.MEDIA_URL
+        ):
             return self.avatar_url
+
+        for account in self.oauth_accounts.all():
+            raw_info = account.raw_info or {}
+            remote_url = raw_info.get("avatar_url") or raw_info.get("picture")
+            if remote_url:
+                return remote_url
+
+        return None
 
     objects: Any = CustomUserManager()  # type: ignore[misc]  # type: ignore[misc]
 

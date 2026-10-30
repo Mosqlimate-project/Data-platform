@@ -330,10 +330,44 @@ class GithubProvider(OAuthProvider):
                                     "private": r["private"],
                                     "provider": "github",
                                     "avatar_url": r["owner"]["avatar_url"],
+                                    "owner_avatar_url": r["owner"][
+                                        "avatar_url"
+                                    ],
                                 }
                             )
 
         return repos
+
+    def get_user_orgs(self, access_token: str):
+        orgs = []
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        transport = httpx.HTTPTransport(retries=3)
+
+        with httpx.Client(transport=transport) as client:
+            res = client.get(
+                "https://api.github.com/user/installations",
+                headers=headers,
+                params={"per_page": 100},
+            )
+            res.raise_for_status()
+
+            for install in res.json().get("installations", []):
+                account = install.get("account") or {}
+                if account.get("type") != "Organization":
+                    continue
+                orgs.append(
+                    {
+                        "name": account["login"],
+                        "provider": "github",
+                        "avatar_url": account.get("avatar_url"),
+                    }
+                )
+
+        return orgs
 
     def refresh_access_token(self, refresh_token: str):
         payload = {
@@ -497,21 +531,49 @@ class GitlabProvider(OAuthProvider):
             projects = res.json()
 
             for p in projects:
+                namespace = p.get("namespace", {})
                 repos.append(
                     {
                         "id": str(p["id"]),
                         "name": p["path_with_namespace"],
+                        "owner": p["path_with_namespace"].rsplit("/", 1)[0],
                         "url": p["web_url"].strip("/"),
                         "private": p["visibility"] == "private",
                         "provider": "gitlab",
                         "avatar_url": (
-                            p.get("avatar_url")
-                            or p.get("namespace", {}).get("avatar_url")
+                            p.get("avatar_url") or namespace.get("avatar_url")
                         ),
+                        "owner_avatar_url": namespace.get("avatar_url"),
                     }
                 )
 
         return repos
+
+    def get_user_orgs(self, access_token: str):
+        headers = {"Authorization": f"Bearer {access_token}"}
+        params = {
+            "min_access_level": 40,
+            "per_page": 100,
+            "order_by": "name",
+        }
+        transport = httpx.HTTPTransport(retries=3)
+
+        with httpx.Client(transport=transport) as client:
+            res = client.get(
+                "https://gitlab.com/api/v4/groups",
+                headers=headers,
+                params=params,
+            )
+            res.raise_for_status()
+
+            return [
+                {
+                    "name": group.get("full_path") or group["path"],
+                    "provider": "gitlab",
+                    "avatar_url": group.get("avatar_url"),
+                }
+                for group in res.json()
+            ]
 
     def refresh_access_token(self, refresh_token: str):
         payload = {

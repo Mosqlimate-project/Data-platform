@@ -1,3 +1,4 @@
+import json
 import tempfile
 from unittest.mock import MagicMock, patch
 
@@ -305,7 +306,29 @@ class DownloadImageTest(TestCase):
             MC.return_value.__enter__.return_value.get.return_value = resp
             users_api.download_image(self.user, "http://x/a.jpg")
         self.user.refresh_from_db()
-        self.assertIsNotNone(self.user.avatar_url)
+        self.assertEqual(self.user.avatar_url, "http://x/a.jpg")
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_success_preserves_remote_avatar_url(self):
+        self.user.avatar_url = "https://ex.com/original.png"
+        self.user.save()
+        resp = MagicMock(status_code=200, content=b"image")
+        with patch("httpx.Client") as MC:
+            MC.return_value.__enter__.return_value.get.return_value = resp
+            users_api.download_image(self.user, "http://x/a.jpg")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.avatar_url, "https://ex.com/original.png")
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_success_replaces_local_avatar_url(self):
+        self.user.avatar_url = "/media/avatars/old.jpg"
+        self.user.save()
+        resp = MagicMock(status_code=200, content=b"image")
+        with patch("httpx.Client") as MC:
+            MC.return_value.__enter__.return_value.get.return_value = resp
+            users_api.download_image(self.user, "http://x/a.jpg")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.avatar_url, "http://x/a.jpg")
 
     def test_exception_passes(self):
         with patch("httpx.Client") as MC:
@@ -323,3 +346,187 @@ class DownloadImageTest(TestCase):
         req = MagicMock()
         req.META = {"REMOTE_ADDR": "9.9.9.9"}
         self.assertEqual(users_api.get_client_ip(req), "9.9.9.9")
+
+
+class OrganizationImportTest(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="orguser",
+            email="org@test.com",
+            password="pass",
+        )
+        self.jwt = {
+            "HTTP_AUTHORIZATION": "Bearer "
+            + create_access_token({"sub": str(self.user.pk)})
+        }
+
+    def _account(self, provider="github", refresh_token=None):
+        return OAuthAccount.objects.create(
+            user=self.user,
+            provider=provider,
+            provider_id=f"{provider}-1",
+            raw_info={},
+            access_token="at",
+            refresh_token=refresh_token,
+        )
+
+    def _get(self, provider, orgs, side_effect=None):
+        client = MagicMock()
+        if side_effect:
+            client.get_user_orgs.side_effect = side_effect
+        else:
+            client.get_user_orgs.return_value = orgs
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            return self.client.get(
+                f"/api/user/organizations/{provider}/", **self.jwt
+            )
+
+    def _import(self, provider, name, orgs, side_effect=None):
+        client = MagicMock()
+        if side_effect:
+            client.get_user_orgs.side_effect = side_effect
+        else:
+            client.get_user_orgs.return_value = orgs
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            return self.client.post(
+                f"/api/user/organizations/{provider}/import/",
+                data=json.dumps({"name": name}),
+                content_type="application/json",
+                **self.jwt,
+            )
+
+    def test_list_github_organizations(self):
+        self._account()
+        rm.Organization.objects.create(name="acme")
+        orgs = [
+            {"name": "acme", "avatar_url": "https://a/acme"},
+            {"name": "neworg", "avatar_url": None},
+            {"name": "acme", "avatar_url": "https://a/other"},
+            {"name": ""},
+        ]
+        r = self._get("github", orgs)
+        self.assertEqual(r.status_code, 200)
+        data = {o["name"]: o for o in r.json()}
+        self.assertEqual(set(data), {"acme", "neworg"})
+        self.assertTrue(data["acme"]["imported"])
+        self.assertFalse(data["neworg"]["imported"])
+        self.assertEqual(data["acme"]["avatar_url"], "https://a/acme")
+
+    def test_list_gitlab_organizations(self):
+        self._account(provider="gitlab")
+        r = self._get(
+            "gitlab", [{"name": "team", "avatar_url": "https://a/team"}]
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()[0]["provider"], "gitlab")
+
+    def test_list_organizations_no_account_404(self):
+        r = self.client.get("/api/user/organizations/github/", **self.jwt)
+        self.assertEqual(r.status_code, 404)
+
+    def test_list_organizations_http_error_400(self):
+        self._account()
+        r = self._get("github", [], side_effect=_httpx_err(500))
+        self.assertEqual(r.status_code, 400)
+
+    def test_list_organizations_401_without_refresh_400(self):
+        self._account(refresh_token=None)
+        r = self._get("github", [], side_effect=_httpx_err(401))
+        self.assertEqual(r.status_code, 400)
+
+    def test_list_organizations_refreshes_token(self):
+        account = self._account(refresh_token="ref")
+        client = MagicMock()
+        client.get_user_orgs.side_effect = [
+            _httpx_err(401),
+            [{"name": "acme", "avatar_url": None}],
+        ]
+        client.refresh_access_token.return_value = {"access_token": "new"}
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            r = self.client.get("/api/user/organizations/github/", **self.jwt)
+        self.assertEqual(r.status_code, 200)
+        account.refresh_from_db()
+        self.assertEqual(account.access_token, "new")
+
+    def test_list_organizations_refresh_failure_400(self):
+        self._account(refresh_token="ref")
+        client = MagicMock()
+        client.get_user_orgs.side_effect = _httpx_err(401)
+        client.refresh_access_token.side_effect = ValueError("bad token")
+        with patch(
+            "users.api.OAuthProvider.from_request", return_value=client
+        ):
+            r = self.client.get("/api/user/organizations/github/", **self.jwt)
+        self.assertEqual(r.status_code, 400)
+
+    def test_import_organization_no_account_404(self):
+        r = self.client.post(
+            "/api/user/organizations/github/import/",
+            data=json.dumps({"name": "acme"}),
+            content_type="application/json",
+            **self.jwt,
+        )
+        self.assertEqual(r.status_code, 404)
+
+    def test_import_organization_http_error_400(self):
+        self._account()
+        r = self._import("github", "acme", [], side_effect=_httpx_err(500))
+        self.assertEqual(r.status_code, 400)
+
+    def test_import_organization_forbidden_403(self):
+        self._account()
+        r = self._import(
+            "github", "acme", [{"name": "other", "avatar_url": None}]
+        )
+        self.assertEqual(r.status_code, 403)
+
+    def test_import_organization_success(self):
+        self._account()
+        r = self._import(
+            "github",
+            "acme",
+            [{"name": "Acme", "avatar_url": "https://a/acme"}],
+        )
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual(data["name"], "Acme")
+        self.assertTrue(data["imported"])
+        org = rm.Organization.objects.get(name="Acme")
+        self.assertEqual(org.avatar_url, "https://a/acme")
+        membership = rm.OrganizationMembership.objects.get(
+            organization=org, user=self.user
+        )
+        self.assertEqual(
+            membership.role, rm.OrganizationMembership.Roles.OWNER
+        )
+
+    def test_import_organization_updates_existing(self):
+        self._account()
+        org = rm.Organization.objects.create(
+            name="Acme", avatar_url="https://old/avatar.png"
+        )
+        rm.OrganizationMembership.objects.create(
+            user=self.user,
+            organization=org,
+            role=rm.OrganizationMembership.Roles.CONTRIBUTOR,
+        )
+        r = self._import(
+            "github", "acme", [{"name": "Acme", "avatar_url": None}]
+        )
+        self.assertEqual(r.status_code, 200)
+        org.refresh_from_db()
+        self.assertEqual(org.avatar_url, "https://old/avatar.png")
+        membership = rm.OrganizationMembership.objects.get(
+            organization=org, user=self.user
+        )
+        self.assertEqual(
+            membership.role, rm.OrganizationMembership.Roles.OWNER
+        )

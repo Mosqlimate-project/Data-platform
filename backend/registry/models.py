@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -36,9 +37,18 @@ class Organization(TimestampModel):
 
     def get_avatar(self):
         if self.avatar:
-            return self.avatar.url
-        if self.avatar_url:
+            try:
+                if self.avatar.storage.exists(self.avatar.name):
+                    return self.avatar.url
+            except Exception:
+                pass
+
+        if self.avatar_url and not self.avatar_url.startswith(
+            settings.MEDIA_URL
+        ):
             return self.avatar_url
+
+        return None
 
 
 class OrganizationMembership(TimestampModel):

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { FaUser, FaCog, FaShieldAlt } from 'react-icons/fa';
+import { FaUser, FaCog, FaShieldAlt, FaBuilding } from 'react-icons/fa';
 
 const CubeIcon = (props: any) => (
   <svg
@@ -25,6 +25,7 @@ const CubeIcon = (props: any) => (
 const sidebar = [
   { name: 'Profile', href: '/profile', icon: FaUser },
   { name: 'Models', href: '/profile/models', icon: CubeIcon },
+  { name: 'Organizations', href: '/profile/organizations', icon: FaBuilding },
   { name: 'Account', href: '/profile/account', icon: FaCog },
   { name: 'Auth', href: '/profile/auth', icon: FaShieldAlt },
 ];
