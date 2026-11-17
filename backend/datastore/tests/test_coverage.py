@@ -1340,6 +1340,16 @@ class EpiscannerDataTest(TransactionTestCase):
             alpha=0.5,
             sum_res=1.0,
         )
+        m.HistoricoAlerta.objects.using("infodengue").create(
+            data_iniSE=date(2026, 6, 1),
+            SE=202623,
+            casos=100,
+            casos_est=95.0,
+            municipio_geocodigo=2300101,
+            transmissao=2,
+            Rt=1.2,
+            p_rt1=0.8,
+        )
 
     def test_parameters_with_data(self):
         r = self.client.get(
@@ -1356,6 +1366,10 @@ class EpiscannerDataTest(TransactionTestCase):
             **self.auth,
         )
         self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertGreaterEqual(len(data), 1)
+        self.assertEqual(data[0]["casos"], 100)
+        self.assertEqual(data[0]["casos_cum"], 100)
 
     def test_model_eval_with_data(self):
         r = self.client.get(
@@ -1364,7 +1378,10 @@ class EpiscannerDataTest(TransactionTestCase):
             **self.auth,
         )
         self.assertEqual(r.status_code, 200)
-        self.assertIn("table", r.json())
+        data = r.json()
+        self.assertGreaterEqual(len(data["rateMap"]), 1)
+        self.assertEqual(len(data["table"]), 5)
+        self.assertEqual(data["rateMap"][0]["rate"], 1.0)
 
 
 class TasksMoreTest(TestCase):
