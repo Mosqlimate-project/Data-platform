@@ -1,5 +1,22 @@
 export const BACKEND_PORT = process.env.BACKEND_PORT;
 
+const legacyRedirects = [
+  // Old MkDocs i18n pages: /pt is not a locale prefix in this app anymore.
+  { source: "/pt/team", destination: "/about", permanent: true },
+  { source: "/pt/team/:path*", destination: "/about", permanent: true },
+  { source: "/pt/products", destination: "/models", permanent: true },
+  { source: "/pt/products/:path*", destination: "/models", permanent: true },
+  { source: "/pt/egg-dataset", destination: "/datastore", permanent: true },
+  { source: "/pt/egg-dataset/:path*", destination: "/datastore", permanent: true },
+  { source: "/pt", destination: "/", permanent: true },
+  { source: "/pt/:path*", destination: "/", permanent: true },
+  // Old default-language (unprefixed) pages.
+  { source: "/team", destination: "/about", permanent: true },
+  { source: "/products", destination: "/models", permanent: true },
+  { source: "/egg-dataset", destination: "/datastore", permanent: true },
+  { source: "/feed", destination: "/publications", permanent: true },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -74,6 +91,7 @@ const nextConfig = {
 
   async redirects() {
     return [
+      ...legacyRedirects,
       {
         source: "/docs",
         destination: "https://api.mosqlimate.org/docs/",

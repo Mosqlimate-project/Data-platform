@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   Boxes,
@@ -50,9 +51,7 @@ function formatLabel(value: string | null) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export default async function OwnerPage({ params }: PageProps) {
-  const { owner } = await params;
-
+async function fetchOwner(owner: string): Promise<OwnerProfile> {
   const res = await fetch(
     `${NEXT_PUBLIC_FRONTEND_URL}/api/registry/model/${owner}/`,
     {
@@ -67,7 +66,22 @@ export default async function OwnerPage({ params }: PageProps) {
     notFound();
   }
 
-  const data: OwnerProfile = await res.json();
+  return res.json();
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { owner } = await params;
+  const data = await fetchOwner(owner);
+
+  return {
+    title: `${data.display_name} | Mosqlimate`,
+    description: `Models and repositories from ${data.display_name}.`,
+  };
+}
+
+export default async function OwnerPage({ params }: PageProps) {
+  const { owner } = await params;
+  const data = await fetchOwner(owner);
   const isOrganization = data.type === "organization";
   const repositories = data.repositories ?? [];
   const members = data.members ?? [];

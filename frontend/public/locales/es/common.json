@@ -1,4 +1,17 @@
 {
+  "errors": {
+    "not_found": {
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o ha sido movida.",
+      "back_home": "Volver al inicio"
+    },
+    "server_error": {
+      "title": "Algo salió mal",
+      "description": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+      "retry": "Intentar de nuevo",
+      "back_home": "Volver al inicio"
+    }
+  },
   "privacy": {
     "title": "Política de Privacidad – Mosqlimate",
     "effectiveDate": "Última actualización: 18 de marzo de 2026",
