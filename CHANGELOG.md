@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.16.3](https://github.com/Mosqlimate-project/Data-platform/compare/2.16.2...2.16.3) (2026-11-18)
+
+
+### Bug Fixes
+
+* **docs:** remove docs tab from documentation ([#573](https://github.com/Mosqlimate-project/Data-platform/issues/573)) ([4e20f35](https://github.com/Mosqlimate-project/Data-platform/commit/4e20f35fc93f5d30bc597c4f52a79e72463ee5b4))
+
 ## [2.16.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.16.1...2.16.2) (2026-11-18)
 
 
