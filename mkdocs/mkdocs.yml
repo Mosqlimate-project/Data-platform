@@ -150,5 +150,4 @@ nav:
     - "How to use": "vis/dashboard/how_to_use.md"
     - "Scores": "vis/dashboard/scores.md"
     - "Details": "vis/dashboard/details.md"
-  - "Docs": "https://api.mosqlimate.org/api/docs"
   - "Back to Platform": "https://mosqlimate.org/"
