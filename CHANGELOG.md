@@ -1,6 +1,13 @@
 Release Notes
 ---
 
+## [2.16.2](https://github.com/Mosqlimate-project/Data-platform/compare/2.16.1...2.16.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* **frontend:** redirect legacy locale URLs and add 404/500 pages ([#571](https://github.com/Mosqlimate-project/Data-platform/issues/571)) ([e040d9c](https://github.com/Mosqlimate-project/Data-platform/commit/e040d9c2a95b05da2a996918979f2ed67c17d87b))
+
 ## [2.16.1](https://github.com/Mosqlimate-project/Data-platform/compare/2.16.0...2.16.1) (2026-10-30)
 
 
