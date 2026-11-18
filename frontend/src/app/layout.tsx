@@ -8,11 +8,13 @@ import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
 import I18nProvider from '@/components/I18nProvider';
 import GlobalLoading from '@/components/GlobalLoading';
+import { NEXT_PUBLIC_FRONTEND_URL } from '@/lib/env';
 
 const inter = Inter({ subsets: ['latin'] });
 const isProd = process.env.NODE_ENV === 'production';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(NEXT_PUBLIC_FRONTEND_URL),
   title: "Mosqlimate",
   description: "",
   icons: "/favicon.ico",

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import OwnerPage from "./page";
+import OwnerPage, { generateMetadata } from "./page";
 
 const env = vi.hoisted(() => ({ url: "https://front.example", secret: "shh" }));
 vi.mock("@/lib/env", () => ({
@@ -163,6 +163,26 @@ describe("app/[owner]/page", () => {
     global.fetch = vi.fn().mockResolvedValue({ status: 404 }) as unknown as typeof fetch;
     await expect(
       OwnerPage({ params: Promise.resolve({ owner: "nobody" }) })
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(notFound).toHaveBeenCalled();
+  });
+
+  it("builds metadata from the owner profile", async () => {
+    mockFetch(userProfile);
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ owner: "alice" }),
+    });
+
+    expect(metadata.title).toBe("Alice | Mosqlimate");
+    expect(metadata.description).toBe("Models and repositories from Alice.");
+  });
+
+  it("calls notFound from generateMetadata when the owner does not exist", async () => {
+    global.fetch = vi.fn().mockResolvedValue({ status: 404 }) as unknown as typeof fetch;
+
+    await expect(
+      generateMetadata({ params: Promise.resolve({ owner: "nobody" }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
     expect(notFound).toHaveBeenCalled();
   });
